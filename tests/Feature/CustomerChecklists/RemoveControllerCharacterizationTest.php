@@ -306,21 +306,19 @@ class RemoveControllerCharacterizationTest extends TestCase
         $this->assertEquals(25.00, (float) $orderProduct->total_charge);
     }
 
-    // ── BUG-3 (pre-existing, not fixed by this PR): soft-deleting checklist ──
-    // questions leaves their child answer rows fully live — no cascading soft-delete
-    // exists. See PHASE3_IMPLEMENTATION_PLAN.md BUG-3; a future fix should change this
-    // exact assertion (answers should be soft-deleted alongside their parent question).
+    // ── BUG-3 (fixed by P3-12): soft-deleting checklist questions now soft- ──
+    // deletes their child answer rows in the same transaction, so no answer
+    // survives live under a parent no longer in the active (non-trashed)
+    // checklist. See PHASE3_IMPLEMENTATION_PLAN.md BUG-3 and
+    // docs/checklist-system-audit/P3_12_BUG3_SOFT_DELETE_CHECKLIST_ANSWERS.md.
 
-    public function test_bug3_soft_deleting_checklist_questions_leaves_answer_rows_live(): void
+    /**
+     * Builds one checklist question with one answer on the given order product.
+     *
+     * @return array{0: \App\Models\Orders\OrderProductChecklistQuestion, 1: \App\Models\Orders\OrderProductChecklistQuestionAnswers}
+     */
+    private function makeChecklistQuestionWithAnswer(OrderProduct $orderProduct, bool $isDeliveryAnswer = true): array
     {
-        $equipment = Equipment::create([
-            'equipment_name' => 'Test Excavator',
-            'equipment_id'   => 'EQP-TEST-' . uniqid(),
-            'brand'          => 'TestBrand',
-            'current_status' => 'rented',
-        ]);
-        $orderProduct = $this->makeOrderProduct($equipment->id);
-
         $category = CustomerAdminCategory::create(['category_name' => 'Test Category']);
         $question = CustomerAdminQuestion::create([
             'question_name'          => 'Was it damaged?',
@@ -335,18 +333,32 @@ class RemoveControllerCharacterizationTest extends TestCase
         ]);
 
         $checklistQuestion = $orderProduct->checklistQuestions()->create([
-            'order_id'      => $this->order->id,
+            'order_id'      => $orderProduct->order_id,
             'question_id'   => $question->id,
             'question_name' => $question->question_name,
             'index_number'  => 1,
         ]);
         $checklistAnswer = $checklistQuestion->answers()->create([
-            'order_id'     => $this->order->id,
-            'question_id'  => $question->id,
-            'answer_id'    => $masterAnswer->id,
-            'index_number' => 1,
-            'is_delivery_answer' => true,
+            'order_id'           => $orderProduct->order_id,
+            'question_id'        => $question->id,
+            'answer_id'          => $masterAnswer->id,
+            'index_number'       => 1,
+            'is_delivery_answer' => $isDeliveryAnswer,
         ]);
+
+        return [$checklistQuestion, $checklistAnswer];
+    }
+
+    public function test_bug3_soft_deleting_checklist_questions_also_soft_deletes_their_answers(): void
+    {
+        $equipment = Equipment::create([
+            'equipment_name' => 'Test Excavator',
+            'equipment_id'   => 'EQP-TEST-' . uniqid(),
+            'brand'          => 'TestBrand',
+            'current_status' => 'rented',
+        ]);
+        $orderProduct = $this->makeOrderProduct($equipment->id);
+        [$checklistQuestion, $checklistAnswer] = $this->makeChecklistQuestionWithAnswer($orderProduct);
 
         $this->callAs('POST', 'customer-checklists/remove', [
             'order_unique_id' => $this->order->unique_id,
@@ -356,13 +368,80 @@ class RemoveControllerCharacterizationTest extends TestCase
         $this->assertNull($orderProduct->checklistQuestions()->find($checklistQuestion->id));
         $this->assertNotNull($orderProduct->checklistQuestions()->withTrashed()->find($checklistQuestion->id));
 
-        // ...but its child answer row is still fully live, still flagged as a selected
-        // delivery answer, under a parent no longer in the active checklist. This is
-        // BUG-3's documented orphaned-row gap, pinned as-is.
-        $liveAnswer = $checklistAnswer->fresh();
-        $this->assertNotNull($liveAnswer);
-        $this->assertNull($liveAnswer->deleted_at);
-        $this->assertTrue((bool) $liveAnswer->is_delivery_answer);
+        // ...and its child answer row is now soft-deleted alongside it — excluded from a
+        // default query, but still recoverable via withTrashed(), matching the parent's
+        // own soft-delete semantics exactly (no hard delete anywhere). This is BUG-3's fix.
+        $this->assertNull(
+            \App\Models\Orders\OrderProductChecklistQuestionAnswers::find($checklistAnswer->id)
+        );
+        $trashedAnswer = \App\Models\Orders\OrderProductChecklistQuestionAnswers::withTrashed()->find($checklistAnswer->id);
+        $this->assertNotNull($trashedAnswer);
+        $this->assertNotNull($trashedAnswer->deleted_at);
+        // is_delivery_answer is untouched by the soft delete — only deleted_at changes.
+        $this->assertTrue((bool) $trashedAnswer->is_delivery_answer);
+    }
+
+    public function test_bug3_no_active_answers_remain_after_removal_with_multiple_questions(): void
+    {
+        $equipment = Equipment::create([
+            'equipment_name' => 'Test Excavator',
+            'equipment_id'   => 'EQP-TEST-' . uniqid(),
+            'brand'          => 'TestBrand',
+            'current_status' => 'rented',
+        ]);
+        $orderProduct = $this->makeOrderProduct($equipment->id);
+        [, $answerOne] = $this->makeChecklistQuestionWithAnswer($orderProduct);
+        [, $answerTwo] = $this->makeChecklistQuestionWithAnswer($orderProduct);
+
+        $this->callAs('POST', 'customer-checklists/remove', [
+            'order_unique_id' => $this->order->unique_id,
+        ])->assertOk()->assertJson(['success' => true]);
+
+        $this->assertSame(
+            0,
+            \App\Models\Orders\OrderProductChecklistQuestionAnswers::whereIn('id', [$answerOne->id, $answerTwo->id])->count()
+        );
+        $this->assertSame(
+            2,
+            \App\Models\Orders\OrderProductChecklistQuestionAnswers::withTrashed()
+                ->whereIn('id', [$answerOne->id, $answerTwo->id])
+                ->whereNotNull('deleted_at')
+                ->count()
+        );
+    }
+
+    public function test_bug3_removing_one_order_products_checklist_does_not_affect_another_order_products_answers(): void
+    {
+        $equipmentA = Equipment::create([
+            'equipment_name' => 'Excavator A',
+            'equipment_id'   => 'EQP-TEST-' . uniqid(),
+            'brand'          => 'TestBrand',
+            'current_status' => 'rented',
+        ]);
+        $equipmentB = Equipment::create([
+            'equipment_name' => 'Excavator B',
+            'equipment_id'   => 'EQP-TEST-' . uniqid(),
+            'brand'          => 'TestBrand',
+            'current_status' => 'rented',
+        ]);
+        $orderProductA = $this->makeOrderProduct($equipmentA->id);
+        $orderProductB = $this->makeOrderProduct($equipmentB->id);
+        [, $answerA] = $this->makeChecklistQuestionWithAnswer($orderProductA);
+
+        $otherOrder = Order::create([
+            'order_date'    => now()->format('Y-m-d'),
+            'customer_name' => 'Other Customer',
+        ]);
+        $orderProductB->update(['order_id' => $otherOrder->id]);
+        [, $answerB] = $this->makeChecklistQuestionWithAnswer($orderProductB->fresh());
+
+        // Remove only $this->order's checklist (order A) — order B is untouched.
+        $this->callAs('POST', 'customer-checklists/remove', [
+            'order_unique_id' => $this->order->unique_id,
+        ])->assertOk()->assertJson(['success' => true]);
+
+        $this->assertNull(\App\Models\Orders\OrderProductChecklistQuestionAnswers::find($answerA->id));
+        $this->assertNotNull(\App\Models\Orders\OrderProductChecklistQuestionAnswers::find($answerB->id));
     }
 
     // ── Equipment status log recorded via markAvailableOnChecklistRemove ────

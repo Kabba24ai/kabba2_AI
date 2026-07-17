@@ -16,6 +16,7 @@ use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\RemoveRequest;
 // Model
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\Order;
+use App\Models\Orders\OrderProductChecklistQuestionAnswers;
 
 class RemoveController extends BaseController
 {
@@ -96,6 +97,16 @@ class RemoveController extends BaseController
                         auth('api_user')->id()
                     );
                 }
+
+                // BUG-3 fix: soft-delete every child answer row alongside its parent
+                // question row, in the same transaction as the question soft-delete
+                // below. The question IDs are read from the already eager-loaded
+                // checklistQuestions collection (loaded before any mutation in this
+                // request), so this captures exactly the answers belonging to the
+                // questions about to be removed — not a fresh, potentially-altered
+                // query. See docs/checklist-system-audit/P3_12_BUG3_SOFT_DELETE_CHECKLIST_ANSWERS.md.
+                $answerIds = $orderProduct->checklistQuestions->pluck('answers')->flatten()->pluck('id');
+                OrderProductChecklistQuestionAnswers::whereIn('id', $answerIds)->delete();
 
                 $orderProduct->checklistQuestions()->delete();
 

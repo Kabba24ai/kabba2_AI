@@ -13,6 +13,7 @@ use App\Events\Admin\Orders\OrderProductScheduleUpdated;
 // Models
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\Orders\OrderProduct;
+use App\Models\Orders\OrderProductChecklistQuestionAnswers;
 
 // Request
 use App\Http\Requests\Admin\OrderManagement\Orders\UpdateProductScheduleRequest;
@@ -206,6 +207,13 @@ class UpdateProductScheduleController extends Controller
                         EquipmentStatusLog::recordTransition($equipment->id, $beforeStatus, EquipmentCurrentStatus::Maintenance->value, $user->id);
                     }
 
+                    // BUG-3 (P3-12A) fix: soft-delete the child answer rows before their
+                    // parent questions — this is a pure removal with no rebuild, so without
+                    // this the answers would be permanently orphaned. See
+                    // docs/checklist-system-audit/P3_12A_BUG3_COMPLETE_SOFT_DELETE_CASCADE.md.
+                    $staleQuestionIds = $orderProduct->checklistQuestions()->pluck('id');
+                    OrderProductChecklistQuestionAnswers::whereIn('order_product_checklist_question_id', $staleQuestionIds)->delete();
+
                     $orderProduct->checklistQuestions()->delete();
                     $orderProduct->is_delivered = false;
                     $orderProduct->is_returned  = false;
@@ -246,6 +254,13 @@ class UpdateProductScheduleController extends Controller
                         $equipment->saveQuietly();
                         EquipmentStatusLog::recordTransition($equipment->id, $beforeStatus, EquipmentCurrentStatus::Available->value, $user->id);
                     }
+
+                    // BUG-3 (P3-12A) fix: soft-delete the child answer rows before their
+                    // parent questions — this is a pure removal with no rebuild, so without
+                    // this the answers would be permanently orphaned. See
+                    // docs/checklist-system-audit/P3_12A_BUG3_COMPLETE_SOFT_DELETE_CASCADE.md.
+                    $staleQuestionIds = $orderProduct->checklistQuestions()->pluck('id');
+                    OrderProductChecklistQuestionAnswers::whereIn('order_product_checklist_question_id', $staleQuestionIds)->delete();
 
                     $orderProduct->checklistQuestions()->delete();
                     $orderProduct->equipment_id = null;

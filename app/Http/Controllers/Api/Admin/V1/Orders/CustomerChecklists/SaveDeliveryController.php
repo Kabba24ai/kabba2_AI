@@ -18,6 +18,7 @@ use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\SaveDeliveryRequest
 // Model
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
+use App\Models\Orders\OrderProductChecklistQuestionAnswers;
 
 class SaveDeliveryController extends BaseController
 {
@@ -118,6 +119,17 @@ class SaveDeliveryController extends BaseController
 
 
                 // Remove any stale checklist questions/answers from a previous equipment assignment
+                //
+                // BUG-3 (P3-12A) fix: soft-delete the stale answer rows FIRST, before the
+                // parent questions — a bulk relation delete() fires no per-row events, so
+                // without this the old answers would survive live under a parent no longer
+                // in the active checklist, exactly as BUG-3 described. The question ids are
+                // read via a fresh query (not the possibly-loaded relation) so this is
+                // correct regardless of what was eager-loaded earlier in the request. See
+                // docs/checklist-system-audit/P3_12A_BUG3_COMPLETE_SOFT_DELETE_CASCADE.md.
+                $staleQuestionIds = $orderProduct->checklistQuestions()->pluck('id');
+                OrderProductChecklistQuestionAnswers::whereIn('order_product_checklist_question_id', $staleQuestionIds)->delete();
+
                 $orderProduct->checklistQuestions()->delete();
                 if ($orderProduct->relationLoaded('checklistQuestions')) {
                     $orderProduct->setRelation('checklistQuestions', collect());

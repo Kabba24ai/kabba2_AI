@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\OrderManagement\Orders\AssignEquipmentRequest;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
+use App\Models\Orders\OrderProductChecklistQuestionAnswers;
 use Illuminate\Http\JsonResponse;
 
 class AssignEquipmentController extends Controller
@@ -68,6 +69,15 @@ class AssignEquipmentController extends Controller
         $orderProduct->softAssignment()->delete();
 
         // Remove any stale checklist questions/answers from a previous equipment assignment
+        //
+        // BUG-3 (P3-12A) fix: soft-delete the stale answer rows before the parent
+        // questions, mirroring RemoveController's fix — a bulk relation delete() fires no
+        // per-row events, so without this the old answers would survive live under a
+        // parent no longer in the active checklist. See
+        // docs/checklist-system-audit/P3_12A_BUG3_COMPLETE_SOFT_DELETE_CASCADE.md.
+        $staleQuestionIds = $orderProduct->checklistQuestions()->pluck('id');
+        OrderProductChecklistQuestionAnswers::whereIn('order_product_checklist_question_id', $staleQuestionIds)->delete();
+
         $orderProduct->checklistQuestions()->delete();
         if ($orderProduct->relationLoaded('checklistQuestions')) {
             $orderProduct->setRelation('checklistQuestions', collect());

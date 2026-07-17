@@ -464,6 +464,64 @@ class SaveDeliveryControllerCharacterizationTest extends TestCase
         $this->assertTrue($equipment->current_status->isRented());
     }
 
+    // ── BUG-3 (fixed by P3-12A): the destructive checklist rebuild on a ──
+    // legitimate new delivery cycle now soft-deletes the PREVIOUS cycle's answer
+    // rows before replacing the parent questions, instead of leaving them live
+    // and orphaned under a soft-deleted question. See
+    // docs/checklist-system-audit/P3_12A_BUG3_COMPLETE_SOFT_DELETE_CASCADE.md.
+
+    public function test_bug3_stale_answers_are_soft_deleted_before_checklist_rebuild_on_a_new_cycle(): void
+    {
+        [$equipment, $question, $answer] = $this->makeEquipmentWithTemplate();
+        $orderProduct = $this->makeOrderProduct();
+
+        $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'checklist' => [
+                ['question_unique_id' => $question->unique_id, 'answer_unique_id' => $answer->unique_id],
+            ],
+        ])->assertOk();
+
+        $firstBatchAnswerIds = $orderProduct->checklistQuestions()
+            ->with('answers')
+            ->get()
+            ->pluck('answers')
+            ->flatten()
+            ->pluck('id');
+        $this->assertNotEmpty($firstBatchAnswerIds);
+
+        // Close the cycle with a genuine return, then redeliver — the legitimate new-cycle
+        // path this test targets.
+        $equipment->current_status = 'maintenance';
+        $equipment->saveQuietly();
+        $orderProduct->update(['is_returned' => true]);
+
+        $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'checklist' => [
+                ['question_unique_id' => $question->unique_id, 'answer_unique_id' => $answer->unique_id],
+            ],
+        ])->assertOk()->assertJson(['success' => true]);
+
+        // The first cycle's answer rows are now soft-deleted (excluded from a default
+        // query), not left live and orphaned under their (already soft-deleted) question.
+        $this->assertSame(
+            0,
+            \App\Models\Orders\OrderProductChecklistQuestionAnswers::whereIn('id', $firstBatchAnswerIds)->count()
+        );
+        $this->assertSame(
+            $firstBatchAnswerIds->count(),
+            \App\Models\Orders\OrderProductChecklistQuestionAnswers::withTrashed()
+                ->whereIn('id', $firstBatchAnswerIds)
+                ->whereNotNull('deleted_at')
+                ->count()
+        );
+    }
+
     // ── Other current, unremarkable-but-load-bearing behavior ───────────────
 
     public function test_signature_media_upload_populates_delivery_signature_media_id(): void

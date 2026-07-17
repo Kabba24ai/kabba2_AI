@@ -4,9 +4,12 @@ namespace Tests\Feature\CustomerChecklists;
 
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
 use App\Events\Admin\Orders\OrderProductDriverChecklistUpdated;
+use App\Models\ChecklistManagement\ChecklistMaster\ChecklistMaster;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminCategory;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestion;
 use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminQuestionAnswer;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplate;
+use App\Models\ChecklistManagement\CustomerAdmin\CustomerAdminTemplateQuestion;
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
 use App\Models\Customers\Customer;
 use App\Models\Iam\Personnel\User;
@@ -14,6 +17,7 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\BillingCharge;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
+use App\Models\Orders\OrderProductChecklistQuestionAnswers;
 use App\Models\ProductManagement\Product;
 use App\Models\Stores\Store;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -185,6 +189,79 @@ class ChecklistTransactionTest extends TestCase
         $this->assertNull($this->orderProduct->equipment_id);
         $this->assertTrue($this->equipment->current_status->isAvailable());
         $this->assertEquals(0, EquipmentStatusLog::where('equipment_id', $this->equipment->id)->count());
+    }
+
+    // ── BUG-3 (P3-12A): the cascade fix's soft-deletes must roll back too ──
+
+    public function test_forced_listener_failure_rolls_back_the_bug3_answer_cascade_too(): void
+    {
+        // Build a real template chain so a second delivery cycle actually triggers the
+        // destructive-rebuild-with-cascade code path (not just the simple happy path).
+        $category = CustomerAdminCategory::create(['category_name' => 'Test Category']);
+        $question = CustomerAdminQuestion::create([
+            'question_name'          => 'Was it damaged?',
+            'category_id'            => $category->id,
+            'question_delivery_text' => 'Any damage at delivery?',
+            'question_return_text'   => 'Any damage at return?',
+        ]);
+        $answer = CustomerAdminQuestionAnswer::create([
+            'answer_delivery_text' => 'No',
+            'answer_return_text'   => 'No',
+            'question_id'          => $question->id,
+        ]);
+        $template = CustomerAdminTemplate::create(['template_name' => 'Test Template', 'active_template' => true]);
+        CustomerAdminTemplateQuestion::create(['template_id' => $template->id, 'question_id' => $question->id, 'index_number' => 1]);
+        $checklistMaster = ChecklistMaster::create([
+            'checklist_system_name'      => 'Test Checklist Master',
+            'customer_admin_template_id' => $template->id,
+        ]);
+        $this->equipment->update(['checklist_master_id' => $checklistMaster->id]);
+
+        // First delivery cycle: creates the question/answer rows that must survive a
+        // later rollback.
+        $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $this->orderProduct->unique_id,
+            'equipment_unique_id'     => $this->equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'checklist' => [
+                ['question_unique_id' => $question->unique_id, 'answer_unique_id' => $answer->unique_id],
+            ],
+        ])->assertOk();
+
+        $firstCycleAnswerIds = OrderProductChecklistQuestionAnswers::pluck('id');
+        $this->assertNotEmpty($firstCycleAnswerIds);
+
+        // Close the cycle with a genuine return, then force the second delivery's event
+        // listener to throw — this must roll back the new cascade's answer soft-deletes
+        // (and the question soft-delete, and the checklist rebuild) exactly as it already
+        // rolls back everything else in this method.
+        $this->equipment->current_status = 'maintenance';
+        $this->equipment->saveQuietly();
+        $this->orderProduct->update(['is_returned' => true]);
+
+        Event::listen(OrderCustomerChecklistEvent::class, function () {
+            throw new \RuntimeException('Forced test failure for P3-12A rollback test');
+        });
+
+        $response = $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $this->orderProduct->unique_id,
+            'equipment_unique_id'     => $this->equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'checklist' => [
+                ['question_unique_id' => $question->unique_id, 'answer_unique_id' => $answer->unique_id],
+            ],
+        ]);
+
+        $response->assertStatus(500);
+
+        // The first cycle's answers must still be live and unmodified — the cascade's
+        // soft-delete was rolled back along with everything else in the failed request.
+        $this->assertEquals(
+            $firstCycleAnswerIds->count(),
+            OrderProductChecklistQuestionAnswers::whereIn('id', $firstCycleAnswerIds)->whereNull('deleted_at')->count()
+        );
+        // And no new (second-cycle) answer rows were left behind either.
+        $this->assertEquals($firstCycleAnswerIds->count(), OrderProductChecklistQuestionAnswers::count());
     }
 
     public function test_forced_listener_failure_rolls_back_return_checklist_order_product_and_equipment_status(): void

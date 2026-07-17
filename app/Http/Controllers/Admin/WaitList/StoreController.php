@@ -34,8 +34,11 @@ class StoreController extends Controller
             'created_by'          => auth()->id(),
         ]);
 
-        // The selected acceptable products — a snapshot owned by this record
-        $waitList->selectedProducts()->attach(array_unique($validated['product_ids']));
+        // The selected acceptable equipment units (individual assets by
+        // Equipment ID) — a snapshot owned by this record
+        foreach (array_unique($validated['equipment_ids']) as $equipmentId) {
+            $waitList->items()->create(['equipment_id' => $equipmentId]);
+        }
 
         flash('Wait list record created for ' . $waitList->customer_name . '.')->success();
 

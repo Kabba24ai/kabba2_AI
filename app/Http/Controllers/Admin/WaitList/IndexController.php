@@ -69,14 +69,14 @@ class IndexController extends Controller
             ->orderByDesc('demand')->limit(3)
             ->with('category:id,title')->get();
 
-        // Most requested acceptable PRODUCTS across live demand (unified
-        // workflow; migrated legacy records carry product rows too)
-        $topEquipment = DB::table('equipment_wait_list_products')
-            ->join('equipment_wait_lists', 'equipment_wait_lists.id', '=', 'equipment_wait_list_products.equipment_wait_list_id')
-            ->join('products', 'products.id', '=', 'equipment_wait_list_products.product_id')
+        // Most requested individual equipment UNITS across live demand
+        // (canonical unit selections; identified by Equipment ID)
+        $topEquipment = DB::table('equipment_wait_list_items')
+            ->join('equipment_wait_lists', 'equipment_wait_lists.id', '=', 'equipment_wait_list_items.equipment_wait_list_id')
+            ->join('equipment', 'equipment.id', '=', 'equipment_wait_list_items.equipment_id')
             ->whereIn('equipment_wait_lists.status', WaitListStatus::waiting())
-            ->select('products.id', 'products.product_name as equipment_name', DB::raw('COUNT(*) as demand'))
-            ->groupBy('products.id', 'products.product_name')
+            ->select('equipment.id', DB::raw("CONCAT(COALESCE(equipment.equipment_id, ''), ' — ', equipment.equipment_name) as equipment_name"), DB::raw('COUNT(*) as demand'))
+            ->groupBy('equipment.id', 'equipment.equipment_id', 'equipment.equipment_name')
             ->orderByDesc('demand')->limit(3)->get();
 
         $converted30 = EquipmentWaitList::where('status', WaitListStatus::Converted->value)

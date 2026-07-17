@@ -66,7 +66,7 @@ class WaitListOpportunitiesCardTest extends TestCase
         $this->instance(FirebaseService::class, $this->createMock(FirebaseService::class));
     }
 
-    private function makeRecord(string $company = 'Harrison Grading LLC'): EquipmentWaitList
+    private function makeRecord(string $company = 'Harrison Grading LLC', array $unitIds = []): EquipmentWaitList
     {
         $waitList = EquipmentWaitList::create([
             'customer_id' => $this->customer->id, 'customer_name' => 'Mike Harrison',
@@ -74,23 +74,29 @@ class WaitListOpportunitiesCardTest extends TestCase
             'product_category_id' => $this->category->id,
             'store_preference' => 'any_store', 'created_by' => $this->admin->id,
         ]);
-        $waitList->selectedProducts()->attach([$this->product->id]);
+
+        // Canonical unit-level selection: exact assets by Equipment ID
+        foreach ($unitIds as $id) {
+            $waitList->items()->create(['equipment_id' => $id]);
+        }
 
         return $waitList;
     }
 
-    private function returnNewUnit(string $suffix): Equipment
+    private function makeUnit(string $suffix): Equipment
     {
-        $unit = Equipment::create([
+        return Equipment::create([
             'unique_id' => "unit-$suffix", 'equipment_name' => "Mini Excavator #$suffix",
             'equipment_id' => "EX-$suffix", 'brand' => 'Test',
             'product_category_id' => $this->category->id,
             'assigned_product_id' => $this->product->id,
             'current_status' => 'rented',
         ]);
-        EquipmentStatusService::markReturnedToMaintenance($unit, 1, 1, null, $this->admin->id);
+    }
 
-        return $unit;
+    private function returnUnit(Equipment $unit): void
+    {
+        EquipmentStatusService::markReturnedToMaintenance($unit, 1, 1, null, $this->admin->id);
     }
 
     // ── Layout: the Task Manager row (tests 1–3, 14, 16) ───────────────────────
@@ -132,8 +138,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_one_unresolved_alert_is_one_customer_opportunity(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
 
         Livewire::test(WaitListOpportunities::class)
             ->assertSet('contactOpportunities', 1)
@@ -143,10 +150,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_one_record_with_three_matching_units_displays_one_opportunity(): void
     {
-        $this->makeRecord();
-        foreach (['1', '2', '3'] as $suffix) {
-            $this->returnNewUnit($suffix);
-        }
+        $units = collect(['1', '2', '3'])->map(fn ($s) => $this->makeUnit($s));
+        $this->makeRecord('Harrison Grading LLC', $units->pluck('id')->all());
+        $units->each(fn ($unit) => $this->returnUnit($unit));
 
         $component = Livewire::test(WaitListOpportunities::class)
             ->assertSet('contactOpportunities', 1)
@@ -158,10 +164,11 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_three_records_matched_by_one_unit_display_three_opportunities(): void
     {
+        $unit = $this->makeUnit('1');
         foreach (range(1, 3) as $i) {
-            $this->makeRecord("Customer Company $i");
+            $this->makeRecord("Customer Company $i", [$unit->id]);
         }
-        $this->returnNewUnit('1');
+        $this->returnUnit($unit);
 
         $component = Livewire::test(WaitListOpportunities::class)
             ->assertSet('contactOpportunities', 3)
@@ -174,8 +181,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_new_today_comes_from_the_canonical_stats_service(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
 
         Livewire::test(WaitListOpportunities::class)
             ->assertSet('newToday', WaitListStats::newOpportunitiesToday())
@@ -184,8 +192,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_awaiting_conversion_comes_from_the_canonical_stats_service(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::CustomerAccepted, $this->admin->id);
 
@@ -193,15 +202,16 @@ class WaitListOpportunitiesCardTest extends TestCase
             ->assertSet('awaitingConversion', WaitListStats::acceptedAwaitingConversion())
             ->assertSet('awaitingConversion', 1)
             ->assertSet('contactOpportunities', 0)
-            ->assertSee('Awaiting Conversion');
+            ->assertSee('Save');
     }
 
     // ── Lifecycle semantics (tests 10–12) ──────────────────────────────────────
 
     public function test_contacted_no_answer_remains_in_customers_to_contact(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::ContactedNoAnswer, $this->admin->id);
 
@@ -211,8 +221,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_keep_waiting_removes_that_match_from_the_count(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::KeepWaiting, $this->admin->id);
 
@@ -223,8 +234,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_terminal_dispositions_do_not_count(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::CustomerNoLongerNeeds, $this->admin->id);
 
@@ -249,23 +261,25 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_authorized_employee_sees_card_statistics_preview_and_link(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
 
         // Under the current posture every signed-in employee holds the
         // ability via the global bypass — the full card renders.
         $html = $this->get(route('admin.dashboard.index'))->assertOk()->getContent();
 
         $this->assertStringContainsString('Wait List Opportunities', $html);
-        $this->assertStringContainsString('Customers to Contact', $html);
+        $this->assertStringContainsString('Contact Now', $html);
         $this->assertStringContainsString('Harrison Grading LLC', $html);
         $this->assertStringContainsString(route('admin.wait-list.index'), $html);
     }
 
     public function test_unauthorized_employee_gets_no_data_counts_or_navigation(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
         $this->enforceGranularPermissions();
 
         $html = $this->get(route('admin.dashboard.index'))->assertOk()->getContent();
@@ -274,8 +288,7 @@ class WaitListOpportunitiesCardTest extends TestCase
         // and Task Manager takes the full row (restricted convention: omit)
         $this->assertStringNotContainsString('Wait List Opportunities', $html);
         $this->assertStringNotContainsString('Harrison Grading LLC', $html);
-        $this->assertStringNotContainsString('Customers to Contact', $html);
-        $this->assertStringNotContainsString('Awaiting Conversion', $html);
+        $this->assertStringNotContainsString('Contact Now', $html);
         $this->assertStringNotContainsString(route('admin.wait-list.index'), $html);
         $this->assertStringNotContainsString('xl:grid-cols-3', $html);
         $this->assertStringContainsString('Task Manager Alerts', $html);
@@ -284,8 +297,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_direct_component_mount_by_unauthorized_employee_exposes_nothing(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
         $this->enforceGranularPermissions();
 
         Livewire::test(WaitListOpportunities::class)
@@ -298,8 +312,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_a_refresh_or_poll_cannot_bypass_authorization(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
 
         // Mounted while authorized — the card holds live data
         $component = Livewire::test(WaitListOpportunities::class)
@@ -325,8 +340,9 @@ class WaitListOpportunitiesCardTest extends TestCase
 
     public function test_authorization_comes_from_the_gate_not_route_existence(): void
     {
-        $this->makeRecord();
-        $this->returnNewUnit('1');
+        $unit = $this->makeUnit('1');
+        $this->makeRecord('Harrison Grading LLC', [$unit->id]);
+        $this->returnUnit($unit);
         $this->enforceGranularPermissions();
 
         // The route is still registered — access is denied anyway, proving

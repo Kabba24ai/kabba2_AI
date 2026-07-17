@@ -14,18 +14,17 @@
     $waitListDemand = EquipmentWaitList::waiting()
         ->where(function ($q) use ($bannerEquipment, $bannerCategoryId) {
             $applied = false;
-            if ($bannerEquipment?->assigned_product_id) {
-                // Unified workflow: the unit's product is a selected acceptable product
-                $q->orWhereHas('selectedProducts',
-                    fn ($p) => $p->where('products.id', $bannerEquipment->assigned_product_id));
+            if ($bannerEquipment) {
+                // Canonical: this exact unit is among a record's selected units
+                $q->orWhereHas('items', fn ($i) => $i->where('equipment_id', $bannerEquipment->id));
                 $applied = true;
             }
-            if ($bannerEquipment) {
-                // Legacy specific-equipment records (un-migrated fallback)
+            if ($bannerEquipment?->assigned_product_id) {
+                // Product-era fallback records (no unit selections recorded)
                 $q->orWhere(fn ($w) => $w
-                    ->where('request_type', WaitListRequestType::SpecificEquipment->value)
-                    ->whereDoesntHave('selectedProducts')
-                    ->whereHas('items', fn ($i) => $i->where('equipment_id', $bannerEquipment->id)));
+                    ->whereDoesntHave('items')
+                    ->whereHas('selectedProducts',
+                        fn ($p) => $p->where('products.id', $bannerEquipment->assigned_product_id)));
                 $applied = true;
             }
             if ($bannerCategoryId) {

@@ -112,7 +112,7 @@ class EquipmentWaitListTest extends TestCase
         $this->post(route('admin.wait-list.store'), [
             'customer_id'         => $this->customer->id,
             'product_category_id' => $this->category->id,
-            'product_ids'         => [$this->product->id],
+            'equipment_ids'       => [$this->excavator->id],
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => WaitListReason::EquipmentFullyBooked->value,
             'priority_override'   => 2,
@@ -132,8 +132,8 @@ class EquipmentWaitListTest extends TestCase
             'created_by'    => $this->admin->id,
         ]);
 
-        $this->assertDatabaseHas('equipment_wait_list_products', [
-            'product_id' => $this->product->id,
+        $this->assertDatabaseHas('equipment_wait_list_items', [
+            'equipment_id' => $this->excavator->id,
         ]);
     }
 
@@ -142,7 +142,7 @@ class EquipmentWaitListTest extends TestCase
         $payload = fn (string $reason) => [
             'customer_id'         => $this->customer->id,
             'product_category_id' => $this->category->id,
-            'product_ids'         => [$this->product->id],
+            'equipment_ids'       => [$this->excavator->id],
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => $reason,
         ];
@@ -167,7 +167,7 @@ class EquipmentWaitListTest extends TestCase
         $payload = fn ($priority) => [
             'customer_id'         => $this->customer->id,
             'product_category_id' => $this->category->id,
-            'product_ids'         => [$this->product->id],
+            'equipment_ids'       => [$this->excavator->id],
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => WaitListReason::UnitDamaged->value,
             'priority_override'   => $priority,
@@ -193,54 +193,53 @@ class EquipmentWaitListTest extends TestCase
         $this->assertDatabaseHas('equipment_wait_lists', ['priority_override' => null]);
     }
 
-    public function test_blank_product_entries_are_dropped_not_rejected(): void
+    public function test_blank_unit_entries_are_dropped_not_rejected(): void
     {
-        $payload = fn (array $productIds) => [
+        $payload = fn (array $equipmentIds) => [
             'customer_id'         => $this->customer->id,
             'product_category_id' => $this->category->id,
-            'product_ids'         => $productIds,
+            'equipment_ids'       => $equipmentIds,
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => WaitListReason::RequestedSpecificUnit->value,
         ];
 
         // Blank entries in the checkbox array are dropped, not rejected
-        $this->post(route('admin.wait-list.store'), $payload([(string) $this->product->id, '', '']))
+        $this->post(route('admin.wait-list.store'), $payload([(string) $this->excavator->id, '', '']))
             ->assertSessionHasNoErrors()
             ->assertRedirect();
 
         $waitList = EquipmentWaitList::latest('id')->firstOrFail();
         $this->assertSame(
-            [$this->product->id],
-            $waitList->selectedProducts()->pluck('products.id')->all()
+            [$this->excavator->id],
+            $waitList->items()->pluck('equipment_id')->all()
         );
 
-        // All blank still fails the at-least-one-product requirement
+        // All blank still fails the at-least-one-unit requirement
         $this->post(route('admin.wait-list.store'), $payload(['', '', '']))
-            ->assertSessionHasErrors('product_ids');
+            ->assertSessionHasErrors('equipment_ids');
     }
 
     public function test_create_form_renders_the_unified_workflow_contract(): void
     {
         $skidCategory = ProductCategory::create(['title' => 'Skid Steers', 'status' => 'Published', 'sort_order' => 2]);
-        $skidProduct = \App\Models\ProductManagement\Product::create([
-            'unique_id'    => \Illuminate\Support\Str::uuid()->toString(),
-            'product_name' => 'Skid Steer S70',
-            'slug'         => 'skid-steer-s70',
-            'product_type' => 'Rental',
-            'status'       => 'Published',
+        $skidUnit = Equipment::create([
+            'unique_id' => 'test-skid', 'equipment_name' => 'Skid Steer S70',
+            'equipment_id' => 'SS-210', 'brand' => 'Test',
+            'product_category_id' => $skidCategory->id,
+            'current_status' => 'available', 'not_for_rent' => 0,
         ]);
-        $skidProduct->categories()->sync([$skidCategory->id]);
 
         $response = $this->get(route('admin.wait-list.create'))->assertOk()
-            // Unified form: one row, one category, product checklist
+            // Unified form: one row, one category, equipment-unit checklist
             ->assertSee('CRM Customer')
             ->assertSee('Equipment Category')
-            ->assertSee('Acceptable Equipment Products')
+            ->assertSee('Acceptable Equipment')
             ->assertSee('Select All')
             ->assertSee('No Priority Override')
             ->assertSee('Move to Position #1')
             ->assertSee('Move to Position #3')
-            // The branching pathways are gone
+            // The branching pathways and product terminology are gone
+            ->assertDontSee('Acceptable Equipment Products')
             ->assertDontSee('Equipment Request')
             ->assertDontSee('If Category Wait List')
             ->assertDontSee('If Specific Equipment Wait List')
@@ -249,16 +248,16 @@ class EquipmentWaitListTest extends TestCase
 
         $content = $response->getContent();
 
-        // The embedded product data maps every Rental product to its
-        // categories — the checklist renders only the selected category's
-        // products and clears selections when the category changes
+        // The embedded data maps every ACTUAL inventory unit (Equipment ID
+        // prominent) to its category — the checklist renders only the
+        // selected category's units and clears selections on change
         $this->assertStringContainsString(sprintf(
-            '"id":%d,"name":"Skid Steer S70","category_ids":[%d]',
-            $skidProduct->id, $skidCategory->id
+            '"id":%d,"code":"SS-210","name":"Skid Steer S70","category_id":%d',
+            $skidUnit->id, $skidCategory->id
         ), $content);
         $this->assertStringContainsString(sprintf(
-            '"id":%d,"name":"Mini Excavator 3.5T","category_ids":[%d]',
-            $this->product->id, $this->category->id
+            '"id":%d,"code":"EX-100","name":"Mini Excavator 3.5T","category_id":%d',
+            $this->excavator->id, $this->category->id
         ), $content);
     }
 
@@ -276,52 +275,46 @@ class EquipmentWaitListTest extends TestCase
         );
     }
 
-    public function test_product_selection_is_structured_only_with_no_upper_limit(): void
+    public function test_unit_selection_is_structured_only_with_no_upper_limit(): void
     {
-        // Five more products in the category — well past the old 3-choice cap
-        $extra = collect(range(1, 5))->map(function ($i) {
-            $product = \App\Models\ProductManagement\Product::create([
-                'unique_id'    => \Illuminate\Support\Str::uuid()->toString(),
-                'product_name' => "Excavator Variant $i",
-                'slug'         => "excavator-variant-$i",
-                'product_type' => 'Rental',
-                'status'       => 'Published',
-            ]);
-            $product->categories()->sync([$this->category->id]);
+        // Five more units in the category — well past the old 3-choice cap
+        $extra = collect(range(1, 5))->map(fn ($i) => Equipment::create([
+            'unique_id' => "test-eq-$i", 'equipment_name' => 'Mini Excavator 3.5T',
+            'equipment_id' => "EX-10$i", 'brand' => 'Test',
+            'product_category_id' => $this->category->id,
+            'current_status' => 'available', 'not_for_rent' => 0,
+        ]));
 
-            return $product;
-        });
-
-        // Nonexistent CRM customer / product → rejected (no free-form entry)
+        // Nonexistent CRM customer / unit → rejected (no free-form entry)
         $this->post(route('admin.wait-list.store'), [
             'customer_id'         => 999999,
             'product_category_id' => $this->category->id,
-            'product_ids'         => [999999],
+            'equipment_ids'       => [999999],
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => WaitListReason::EquipmentFullyBooked->value,
-        ])->assertSessionHasErrors(['customer_id', 'product_ids.0']);
+        ])->assertSessionHasErrors(['customer_id', 'equipment_ids.0']);
 
         // Specific store still requires a store
         $this->post(route('admin.wait-list.store'), [
             'customer_id'         => $this->customer->id,
             'product_category_id' => $this->category->id,
-            'product_ids'         => [$this->product->id],
+            'equipment_ids'       => [$this->excavator->id],
             'store_preference'    => WaitListStorePreference::SpecificStore->value,
             'store_id'            => null,
             'reason'              => WaitListReason::RequestedSpecificUnit->value,
         ])->assertSessionHasErrors('store_id');
 
-        // Six products on one record → accepted; the old max:3 is gone
-        $allIds = $extra->pluck('id')->push($this->product->id)->all();
+        // Six units on one record → accepted; the old max:3 is gone
+        $allIds = $extra->pluck('id')->push($this->excavator->id)->all();
         $this->post(route('admin.wait-list.store'), [
             'customer_id'         => $this->customer->id,
             'product_category_id' => $this->category->id,
-            'product_ids'         => $allIds,
+            'equipment_ids'       => $allIds,
             'store_preference'    => WaitListStorePreference::AnyStore->value,
             'reason'              => WaitListReason::RequestedSpecificUnit->value,
         ])->assertRedirect();
 
-        $this->assertDatabaseCount('equipment_wait_list_products', 6);
+        $this->assertDatabaseCount('equipment_wait_list_items', 6);
     }
 
     // ── Index dashboard ────────────────────────────────────────────

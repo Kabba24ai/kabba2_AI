@@ -4,14 +4,16 @@ namespace App\Http\Requests\Admin\WaitList;
 
 use App\Enums\WaitList\WaitListReason;
 use App\Enums\WaitList\WaitListStorePreference;
-use App\Models\ProductManagement\ProductCategoryChild;
+use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
  * Unified wait list creation: one customer, one category, and one or more
- * selected acceptable products FROM that category. Products from any other
- * category are rejected server-side regardless of what the form submits.
+ * selected acceptable EQUIPMENT INVENTORY UNITS from that category —
+ * individual assets by Equipment ID, never catalog products. Units from
+ * any other category are rejected server-side regardless of what the form
+ * submits, and there is no upper limit on how many units may be selected.
  */
 class SaveWaitListRequest extends FormRequest
 {
@@ -22,13 +24,13 @@ class SaveWaitListRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (is_array($this->input('product_ids'))) {
+        if (is_array($this->input('equipment_ids'))) {
             $ids = array_values(array_filter(
-                $this->input('product_ids'),
+                $this->input('equipment_ids'),
                 fn ($id) => $id !== null && $id !== ''
             ));
 
-            $this->merge(['product_ids' => $ids !== [] ? $ids : null]);
+            $this->merge(['equipment_ids' => $ids !== [] ? $ids : null]);
         }
     }
 
@@ -38,9 +40,9 @@ class SaveWaitListRequest extends FormRequest
             // Structured system data only — no free-form customer/equipment entry
             'customer_id'         => ['required', 'exists:customers,id'],
             'product_category_id' => ['required', 'exists:product_categories,id'],
-            // The selected acceptable products — at least one, no upper limit
-            'product_ids'         => ['required', 'array', 'min:1'],
-            'product_ids.*'       => ['integer', 'distinct', 'exists:products,id'],
+            // The selected acceptable units — at least one, no upper limit
+            'equipment_ids'       => ['required', 'array', 'min:1'],
+            'equipment_ids.*'     => ['integer', 'distinct', 'exists:equipment,id'],
             'store_preference'    => ['required', Rule::enum(WaitListStorePreference::class)],
             'store_id'            => [
                 Rule::requiredIf(fn () => in_array($this->input('store_preference'), [
@@ -61,23 +63,21 @@ class SaveWaitListRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $categoryId = $this->input('product_category_id');
-            $productIds = (array) $this->input('product_ids', []);
+            $equipmentIds = (array) $this->input('equipment_ids', []);
 
-            if (! $categoryId || $productIds === []) {
+            if (! $categoryId || $equipmentIds === []) {
                 return;
             }
 
-            $inCategory = ProductCategoryChild::query()
+            $inCategory = Equipment::query()
                 ->where('product_category_id', $categoryId)
-                ->whereIn('product_id', $productIds)
-                ->distinct()
-                ->pluck('product_id')
-                ->all();
+                ->whereIn('id', $equipmentIds)
+                ->count();
 
-            if (count($inCategory) !== count(array_unique($productIds))) {
+            if ($inCategory !== count(array_unique($equipmentIds))) {
                 $validator->errors()->add(
-                    'product_ids',
-                    'One or more selected products do not belong to the selected category.',
+                    'equipment_ids',
+                    'One or more selected equipment units do not belong to the selected category.',
                 );
             }
         });
@@ -86,9 +86,9 @@ class SaveWaitListRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_ids.required'          => 'Select at least one acceptable equipment product.',
-            'product_ids.min'               => 'Select at least one acceptable equipment product.',
-            'product_category_id.required'  => 'Select an equipment category.',
+            'equipment_ids.required'       => 'Select at least one acceptable equipment unit.',
+            'equipment_ids.min'            => 'Select at least one acceptable equipment unit.',
+            'product_category_id.required' => 'Select an equipment category.',
         ];
     }
 }

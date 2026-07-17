@@ -107,10 +107,22 @@
                                 @endif
                             </div>
 
-                            {{-- The record's selected acceptable products --}}
-                            @if ($waitList->selectedProducts->isNotEmpty())
+                            {{-- The record's selected acceptable equipment units --}}
+                            @if ($waitList->items->isNotEmpty())
                                 <div class="mt-2 flex flex-wrap items-center gap-1.5">
-                                    <span class="text-xs text-gray-500">Acceptable products:</span>
+                                    <span class="text-xs text-gray-500">Acceptable units:</span>
+                                    @foreach ($waitList->items as $item)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium
+                                            {{ $item->equipment_id === $alert->equipment_id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600' }}">
+                                            <span class="font-bold">{{ $item->equipment?->equipment_id ?? "#{$item->equipment_id}" }}</span>
+                                            {{ $item->equipment?->equipment_name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @elseif ($waitList->selectedProducts->isNotEmpty())
+                                {{-- Product-era record (audit fallback) — needs manual unit re-selection --}}
+                                <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                                    <span class="text-xs text-amber-600 font-medium">Legacy product selections (re-select units):</span>
                                     @foreach ($waitList->selectedProducts as $product)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium
                                             {{ $product->id === $alert->matched_product_id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600' }}">

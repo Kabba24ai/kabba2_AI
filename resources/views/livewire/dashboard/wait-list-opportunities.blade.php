@@ -23,28 +23,27 @@
                             </span>
                         @endif
                     </h2>
-                    <p class="text-sm text-gray-500">Equipment returned — customers may be ready to contact</p>
                 </div>
             </div>
 
             {{-- Metrics --}}
             <div class="grid grid-cols-3 gap-3 mb-4">
-                <div class="rounded-xl {{ $hasOpportunities ? 'bg-blue-50' : 'bg-gray-50' }} px-3 py-2.5 col-span-1">
-                    <p class="text-[10px] font-semibold uppercase tracking-wide {{ $hasOpportunities ? 'text-blue-600' : 'text-gray-400' }}">Customers to Contact</p>
+                <div class="rounded-xl {{ $hasOpportunities ? 'bg-blue-50' : 'bg-gray-50' }} px-3 py-2.5 text-center">
+                    <p class="text-[10px] font-semibold uppercase tracking-wide {{ $hasOpportunities ? 'text-blue-600' : 'text-gray-400' }}">Contact Now</p>
                     <p class="text-2xl font-bold {{ $hasOpportunities ? 'text-blue-700' : 'text-gray-700' }}">{{ $contactOpportunities }}</p>
                 </div>
-                <div class="rounded-xl bg-gray-50 px-3 py-2.5">
+                <div class="rounded-xl bg-gray-50 px-3 py-2.5 text-center">
                     <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400">New Today</p>
                     <p class="text-2xl font-bold text-gray-700">{{ $newToday }}</p>
                 </div>
                 @if ($awaitingConversion > 0)
-                    <div class="rounded-xl bg-emerald-50 px-3 py-2.5">
-                        <p class="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">Awaiting Conversion</p>
+                    <div class="rounded-xl bg-emerald-50 px-3 py-2.5 text-center">
+                        <p class="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">Save</p>
                         <p class="text-2xl font-bold text-emerald-700">{{ $awaitingConversion }}</p>
                     </div>
                 @else
-                    <div class="rounded-xl bg-gray-50 px-3 py-2.5 opacity-60">
-                        <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Awaiting Conversion</p>
+                    <div class="rounded-xl bg-gray-50 px-3 py-2.5 text-center opacity-60">
+                        <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Save</p>
                         <p class="text-2xl font-bold text-gray-500">0</p>
                     </div>
                 @endif
@@ -82,9 +81,10 @@
                 @endif
             </div>
 
-            {{-- Single call to action --}}
+            {{-- Single call to action — compact width, centered (matches the
+                 Resolve Damage / Resolve Fuel Charges buttons) --}}
             <a href="{{ route('admin.wait-list.index') }}"
-                class="mt-4 inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition
+                class="mt-4 self-center inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition
                 {{ $hasOpportunities ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 hover:bg-gray-500' }}">
                 Open Wait List <x-heroicon-o-arrow-right class="w-4 h-4" />
             </a>

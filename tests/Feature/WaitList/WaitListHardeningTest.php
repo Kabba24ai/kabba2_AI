@@ -76,7 +76,7 @@ class WaitListHardeningTest extends TestCase
         $this->instance(FirebaseService::class, $this->createMock(FirebaseService::class));
     }
 
-    private function makeRecord(array $overrides = []): EquipmentWaitList
+    private function makeRecord(array $overrides = [], array $unitIds = []): EquipmentWaitList
     {
         $waitList = EquipmentWaitList::create(array_merge([
             'customer_id'         => $this->customer->id,
@@ -89,7 +89,10 @@ class WaitListHardeningTest extends TestCase
             'created_by'          => $this->admin->id,
         ], $overrides));
 
-        $waitList->selectedProducts()->attach([$this->product->id]);
+        // Canonical unit-level selection: the record names exact assets
+        foreach ($unitIds as $id) {
+            $waitList->items()->create(['equipment_id' => $id]);
+        }
 
         return $waitList;
     }
@@ -114,8 +117,9 @@ class WaitListHardeningTest extends TestCase
 
     public function test_accepted_record_remains_in_the_active_queue_until_converted(): void
     {
-        $waitList = $this->makeRecord();
-        $this->returnUnit($this->makeUnit('1'));
+        $unit = $this->makeUnit('1');
+        $waitList = $this->makeRecord([], [$unit->id]);
+        $this->returnUnit($unit);
 
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::CustomerAccepted, $this->admin->id);
@@ -142,8 +146,9 @@ class WaitListHardeningTest extends TestCase
 
     public function test_accepted_record_can_still_be_explicitly_cancelled(): void
     {
-        $waitList = $this->makeRecord();
-        $this->returnUnit($this->makeUnit('1'));
+        $unit = $this->makeUnit('1');
+        $waitList = $this->makeRecord([], [$unit->id]);
+        $this->returnUnit($unit);
         EquipmentWaitListAlert::firstOrFail()->dispose(WaitListAlertDisposition::CustomerAccepted, $this->admin->id);
 
         $this->post(route('admin.wait-list.cancel', $waitList))->assertRedirect();
@@ -156,11 +161,10 @@ class WaitListHardeningTest extends TestCase
 
     public function test_one_record_matched_by_three_units_is_one_contact_opportunity(): void
     {
-        $this->makeRecord();
+        $units = collect(['1', '2', '3'])->map(fn ($s) => $this->makeUnit($s));
+        $this->makeRecord([], $units->pluck('id')->all());
 
-        foreach (['1', '2', '3'] as $suffix) {
-            $this->returnUnit($this->makeUnit($suffix));
-        }
+        $units->each(fn ($unit) => $this->returnUnit($unit));
 
         $this->assertSame(3, WaitListStats::openMatchAlerts());
         $this->assertSame(1, WaitListStats::contactOpportunities());
@@ -169,11 +173,12 @@ class WaitListHardeningTest extends TestCase
 
     public function test_three_records_matched_by_one_unit_are_three_contact_opportunities(): void
     {
+        $unit = $this->makeUnit('1');
         foreach (range(1, 3) as $i) {
-            $this->makeRecord();
+            $this->makeRecord([], [$unit->id]);
         }
 
-        $this->returnUnit($this->makeUnit('1'));
+        $this->returnUnit($unit);
 
         $this->assertSame(3, WaitListStats::openMatchAlerts());
         $this->assertSame(3, WaitListStats::contactOpportunities());
@@ -181,8 +186,9 @@ class WaitListHardeningTest extends TestCase
 
     public function test_contacted_no_answer_remains_an_actionable_opportunity(): void
     {
-        $this->makeRecord();
-        $this->returnUnit($this->makeUnit('1'));
+        $unit = $this->makeUnit('1');
+        $this->makeRecord([], [$unit->id]);
+        $this->returnUnit($unit);
 
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::ContactedNoAnswer, $this->admin->id);
@@ -193,8 +199,9 @@ class WaitListHardeningTest extends TestCase
 
     public function test_keep_waiting_removes_the_match_from_the_count_but_keeps_the_request_active(): void
     {
-        $this->makeRecord();
-        $this->returnUnit($this->makeUnit('1'));
+        $unit = $this->makeUnit('1');
+        $this->makeRecord([], [$unit->id]);
+        $this->returnUnit($unit);
 
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::KeepWaiting, $this->admin->id);
@@ -206,8 +213,9 @@ class WaitListHardeningTest extends TestCase
 
     public function test_terminal_dispositions_do_not_count_as_opportunities(): void
     {
-        $this->makeRecord();
-        $this->returnUnit($this->makeUnit('1'));
+        $unit = $this->makeUnit('1');
+        $this->makeRecord([], [$unit->id]);
+        $this->returnUnit($unit);
 
         EquipmentWaitListAlert::firstOrFail()
             ->dispose(WaitListAlertDisposition::CustomerNoLongerNeeds, $this->admin->id);
@@ -218,8 +226,8 @@ class WaitListHardeningTest extends TestCase
 
     public function test_duplicate_return_processing_never_inflates_any_count(): void
     {
-        $this->makeRecord();
         $unit = $this->makeUnit('1');
+        $this->makeRecord([], [$unit->id]);
         $this->returnUnit($unit);
 
         WaitListMatcher::evaluateReturn($unit->fresh());
@@ -238,8 +246,8 @@ class WaitListHardeningTest extends TestCase
         $firebase->method('sendToAllDevices')->willThrowException(new \RuntimeException('FCM unavailable'));
         $this->instance(FirebaseService::class, $firebase);
 
-        $this->makeRecord();
         $unit = $this->makeUnit('1');
+        $this->makeRecord([], [$unit->id]);
 
         $this->returnUnit($unit); // must not throw
 
@@ -260,8 +268,8 @@ class WaitListHardeningTest extends TestCase
             throw new \RuntimeException('Firebase project not configured');
         });
 
-        $this->makeRecord();
         $unit = $this->makeUnit('1');
+        $this->makeRecord([], [$unit->id]);
 
         $this->returnUnit($unit); // return checklist must not break
 
@@ -274,8 +282,9 @@ class WaitListHardeningTest extends TestCase
 
     public function test_disposition_effects_are_atomic(): void
     {
-        $this->makeRecord();
-        $this->returnUnit($this->makeUnit('1'));
+        $unit = $this->makeUnit('1');
+        $this->makeRecord([], [$unit->id]);
+        $this->returnUnit($unit);
         $alert = EquipmentWaitListAlert::firstOrFail();
 
         $alert->dispose(WaitListAlertDisposition::CustomerAccepted, $this->admin->id);

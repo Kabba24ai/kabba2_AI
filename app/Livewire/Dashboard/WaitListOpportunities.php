@@ -78,19 +78,20 @@ class WaitListOpportunities extends Component
         $this->awaitingConversion   = WaitListStats::acceptedAwaitingConversion();
 
         // Compact preview: the most urgent DISTINCT customer requests with an
-        // unresolved match — never raw alert rows, so one request matched by
-        // several returned units renders once with a unit count.
+        // unresolved match — never raw alert rows, so one request with
+        // several returned matching UNITS renders once with a unit count
+        // (each count reflects individual returned Equipment IDs).
         $this->preview = EquipmentWaitList::waiting()
             ->whereHas('alerts', fn ($a) => $a->open())
             ->withCount(['alerts as open_matches_count' => fn ($a) => $a->open()])
-            ->with(['category:id,title', 'selectedProducts:products.id,product_name'])
+            ->with(['category:id,title', 'items.equipment:id,equipment_name'])
             ->byUrgency()
             ->limit(self::PREVIEW_LIMIT)
             ->get()
             ->map(fn ($waitList) => [
                 'customer' => $waitList->company_name ?: $waitList->customer_name,
                 'demand'   => $waitList->category?->title
-                    ?? $waitList->selectedProducts->first()?->product_name
+                    ?? $waitList->items->first()?->equipment?->equipment_name
                     ?? 'Equipment request',
                 'units'    => (int) $waitList->open_matches_count,
             ])

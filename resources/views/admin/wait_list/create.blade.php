@@ -23,7 +23,7 @@
             <div>
                 <h1 class="text-2xl font-semibold text-gray-900">New Wait List Record</h1>
                 <p class="text-sm text-gray-500 mt-1">
-                    One record = one customer need in one category. Check every equipment product the customer would accept.
+                    One record = one customer need in one category. Check every individual equipment unit the customer would accept.
                 </p>
             </div>
             <a href="{{ route('admin.wait-list.index') }}"
@@ -118,27 +118,28 @@
                 </div>
             </div>
 
-            {{-- Acceptable equipment products checklist --}}
-            <div id="wl-products-card" class="rounded-lg border border-gray-200 overflow-hidden">
+            {{-- Acceptable equipment: ACTUAL inventory units by Equipment ID.
+                 Two units of the same product are two separate rows. --}}
+            <div id="wl-units-card" class="rounded-lg border border-gray-200 overflow-hidden">
                 <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200">
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-truck class="w-4 h-4 text-blue-600" />
-                        <span class="text-sm font-semibold text-gray-800">Acceptable Equipment Products</span>
+                        <span class="text-sm font-semibold text-gray-800">Acceptable Equipment</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span id="wl-product-count" class="text-xs font-medium text-gray-500"></span>
+                        <span id="wl-unit-count" class="text-xs font-medium text-gray-500"></span>
                         <label id="wl-select-all-wrap" class="hidden items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
                             <input type="checkbox" id="wl-select-all" class="rounded border-gray-300">
                             Select All
                         </label>
                     </div>
                 </div>
-                <div id="wl-products" class="p-4">
-                    <p class="text-sm text-gray-400 italic">Select an equipment category above to load its products.</p>
+                <div id="wl-units" class="p-4">
+                    <p class="text-sm text-gray-400 italic">Select an equipment category above to load its equipment units.</p>
                 </div>
-                <p id="wl-products-error" class="hidden px-4 pb-3 text-sm text-red-600">Select at least one acceptable equipment product.</p>
-                @error('product_ids')<p class="px-4 pb-3 text-sm text-red-600">{{ $message }}</p>@enderror
-                @error('product_ids.*')<p class="px-4 pb-3 text-sm text-red-600">{{ $message }}</p>@enderror
+                <p id="wl-units-error" class="hidden px-4 pb-3 text-sm text-red-600">Select at least one acceptable equipment unit.</p>
+                @error('equipment_ids')<p class="px-4 pb-3 text-sm text-red-600">{{ $message }}</p>@enderror
+                @error('equipment_ids.*')<p class="px-4 pb-3 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
 
             {{-- Internal Notes --}}
@@ -169,29 +170,29 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Rental products with their category memberships. The employee selects
-    // acceptable PRODUCT TYPES — individual inventory units are evaluated
-    // later, when a return triggers matching.
-    const PRODUCTS = @json($productOptions);
-    const OLD_SELECTED = @json(collect(old('product_ids', []))->map(fn ($id) => (string) $id));
+    // ACTUAL equipment inventory units with category, status, and location.
+    // The employee selects individual assets by Equipment ID — two units of
+    // the same product are two separate rows, selected independently.
+    const UNITS = @json($equipmentOptions);
+    const OLD_SELECTED = @json(collect(old('equipment_ids', []))->map(fn ($id) => (string) $id));
 
     const categorySelect = document.getElementById('wl-category');
-    const container      = document.getElementById('wl-products');
-    const countEl        = document.getElementById('wl-product-count');
+    const container      = document.getElementById('wl-units');
+    const countEl        = document.getElementById('wl-unit-count');
     const selectAll      = document.getElementById('wl-select-all');
     const selectAllWrap  = document.getElementById('wl-select-all-wrap');
-    const errorEl        = document.getElementById('wl-products-error');
+    const errorEl        = document.getElementById('wl-units-error');
 
-    function productCheckboxes() {
-        return Array.from(container.querySelectorAll('input[name="product_ids[]"]'));
+    function unitCheckboxes() {
+        return Array.from(container.querySelectorAll('input[name="equipment_ids[]"]'));
     }
 
     function refreshState() {
-        const boxes = productCheckboxes();
+        const boxes = unitCheckboxes();
         const checked = boxes.filter(b => b.checked).length;
 
         countEl.textContent = boxes.length
-            ? checked + ' of ' + boxes.length + ' equipment options selected'
+            ? checked + ' of ' + boxes.length + ' equipment units selected'
             : '';
 
         selectAll.checked = boxes.length > 0 && checked === boxes.length;
@@ -201,25 +202,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Changing category clears prior selections and loads that category's
-    // products, alphabetically. Products from other categories never render.
-    function renderProducts(preselect) {
+    // units, sorted by equipment name then Equipment ID. Units from other
+    // categories never render.
+    function renderUnits(preselect) {
         const catId = categorySelect.value;
         container.innerHTML = '';
 
         if (!catId) {
-            container.innerHTML = '<p class="text-sm text-gray-400 italic">Select an equipment category above to load its products.</p>';
+            container.innerHTML = '<p class="text-sm text-gray-400 italic">Select an equipment category above to load its equipment units.</p>';
             selectAllWrap.classList.add('hidden');
             selectAllWrap.classList.remove('inline-flex');
             refreshState();
             return;
         }
 
-        const products = PRODUCTS
-            .filter(p => p.category_ids.map(String).includes(String(catId)))
-            .sort((a, b) => a.name.localeCompare(b.name));
+        const units = UNITS.filter(u => String(u.category_id) === String(catId));
 
-        if (!products.length) {
-            container.innerHTML = '<p class="text-sm text-gray-400 italic">No rental products found in this category.</p>';
+        if (!units.length) {
+            container.innerHTML = '<p class="text-sm text-gray-400 italic">No equipment units found in this category.</p>';
             selectAllWrap.classList.add('hidden');
             selectAllWrap.classList.remove('inline-flex');
             refreshState();
@@ -229,20 +229,36 @@ document.addEventListener('DOMContentLoaded', function () {
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2';
 
-        products.forEach(function (product) {
+        units.forEach(function (unit) {
             const label = document.createElement('label');
-            label.className = 'flex items-center gap-2.5 text-sm text-gray-700 rounded-md px-2 py-1.5 hover:bg-gray-50 cursor-pointer';
+            label.className = 'flex items-start gap-2.5 text-sm text-gray-700 rounded-md px-2 py-1.5 hover:bg-gray-50 cursor-pointer';
 
             const box = document.createElement('input');
             box.type = 'checkbox';
-            box.name = 'product_ids[]';
-            box.value = product.id;
-            box.className = 'rounded border-gray-300';
-            box.checked = (preselect || []).includes(String(product.id));
+            box.name = 'equipment_ids[]';
+            box.value = unit.id;
+            box.className = 'rounded border-gray-300 mt-0.5';
+            box.checked = (preselect || []).includes(String(unit.id));
             box.addEventListener('change', refreshState);
 
             const text = document.createElement('span');
-            text.textContent = product.name;
+            text.className = 'min-w-0 leading-snug';
+
+            // The Equipment ID is the asset being selected — make it prominent
+            const code = document.createElement('span');
+            code.className = 'font-bold text-gray-900';
+            code.textContent = unit.code || ('#' + unit.id);
+
+            const name = document.createElement('span');
+            name.textContent = ' — ' + unit.name;
+
+            const meta = document.createElement('span');
+            meta.className = 'block text-xs text-gray-400';
+            meta.textContent = unit.status + (unit.store ? ' · ' + unit.store : '');
+
+            text.appendChild(code);
+            text.appendChild(name);
+            text.appendChild(meta);
 
             label.appendChild(box);
             label.appendChild(text);
@@ -256,20 +272,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     selectAll.addEventListener('change', function () {
-        productCheckboxes().forEach(b => b.checked = selectAll.checked);
+        unitCheckboxes().forEach(b => b.checked = selectAll.checked);
         refreshState();
     });
 
     categorySelect.addEventListener('change', function () {
-        renderProducts([]); // stale selections never survive a category change
+        renderUnits([]); // stale selections never survive a category change
     });
 
-    // At least one acceptable product before the record can be saved
+    // At least one acceptable equipment unit before the record can be saved
     document.getElementById('wl-form').addEventListener('submit', function (e) {
-        if (!productCheckboxes().some(b => b.checked)) {
+        if (!unitCheckboxes().some(b => b.checked)) {
             e.preventDefault();
             errorEl.classList.remove('hidden');
-            document.getElementById('wl-products-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('wl-units-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 
@@ -284,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
     syncStore();
 
     // Restore state after a validation round-trip
-    renderProducts(OLD_SELECTED);
+    renderUnits(OLD_SELECTED);
 
     // Searchable CRM customer selector — search box opens with the dropdown,
     // filtering across name / company / phone in the option label.

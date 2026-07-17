@@ -107,14 +107,29 @@
                         </div>
                     @endif
                 </dl>
-                @if ($waitList->selectedProducts->isNotEmpty())
+                @if ($waitList->items->isNotEmpty())
                     <div class="mt-4 pt-4 border-t border-gray-100">
                         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                            Acceptable Products ({{ $waitList->selectedProducts->count() }})
+                            Acceptable Equipment ({{ $waitList->items->count() }} {{ Str::plural('unit', $waitList->items->count()) }})
+                        </p>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach ($waitList->items as $item)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    <span class="font-bold">{{ $item->equipment?->equipment_id ?? "#{$item->equipment_id}" }}</span>
+                                    <span>{{ $item->equipment?->equipment_name }}</span>
+                                    <span class="text-blue-400">· {{ $item->equipment?->current_status?->label() ?? '—' }}</span>
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                @elseif ($waitList->selectedProducts->isNotEmpty())
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">
+                            Legacy Product Selections — re-select actual equipment units
                         </p>
                         <div class="flex flex-wrap gap-1.5">
                             @foreach ($waitList->selectedProducts as $product)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
                                     {{ $product->product_name }}
                                 </span>
                             @endforeach

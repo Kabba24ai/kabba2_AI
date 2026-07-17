@@ -116,11 +116,11 @@
         </div>
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-start justify-between">
             <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase">Top Products</p>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Top Equipment</p>
                 @forelse ($topEquipment as $row)
                     <p class="text-xs text-gray-600 mt-1">{{ $row->equipment_name }} <span class="font-semibold">({{ $row->demand }})</span></p>
                 @empty
-                    <p class="text-xs text-gray-300 italic mt-1">No product demand</p>
+                    <p class="text-xs text-gray-300 italic mt-1">No equipment demand</p>
                 @endforelse
             </div>
             <span class="p-2 rounded-full bg-orange-50 text-orange-600"><x-heroicon-o-truck class="w-5 h-5" /></span>

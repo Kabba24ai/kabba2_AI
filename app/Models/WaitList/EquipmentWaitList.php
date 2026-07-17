@@ -16,15 +16,17 @@ use Illuminate\Support\Str;
 
 /**
  * One wait list record = one customer need within one equipment category,
- * with one or more selected acceptable PRODUCTS attached (no quantity
- * support by design). The product set is a snapshot owned by the record —
- * later catalog changes never silently alter an existing request. No
- * automatic customer notifications, reservations, holds, or expiration —
- * every contact and disposition decision is manual.
+ * with one or more selected acceptable EQUIPMENT INVENTORY UNITS attached
+ * (individual assets by Equipment ID — never catalog products, and no
+ * quantity support by design). The unit set is a snapshot owned by the
+ * record — later inventory or category changes never silently alter an
+ * existing request. No automatic customer notifications, reservations,
+ * holds, or expiration — every contact and disposition decision is manual.
  *
- * Legacy records (request_type category/specific_equipment) that could not
- * be migrated to product selections keep matching through documented
- * fallbacks in WaitListMatcher; their historical rows are never rewritten.
+ * equipment_wait_list_items is the canonical selection store. The
+ * equipment_wait_list_products pivot remains ONLY as an audit trail and
+ * matching fallback for records created during the short product-based
+ * window; the corrective migration logs those for manual re-selection.
  */
 class EquipmentWaitList extends Model
 {
@@ -79,13 +81,17 @@ class EquipmentWaitList extends Model
         return $this->belongsTo(Store::class);
     }
 
-    /** Legacy specific-equipment unit picks — historical, no longer written. */
+    /** CANONICAL: the selected acceptable equipment inventory units. */
     public function items()
     {
         return $this->hasMany(EquipmentWaitListItem::class);
     }
 
-    /** The selected acceptable products for this request (unified workflow). */
+    /**
+     * Product-era audit trail (records created through the short-lived
+     * product-based form). Never written for new records; the matcher
+     * honors it only as a fallback when a record has no unit selections.
+     */
     public function selectedProducts()
     {
         return $this->belongsToMany(
@@ -206,21 +212,22 @@ class EquipmentWaitList extends Model
     /** What the customer is waiting for, in one line. */
     public function demandLabel(): string
     {
-        if ($this->relationLoaded('selectedProducts') ? $this->selectedProducts->isNotEmpty() : $this->selectedProducts()->exists()) {
-            $category = $this->category?->title;
-            $count = $this->relationLoaded('selectedProducts')
-                ? $this->selectedProducts->count()
-                : $this->selectedProducts()->count();
+        $unitCount = $this->relationLoaded('items') ? $this->items->count() : $this->items()->count();
 
-            return trim(($category ?? 'Equipment') . ' — ' . $count . ' acceptable ' . Str::plural('product', $count));
+        if ($unitCount > 0) {
+            return trim(($this->category?->title ?? 'Equipment') . ' — ' . $unitCount . ' acceptable ' . Str::plural('unit', $unitCount));
         }
 
-        // Legacy fallbacks: un-migrated historical records
-        if ($this->request_type === WaitListRequestType::Category) {
-            return $this->category?->title ?? 'Category';
+        // Product-era fallback: created via the short-lived product form
+        $productCount = $this->relationLoaded('selectedProducts')
+            ? $this->selectedProducts->count()
+            : $this->selectedProducts()->count();
+
+        if ($productCount > 0) {
+            return trim(($this->category?->title ?? 'Equipment') . ' — ' . $productCount . ' acceptable ' . Str::plural('product', $productCount));
         }
 
-        return $this->items->map(fn ($i) => $i->equipment?->equipment_name ?? "Equipment #{$i->equipment_id}")
-            ->filter()->implode(', ') ?: 'Specific equipment';
+        // Legacy category fallback (no units existed at correction time)
+        return $this->category?->title ?? 'Equipment request';
     }
 }

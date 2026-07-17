@@ -13,24 +13,28 @@ use Illuminate\Support\Collection;
 
 /**
  * Evaluates waiting records when the customer return checklist confirms an
- * equipment unit has returned. A returned unit matches a record when:
+ * equipment unit has returned. A returned unit matches a record only when:
  *
  *   1. the record is still waiting (active/acknowledged),
- *   2. the unit's product is one of the record's selected acceptable products,
+ *   2. that EXACT unit is among the record's selected equipment IDs —
+ *      another unit of the same product is irrelevant unless it was also
+ *      selected (KUB-ME-7 returning never matches a request for KUB-ME-1),
  *   3. the unit belongs to the record's category,
  *   4. the unit is no longer rented, and
  *   5. the record's store preference is satisfied.
  *
  * The unit's current operational status (available, maintenance hold,
- * damaged, …) never blocks the match — the alert means "a potentially
- * suitable unit has returned; evaluate it", and the status is surfaced on
- * the Wait List page. Nothing is reserved, promised, or auto-selected;
- * one unit can match many records and one record many units.
+ * damaged, …) never blocks the match — the alert means "a selected unit
+ * has returned; evaluate it", and the true status is surfaced on the Wait
+ * List page. Nothing is reserved, promised, or auto-selected; one unit can
+ * match many records and one record many units.
  *
- * Legacy fallbacks (un-migrated historical records with no selected
- * products): a category record matches on category, a specific-equipment
- * record matches on its chosen unit IDs — the original semantics, never
- * reinterpreted.
+ * Fallbacks for records without unit selections (never reinterpreted):
+ *  - PRODUCT-ERA unified records (created via the short-lived product
+ *    form): matched by product, their recorded intent, until staff
+ *    re-select actual units (the corrective migration logs them).
+ *  - LEGACY category records whose category had no units to snapshot:
+ *    matched by category, the original semantic.
  *
  * Idempotent per return event: a (record, unit) pair alerts at most once
  * per status change — reprocessing the same return creates nothing, while
@@ -48,24 +52,27 @@ class WaitListMatcher
         }
 
         $candidates = EquipmentWaitList::waiting()
-            ->with(['selectedProducts:products.id', 'items'])
+            ->with(['items', 'selectedProducts:products.id'])
             ->where(function ($q) use ($equipment) {
+                // Canonical: this exact unit was selected
+                $q->orWhereHas('items', fn ($i) => $i->where('equipment_id', $equipment->id));
+
+                // Product-era fallback: no unit selections, product recorded
                 if ($equipment->assigned_product_id) {
-                    $q->orWhereHas('selectedProducts',
-                        fn ($p) => $p->where('products.id', $equipment->assigned_product_id));
+                    $q->orWhere(fn ($w) => $w
+                        ->whereDoesntHave('items')
+                        ->whereHas('selectedProducts',
+                            fn ($p) => $p->where('products.id', $equipment->assigned_product_id)));
                 }
 
+                // Legacy category fallback: nothing else recorded
                 if ($equipment->product_category_id) {
                     $q->orWhere(fn ($w) => $w
                         ->where('request_type', WaitListRequestType::Category->value)
+                        ->whereDoesntHave('items')
                         ->whereDoesntHave('selectedProducts')
                         ->where('product_category_id', $equipment->product_category_id));
                 }
-
-                $q->orWhere(fn ($w) => $w
-                    ->where('request_type', WaitListRequestType::SpecificEquipment->value)
-                    ->whereDoesntHave('selectedProducts')
-                    ->whereHas('items', fn ($i) => $i->where('equipment_id', $equipment->id)));
             })
             ->get();
 
@@ -102,7 +109,21 @@ class WaitListMatcher
 
     private static function resolveMatchType(EquipmentWaitList $waitList, Equipment $equipment): ?WaitListMatchType
     {
-        // Unified rule: unit's product is selected AND unit is in the category
+        // Canonical rule: the exact selected unit returned, in the record's category
+        if ($waitList->items->contains('equipment_id', $equipment->id)) {
+            if ($waitList->product_category_id !== null
+                && $waitList->product_category_id !== $equipment->product_category_id) {
+                return null;
+            }
+
+            return WaitListMatchType::ExactEquipment;
+        }
+
+        if ($waitList->items->isNotEmpty()) {
+            return null; // has unit selections; this unit isn't one of them
+        }
+
+        // Product-era fallback (no unit selections recorded)
         if ($equipment->assigned_product_id
             && $waitList->selectedProducts->contains('id', $equipment->assigned_product_id)) {
             if ($waitList->product_category_id !== null
@@ -117,16 +138,11 @@ class WaitListMatcher
             return null;
         }
 
-        // Legacy fallbacks — original semantics for un-migrated records
+        // Legacy category fallback — original semantics
         if ($waitList->request_type === WaitListRequestType::Category
             && $waitList->product_category_id !== null
             && $waitList->product_category_id === $equipment->product_category_id) {
             return WaitListMatchType::Category;
-        }
-
-        if ($waitList->request_type === WaitListRequestType::SpecificEquipment
-            && $waitList->items->contains('equipment_id', $equipment->id)) {
-            return WaitListMatchType::ExactEquipment;
         }
 
         return null;

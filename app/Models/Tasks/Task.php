@@ -77,6 +77,27 @@ class Task extends Model
         return $this->hasMany(TaskComment::class)->latest();
     }
 
+    public function media()
+    {
+        return $this->hasMany(TaskMedia::class, 'task_id');
+    }
+
+    /** Attachments on the task itself (not tied to a comment). */
+    public function descriptionMedia()
+    {
+        return $this->hasMany(TaskMedia::class, 'task_id')->whereNull('task_comment_id');
+    }
+
+    protected static function booted(): void
+    {
+        // DB cascade would drop the rows silently; delete through Eloquent
+        // so the TaskMedia deleting hook removes the physical files too.
+        static::deleting(function (self $task) {
+            $task->media()->get()->each->delete();
+            \Illuminate\Support\Facades\Storage::disk(TaskMedia::DISK)->deleteDirectory((string) $task->id);
+        });
+    }
+
     public function activityLogs()
     {
         return $this->hasMany(TaskActivityLog::class)->latest();

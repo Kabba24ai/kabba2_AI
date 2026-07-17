@@ -26,6 +26,8 @@ class StoreTaskRequest extends FormRequest
             'related_supplier_id'   => ['nullable', 'exists:suppliers,id'],
             'related_other'         => ['nullable', 'string', 'max:255'],
             'related_equipment_id'  => ['nullable', 'exists:equipment,id'],
+            'media'                 => ['nullable', 'array', 'max:10'],
+            'media.*'               => ['file', 'max:51200', 'mimes:jpg,jpeg,png,gif,webp,heic,mp4,mov,avi,webm'],
         ];
     }
 }

@@ -59,6 +59,27 @@
             @else
                 <p class="text-sm text-gray-400 italic">No description provided.</p>
             @endif
+
+            @if ($task->descriptionMedia->isNotEmpty())
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Attachments</p>
+                    <div class="flex flex-wrap gap-3">
+                        @foreach ($task->descriptionMedia as $media)
+                            @if ($media->isImage())
+                                <a href="{{ $media->url }}" target="_blank" title="{{ $media->original_filename }}">
+                                    <img src="{{ $media->url }}" alt="{{ $media->original_filename }}"
+                                        class="h-24 w-24 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition">
+                                </a>
+                            @else
+                                <video controls preload="metadata" title="{{ $media->original_filename }}"
+                                    class="h-24 rounded-lg border border-gray-200 bg-black">
+                                    <source src="{{ $media->url }}" type="{{ $media->mime_type }}">
+                                </video>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         {{-- Comments --}}
@@ -77,6 +98,23 @@
                                 <span class="text-xs text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
                             </div>
                             <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $comment->comment }}</p>
+                            @if ($comment->media->isNotEmpty())
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    @foreach ($comment->media as $media)
+                                        @if ($media->isImage())
+                                            <a href="{{ $media->url }}" target="_blank" title="{{ $media->original_filename }}">
+                                                <img src="{{ $media->url }}" alt="{{ $media->original_filename }}"
+                                                    class="h-16 w-16 object-cover rounded-md border border-gray-200 hover:opacity-80 transition">
+                                            </a>
+                                        @else
+                                            <video controls preload="metadata" title="{{ $media->original_filename }}"
+                                                class="h-16 rounded-md border border-gray-200 bg-black">
+                                                <source src="{{ $media->url }}" type="{{ $media->mime_type }}">
+                                            </video>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @empty
@@ -84,10 +122,18 @@
                 @endforelse
             </div>
 
-            <form id="comment-form" method="POST" action="{{ route('admin.tasks.comments.store', $task) }}">
+            <form id="comment-form" method="POST" action="{{ route('admin.tasks.comments.store', $task) }}" enctype="multipart/form-data">
                 @csrf
                 <textarea id="task-comment" name="comment" rows="3" placeholder="Add a comment..."
                     class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 mb-3"></textarea>
+
+                <div class="mb-3">
+                    <input type="file" name="media[]" multiple
+                        accept="image/*,video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-md cursor-pointer bg-white
+                               file:mr-3 file:py-2 file:px-3 file:border-0 file:rounded-l-md file:bg-gray-100 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200">
+                    <p class="text-xs text-gray-400 mt-1">Optional images / video — removed 30 days after the task is completed.</p>
+                </div>
 
                 <div id="comment-validation-msg" class="hidden mb-2 text-sm text-red-600 font-medium">
                     Please enter a completion note before marking this task complete.

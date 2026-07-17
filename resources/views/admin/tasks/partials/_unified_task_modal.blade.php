@@ -23,18 +23,20 @@
                 {{-- Type toggle --}}
                 <div class="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1" role="group">
                     <button type="button" id="ut_toggle_task" onclick="setUnifiedTaskMode('task')"
-                        class="px-4 py-2 text-sm font-medium rounded-md transition">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md transition">
+                        <x-heroicon-o-check-circle class="w-4 h-4" />
                         Operational task
                     </button>
                     <button type="button" id="ut_toggle_call" onclick="setUnifiedTaskMode('call')"
-                        class="px-4 py-2 text-sm font-medium rounded-md transition">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md transition">
+                        <x-heroicon-o-phone class="w-4 h-4" />
                         Phone call
                     </button>
                 </div>
 
                 {{-- Subject row (shared slot) --}}
                 <div id="ut_subject_task">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
                     <input type="text" id="ut_title" placeholder="What needs to be done?"
                         class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                 </div>
@@ -201,6 +203,18 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1" id="ut_notes_label">Description</label>
                     <textarea id="ut_notes" rows="3" placeholder="Optional details..."
                         class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"></textarea>
+                </div>
+
+                {{-- Attachments — operational only --}}
+                <div id="ut_media_block">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Attachments <span class="text-xs font-normal text-gray-400">(images / video, optional)</span>
+                    </label>
+                    <input type="file" id="ut_media" multiple
+                        accept="image/*,video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-md cursor-pointer bg-white
+                               file:mr-3 file:py-2 file:px-3 file:border-0 file:rounded-l-md file:bg-gray-100 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200">
+                    <p class="text-xs text-gray-400 mt-1">Up to 10 files, 50&nbsp;MB each. Attachments are removed 30 days after the task is completed.</p>
                 </div>
 
             </div>
@@ -372,6 +386,7 @@
         document.getElementById('ut_subject_call').classList.toggle('hidden', isTask);
         document.getElementById('ut_status_row').classList.toggle('hidden', !isTask);
         document.getElementById('ut_equipment_block').classList.toggle('hidden', !isTask);
+        document.getElementById('ut_media_block').classList.toggle('hidden', !isTask);
 
         document.getElementById('ut_related_optional').classList.toggle('hidden', !isTask);
         document.getElementById('ut_related_required').classList.toggle('hidden', isTask);
@@ -414,6 +429,7 @@
         document.getElementById('ut_priority').value   = 'normal';
         document.getElementById('ut_status').value     = 'open';
         document.getElementById('ut_notes').value      = '';
+        document.getElementById('ut_media').value      = '';
         document.getElementById('ut_other_name').value = '';
         document.getElementById('ut_other_phone').value = '';
         document.getElementById('ut_equip_category').value = '';
@@ -479,26 +495,37 @@
 
         utBusy(true);
 
+        // Multipart so attachments can ride along; append only set values
+        // (FormData has no null — absent keys hit the same nullable rules)
+        var fd = new FormData();
+        fd.append('category', category);
+        fd.append('title', title);
+        fd.append('priority', document.getElementById('ut_priority').value);
+        fd.append('status', document.getElementById('ut_status').value);
+
+        var fields = {
+            description:          document.getElementById('ut_notes').value.trim(),
+            assigned_to_user_id:  document.getElementById('ut_assigned_to').value,
+            related_equipment_id: document.getElementById('ut_equip_unit').value,
+            related_customer_id:  related.customerId,
+            related_supplier_id:  related.supplierId,
+            related_other:        related.otherName,
+            due_date:             document.getElementById('ut_due_date').value,
+        };
+        Object.keys(fields).forEach(function (key) {
+            if (fields[key]) fd.append(key, fields[key]);
+        });
+
+        Array.from(document.getElementById('ut_media').files)
+            .forEach(function (file) { fd.append('media[]', file); });
+
         fetch("{{ route('admin.tasks.store') }}", {
             method:  'POST',
             headers: {
-                'Content-Type':  'application/json',
                 'Accept':        'application/json',
                 'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             },
-            body: JSON.stringify({
-                category:             category,
-                title:                title,
-                description:          document.getElementById('ut_notes').value.trim() || null,
-                priority:             document.getElementById('ut_priority').value,
-                status:               document.getElementById('ut_status').value,
-                assigned_to_user_id:  document.getElementById('ut_assigned_to').value || null,
-                related_equipment_id: document.getElementById('ut_equip_unit').value || null,
-                related_customer_id:  related.customerId,
-                related_supplier_id:  related.supplierId,
-                related_other:        related.otherName || null,
-                due_date:             document.getElementById('ut_due_date').value || null,
-            }),
+            body: fd,
         })
         .then(utHandleResponse)
         .then(function (data) {

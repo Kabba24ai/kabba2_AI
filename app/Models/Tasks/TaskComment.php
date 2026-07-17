@@ -24,4 +24,9 @@ class TaskComment extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function media()
+    {
+        return $this->hasMany(TaskMedia::class, 'task_comment_id');
+    }
 }

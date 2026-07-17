@@ -76,6 +76,18 @@ return [
             'report' => false,
         ],
 
+        // Dedicated repository for Task Center attachments (description and
+        // comment images/video). Segregated so the 30-days-after-completion
+        // purge can flush files without touching any other module's media.
+        'task_media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/task-media'),
+            'url' => env('APP_URL') . '/storage/task-media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

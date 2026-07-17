@@ -2,12 +2,16 @@
 
 namespace Tests\Feature\Tasks;
 
+use App\Jobs\PurgeCompletedTaskMediaJob;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerCallNeeded;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Supplier;
 use App\Models\Tasks\Task;
+use App\Models\Tasks\TaskMedia;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -244,6 +248,161 @@ class UnifiedTaskModalTest extends TestCase
 
         $this->assertStringContainsString('Related To', $html);
         $this->assertStringContainsString('DNR site visit', $html);
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Attachments: create, comment, display, retention purge
+    // ─────────────────────────────────────────────────────────
+
+    public function test_modal_has_title_label_icons_and_attachment_input(): void
+    {
+        $html = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('Title <span class="text-red-500">*</span>', $html);
+        $this->assertStringContainsString('id="ut_media"', $html);
+        // Both toggle buttons carry an icon
+        $this->assertMatchesRegularExpression('/id="ut_toggle_task"[^>]*>\s*<svg/s', $html);
+        $this->assertMatchesRegularExpression('/id="ut_toggle_call"[^>]*>\s*<svg/s', $html);
+    }
+
+    public function test_operational_task_saves_description_media(): void
+    {
+        Storage::fake('task_media');
+
+        $this->post(route('admin.tasks.store'), $this->taskPayload([
+            'media' => [
+                UploadedFile::fake()->image('yard-photo.jpg'),
+                UploadedFile::fake()->create('walkthrough.mp4', 1024, 'video/mp4'),
+            ],
+        ]), ['Accept' => 'application/json'])->assertOk()->assertJson(['success' => true]);
+
+        $task = Task::latest('id')->first();
+        $media = $task->media()->orderBy('id')->get();
+
+        $this->assertCount(2, $media);
+        $this->assertEquals(['image', 'video'], $media->pluck('media_type')->all());
+        $this->assertEquals('yard-photo.jpg', $media[0]->original_filename);
+        $this->assertTrue($media->every(fn ($m) => $m->task_comment_id === null));
+        // Files live in the task's own folder on the segregated disk
+        foreach ($media as $item) {
+            $this->assertStringStartsWith($task->id . '/', $item->file_path);
+            Storage::disk('task_media')->assertExists($item->file_path);
+        }
+    }
+
+    public function test_comment_and_completion_comment_save_media(): void
+    {
+        Storage::fake('task_media');
+        $task = Task::create($this->taskPayload(['created_by_user_id' => $this->admin->id]));
+
+        $this->post(route('admin.tasks.comments.store', $task), [
+            'comment' => 'Progress photo attached.',
+            'media'   => [UploadedFile::fake()->image('progress.png')],
+        ])->assertRedirect();
+
+        $comment = $task->comments()->first();
+        $this->assertCount(1, $comment->media);
+        $this->assertEquals('image', $comment->media->first()->media_type);
+
+        $this->post(route('admin.tasks.complete', $task), [
+            'comment' => 'Done — see final clip.',
+            'media'   => [UploadedFile::fake()->create('final.webm', 512, 'video/webm')],
+        ])->assertRedirect();
+
+        $task->refresh();
+        $this->assertEquals('completed', $task->status->value);
+        $completionComment = $task->comments()->latest('id')->first();
+        $this->assertCount(1, $completionComment->media);
+        $this->assertEquals('video', $completionComment->media->first()->media_type);
+    }
+
+    public function test_disallowed_file_types_are_rejected(): void
+    {
+        Storage::fake('task_media');
+
+        $this->postJson(route('admin.tasks.store'), $this->taskPayload([
+            'media' => [UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf')],
+        ]))->assertStatus(422)->assertJsonValidationErrors('media.0');
+
+        $this->assertEquals(0, Task::count());
+    }
+
+    public function test_media_is_purged_30_days_after_completion(): void
+    {
+        Storage::fake('task_media');
+
+        $makeTaskWithMedia = function (string $title): Task {
+            $task = Task::create($this->taskPayload(['title' => $title, 'created_by_user_id' => $this->admin->id]));
+            $path = $task->id . '/evidence.jpg';
+            Storage::disk('task_media')->put($path, 'fake-bytes');
+            $task->media()->create([
+                'media_type' => 'image', 'file_path' => $path,
+                'original_filename' => 'evidence.jpg', 'uploaded_by' => $this->admin->id,
+            ]);
+            return $task;
+        };
+
+        $old   = $makeTaskWithMedia('Old completed');
+        $young = $makeTaskWithMedia('Recently completed');
+        $open  = $makeTaskWithMedia('Still open');
+
+        $old->forceFill(['status' => 'completed', 'completed_at' => now()->subDays(31)])->save();
+        $young->forceFill(['status' => 'completed', 'completed_at' => now()->subDays(5)])->save();
+
+        (new PurgeCompletedTaskMediaJob())->handle();
+
+        // 31 days post-completion: rows AND files flushed
+        $this->assertEquals(0, TaskMedia::where('task_id', $old->id)->count());
+        Storage::disk('task_media')->assertMissing($old->id . '/evidence.jpg');
+
+        // 5 days post-completion and never-completed: untouched
+        $this->assertEquals(1, TaskMedia::where('task_id', $young->id)->count());
+        Storage::disk('task_media')->assertExists($young->id . '/evidence.jpg');
+        $this->assertEquals(1, TaskMedia::where('task_id', $open->id)->count());
+        Storage::disk('task_media')->assertExists($open->id . '/evidence.jpg');
+
+        // Task, comments, and history survive — only media goes
+        $this->assertDatabaseHas('daily_tasks', ['id' => $old->id, 'title' => 'Old completed']);
+    }
+
+    public function test_deleting_a_task_removes_its_media_files(): void
+    {
+        Storage::fake('task_media');
+
+        $task = Task::create($this->taskPayload(['created_by_user_id' => $this->admin->id]));
+        $path = $task->id . '/photo.jpg';
+        Storage::disk('task_media')->put($path, 'bytes');
+        $task->media()->create([
+            'media_type' => 'image', 'file_path' => $path,
+            'original_filename' => 'photo.jpg', 'uploaded_by' => $this->admin->id,
+        ]);
+
+        $this->delete(route('admin.tasks.destroy', $task))->assertRedirect();
+
+        $this->assertDatabaseMissing('daily_tasks', ['id' => $task->id]);
+        $this->assertEquals(0, TaskMedia::where('task_id', $task->id)->count());
+        Storage::disk('task_media')->assertMissing($path);
+    }
+
+    public function test_show_page_displays_attachments(): void
+    {
+        Storage::fake('task_media');
+
+        $task = Task::create($this->taskPayload(['title' => 'Media task', 'created_by_user_id' => $this->admin->id]));
+        Storage::disk('task_media')->put($task->id . '/site.jpg', 'bytes');
+        $task->media()->create([
+            'media_type' => 'image', 'file_path' => $task->id . '/site.jpg',
+            'original_filename' => 'site.jpg', 'mime_type' => 'image/jpeg',
+            'uploaded_by' => $this->admin->id,
+        ]);
+
+        $html = $this->get(route('admin.tasks.show', $task))->assertOk()->getContent();
+
+        $this->assertStringContainsString('Attachments', $html);
+        $this->assertStringContainsString('site.jpg', $html);
+        // Comment form can carry files
+        $this->assertStringContainsString('enctype="multipart/form-data"', $html);
+        $this->assertStringContainsString('name="media[]"', $html);
     }
 
     public function test_show_page_omits_related_panel_when_unlinked(): void

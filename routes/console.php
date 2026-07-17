@@ -96,6 +96,13 @@ Schedule::job(new \App\Jobs\SendMeetingReminderJob())
     ->onOneServer()
     ->name('send-meeting-reminder-job');
 
+Schedule::job(new \App\Jobs\PurgeCompletedTaskMediaJob())
+    ->dailyAt('02:30')
+    ->timezone('America/Chicago')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('purge-completed-task-media-job');
+
 Schedule::job(new \App\Jobs\ExpirePodPaymentLinksJob())
     ->dailyAt('01:00')
     // ->dailyAt('02:07')

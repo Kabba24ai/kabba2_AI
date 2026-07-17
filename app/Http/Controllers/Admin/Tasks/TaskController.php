@@ -245,6 +245,8 @@ class TaskController extends Controller
         $task = Task::create($data);
         $task->logActivity('task_created', null, $task->title);
 
+        $this->storeTaskMediaFiles($task, null, $request->file('media', []));
+
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Task created successfully.']);
         }
@@ -254,7 +256,7 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'comments.user', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'descriptionMedia', 'comments.user', 'comments.media', 'activityLogs.user']);
         $users = User::active()->orderBy('first_name')->get();
 
         return view('admin.tasks.show', compact('task', 'users'));
@@ -368,10 +370,12 @@ class TaskController extends Controller
 
     public function storeComment(StoreTaskCommentRequest $request, Task $task)
     {
-        $task->comments()->create([
+        $comment = $task->comments()->create([
             'user_id' => auth()->id(),
             'comment' => $request->validated('comment'),
         ]);
+
+        $this->storeTaskMediaFiles($task, $comment->id, $request->file('media', []));
 
         $task->logActivity('comment_added');
 
@@ -382,10 +386,12 @@ class TaskController extends Controller
     {
         $comment = $request->validated('comment');
 
-        $task->comments()->create([
+        $commentModel = $task->comments()->create([
             'user_id' => auth()->id(),
             'comment' => $comment,
         ]);
+
+        $this->storeTaskMediaFiles($task, $commentModel->id, $request->file('media', []));
 
         $task->update([
             'status'               => 'completed',
@@ -400,6 +406,38 @@ class TaskController extends Controller
         );
 
         return redirect()->route('admin.tasks.index')->with('success', 'Task marked as completed.');
+    }
+
+    /**
+     * Persist uploaded images/video on the dedicated task_media disk under
+     * {task_id}/ and record one daily_task_media row per file. Comment id
+     * null = attached to the task description.
+     */
+    private function storeTaskMediaFiles(Task $task, ?int $commentId, array $files): void
+    {
+        foreach ($files as $file) {
+            if (!$file) {
+                continue;
+            }
+
+            $originalName = $file->getClientOriginalName();
+            $baseName     = \Illuminate\Support\Str::lower(pathinfo($originalName, PATHINFO_FILENAME));
+            $extension    = $file->getClientOriginalExtension();
+            $filename     = \Illuminate\Support\Str::random(6) . '-' . preg_replace('/[^a-z0-9\_\-\.]/i', '', $baseName . '.' . $extension);
+            $mime         = $file->getMimeType();
+
+            $path = $file->storeAs((string) $task->id, $filename, \App\Models\Tasks\TaskMedia::DISK);
+
+            $task->media()->create([
+                'task_comment_id'   => $commentId,
+                'media_type'        => str_starts_with((string) $mime, 'video') ? 'video' : 'image',
+                'file_path'         => $path,
+                'original_filename' => $originalName,
+                'mime_type'         => $mime,
+                'file_size'         => $file->getSize(),
+                'uploaded_by'       => auth()->id(),
+            ]);
+        }
     }
 
     private static function callReasonLabels(): array

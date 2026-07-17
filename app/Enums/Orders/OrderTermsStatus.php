@@ -39,4 +39,9 @@ enum OrderTermsStatus : string
         return $this === self::Exempt;
     }
 
+    public static function getValues(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
 }

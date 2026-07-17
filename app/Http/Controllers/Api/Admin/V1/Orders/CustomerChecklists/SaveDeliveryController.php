@@ -42,7 +42,7 @@ class SaveDeliveryController extends BaseController
             // block below when a checklist is actually submitted; stays null otherwise.
             $missingRequiredQuestionCount = null;
 
-            $orderProduct = OrderProduct::with(['checklistQuestions.answers'])
+            $orderProduct = OrderProduct::with(['checklistQuestions.answers', 'product.categories'])
                 ->whereHas('order')
                 ->where('unique_id', $validated['order_product_unique_id'])
                 ->first();
@@ -263,6 +263,14 @@ class SaveDeliveryController extends BaseController
             // makes the gap measurable so a future phase can decide whether to enforce it.
             $this->logIfDeliveryIncomplete($orderProduct, $orderProductData, $validated, $missingRequiredQuestionCount);
 
+            // BUG-12 (observability only, no enforcement, per the plan's own recommended
+            // observe-first approach — mirrors the PR-A4 pattern above): logs when the
+            // delivered equipment's category doesn't match any category the booked product
+            // is assigned to. Does not block the delivery or change the response. See
+            // docs/checklist-system-audit/PHASE3_IMPLEMENTATION_PLAN.md BUG-12 and
+            // docs/checklist-system-audit/P3_12B_BUG12_EQUIPMENT_CATEGORY_MISMATCH_LOG.md.
+            $this->logIfEquipmentCategoryMismatch($orderProduct, $equipment);
+
             // fire event
             $user = auth('api_user')->user();
             $type = 'checklist_delivery';
@@ -302,6 +310,39 @@ class SaveDeliveryController extends BaseController
             'signature_present'                => $hasSignature,
             'checklist_submitted'              => $checklistSubmitted,
             'missing_required_question_count'  => $missingRequiredQuestionCount,
+        ]);
+    }
+
+    /**
+     * BUG-12 (observability only, no enforcement): logs when the delivered equipment's
+     * category doesn't match any category the booked product is assigned to. A product
+     * with zero assigned categories is treated as unknown and intentionally NOT logged
+     * — the category-data set is not confirmed complete across all products, so treating
+     * "no categories assigned" as a mismatch would produce noisy false positives rather
+     * than a meaningful signal. Purely observational: does not change delivery_status,
+     * the HTTP response, or any other behavior. See
+     * docs/checklist-system-audit/PHASE3_IMPLEMENTATION_PLAN.md BUG-12 and
+     * docs/checklist-system-audit/P3_12B_BUG12_EQUIPMENT_CATEGORY_MISMATCH_LOG.md.
+     */
+    private function logIfEquipmentCategoryMismatch(OrderProduct $orderProduct, ?Equipment $equipment): void
+    {
+        if (!$equipment || !$equipment->product_category_id) {
+            return;
+        }
+
+        $bookedCategoryIds = $orderProduct->product?->categories->pluck('id') ?? collect();
+
+        if ($bookedCategoryIds->isEmpty() || $bookedCategoryIds->contains($equipment->product_category_id)) {
+            return;
+        }
+
+        Log::channel('api_errors')->warning('Delivered equipment category does not match the booked product\'s category', [
+            'order_product_id'      => $orderProduct->id,
+            'order_id'               => $orderProduct->order_id,
+            'equipment_id'           => $equipment->id,
+            'equipment_category_id'  => $equipment->product_category_id,
+            'product_id'             => $orderProduct->product_id,
+            'booked_category_ids'    => $bookedCategoryIds->values()->all(),
         ]);
     }
 }

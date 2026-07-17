@@ -14,6 +14,7 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
 use App\Models\ProductManagement\Product;
+use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -259,6 +260,105 @@ class CompletenessObservabilityLoggingTest extends TestCase
         $this->assertEquals('Completed', $orderProduct->refresh()->delivery_status);
 
         $this->assertFalse($this->apiErrorsHandler->hasWarningRecords());
+    }
+
+    // ── BUG-12: equipment/booked-product category mismatch (observability only) ──
+
+    public function test_bug12_equipment_category_mismatch_logs_a_warning(): void
+    {
+        $bookedCategory   = ProductCategory::create(['title' => 'Excavators']);
+        $deliveredCategory = ProductCategory::create(['title' => 'Skid Steers']);
+
+        $product = Product::create([
+            'product_name' => 'Test Rental Product',
+            'slug'         => 'test-rental-product-' . uniqid(),
+            'product_type' => 'Rental',
+        ]);
+        $product->categories()->attach($bookedCategory->id);
+
+        $orderProduct = OrderProduct::create([
+            'order_id'     => $this->order->id,
+            'product_id'   => $product->id,
+            'product_name' => 'Test Rental Product',
+            'price'        => 100,
+            'quantity'     => 1,
+            'total'        => 100,
+        ]);
+
+        $equipment = Equipment::create([
+            'equipment_name'       => 'Mismatched Equipment',
+            'equipment_id'         => 'EQP-TEST-' . uniqid(),
+            'brand'                => 'TestBrand',
+            'current_status'       => 'available',
+            'product_category_id'  => $deliveredCategory->id,
+        ]);
+
+        $response = $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'signature_media'         => UploadedFile::fake()->image('signature.jpg'),
+        ]);
+
+        // Purely observational: delivery still succeeds exactly as before.
+        $response->assertOk();
+        $this->assertEquals('Completed', $orderProduct->refresh()->delivery_status);
+
+        $this->assertTrue($this->apiErrorsHandler->hasWarningThatContains(
+            "Delivered equipment category does not match the booked product's category"
+        ));
+        $record = collect($this->apiErrorsHandler->getRecords())
+            ->firstWhere('message', "Delivered equipment category does not match the booked product's category");
+        $this->assertNotNull($record);
+        $this->assertEquals($equipment->id, $record->context['equipment_id']);
+        $this->assertEquals($deliveredCategory->id, $record->context['equipment_category_id']);
+        $this->assertEquals([$bookedCategory->id], $record->context['booked_category_ids']);
+    }
+
+    public function test_bug12_matching_equipment_category_does_not_log(): void
+    {
+        $category = ProductCategory::create(['title' => 'Excavators']);
+
+        $product = Product::create([
+            'product_name' => 'Test Rental Product',
+            'slug'         => 'test-rental-product-' . uniqid(),
+            'product_type' => 'Rental',
+        ]);
+        $product->categories()->attach($category->id);
+
+        $orderProduct = OrderProduct::create([
+            'order_id'     => $this->order->id,
+            'product_id'   => $product->id,
+            'product_name' => 'Test Rental Product',
+            'price'        => 100,
+            'quantity'     => 1,
+            'total'        => 100,
+        ]);
+
+        $equipment = Equipment::create([
+            'equipment_name'       => 'Matching Equipment',
+            'equipment_id'         => 'EQP-TEST-' . uniqid(),
+            'brand'                => 'TestBrand',
+            'current_status'       => 'available',
+            'product_category_id'  => $category->id,
+        ]);
+
+        $response = $this->callAs('POST', 'customer-checklists/save-delivery', [
+            'order_product_unique_id' => $orderProduct->unique_id,
+            'equipment_unique_id'     => $equipment->unique_id,
+            'user_id'                 => (string) $this->actor->id,
+            'signature_media'         => UploadedFile::fake()->image('signature.jpg'),
+        ]);
+
+        $response->assertOk();
+        $this->assertEquals('Completed', $orderProduct->refresh()->delivery_status);
+        // Note: this delivery omits a checklist/template entirely, so PR-A4's own
+        // separate "incomplete checklist" warning fires regardless (expected,
+        // pre-existing, orthogonal to BUG-12) — assert specifically that the BUG-12
+        // category-mismatch warning is what's absent, not that no warning exists at all.
+        $this->assertFalse($this->apiErrorsHandler->hasWarningThatContains(
+            "Delivered equipment category does not match the booked product's category"
+        ));
     }
 
     // ── SaveReturnController ─────────────────────────────────────────────────

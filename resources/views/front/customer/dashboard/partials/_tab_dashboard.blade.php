@@ -211,6 +211,7 @@
                                         <th class="px-4 py-3 font-medium uppercase">Payment Method</th>
                                         <th class="px-4 py-3 font-medium uppercase">Status</th>
                                         <th class="px-4 py-3 font-medium uppercase">Created</th>
+                                        <th class="px-4 py-3 font-medium uppercase">Terms</th>
                                         <th class="px-4 py-3 font-medium uppercase">Action</th>
                                     </tr>
                                 </thead>
@@ -246,6 +247,18 @@
 
                                         </td>
                                         <td class="px-4 py-3"> {{ App\Helpers\CustomHelper::formatDate($order->order_date) ?? 'N/A' }} </td>
+                                        <td class="px-4 py-3">
+                                            {{-- Icon only when a signed agreement exists —
+                                                 deliberately nothing (no placeholder) otherwise --}}
+                                            @if ($order->hasSignedTerms())
+                                                <a href="{{ route('front.customer.dashboard.order.terms', $order->unique_id) }}"
+                                                    target="_blank" rel="noopener"
+                                                    title="View Signed Terms &amp; Conditions"
+                                                    class="text-blue-600 inline-flex items-center">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </a>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-3 whitespace-nowrap items-center text-blue-600 flex">
                                             <a href="{{ route('front.customer.dashboard.order.view', $order->unique_id) }}"
                                                 class="text-blue-600 inline-flex items-center">
@@ -264,7 +277,7 @@
                                     @endforeach
                                     @empty
                                     <tr>
-                                        <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                                        <td colspan="9" class="px-4 py-4 text-center text-gray-500">
                                             No orders found.
                                         </td>
                                     </tr>

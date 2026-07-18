@@ -117,6 +117,17 @@ class Order extends Model
     }
 
     /**
+     * True when a signed Terms & Conditions document exists for this order —
+     * the frozen accepted_terms_content snapshot captured at signing time.
+     * Declined / Exempt / Pending / legacy-null orders have no signed document.
+     */
+    public function hasSignedTerms(): bool
+    {
+        return $this->terms_status?->isAccepted() === true
+            && filled($this->accepted_terms_content);
+    }
+
+    /**
      * The Rental Extension BillingCharge this order was created BY (set only
      * on extension child orders). The charge and the child order share one
      * lifecycle — see ExtensionTransactionService.

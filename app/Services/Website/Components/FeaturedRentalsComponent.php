@@ -14,10 +14,8 @@ class FeaturedRentalsComponent extends AbstractSectionComponent
     public function viewData(array $context): array
     {
         return [
-            'section'             => $this->section($context),
-            'items'               => $this->items($context),
-            'categories'          => $context['categories'],
-            'selectedCategoryIds' => $context['selectedCategoryIds'],
+            'section' => $this->section($context),
+            'items'   => $this->items($context),
         ];
     }
 

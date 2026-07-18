@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin\WebsiteManagement\HomePageBuilder;
 
 use App\Http\Controllers\Controller;
 use App\Models\WebsiteManagement\WebsitePage;
-use App\Models\ProductManagement\ProductCategory;
 use App\Models\Stores\Store;
 use App\Services\Website\ComponentRegistry;
 use Illuminate\Http\Request;
@@ -27,19 +26,6 @@ class IndexController extends Controller
             $allSectionsOrdered = $page->sections->sortBy('display_order')->values();
         }
 
-        $categories = ProductCategory::has('products')
-            ->published()
-            ->whereNull('parent_id')
-            ->sortOrder()
-            ->get(['id', 'unique_id', 'title', 'slug']);
-
-        $selectedCategoryIds = collect();
-        if ($sections->has('featured_rentals')) {
-            $selectedCategoryIds = $itemsByKey->get('featured_rentals', collect())
-                ->map(fn ($item) => data_get($item->content, 'category_id'))
-                ->filter();
-        }
-
         $stores = Store::active()->orderByAdmin()->get(['id', 'unique_id', 'store_name']);
 
         // Feature Strip + Footer are global site components — edited on
@@ -55,8 +41,6 @@ class IndexController extends Controller
             'sections'            => $sections,
             'itemsByKey'          => $itemsByKey,
             'allSectionsOrdered'  => $allSectionsOrdered ?? collect(),
-            'categories'          => $categories,
-            'selectedCategoryIds' => $selectedCategoryIds,
             'stores'              => $stores,
             'registry'            => $this->registry,
             'components'          => $components,

@@ -25,6 +25,18 @@
                 {!! \App\Helpers\CustomHelper::statusBadge($category->status) !!}
             </div>
 
+            @if ($addFlag)
+                <form method="POST"
+                    action="{{ route('admin.product-management.categories.toggle-featured', $category->unique_id) }}"
+                    class="shrink-0" title="Toggle homepage Featured Rentals">
+                    @csrf
+                    <button type="submit"
+                        class="text-xs px-2 py-0.5 rounded-full transition-colors {{ $category->is_featured === 'Yes' ? 'bg-purple-100 text-purple-700 hover:bg-red-100 hover:text-red-700' : 'bg-gray-100 text-gray-500 hover:bg-purple-100 hover:text-purple-700' }}">
+                        {{ $category->is_featured === 'Yes' ? 'Featured ✓' : 'Feature?' }}
+                    </button>
+                </form>
+            @endif
+
         </div>
 
         <div class="relative flex items-center shrink-0">

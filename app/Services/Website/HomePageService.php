@@ -5,6 +5,7 @@ namespace App\Services\Website;
 use Illuminate\Support\Facades\Cache;
 use App\Models\WebsiteManagement\WebsitePage;
 use App\Models\Global\Media;
+use App\Models\ProductManagement\ProductCategory;
 
 class HomePageService
 {
@@ -91,13 +92,15 @@ class HomePageService
 
     private function buildFeaturedRentals($section): object
     {
-        $categoryIds = collect();
-        if ($section) {
-            $categoryIds = $section->items
-                ->map(fn ($i) => data_get($i->content, 'category_id'))
-                ->filter()
-                ->values();
-        }
+        // Which categories appear here is driven entirely by ProductCategory.is_featured
+        // (top-level, published, must have at least one product) — not by section items.
+        $categoryIds = ProductCategory::has('products')
+            ->published()
+            ->whereNull('parent_id')
+            ->where('is_featured', 'Yes')
+            ->sortOrder()
+            ->pluck('id');
+
         return (object) [
             'title'       => $section?->title ?? 'FEATURED RENTALS',
             'categoryIds' => $categoryIds,

@@ -39,7 +39,6 @@
         @php
         $context = compact(
             'page', 'sections', 'itemsByKey',
-            'categories', 'selectedCategoryIds',
             'stores', 'allSectionsOrdered'
         );
         @endphp

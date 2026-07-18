@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ProductManagement\Categories\ReorderController;
 use App\Http\Controllers\Admin\ProductManagement\Categories\UpdateOrderController;
 use App\Http\Controllers\Admin\ProductManagement\Categories\DeleteController;
 use App\Http\Controllers\Admin\ProductManagement\Categories\SubcategorySearchController;
+use App\Http\Controllers\Admin\ProductManagement\Categories\ToggleFeaturedController;
 
 
 Route::prefix('categories')
@@ -30,6 +31,9 @@ Route::prefix('categories')
 
     // Sort Order
     Route::post('/sort-order', UpdateOrderController::class)->name('sort-order');
+
+    // Toggle homepage "Featured Rentals" flag
+    Route::post('/{unique_id}/toggle-featured', ToggleFeaturedController::class)->name('toggle-featured');
 
     // Search subcategories with products
     Route::get('/fetch/subcategories/{search?}', SubcategorySearchController::class)->name('search-subcategories');

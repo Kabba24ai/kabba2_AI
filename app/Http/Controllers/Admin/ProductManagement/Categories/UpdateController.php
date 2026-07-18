@@ -27,8 +27,9 @@ class UpdateController extends Controller
     {
         $validatedData = $request->validated();
 
-        // Normalize is_featured to 'Yes' or 'No'
-        $validatedData['is_featured'] = isset($validatedData['is_featured']) ? 'Yes' : 'No';
+        // is_featured has no control on this form (managed via the toggle
+        // switch on the category hierarchy list) — never overwrite it here.
+        unset($validatedData['is_featured']);
 
         $objProductCategory = ProductCategory::where('unique_id', $unique_id)->firstOrFail();
         $objProductCategory->fill($validatedData);

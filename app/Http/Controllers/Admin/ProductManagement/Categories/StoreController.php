@@ -28,8 +28,10 @@ class StoreController extends Controller
         // Use validated data
         $validatedData = $request->validated();
 
-        // Normalize is_featured to 'Yes' or 'No'
-        $validatedData['is_featured'] = isset($validatedData['is_featured']) ? 'Yes' : 'No';
+        // New categories are featured on the homepage by default — the create
+        // form has no is_featured control, so this always applies on create.
+        // Toggle it off afterward from the category hierarchy list if needed.
+        $validatedData['is_featured'] = 'Yes';
 
         $objProductCategory = ProductCategory::create($validatedData);
 

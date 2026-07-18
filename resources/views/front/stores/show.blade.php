@@ -1,52 +1,76 @@
 @extends('front.layouts.app')
 
-@section('title', $title)
+{{-- SEO title: custom store SEO title, else "Store Name - Site Name" (resolved in controller) --}}
+@section('full_title', $seoRaw['meta_title'])
+
+@section('canonical', $seoRaw['canonical_url'])
+
+@push('meta')
+    {{-- Blank OG fields inherit the Meta values; og:image falls back to the
+         store image, then the site's default social image (Theme Builder →
+         Default OG Image, else logo) --}}
+    @include('front.partials.page_meta', [
+        'seoRaw'        => $seoRaw,
+        'fallbackImage' => $storeImageUrl,
+    ])
+@endpush
 
 @section('content')
 
-{{-- ── Hero ──────────────────────────────────────────────────────────────── --}}
-<section class="relative pt-15 h-[220px] sm:h-[280px] md:h-[320px] lg:h-[360px] overflow-hidden">
+{{-- Clearance for the fixed navbar — same treatment as the Contact Us page --}}
+<div class="pt-[4.2rem] lg:pt-16">
 
-    <img
-        src="{{ asset('storage/front/images/banner.jpg') }}"
-        alt="{{ $store->store_name }}"
-        class="absolute inset-0 w-full h-full object-cover
-               object-[center_top] sm:object-[center_20%] md:object-[center_30%] lg:object-[center_-17%]"
-        aria-hidden="true"
-    >
+{{-- ── Shared Contact Strip (global component, per-store toggle) ─────────── --}}
+@if($showContactStrip)
+    @include('front.partials.contact_strip')
+@endif
 
-    <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10"></div>
-
-    <div class="relative z-10 h-full container mx-auto px-5 sm:px-6 lg:px-8 flex flex-col justify-center">
+{{-- ── Store Introduction ────────────────────────────────────────────────── --}}
+<section class="bg-white pt-8 md:pt-10">
+    <div class="max-w-screen-xl mx-auto px-4 md:px-6 lg:px-8">
 
         {{-- Breadcrumb --}}
-        <nav class="flex items-center gap-1.5 text-xs text-white/60 mb-3" aria-label="Breadcrumb">
-            <a href="{{ route('front.home.index') }}" class="hover:text-white transition-colors">Home</a>
+        <nav class="flex items-center gap-1.5 text-xs text-gray-400 mb-4" aria-label="Breadcrumb">
+            <a href="{{ route('front.home.index') }}" class="hover:text-gray-600 transition-colors">Home</a>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
-            <span class="text-white/80">{{ $store->store_name }}</span>
+            <span class="text-gray-600">{{ $heading }}</span>
         </nav>
 
-        <div class="max-w-full sm:max-w-[520px] lg:max-w-[620px]">
+        <div class="grid grid-cols-1 {{ $storeImageUrl ? 'lg:grid-cols-2' : '' }} gap-8 lg:gap-14 items-center">
 
-            <h1 class="text-[26px] leading-tight sm:text-[32px] md:text-[38px] lg:text-[34px] font-semibold uppercase text-white">
-                {{ $store->store_name }}
-            </h1>
+            <div>
+                <h1 class="text-[26px] leading-tight sm:text-[30px] md:text-[34px] font-semibold uppercase text-[#171636]">
+                    {{ $heading }}
+                </h1>
 
-            @if($store->address)
-                <p class="mt-2 text-sm sm:text-base leading-relaxed text-white/80">
-                    {{ $store->address }},
-                    {{ $store->city }}{{ $store->state?->name ? ', ' . $store->state->name : '' }} {{ $store->zip_code }}
-                </p>
+                @if($store->full_address)
+                    <p class="mt-2 text-sm text-gray-500">
+                        {{ $store->full_address }}
+                    </p>
+                @endif
+
+                @if($page?->intro_text)
+                    <p class="mt-4 text-base leading-relaxed text-gray-700">
+                        {{ $page->intro_text }}
+                    </p>
+                @endif
+            </div>
+
+            @if($storeImageUrl)
+                <div>
+                    <img src="{{ $storeImageUrl }}"
+                         alt="{{ $page?->image?->alt_text ?: $heading }}"
+                         class="w-full max-w-full aspect-[3/2] object-cover rounded-xl border border-gray-200 shadow-sm">
+                </div>
             @endif
 
         </div>
     </div>
-
 </section>
 
-{{-- ── Store Details + Hours ───────────────────────────────────────────── --}}
+{{-- ── Store Details + Hours + Map ───────────────────────────────────────── --}}
 <section class="bg-white py-10 md:py-14">
     <div class="max-w-screen-xl mx-auto px-4 md:px-6 lg:px-8">
 
@@ -146,9 +170,6 @@
                                                 {{ \Carbon\Carbon::parse($h->start_time)->format('g:i A') }}
                                                 –
                                                 {{ \Carbon\Carbon::parse($h->end_time)->format('g:i A') }}
-                                                {{-- @if($h->is_lunch_required)
-                                                    <span class="ml-2 text-xs text-gray-400">(Lunch break)</span>
-                                                @endif --}}
                                             </td>
                                         @endif
                                     </tr>
@@ -208,5 +229,19 @@
 
     </div>
 </section>
+
+{{-- ── Store Description ─────────────────────────────────────────────────── --}}
+@if($page?->description)
+<section class="bg-gray-50 py-10 md:py-14">
+    <div class="max-w-screen-xl mx-auto px-4 md:px-6 lg:px-8">
+        <h2 class="text-lg font-semibold uppercase tracking-wide text-[#171636] mb-6 pb-3 border-b border-gray-200">
+            About {{ $heading }}
+        </h2>
+        <div class="max-w-3xl text-base leading-relaxed text-gray-700 whitespace-pre-line">{{ $page->description }}</div>
+    </div>
+</section>
+@endif
+
+</div>
 
 @endsection

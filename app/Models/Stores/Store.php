@@ -103,6 +103,21 @@ class Store extends Model
         return $this->hasMany(User::class);
     }
 
+    public function page()
+    {
+        return $this->hasOne(StorePage::class);
+    }
+
+    /**
+     * Whether the customer-facing store detail page may render.
+     * Stores without a store_pages row default to visible.
+     */
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === 'Active'
+            && ($this->page?->status ?? 'Active') === 'Active';
+    }
+
     public function serviceAreas()
     {
         return $this->hasMany(StoreServiceArea::class)->orderBy('sort_order');

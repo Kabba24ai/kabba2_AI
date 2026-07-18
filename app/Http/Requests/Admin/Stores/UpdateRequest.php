@@ -39,6 +39,9 @@ class UpdateRequest extends FormRequest
         $cleaned['service_area_delivery_allowed'] = (int) $this->boolean('service_area_delivery_allowed');
         $cleaned['service_area_pickup_allowed']   = (int) $this->boolean('service_area_pickup_allowed');
 
+        // Public Website Page checkbox
+        $cleaned['show_contact_strip'] = $this->boolean('show_contact_strip');
+
         $this->merge($cleaned);
     }
 
@@ -106,6 +109,20 @@ class UpdateRequest extends FormRequest
         $rules['service_area_radius_miles']     = ['nullable', 'numeric', 'min:0.1'];
         $rules['service_area_delivery_allowed'] = ['nullable', 'boolean'];
         $rules['service_area_pickup_allowed']   = ['nullable', 'boolean'];
+
+        // Public Website Page
+        $rules['page_status']            = ['nullable', 'in:Active,Inactive'];
+        $rules['show_contact_strip']     = ['nullable', 'boolean'];
+        $rules['page_heading']           = ['nullable', 'string', 'max:240'];
+        $rules['intro_text']             = ['nullable', 'string', 'max:500'];
+        $rules['page_description']       = ['nullable', 'string', 'max:5000'];
+        $rules['page_image_media_id']    = ['nullable', 'integer', 'exists:media,id'];
+        $rules['seo_title']              = ['nullable', 'string', 'max:240'];
+        $rules['page_meta_description']  = ['nullable', 'string', 'max:500'];
+        $rules['og_title']               = ['nullable', 'string', 'max:240'];
+        $rules['og_description']         = ['nullable', 'string', 'max:500'];
+        $rules['page_og_image_media_id'] = ['nullable', 'integer', 'exists:media,id'];
+        $rules['canonical_url']          = ['nullable', 'url', 'max:500'];
 
         // Service area — included/excluded rows (wildcard)
         foreach (['included', 'excluded'] as $group) {

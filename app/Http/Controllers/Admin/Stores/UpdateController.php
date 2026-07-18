@@ -15,6 +15,8 @@ use App\Models\Stores\StoreServiceArea;
 
 class UpdateController extends Controller
 {
+    use Concerns\SavesPublicPage;
+
     public function __invoke($unique_id, UpdateRequest $request)
     {
         $validatedData = $request->validated();
@@ -44,6 +46,9 @@ class UpdateController extends Controller
 
             // Update service areas
             $this->saveServiceAreas($store->id, $validatedData);
+
+            // Update public website page settings
+            $this->savePublicPage($store, $validatedData);
         });
 
         flash('Store updated successfully.')->success();

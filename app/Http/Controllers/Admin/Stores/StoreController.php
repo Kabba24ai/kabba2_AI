@@ -16,6 +16,8 @@ use App\Models\Stores\StoreServiceArea;
 
 class StoreController extends Controller
 {
+    use Concerns\SavesPublicPage;
+
     /**
      * Handle the incoming request.
      *
@@ -39,6 +41,7 @@ class StoreController extends Controller
 
             $this->saveHours($newStore->id, $validatedData);
             $this->saveServiceAreas($newStore->id, $validatedData);
+            $this->savePublicPage($newStore, $validatedData);
 
             return $newStore;
         });

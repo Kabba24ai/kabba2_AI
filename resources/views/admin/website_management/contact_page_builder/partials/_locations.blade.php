@@ -158,7 +158,59 @@
                             imageUrl: '{{ $storePage?->image?->url ?? '' }}',
                             ogId:     '{{ $storePage->og_image_media_id ?? '' }}',
                             ogUrl:    '{{ $storePage?->ogImage?->url ?? '' }}',
+                            heading:     @js($storePage->page_heading ?? ''),
+                            intro:       @js($storePage->intro_text ?? ''),
+                            description: @js($storePage->description ?? ''),
                          }">
+                        {{-- ── Live layout preview — mirrors front.stores.show ─────────────── --}}
+                        <div class="mb-6 border border-gray-200 rounded-lg bg-gray-50 overflow-hidden">
+                            <div class="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
+                                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                    Live Preview — this store's public page
+                                </span>
+                                <a href="{{ route('front.stores.show', $store->slug) }}" target="_blank" rel="noopener"
+                                   class="text-xs font-medium text-blue-600 hover:text-blue-700">Open full page ↗</a>
+                            </div>
+                            <div class="p-4">
+                                <p class="text-[11px] text-gray-400 mb-3">
+                                    Home <span class="mx-1">›</span>
+                                    <span x-text="heading || {{ Js::from($defaultHeading) }}"></span>
+                                </p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                                    <div>
+                                        <p class="text-lg font-bold uppercase text-[#171636] leading-snug"
+                                           x-text="heading || {{ Js::from($defaultHeading) }}"></p>
+                                        <p class="mt-1 text-xs text-gray-500">{{ $store->full_address }}</p>
+                                        <template x-if="intro">
+                                            <p class="mt-2 text-sm text-gray-700" x-text="intro"></p>
+                                        </template>
+                                        <template x-if="!intro">
+                                            <p class="mt-2 text-xs italic text-gray-400">(no introductory text — this line won't show)</p>
+                                        </template>
+                                    </div>
+                                    <template x-if="imageUrl">
+                                        <img :src="imageUrl" alt="" class="w-full h-28 object-cover rounded-md border border-gray-200">
+                                    </template>
+                                    <template x-if="!imageUrl">
+                                        <div class="w-full h-28 rounded-md border border-dashed border-gray-300 bg-white flex items-center justify-center text-center px-2 text-xs text-gray-400">
+                                            (no store image — this column won't show)
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-gray-200">
+                                    <template x-if="description">
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase text-[#171636] mb-1"
+                                               x-text="'About ' + (heading || {{ Js::from($defaultHeading) }})"></p>
+                                            <p class="text-xs text-gray-600" x-text="description"></p>
+                                        </div>
+                                    </template>
+                                    <template x-if="!description">
+                                        <p class="text-xs italic text-gray-400">(no store description — the "About" section won't appear)</p>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                         <form method="POST"
                               action="{{ route('admin.website-management.contact-builder.store-page.update', $store->unique_id) }}">
                             @csrf
@@ -194,7 +246,7 @@
                                     </p>
                                     {!! html()->text('page_heading', $storePage->page_heading ?? null)
                                         ->class('w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500')
-                                        ->attributes(['maxlength' => 240, 'placeholder' => 'Blank shows: "' . $defaultHeading . '"', 'autocomplete' => 'off']) !!}
+                                        ->attributes(['maxlength' => 240, 'placeholder' => 'Blank shows: "' . $defaultHeading . '"', 'autocomplete' => 'off', 'x-model' => 'heading']) !!}
                                 </div>
 
                                 <div class="md:col-span-3">
@@ -206,7 +258,7 @@
                                     </p>
                                     {!! html()->textarea('intro_text', $storePage->intro_text ?? null)
                                         ->class('w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500')
-                                        ->attributes(['rows' => 2, 'maxlength' => 500, 'placeholder' => 'e.g. Your local rental headquarters in ' . $store->city]) !!}
+                                        ->attributes(['rows' => 2, 'maxlength' => 500, 'placeholder' => 'e.g. Your local rental headquarters in ' . $store->city, 'x-model' => 'intro']) !!}
                                 </div>
 
                                 <div class="md:col-span-3">
@@ -218,7 +270,7 @@
                                     </p>
                                     {!! html()->textarea('page_description', $storePage->description ?? null)
                                         ->class('w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:border-blue-500')
-                                        ->attributes(['rows' => 4, 'maxlength' => 5000, 'placeholder' => 'e.g. A longer paragraph about equipment, service area, and what makes this location worth visiting.']) !!}
+                                        ->attributes(['rows' => 4, 'maxlength' => 5000, 'placeholder' => 'e.g. A longer paragraph about equipment, service area, and what makes this location worth visiting.', 'x-model' => 'description']) !!}
                                 </div>
 
                                 <div class="md:col-span-3 border border-gray-200 rounded-lg p-4">

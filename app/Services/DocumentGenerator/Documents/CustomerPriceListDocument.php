@@ -59,6 +59,10 @@ class CustomerPriceListDocument extends AbstractDocument
                     'products.rental_weekend',
                     'products.rental_weekly',
                     'products.rental_monthly',
+                    'products.hide_rental_daily',
+                    'products.hide_rental_weekend',
+                    'products.hide_rental_weekly',
+                    'products.hide_rental_monthly',
                     'products.standard_delivery_fee',
                     'products.extended_delivery_fee',
                 ]);

@@ -70,6 +70,10 @@ class UpdateController extends Controller
                     'rental_weekend' => null,
                     'rental_weekly' => null,
                     'rental_monthly' => null,
+                    'hide_rental_daily' => false,
+                    'hide_rental_weekend' => false,
+                    'hide_rental_weekly' => false,
+                    'hide_rental_monthly' => false,
                     'rental_damage_waiver_daily' => null,
                     'rental_damage_waiver_weekend' => null,
                     'rental_damage_waiver_weekly' => null,
@@ -115,6 +119,12 @@ class UpdateController extends Controller
                     // Daily Rate (browser values discarded); manual/legacy
                     // submissions persist verbatim
                     ...\App\Helpers\RentalPriceHelper::resolveDerivedPrices($validated),
+
+                    // "Do Not Display" flags — presentation only, never touch the price values
+                    'hide_rental_daily' => $validated['hide_rental_daily'] ?? false,
+                    'hide_rental_weekend' => $validated['hide_rental_weekend'] ?? false,
+                    'hide_rental_weekly' => $validated['hide_rental_weekly'] ?? false,
+                    'hide_rental_monthly' => $validated['hide_rental_monthly'] ?? false,
 
                     'rental_damage_waiver_daily' => $validated['rental_damage_waiver_daily'] ?? null,
                     'rental_damage_waiver_weekend' => $validated['rental_damage_waiver_weekend'] ?? null,

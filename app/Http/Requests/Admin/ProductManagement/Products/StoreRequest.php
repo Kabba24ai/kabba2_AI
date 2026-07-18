@@ -140,6 +140,11 @@ class StoreRequest extends ApiBaseFormRequest
             'has_high_demand_alert' => ['nullable', 'boolean'],
             'hide_cc_payment_option' => ['nullable', 'boolean'],
 
+            'hide_rental_daily' => ['nullable', 'boolean'],
+            'hide_rental_weekend' => ['nullable', 'boolean'],
+            'hide_rental_weekly' => ['nullable', 'boolean'],
+            'hide_rental_monthly' => ['nullable', 'boolean'],
+
             'is_tax_free_item' => ['nullable', 'boolean'],
             'apply_special_tax' => ['nullable', 'boolean'],
             'apply_added_fees' => ['nullable', 'boolean'],

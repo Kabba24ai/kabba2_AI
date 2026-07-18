@@ -125,7 +125,9 @@
                                     </h3>
                                     @if ($item->product_type == 'Rental')
                                         <div class="grid grid-cols-2 gap-2">
-                                            @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
+                                            {{-- Admin "Do Not Display" flags: hidden periods are omitted
+                                                 entirely and the remaining buttons reflow in the grid --}}
+                                            @foreach ($item->visibleRentalPeriods() as $type)
                                                 <a href="{{ route('front.products.index', ['slug' => $item->slug, 'productVariant' => $type]) }}"
                                                     class="relative border-0 bg-yellow-400 text-black font-medium flex flex-col items-center px-2 rounded-xl hover:bg-yellow-500 overflow-hidden min-h-[40]">
                                                     <span class="z-30">

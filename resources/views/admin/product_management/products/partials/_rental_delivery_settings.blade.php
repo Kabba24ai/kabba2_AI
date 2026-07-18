@@ -16,7 +16,14 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Daily -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Daily</label>
+                <div class="flex items-center justify-between gap-x-2 flex-wrap mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 required">Daily</label>
+                    <label class="inline-flex items-center gap-1 cursor-pointer shrink-0">
+                        <input type="checkbox" name="hide_rental_daily" value="1"
+                            @checked(old('hide_rental_daily', $objProduct->hide_rental_daily ?? false))>
+                        <span class="text-[10px] italic text-gray-600 dark:text-gray-400 whitespace-nowrap">Do Not Display</span>
+                    </label>
+                </div>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_daily')->attributes([
@@ -35,8 +42,15 @@
 
             <!-- Weekend Spcl. -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Weekend
-                    Spcl.</label>
+                <div class="flex items-center justify-between gap-x-2 flex-wrap mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 required">Weekend
+                        Spcl.</label>
+                    <label class="inline-flex items-center gap-1 cursor-pointer shrink-0">
+                        <input type="checkbox" name="hide_rental_weekend" value="1"
+                            @checked(old('hide_rental_weekend', $objProduct->hide_rental_weekend ?? false))>
+                        <span class="text-[10px] italic text-gray-600 dark:text-gray-400 whitespace-nowrap">Do Not Display</span>
+                    </label>
+                </div>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_weekend')->attributes([
@@ -58,7 +72,14 @@
 
             <!-- Weekly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Weekly</label>
+                <div class="flex items-center justify-between gap-x-2 flex-wrap mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 required">Weekly</label>
+                    <label class="inline-flex items-center gap-1 cursor-pointer shrink-0">
+                        <input type="checkbox" name="hide_rental_weekly" value="1"
+                            @checked(old('hide_rental_weekly', $objProduct->hide_rental_weekly ?? false))>
+                        <span class="text-[10px] italic text-gray-600 dark:text-gray-400 whitespace-nowrap">Do Not Display</span>
+                    </label>
+                </div>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_weekly')->attributes([
@@ -80,7 +101,14 @@
 
             <!-- Monthly -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 required">Monthly</label>
+                <div class="flex items-center justify-between gap-x-2 flex-wrap mb-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 required">Monthly</label>
+                    <label class="inline-flex items-center gap-1 cursor-pointer shrink-0">
+                        <input type="checkbox" name="hide_rental_monthly" value="1"
+                            @checked(old('hide_rental_monthly', $objProduct->hide_rental_monthly ?? false))>
+                        <span class="text-[10px] italic text-gray-600 dark:text-gray-400 whitespace-nowrap">Do Not Display</span>
+                    </label>
+                </div>
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-sm">{{ config('app.currency.code') }}</span>
                     {!! html()->text('rental_monthly')->attributes([

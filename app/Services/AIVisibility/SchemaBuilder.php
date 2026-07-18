@@ -82,6 +82,11 @@ class SchemaBuilder
             ];
 
             foreach ($periods as $variant => $cfg) {
+                // Admin "Do Not Display" flag — hidden periods get no public offer
+                if ($product->isRentalPeriodHidden($variant)) {
+                    continue;
+                }
+
                 $price = $product->{$cfg['field']} ?? null;
                 if (!$price || (float) $price <= 0) {
                     continue;

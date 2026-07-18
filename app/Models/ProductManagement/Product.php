@@ -42,6 +42,11 @@ class Product extends Model
         'rental_weekly', // Weekly rental rate
         'rental_monthly', // Monthly rental rate
 
+        'hide_rental_daily', // Boolean: hide the Daily price from customer-facing displays
+        'hide_rental_weekend', // Boolean: hide the Weekend Spcl. price from customer-facing displays
+        'hide_rental_weekly', // Boolean: hide the Weekly price from customer-facing displays
+        'hide_rental_monthly', // Boolean: hide the Monthly price from customer-facing displays
+
         'rental_damage_waiver_daily', // Daily damage waiver fee
         'rental_damage_waiver_weekend', // Weekend damage waiver fee
         'rental_damage_waiver_weekly', // Weekly damage waiver fee
@@ -111,6 +116,10 @@ class Product extends Model
         'is_tax_free_item' => 'boolean',
         'apply_special_tax' => 'boolean',
         'apply_added_fees' => 'boolean',
+        'hide_rental_daily' => 'boolean',
+        'hide_rental_weekend' => 'boolean',
+        'hide_rental_weekly' => 'boolean',
+        'hide_rental_monthly' => 'boolean',
     ];
 
     public function sluggable(): array
@@ -290,6 +299,24 @@ class Product extends Model
             return false;
         }
         return $this->$relatedField;
+    }
+
+    /**
+     * "Do Not Display" flag for one of the four primary rental price levels.
+     * Presentation only — the stored price and all calculations are untouched.
+     */
+    public function isRentalPeriodHidden(string $period): bool
+    {
+        return (bool) $this->{'hide_rental_' . $period};
+    }
+
+    /** The primary rental periods that customer-facing displays may show, in order. */
+    public function visibleRentalPeriods(): array
+    {
+        return array_values(array_filter(
+            ['daily', 'weekend', 'weekly', 'monthly'],
+            fn ($period) => !$this->isRentalPeriodHidden($period)
+        ));
     }
 
     public function isRentalOnSale($period)

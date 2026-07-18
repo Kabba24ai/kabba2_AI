@@ -33,11 +33,13 @@
             @foreach ($group['products'] as $product)
                 <tr>
                     <td>{{ $product->product_name }}</td>
+                    {{-- Periods flagged "Do Not Display" print as "—", the document's
+                         existing not-offered marker; the stored price is untouched --}}
                     @foreach ([
-                        $product->rental_daily,
-                        $product->rental_weekend,
-                        $product->rental_weekly,
-                        $product->rental_monthly,
+                        $product->hide_rental_daily ? null : $product->rental_daily,
+                        $product->hide_rental_weekend ? null : $product->rental_weekend,
+                        $product->hide_rental_weekly ? null : $product->rental_weekly,
+                        $product->hide_rental_monthly ? null : $product->rental_monthly,
                         $product->standard_delivery_fee,
                         $product->extended_delivery_fee,
                     ] as $price)

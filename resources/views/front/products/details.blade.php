@@ -511,7 +511,8 @@
                                 @if ($relatedProduct->product_type == 'Rental')
                                     <div class="grid grid-cols-2 gap-2">
                                         <!-- Repeat this button block for each rental period -->
-                                        @foreach (['daily', 'weekend', 'weekly', 'monthly'] as $type)
+                                        {{-- Admin "Do Not Display" flags: hidden periods are omitted entirely --}}
+                                        @foreach ($relatedProduct->visibleRentalPeriods() as $type)
                                             @php
                                                 $isActive = $productVariant === $type;
                                             @endphp

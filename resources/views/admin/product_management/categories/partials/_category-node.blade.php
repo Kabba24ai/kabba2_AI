@@ -25,18 +25,6 @@
                 {!! \App\Helpers\CustomHelper::statusBadge($category->status) !!}
             </div>
 
-            @if ($addFlag)
-                <form method="POST"
-                    action="{{ route('admin.product-management.categories.toggle-featured', $category->unique_id) }}"
-                    class="shrink-0" title="Toggle homepage Featured Rentals">
-                    @csrf
-                    <button type="submit"
-                        class="text-xs px-2 py-0.5 rounded-full transition-colors {{ $category->is_featured === 'Yes' ? 'bg-purple-100 text-purple-700 hover:bg-red-100 hover:text-red-700' : 'bg-gray-100 text-gray-500 hover:bg-purple-100 hover:text-purple-700' }}">
-                        {{ $category->is_featured === 'Yes' ? 'Featured ✓' : 'Feature?' }}
-                    </button>
-                </form>
-            @endif
-
         </div>
 
         <div class="relative flex items-center shrink-0">
@@ -57,6 +45,24 @@
                     <x-heroicon-o-eye class="w-5 h-5" />
                 </a> --}}
                 @if ($addFlag)
+                    <div x-data="{ featured: @js($category->is_featured === 'Yes') }"
+                        class="flex items-center gap-1"
+                        title="Show or hide this category in the homepage Featured Rentals grid">
+                        <form method="POST"
+                            action="{{ route('admin.product-management.categories.toggle-featured', $category->unique_id) }}"
+                            x-ref="featuredForm" class="hidden">
+                            @csrf
+                        </form>
+                        <span class="text-[10px] font-medium text-gray-400 select-none"
+                            x-text="featured ? 'Show' : 'Hide'"></span>
+                        <button type="button"
+                            @click="featured = !featured; $nextTick(() => $refs.featuredForm.submit())"
+                            :class="featured ? 'bg-purple-500' : 'bg-gray-300'"
+                            class="relative inline-flex h-3.5 w-6 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-purple-400">
+                            <span :class="featured ? 'translate-x-3' : 'translate-x-0.5'"
+                                class="inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow-sm transition-transform"></span>
+                        </button>
+                    </div>
                     <a href="{{ route('admin.product-management.categories.create', ['categoryId' => $category->id]) }}"
                         title="Add Subcategory" class="hover:text-green-500 flex items-center justify-center">
                         <x-heroicon-o-plus-circle class="w-5 h-5" />

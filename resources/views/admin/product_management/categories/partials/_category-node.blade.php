@@ -46,8 +46,7 @@
                 </a> --}}
                 @if ($addFlag)
                     <div x-data="{ featured: @js($category->is_featured === 'Yes') }"
-                        class="flex items-center gap-1"
-                        title="Show or hide this category in the homepage Featured Rentals grid">
+                        class="flex items-center gap-1">
                         <form method="POST"
                             action="{{ route('admin.product-management.categories.toggle-featured', $category->unique_id) }}"
                             x-ref="featuredForm" class="hidden">
@@ -58,6 +57,7 @@
                         <button type="button"
                             @click="featured = !featured; $nextTick(() => $refs.featuredForm.submit())"
                             :class="featured ? 'bg-purple-500' : 'bg-gray-300'"
+                            :title="featured ? 'Shown in Featured Rentals' : 'Hidden from Featured Rentals'"
                             class="relative inline-flex h-3.5 w-6 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-purple-400">
                             <span :class="featured ? 'translate-x-3' : 'translate-x-0.5'"
                                 class="inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow-sm transition-transform"></span>

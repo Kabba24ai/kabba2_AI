@@ -40,22 +40,62 @@
     <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800 mb-4">Featured Rentals section not found. Run the seeder first.</div>
 @endif
 
-{{-- ── Category redirect info ───────────────────────────────────────────── --}}
+{{-- ── Category picker ──────────────────────────────────────────────────── --}}
 <div class="border-t border-gray-200 pt-6">
-    <div class="rounded-md p-4 bg-blue-50 border border-blue-200 text-blue-900 max-w-lg">
-        <div class="flex items-start gap-3">
-            <x-heroicon-o-information-circle class="w-6 h-6 text-blue-600 shrink-0 mt-0.5"/>
-            <div>
-                <p class="text-sm font-semibold text-blue-900">Manage Categories</p>
-                <p class="text-sm mt-1 text-blue-700">
-                    You can manage and update the categories shown in the Featured Rentals grid from the Category Management page.
-                </p>
-                <a href="{{ route('admin.product-management.categories.create') }}"
-                   class="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-800 underline hover:text-blue-900">
-                    Go to Category Management
-                    <x-heroicon-o-arrow-right class="w-4 h-4"/>
-                </a>
-            </div>
+    <div class="flex items-center justify-between mb-3">
+        <div>
+            <h3 class="text-sm font-semibold text-gray-900">Select Categories to Feature</h3>
+            <p class="text-xs text-gray-500 mt-0.5">
+                Click a category to add or remove it from the Featured Rentals grid on the homepage.
+                Only published, top-level categories with at least one product are shown here.
+            </p>
         </div>
+        <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium shrink-0">
+            {{ $selectedCategoryIds->count() }} selected
+        </span>
     </div>
+
+    @if(!$section)
+        <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800">
+            Featured Rentals section not found. Run the seeder first.
+        </div>
+    @elseif($categories->isEmpty())
+        <p class="text-sm text-gray-400">
+            No eligible categories found. A category must be top-level, published, and have at least one product.
+        </p>
+    @else
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            @foreach($categories as $category)
+                @php
+                    $selectedItem = $items->first(fn ($i) => (int) data_get($i->content, 'category_id') === (int) $category->id);
+                @endphp
+                <div class="flex items-center justify-between gap-2 border border-gray-200 rounded-md px-3 py-2">
+                    <span class="text-sm text-gray-700 truncate">{{ $category->title }}</span>
+
+                    @if($selectedItem)
+                        <form method="POST"
+                              action="{{ route('admin.website-management.home-builder.item.delete', $selectedItem->unique_id) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 hover:bg-red-100 hover:text-red-700 transition-colors shrink-0">
+                                Featured &check;
+                            </button>
+                        </form>
+                    @else
+                        <form method="POST"
+                              action="{{ route('admin.website-management.home-builder.item.store') }}">
+                            @csrf
+                            <input type="hidden" name="section_unique_id" value="{{ $section->unique_id }}">
+                            <input type="hidden" name="content[category_id]" value="{{ $category->id }}">
+                            <button type="submit"
+                                    class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700 transition-colors shrink-0">
+                                Add
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    @endif
 </div>

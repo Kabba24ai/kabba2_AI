@@ -8,8 +8,7 @@
                 <th class="py-4 px-6 text-left">Company</th>
                 <th class="py-4 px-6 text-left">Product</th>
                 <th class="py-4 px-4 text-left">Equip. ID</th>
-                <th class="py-4 px-6 text-left">Billing Address</th>
-                <th class="py-4 px-6 text-left">Phone</th>
+                <th class="py-4 px-6 text-left">Billing Address / Phone</th>
                 <th class="py-4 px-6 text-right">Amount</th>
                 <th class="py-4 px-4 text-center">Payment Type</th>
                 <th class="py-4 px-3 text-center">Payment</th>
@@ -83,8 +82,22 @@
                             <span class="text-gray-300">—</span>
                         @endif
                     </td>
-                    <td class="py-4 px-6 truncate min-w-xs max-w-xs ">{{ $order->billingAddress?->full_address ?? '—' }}</td>
-                    <td class="py-4 px-6 text-left ">{{ $order->billingAddress?->phone ?? '—' }}</td>
+                    {{-- Billing Address / Phone — same consolidated pattern as the
+                         Schedule and Dispatch Delivery Address / Phone column --}}
+                    {{-- 260px floor (vs 300px on Schedule/Dispatch): the Orders table
+                         carries more columns, and this is what lets the full table fit
+                         a standard desktop content area without horizontal scrolling --}}
+                    <td class="py-4 px-6 text-left whitespace-normal min-w-[260px]">
+                        {{-- max-width lives on an inner block: auto table layout
+                             ignores max-w on the cell itself, so this is what
+                             makes long addresses wrap instead of widening the table --}}
+                        <div class="max-w-xs">
+                            <div>{{ $order->billingAddress?->full_address ?? '—' }}</div>
+                            @if ($order->billingAddress?->phone)
+                                <div class="text-xs text-gray-500 mt-1">{{ $order->billingAddress->phone }}</div>
+                            @endif
+                        </div>
+                    </td>
                     <td class="py-4 px-6 font-semibold text-right">
                         {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
                     </td>
@@ -129,7 +142,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="12" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orders)
                             No orders found.
                         @else

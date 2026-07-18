@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Orders;
 
+use App\Helpers\ProductFilterHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 // Models
 use App\Models\Orders\Order;
-use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
 
 class IndexController extends Controller
@@ -23,6 +23,12 @@ class IndexController extends Controller
 
         // Return only the table partial if it's an AJAX request
         if ($request->ajax()) {
+            // Server-side validation of the dependent Category → Product pair:
+            // stale or mismatched ids are dropped (degrade to the wider filter)
+            // instead of becoming contradictory hidden filters.
+            $categoryId = ProductFilterHelper::normalizeCategoryId($request->input('category'));
+            $productId  = ProductFilterHelper::normalizeProductId($request->input('product'), $categoryId);
+
             // Fetch orders from the database, most recent first
             $query = Order::query()
                 ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.equipment', 'products.softAssignment.equipment', 'extensionCharge')->withCount('notes')
@@ -55,9 +61,9 @@ class IndexController extends Controller
                 // extensionChildren scope keeps reorders out of the parent-match
                 // branch (they carry reference_order_number but have their own
                 // products and must keep matching on those alone).
-                ->when($request->filled('category'), function ($q) use ($request) {
-                    $categoryMatch = function ($s) use ($request) {
-                        $s->where('product_categories.id', $request->category); // fully qualified
+                ->when($categoryId, function ($q) use ($categoryId) {
+                    $categoryMatch = function ($s) use ($categoryId) {
+                        $s->where('product_categories.id', $categoryId); // fully qualified
                     };
                     $q->where(function ($outer) use ($categoryMatch) {
                         $outer->whereHas('products.product.categories', $categoryMatch)
@@ -68,9 +74,9 @@ class IndexController extends Controller
                     });
                 })
 
-                ->when($request->filled('product'), function ($q) use ($request) {
-                    $productMatch = function ($s) use ($request) {
-                        $s->where('product_id', $request->product); // fully qualified
+                ->when($productId, function ($q) use ($productId) {
+                    $productMatch = function ($s) use ($productId) {
+                        $s->where('product_id', $productId); // fully qualified
                     };
                     $q->where(function ($outer) use ($productMatch) {
                         $outer->whereHas('products', $productMatch)
@@ -135,7 +141,7 @@ class IndexController extends Controller
 
         $categories = ProductCategory::getHierarchy();
 
-        $products = Product::order()->pluck('product_name', 'id');
+        $products = ProductFilterHelper::productOptions();
 
         // Extension-transaction delete confirmation needs the employee list
         // for the paid-disposition (Processed By + Employee ID) fields
@@ -145,6 +151,10 @@ class IndexController extends Controller
             'categories' => $categories,
             'products' => $products,
             'employees' => $employees,
+            // Dependent Category → Product dropdown data (built in the
+            // controller — multi-line @json(...->map(...)) breaks Blade)
+            'productOptionsJs' => ProductFilterHelper::productOptionsForJs(),
+            'categoryProductMap' => ProductFilterHelper::categoryProductMap(),
         ]);
     }
 }

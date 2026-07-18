@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Schedules;
 
+use App\Helpers\ProductFilterHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
@@ -75,10 +76,22 @@ class IndexController extends Controller
                 });
             }
 
-            if ($request->filled('category')) {
-                $query->whereHas('product.categories', function ($q) use ($request) {
-                    $q->where('product_categories.id', $request->category);
+            // Dependent Category → Product filters — server-validated so stale
+            // or mismatched ids degrade to the wider filter instead of becoming
+            // contradictory hidden filters (same rules as the Orders page).
+            $categoryId = ProductFilterHelper::normalizeCategoryId($request->input('category'));
+            $productId  = ProductFilterHelper::normalizeProductId($request->input('product'), $categoryId);
+
+            if ($categoryId) {
+                $query->whereHas('product.categories', function ($q) use ($categoryId) {
+                    $q->where('product_categories.id', $categoryId);
                 });
+            }
+
+            if ($productId) {
+                // Schedule rows are per order-product, so a direct product_id
+                // match cannot duplicate rows
+                $query->where('product_id', $productId);
             }
 
             if ($request->filled('payment_method') && $request->payment_method != 'All Methods') {
@@ -259,6 +272,19 @@ class IndexController extends Controller
 
         // dd($all);
 
-        return view('admin.order_management.schedules.index', ['categories' => $categories, 'stores' => $stores, 'storesForModal' => $storesForModal, 'employees' => $employees, 'rescheduleOrder' => $rescheduleOrder, 'urlScheduleType' => $urlScheduleType, 'urlTransportMode' => $urlTransportMode]);
+        return view('admin.order_management.schedules.index', [
+            'categories' => $categories,
+            'stores' => $stores,
+            'storesForModal' => $storesForModal,
+            'employees' => $employees,
+            'rescheduleOrder' => $rescheduleOrder,
+            'urlScheduleType' => $urlScheduleType,
+            'urlTransportMode' => $urlTransportMode,
+            // Product filter + dependent Category → Product dropdown data
+            // (same canonical source as the Orders page)
+            'products' => ProductFilterHelper::productOptions(),
+            'productOptionsJs' => ProductFilterHelper::productOptionsForJs(),
+            'categoryProductMap' => ProductFilterHelper::categoryProductMap(),
+        ]);
     }
 }

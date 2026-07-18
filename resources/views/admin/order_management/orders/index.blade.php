@@ -163,6 +163,7 @@
             // Clear filters functionality using global clearFilters
             document.getElementById('clear-filters').addEventListener('click', function() {
                 window.clearFilters(fieldMap, screenKey);
+                rebuildProductChoices(); // restore the full product list
                 fetchOrders();
             });
 
@@ -370,6 +371,16 @@
 
             // Load saved filters on page load
             FilterFreezer.loadFilters(screenKey, fieldMap);
+
+            // Dependent Category → Product dropdown (shared behavior).
+            // Registered BEFORE the fetch listeners below so an incompatible
+            // product selection is cleared before the request is built.
+            const rebuildProductChoices = window.initDependentProductFilter(
+                categoryInput,
+                productInput,
+                @json($categoryProductMap),
+                @json($productOptionsJs)
+            );
 
             fetchOrders(pageParam, perPageParam); // initial fetch after loading saved filters
             function fetchOrders(page = 1, perPage = 30) {

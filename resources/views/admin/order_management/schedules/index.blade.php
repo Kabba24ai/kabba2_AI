@@ -106,6 +106,19 @@
                 </select>
             </div>
 
+            {{-- Product (dependent on Category — same behavior as the Orders page) --}}
+            <div class="w-full sm:w-48">
+                <select name="product"
+                    class="choices-select py-3 px-3 w-full rounded-md border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                    <option value="">Select Products</option>
+                    @foreach ($products as $id => $title)
+                        <option value="{{ $id }}" @selected(request('product') == $id)>
+                            {{ $title }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             {{-- Payment Method --}}
             <div>
                 {{-- <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label> --}}
@@ -633,6 +646,7 @@
             let customerPhoneInput = document.querySelector('input[name="customer_phone"]');
             let orderNumberInput = document.querySelector('input[name="order_number"]');
             let categoryInput = document.querySelector('select[name="category"]');
+            let productInput = document.querySelector('select[name="product"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
             let dateFilterInput = document.querySelector('select[name="date_filter"]');
@@ -662,6 +676,7 @@
                 'customer_phone': customerPhoneInput,
                 'order_number': orderNumberInput,
                 'category': categoryInput,
+                'product': productInput,
                 'payment_status': paymentStatusInput,
                 'payment_method': paymentMethodInput,
                 'date_filter': dateFilterInput,
@@ -680,6 +695,7 @@
                 transportModeInputs.forEach(input => { input.checked = true; });
                 storeLocationInputs.forEach(input => { input.checked = true; });
 
+                rebuildProductChoices(); // restore the full product list
                 fetchSchedules();
             });
 
@@ -691,7 +707,7 @@
                 // Arriving from the dashboard Overdue Orders card — start with clean slate
                 [customerNameInput, customerCompanyNameInput, customerPhoneInput, orderNumberInput]
                     .forEach(el => { if (el) el.value = ''; });
-                [categoryInput, paymentStatusInput, paymentMethodInput, dateFilterInput]
+                [categoryInput, productInput, paymentStatusInput, paymentMethodInput, dateFilterInput]
                     .forEach(el => { if (el) el.value = ''; });
                 scheduleTypeInputs.forEach(input => { input.checked = true; });
                 transportModeInputs.forEach(input => { input.checked = true; });
@@ -735,6 +751,16 @@
 
                 });
             }
+            // Dependent Category → Product dropdown (shared behavior with the
+            // Orders page). Registered BEFORE the fetch listeners below so an
+            // incompatible product selection clears before the request is built.
+            const rebuildProductChoices = window.initDependentProductFilter(
+                categoryInput,
+                productInput,
+                @json($categoryProductMap),
+                @json($productOptionsJs)
+            );
+
             fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
             window.fetchSchedules = fetchSchedules;
             function fetchSchedules(page = 1, perPage = 30) {
@@ -750,6 +776,7 @@
                 if (orderNumberInput && (orderNumberInput.value.length >= 1 || orderNumberInput.value.length === 0))
                     params.append('order_number', orderNumberInput.value);
                 if (categoryInput && categoryInput.value) params.append('category', categoryInput.value);
+                if (productInput && productInput.value) params.append('product', productInput.value);
                 if (paymentStatusInput && paymentStatusInput.value) params.append('payment_status',
                     paymentStatusInput.value);
                 if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method',
@@ -848,6 +875,7 @@
                 timeout = setTimeout(fetchSchedules, 400);
             });
             if (categoryInput) categoryInput.addEventListener('change', fetchSchedules);
+            if (productInput) productInput.addEventListener('change', fetchSchedules);
             if (paymentStatusInput) paymentStatusInput.addEventListener('change', fetchSchedules);
             if (paymentMethodInput) paymentMethodInput.addEventListener('change', fetchSchedules);
             if (dateFilterInput) dateFilterInput.addEventListener('change', fetchSchedules);

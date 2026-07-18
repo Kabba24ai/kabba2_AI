@@ -246,6 +246,76 @@ window.clearFilters = function(fieldMap, screenKey) {
     }
 };
 
+/**
+ * Dependent Category → Product filter (shared by the Orders and Schedule pages).
+ *
+ * Narrows the product dropdown (a Choices.js `.choices-select`) to the
+ * selected category's products using the canonical category→product map
+ * (product_category_children pivot, provided by ProductFilterHelper):
+ *   - no category selected → the full eligible product list
+ *   - category selected    → only that category's products
+ *   - a still-valid product selection is preserved; an incompatible one clears
+ *
+ * Register BEFORE the page's own category `change` listener so the product
+ * value is already normalized when the page reads it to fetch results.
+ *
+ * @param {HTMLSelectElement} categoryEl
+ * @param {HTMLSelectElement} productEl
+ * @param {Object} categoryProductMap  { categoryId: [productId, ...] }
+ * @param {Array}  allProducts         [{ id, name }, ...] in display order
+ * @returns {Function} rebuild — call after programmatic filter changes (e.g. Clear)
+ */
+window.initDependentProductFilter = function (categoryEl, productEl, categoryProductMap, allProducts) {
+    if (!categoryEl || !productEl) return function () {};
+
+    const placeholderLabel = productEl.options.length && productEl.options[0].value === ''
+        ? productEl.options[0].textContent.trim()
+        : 'Select Products';
+
+    function rebuild() {
+        const cat = String(categoryEl.value || '');
+        const allowed = cat && categoryProductMap[cat]
+            ? categoryProductMap[cat].map(String)
+            : null;
+        const current = String(productEl.value || '');
+
+        let keepCurrent = current === '';
+        const choices = [];
+        allProducts.forEach(function (p) {
+            const id = String(p.id);
+            if (allowed && allowed.indexOf(id) === -1) return;
+            if (id === current) keepCurrent = true;
+            choices.push({ value: id, label: p.name });
+        });
+        choices.unshift({ value: '', label: placeholderLabel, placeholder: true });
+
+        const inst = productEl.choicesInstance;
+        if (inst) {
+            inst.removeActiveItems();
+            inst.clearChoices();
+            inst.setChoices(choices, 'value', 'label', true);
+            inst.setChoiceByValue(keepCurrent && current !== '' ? current : '');
+        } else {
+            // Plain <select> fallback
+            productEl.innerHTML = '';
+            choices.forEach(function (c) {
+                const opt = document.createElement('option');
+                opt.value = c.value;
+                opt.textContent = c.label;
+                productEl.appendChild(opt);
+            });
+            productEl.value = keepCurrent ? current : '';
+        }
+
+        if (!keepCurrent) productEl.value = '';
+    }
+
+    categoryEl.addEventListener('change', rebuild);
+    rebuild(); // narrow immediately (saved/URL filters are already restored)
+
+    return rebuild;
+};
+
 
 // Initialize scripts on DOM ready
 document.addEventListener('DOMContentLoaded', () => {

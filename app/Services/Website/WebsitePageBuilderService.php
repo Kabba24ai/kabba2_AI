@@ -47,7 +47,7 @@ class WebsitePageBuilderService
             ? Store::with(['hoursOfOperation', 'state'])
                 ->active()
                 ->orderByAdmin()
-                ->get(['id', 'unique_id', 'store_name', 'address', 'city', 'zip_code', 'phone', 'details', 'latitude', 'longitude', 'state_id'])
+                ->get(['id', 'unique_id', 'slug', 'store_name', 'address', 'city', 'zip_code', 'phone', 'details', 'latitude', 'longitude', 'state_id'])
             : collect();
 
         return compact(

@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 
 class ShowController extends Controller
 {
-    public function __invoke(Request $request, string $unique_id)
+    public function __invoke(Request $request, string $slug)
     {
-        $store = Store::where('unique_id', $unique_id)
+        $store = Store::where('slug', $slug)
             ->active()
             ->with(['state', 'hoursOfOperation', 'page.image', 'page.ogImage'])
             ->firstOrFail();
@@ -29,7 +29,7 @@ class ShowController extends Controller
         $showContactStrip = $page?->show_contact_strip ?? true;
         $stores = $showContactStrip
             ? Store::with('state')->active()->orderByAdmin()
-                ->get(['id', 'unique_id', 'store_name', 'address', 'city', 'zip_code',
+                ->get(['id', 'unique_id', 'slug', 'store_name', 'address', 'city', 'zip_code',
                        'phone', 'details', 'latitude', 'longitude', 'state_id'])
             : collect();
 
@@ -54,7 +54,7 @@ class ShowController extends Controller
             'og_title'         => $page?->og_title,
             'og_description'   => $page?->og_description,
             'og_image_url'     => $page?->ogImage?->url,
-            'canonical_url'    => $page?->canonical_url ?: route('front.stores.show', $store->unique_id),
+            'canonical_url'    => $page?->canonical_url ?: route('front.stores.show', $store->slug),
         ];
 
         return view('front.stores.show', [

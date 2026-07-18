@@ -180,7 +180,7 @@ class StorePublicPageTest extends TestCase
 
     private function showUrl(Store $store): string
     {
-        return route('front.stores.show', $store->unique_id);
+        return route('front.stores.show', $store->slug);
     }
 
     // ── Store routing ────────────────────────────────────────────────────
@@ -345,6 +345,16 @@ class StorePublicPageTest extends TestCase
             ->assertRedirect(); // to login
     }
 
+    /**
+     * Public page settings are edited from the Contact Us → Stores tab
+     * (Website Management → Contact Builder), not the Store Management form —
+     * see App\Http\Controllers\Admin\WebsiteManagement\ContactPageBuilder\StorePage\UpdateController.
+     */
+    private function storePageUpdateUrl(Store $store): string
+    {
+        return route('admin.website-management.contact-builder.store-page.update', $store->unique_id);
+    }
+
     public function test_admin_can_save_public_page_settings(): void
     {
         $admin = $this->admin();
@@ -352,7 +362,7 @@ class StorePublicPageTest extends TestCase
         $media = $this->makeMedia();
 
         $this->actingAs($admin)
-            ->put(route('admin.stores.edit', $store->unique_id), $this->updatePayload($store, [
+            ->post($this->storePageUpdateUrl($store), [
                 'page_status'            => 'Active',
                 'show_contact_strip'     => 1,
                 'page_heading'           => 'Admin Heading',
@@ -364,7 +374,7 @@ class StorePublicPageTest extends TestCase
                 'og_title'               => 'Custom OG Title',
                 'og_description'         => 'Custom OG description',
                 'canonical_url'          => 'https://rentnking.com/stores/custom',
-            ]))
+            ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('store_pages', [
@@ -389,9 +399,9 @@ class StorePublicPageTest extends TestCase
         $before = $store->only(['store_name', 'phone', 'email', 'address', 'city', 'zip_code', 'status', 'is_primary']);
 
         $this->actingAs($admin)
-            ->put(route('admin.stores.edit', $store->unique_id), $this->updatePayload($store, [
+            ->post($this->storePageUpdateUrl($store), [
                 'page_heading' => 'Only Public Changed',
-            ]))
+            ])
             ->assertRedirect();
 
         $this->assertSame($before, $store->fresh()->only(array_keys($before)));
@@ -404,16 +414,29 @@ class StorePublicPageTest extends TestCase
         $store = $this->makeStore();
 
         $this->actingAs($admin)
-            ->put(route('admin.stores.edit', $store->unique_id), $this->updatePayload($store, [
+            ->post($this->storePageUpdateUrl($store), [
                 'page_status' => 'Inactive',
-            ]))
+            ])
             ->assertRedirect();
 
         $this->assertSame('Inactive', $store->fresh()->page->status);
         $this->get($this->showUrl($store))->assertNotFound();
     }
 
-    public function test_edit_screen_shows_public_section_and_view_link(): void
+    public function test_editing_store_operational_data_does_not_reset_public_page(): void
+    {
+        $admin = $this->admin();
+        $store = $this->makeStore();
+        StorePage::create(['store_id' => $store->id, 'page_heading' => 'Set From Contact Builder']);
+
+        $this->actingAs($admin)
+            ->put(route('admin.stores.edit', $store->unique_id), $this->updatePayload($store))
+            ->assertRedirect();
+
+        $this->assertSame('Set From Contact Builder', $store->fresh()->page->page_heading);
+    }
+
+    public function test_store_edit_screen_no_longer_shows_public_page_section(): void
     {
         $admin = $this->admin();
         $store = $this->makeStore();
@@ -421,9 +444,31 @@ class StorePublicPageTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.stores.edit', $store->unique_id))
             ->assertOk()
-            ->assertSee('Public Website Page')
-            ->assertSee('View Public Store Page')
-            ->assertSee($this->showUrl($store), false);
+            ->assertDontSee('Public Website Page')
+            ->assertDontSee('View Public Store Page');
+    }
+
+    public function test_contact_builder_stores_tab_shows_store_page_editor_and_view_link(): void
+    {
+        $admin = $this->admin();
+        $store = $this->makeStore();
+
+        $contactPage = WebsitePage::create(['page_key' => 'contact', 'title' => 'Contact Us', 'slug' => 'contact-us', 'status' => 'Active']);
+        WebsitePageSection::create([
+            'website_page_id' => $contactPage->id,
+            'section_key'     => 'locations',
+            'section_type'    => 'locations',
+            'section_name'    => 'Stores',
+            'display_order'   => 1,
+            'status'          => 'Active',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.website-management.contact-builder.index', ['tab' => 'locations']))
+            ->assertOk()
+            ->assertSee($store->store_name)
+            ->assertSee($this->showUrl($store), false)
+            ->assertSee($this->storePageUpdateUrl($store), false);
     }
 
     // ── SEO ──────────────────────────────────────────────────────────────

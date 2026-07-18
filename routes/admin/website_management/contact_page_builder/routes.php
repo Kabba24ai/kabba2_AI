@@ -26,6 +26,10 @@ Route::prefix('contact-builder')
         Route::post('/store-order', \App\Http\Controllers\Admin\WebsiteManagement\ContactPageBuilder\StoreOrder\UpdateController::class)
             ->name('store-order.update');
 
+        // Per-store public page settings (heading, intro, description, SEO/OG)
+        Route::post('/store-page/{unique_id}/update', \App\Http\Controllers\Admin\WebsiteManagement\ContactPageBuilder\StorePage\UpdateController::class)
+            ->name('store-page.update');
+
         Route::prefix('item')->name('item.')->group(function () {
             Route::post('/store', Item\StoreController::class)->name('store');
             Route::post('/{unique_id}/update', Item\UpdateController::class)->name('update');

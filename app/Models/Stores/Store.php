@@ -6,14 +6,26 @@ use App\Helpers\ModelHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Iam\Personnel\User;
+use Cviebrock\EloquentSluggable\Sluggable;
 
 class Store extends Model
 {
-    use HasFactory;
+    use HasFactory, Sluggable;
+
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'store_name',
+                'onUpdate' => false,
+            ],
+        ];
+    }
 
     protected $fillable = [
         'unique_id',
         'store_name',
+        'slug',
         'phone',
         'email',
         'address',

@@ -98,7 +98,7 @@
                             {{ $store1->city }}{{ $store1->state?->name ? ', ' . $store1->state->name : '' }}{{ $store1->zip_code ? ' ' . $store1->zip_code : '' }}
                         </p>
                         @endif
-                        <a href="{{ route('front.stores.show', $store1->unique_id) }}"
+                        <a href="{{ route('front.stores.show', $store1->slug) }}"
                            class="mt-1 inline-flex items-center gap-1 text-yellow-500
                                 uppercase font-semibold text-xs transition-colors hover:text-yellow-600">
                             View Store
@@ -136,7 +136,7 @@
                             {{ $store2->city }}{{ $store2->state?->name ? ', ' . $store2->state->name : '' }}{{ $store2->zip_code ? ' ' . $store2->zip_code : '' }}
                         </p>
                         @endif
-                        <a href="{{ route('front.stores.show', $store2->unique_id) }}"
+                        <a href="{{ route('front.stores.show', $store2->slug) }}"
                            class="mt-1 inline-flex items-center gap-1 text-yellow-500
                                 uppercase font-semibold text-xs transition-colors hover:text-yellow-600">
                             View Store

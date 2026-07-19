@@ -438,18 +438,14 @@
 
                     </td>
 
-                    {{-- Payment Type --}}
+                    {{-- Payment Type — Tier 2: methods actually used across the whole order, not just the last row. --}}
                     <td class="py-4 px-6 text-right">
-                        {{ $order?->last_payment_type?->label() ?? '-' }}
+                        {{ $order ? \App\Services\PaymentDescriptionPresenter::methodsUsedLabel(\App\Services\Orders\OrderPaymentSummary::for($order)->paymentMethodsUsed) : '-' }}
                     </td>
 
-                    {{-- Status Badge --}}
+                    {{-- Status Badge — Tier 2: the order's aggregate status, not just its last payment row. --}}
                     <td class="py-4 px-6 text-right">
-
-
-                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($order?->last_payment_status) !!}
-
-
+                        {!! $order ? \App\Helpers\CustomHelper::orderPaymentStatusBadge(\App\Services\Orders\OrderPaymentSummary::for($order)) : '-' !!}
                     </td>
 
                     {{-- Order Date --}}

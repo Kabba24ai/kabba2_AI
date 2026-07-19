@@ -11,6 +11,7 @@ use App\Helpers\CustomHelper;
 use App\Models\Customers\CustomerAccount;
 use App\Models\Iam\Personnel\User;
 use App\Services\BillingEngine;
+use App\Services\ChargeTaxCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -70,13 +71,23 @@ class DamageChargeStoreController extends Controller
 
             DB::commit();
 
+            // Sales Tax Architecture Correction: this call previously passed
+            // $record->amount (the raw entered amount) with no taxAmount at
+            // all — BillingCharge.tax_amount defaulted to 0 regardless of
+            // the sales_tax_type selected, since updateCreditBalance()'s
+            // resulting rate was never resolved into a base/tax split here
+            // (unlike the sibling FuelChargeStoreController/AlertChargeController,
+            // which already did this). Now sourced from the canonical
+            // ChargeTaxCalculator.
+            $resolved = ChargeTaxCalculator::calculate((float) $record->amount, $record->sales_tax_type, (float) $record->sales_tax);
+
             // ── Billing Engine bridge (Phase 4B) ───────────────────────────
             try {
                 BillingEngine::charge(new BillingChargeRequest(
                     type:                BillingChargeType::Damage->value,
                     orderId:             null, // Dashboard modal: no order context
                     customerId:          (int) $record->customer_id,
-                    amount:              (float) $record->amount,
+                    amount:              $resolved['base_amount'],
                     taxType:             $record->sales_tax_type,
                     responsiblePersonId: $user->id,
                     notes:               $record->notes,
@@ -93,6 +104,7 @@ class DamageChargeStoreController extends Controller
                     ],
                     idempotencyKey:    "admin_dashboard_damage_charge:{$record->id}",
                     customerAccountId: $record->id,
+                    taxAmount:         $resolved['tax_amount'],
                 ));
             } catch (\Throwable $e) {
                 Log::channel('billing_engine')->error(

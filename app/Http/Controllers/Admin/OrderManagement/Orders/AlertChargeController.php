@@ -12,6 +12,7 @@ use App\Models\Customers\CustomerAccount;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Services\BillingEngine;
+use App\Services\ChargeTaxCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -77,23 +78,11 @@ class AlertChargeController extends Controller
 
             // ── Resolve billing amounts from the settled CustomerAccount record ──
             // updateCreditBalance() sets $record->sales_tax to the actual rate (e.g. 0.0975).
-            // For 'add':     base = entered, tax = entered * rate
-            // For 'reverse': entered = total; base = total / (1+rate), tax = total - base
-            // For 'free':    base = entered, tax = 0
-            $enteredAmount = (float) $record->amount;
-            $taxRate       = (float) $record->sales_tax;
-
-            if ($record->sales_tax_type === 'add') {
-                $billingBaseAmount = $enteredAmount;
-                $billingTaxAmount  = round($enteredAmount * $taxRate, 2);
-            } elseif ($record->sales_tax_type === 'reverse') {
-                $divisor           = $taxRate > 0 ? (1 + $taxRate) : 1;
-                $billingBaseAmount = round($enteredAmount / $divisor, 2);
-                $billingTaxAmount  = round($enteredAmount - $billingBaseAmount, 2);
-            } else {
-                $billingBaseAmount = $enteredAmount;
-                $billingTaxAmount  = 0.0;
-            }
+            // Sales Tax Architecture Correction: now sourced from the canonical
+            // ChargeTaxCalculator instead of a copy of the same formula inline here.
+            $resolved = ChargeTaxCalculator::calculate((float) $record->amount, $record->sales_tax_type, (float) $record->sales_tax);
+            $billingBaseAmount = $resolved['base_amount'];
+            $billingTaxAmount  = $resolved['tax_amount'];
 
             // ── Billing Engine bridge ──────────────────────────────────────
             if ($request->type === 'fuel') {

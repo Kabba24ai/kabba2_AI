@@ -2,8 +2,8 @@
 
 namespace App\Services\Reports;
 
+use App\Services\Reports\Concerns\NetsRefundedRevenue;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 /**
  * ProductSalesPerformanceEngine — demand-based product and category reporting.
@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ProductSalesPerformanceEngine
 {
+    use NetsRefundedRevenue;
+
     public function __construct(
         private SalesReportingService $reporting,
         private BillingRevenueAttributionService $billingAttribution,
@@ -426,7 +428,10 @@ class ProductSalesPerformanceEngine
 
     /**
      * Base demand query: paid + account orders, fully-refunded orders excluded,
-     * partial refund subqueries joined for revenue reduction.
+     * partial refund subqueries joined for revenue reduction — see
+     * NetsRefundedRevenue::applyRefundNetting()/netRevenueExpr(), the single
+     * canonical location for this netting now shared with
+     * ProductSalesRankingReport and SalesByStoresReport.
      */
     private function demandQuery(array $filters): Builder
     {
@@ -439,59 +444,7 @@ class ProductSalesPerformanceEngine
             $mergedFilters['store'] = null;
         }
 
-        $query = $this->reporting->baseQuery($mergedFilters);
-
-        // Exclude fully-refunded orders
-        $query->whereNotExists(function ($sub) {
-            $sub->selectRaw('1')
-                ->from('order_payments as rp')
-                ->whereColumn('rp.order_id', 'orders.id')
-                ->where('rp.status', 'Refunded')
-                ->whereNull('rp.deleted_at');
-        });
-
-        // Join subquery: gross sub_total per order (needed for partial-refund ratio)
-        $query->leftJoinSub(
-            DB::table('order_products as op_gross')
-                ->selectRaw('order_id, SUM(sub_total) AS order_gross')
-                ->whereNull('deleted_at')
-                ->groupBy('order_id'),
-            'order_totals',
-            'order_totals.order_id',
-            '=',
-            'orders.id'
-        );
-
-        // Join subquery: sum of partial refund amounts per order
-        $query->leftJoinSub(
-            DB::table('order_payments as op_ref')
-                ->selectRaw('order_id, SUM(refund_amount) AS partial_refunded')
-                ->where('status', 'Partial Refund')
-                ->whereNull('deleted_at')
-                ->groupBy('order_id'),
-            'order_refunds',
-            'order_refunds.order_id',
-            '=',
-            'orders.id'
-        );
-
-        return $query;
-    }
-
-    /**
-     * Per-row net revenue expression (no SUM — callers wrap in SUM as needed).
-     *
-     * ratio = (order_gross - partial_refunded) / order_gross
-     * net   = sub_total * GREATEST(0, ratio)   — floor at 0, never negative
-     *
-     * Falls back to sub_total when order_totals is NULL (no join match).
-     */
-    private function netRevenueExpr(): string
-    {
-        return "order_products.sub_total * GREATEST(0,
-            (COALESCE(order_totals.order_gross, order_products.sub_total) - COALESCE(order_refunds.partial_refunded, 0))
-            / NULLIF(COALESCE(order_totals.order_gross, order_products.sub_total), 0)
-        )";
+        return $this->applyRefundNetting($this->reporting->baseQuery($mergedFilters));
     }
 
     /**

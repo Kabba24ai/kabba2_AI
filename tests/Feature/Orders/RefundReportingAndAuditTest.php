@@ -64,11 +64,24 @@ class RefundReportingAndAuditTest extends TestCase
 
     private function makeOrder(float $grandTotal, ?float $subtotal = null, float $taxAmount = 0.0): Order
     {
-        return Order::create([
+        $order = Order::create([
             'order_date' => now()->format('Y-m-d'), 'customer_id' => $this->customer->id,
             'customer_name' => $this->customer->full_name ?? 'Test Customer',
             'subtotal' => $subtotal ?? $grandTotal, 'tax_amount' => $taxAmount, 'grand_total' => $grandTotal,
         ]);
+
+        // Customer::orders() is morphMany('created_by'), NOT a customer_id
+        // relation — Customer::paid_sales and its siblings traverse it, so
+        // fixture orders must carry the morph link a real customer-created
+        // order would have or those accessors see an empty set. Assigned
+        // directly (not via Order::create) because created_by_type/
+        // created_by_id are not in Order::$fillable and mass assignment
+        // silently drops them.
+        $order->created_by_type = Customer::class;
+        $order->created_by_id = $this->customer->id;
+        $order->save();
+
+        return $order;
     }
 
     private function makeSettledPayment(Order $order, float $amount, array $overrides = []): OrderPayment
@@ -291,10 +304,14 @@ class RefundReportingAndAuditTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertJsonPath('rows.0.original_amount', 1000.0);
-        $response->assertJsonPath('rows.0.remaining_before', 1000.0);
-        $response->assertJsonPath('rows.0.refund_now', 400.0);
-        $response->assertJsonPath('rows.0.remaining_after', 600.0);
+        // Numeric-tolerant on purpose: PHP's shortest-form JSON encoding
+        // (serialize_precision=-1) emits a whole-dollar float as `1000`,
+        // which decodes as an int — a strict assertJsonPath(..., 1000.0)
+        // can therefore never pass for whole-dollar amounts.
+        $this->assertEqualsWithDelta(1000.0, $response->json('rows.0.original_amount'), 0.001);
+        $this->assertEqualsWithDelta(1000.0, $response->json('rows.0.remaining_before'), 0.001);
+        $this->assertEqualsWithDelta(400.0, $response->json('rows.0.refund_now'), 0.001);
+        $this->assertEqualsWithDelta(600.0, $response->json('rows.0.remaining_after'), 0.001);
 
         // No allocation row and no refund row were created by the preview.
         $this->assertSame(0, $order->payments()->refund()->count());
@@ -339,6 +356,28 @@ class RefundReportingAndAuditTest extends TestCase
     public function test_ledger_stream_a_attributes_each_payment_method_its_own_amount(): void
     {
         $order = $this->makeOrder(1000.0, 1000.0, 0.0);
+        // The ledger's order stream admits only orders that OWN
+        // order_products rows — SalesReportingService::baseQuery() starts
+        // FROM order_products joined to orders, so a bare order with
+        // payments alone can never qualify (same admission rule every real
+        // order satisfies; mirrors SalesTaxSplitPaymentReportingTest's
+        // fixture shape).
+        $product = \App\Models\ProductManagement\Product::create([
+            'product_name' => 'Ledger Stream A Product',
+            'slug'         => 'ledger-stream-a-' . uniqid(),
+            'product_type' => 'Rental',
+        ]);
+        \App\Models\Orders\OrderProduct::create([
+            'order_id'     => $order->id,
+            'product_id'   => $product->id,
+            'product_name' => 'Ledger Stream A Product',
+            'price'        => 1000,
+            'quantity'     => 1,
+            'sub_total'    => 1000,
+            'tax'          => 0,
+            'total'        => 1000,
+            'product_data' => ['product_type' => 'Rental'],
+        ]);
         $this->makeSettledPayment($order, 600.0, ['payment_method' => OrderPaymentMethod::Card->value]);
         $this->makeSettledPayment($order, 400.0, ['payment_method' => OrderPaymentMethod::Cash->value]);
 

@@ -101,6 +101,12 @@ class BillingCharge extends Model
         return $this->belongsTo(User::class, 'created_by_id');
     }
 
+    /** Billing Charge Refund Allocation — every refund attempt recorded against this charge. */
+    public function refunds()
+    {
+        return $this->hasMany(BillingChargeRefund::class, 'billing_charge_id');
+    }
+
     // ── Status helpers ─────────────────────────────────────────────────────
 
     public function isPending(): bool

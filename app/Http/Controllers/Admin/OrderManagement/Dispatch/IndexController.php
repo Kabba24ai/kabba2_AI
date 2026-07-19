@@ -91,8 +91,13 @@ class IndexController extends Controller
     public function __invoke(Request $request)
     {
         if ($request->ajax()) {
+            // Payment Architecture Finalization (Phase 4B): 'order.lastPayment'
+            // eager-load removed — Tier 2 already moved this query's own
+            // filtering off it, and none of the Blade partials this
+            // controller renders (_driver_cards/_split_table/_table/index)
+            // read lastPayment/lastPaidPayment.
             $query = OrderProduct::query()
-                ->with('equipment', 'equipment.productcategory', 'equipment.store', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.lastPayment', 'order.notes', 'deliveryEmployee', 'pickupEmployee', 'deliveryStore', 'pickupStore', 'softAssignment.equipment.store')
+                ->with('equipment', 'equipment.productcategory', 'equipment.store', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.notes', 'deliveryEmployee', 'pickupEmployee', 'deliveryStore', 'pickupStore', 'softAssignment.equipment.store')
                 ->where('product_data->product_type', 'Rental')
                 ->whereHas('order')
                 ->whereNotNull('delivery_date');
@@ -131,15 +136,24 @@ class IndexController extends Controller
                 });
             }
 
+            // Payment Architecture Finalization (Tier 2): these previously
+            // matched only order.lastPayment (the single highest-id
+            // order_payments row) — a split-payment order could match/miss
+            // these filters based purely on which row happened to be
+            // entered last. Now matches when ANY of the order's payment
+            // rows qualifies. The status filter additionally uses
+            // Order::scopeWherePaymentStatusFilter() so "Pending"/"Failed"
+            // mean "still unresolved," not "ever had a row with that
+            // status" — see the scope's own docblock.
             if ($request->filled('payment_method') && $request->payment_method != 'All Methods') {
-                $query->whereHas('order.lastPayment', function ($q) use ($request) {
+                $query->whereHas('order.payments', function ($q) use ($request) {
                     $q->where('payment_method', $request->payment_method);
                 });
             }
 
             if ($request->filled('payment_status') && $request->payment_status != 'All Status') {
-                $query->whereHas('order.lastPayment', function ($q) use ($request) {
-                    $q->where('status', $request->payment_status);
+                $query->whereHas('order', function ($q) use ($request) {
+                    $q->wherePaymentStatusFilter($request->payment_status);
                 });
             }
 

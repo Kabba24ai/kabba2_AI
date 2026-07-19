@@ -90,6 +90,58 @@ class PaymentDescriptionPresenter
     }
 
     /**
+     * Payment Architecture Finalization (Tier 2) — the method label for an
+     * ORDER, never a single payment row. A split-payment order has more
+     * than one entry in $methodsUsed (OrderPaymentSummary::paymentMethodsUsed);
+     * displaying only Order::last_payment_type's label there silently drops
+     * every method except whichever was entered last. Collapses to the
+     * single method's label when there's only one (the common case, and
+     * the same string a single-payment order already showed), otherwise
+     * "Multiple Methods" — never a guess at which one to show.
+     *
+     * @param  \Illuminate\Support\Collection<int, OrderPaymentMethod>  $methodsUsed
+     */
+    public static function methodsUsedLabel(\Illuminate\Support\Collection $methodsUsed): string
+    {
+        $methodsUsed = $methodsUsed->filter();
+
+        return match ($methodsUsed->count()) {
+            0 => 'Unknown',
+            1 => self::methodLabel($methodsUsed->first()),
+            default => 'Multiple Methods',
+        };
+    }
+
+    /**
+     * Order-level status label — the order's aggregate collection + refund
+     * state (OrderPaymentSummary::balanceStatusLabel()), never a single
+     * payment row's status. Every operational screen showing "the order's
+     * payment status" must use this (or orderStatusBadgeClasses() below)
+     * instead of statusLabel()/statusBadgeClasses() on
+     * Order::last_payment_status, which only reflects whichever payment
+     * happened to be entered last and can disagree with the order's real
+     * aggregate state on any order with more than one payment row.
+     */
+    public static function orderStatusLabel(\App\Services\Orders\OrderPaymentSummary $summary): string
+    {
+        return $summary->balanceStatusLabel();
+    }
+
+    /** Tailwind badge classes for orderStatusLabel() — refund state takes priority over collection state, matching balanceStatusLabel()'s own precedence. */
+    public static function orderStatusBadgeClasses(\App\Services\Orders\OrderPaymentSummary $summary): string
+    {
+        $summaryClass = \App\Services\Orders\OrderPaymentSummary::class;
+
+        return match (true) {
+            $summary->refundStatus === $summaryClass::REFUND_FULL => 'bg-purple-100 text-purple-800',
+            $summary->refundStatus === $summaryClass::REFUND_PARTIAL => 'bg-orange-100 text-orange-800',
+            $summary->collectionStatus === $summaryClass::COLLECTION_PAID_IN_FULL => 'bg-green-100 text-green-800',
+            $summary->collectionStatus === $summaryClass::COLLECTION_PARTIALLY_PAID => 'bg-orange-100 text-orange-800',
+            default => 'bg-yellow-100 text-yellow-800',
+        };
+    }
+
+    /**
      * Status + method, decomposed separately, for one OrderPayment row.
      * Prefers the status's impliedMethod() when the status is a legacy
      * Invoice* case, since payment_method may be stale/unset on those

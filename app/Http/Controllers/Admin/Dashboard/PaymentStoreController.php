@@ -345,6 +345,41 @@ class PaymentStoreController extends Controller
         }
     }
 
+    /**
+     * Sales Tax Architecture Correction — server-side gateway amount guard.
+     * Fuel/damage/extension BillingCharges are paid in full, in one shot
+     * (no partial-payment tracking on the charge itself), so this is an
+     * exact-total check: the submitted amount must equal amount + tax_amount
+     * to the cent. Same integer-cents comparison style
+     * PaymentAllocationService::validateAllocationSet() already uses
+     * elsewhere in this codebase, to stay immune to binary floating-point
+     * noise.
+     *
+     * @return string|null  An error message if the amount doesn't match, null if it does.
+     */
+    private function validateAmountAgainstBillingCharge(string $billingChargeUniqueId, float $submittedAmount): ?string
+    {
+        $billingCharge = BillingCharge::where('unique_id', $billingChargeUniqueId)->first();
+
+        if (! $billingCharge) {
+            return null; // no canonical charge to validate against — preserve prior behavior
+        }
+
+        $expectedTotal = round((float) $billingCharge->amount + (float) $billingCharge->tax_amount, 2);
+        $expectedCents = (int) round($expectedTotal * 100);
+        $submittedCents = (int) round($submittedAmount * 100);
+
+        if ($submittedCents !== $expectedCents) {
+            return sprintf(
+                'Payment amount ($%s) does not match the charge total of $%s (including tax). Please refresh and try again.',
+                number_format($submittedAmount, 2),
+                number_format($expectedTotal, 2)
+            );
+        }
+
+        return null;
+    }
+
     private function handleCrmPayment(array $validated)
     {
         // Extension charges have no CustomerAccount row — route to a lighter path
@@ -354,6 +389,22 @@ class PaymentStoreController extends Controller
 
         $chargeAccount = CustomerAccount::where('unique_id', $validated['customer_account_id'])->firstOrFail();
         $customer      = Customer::findOrFail($validated['customer_id']);
+
+        // Sales Tax Architecture Correction: when this payment is for a
+        // specific fuel/damage BillingCharge, the submitted amount must
+        // equal that charge's own canonical base+tax total — an editable
+        // client-side field (bePayAmount) previously had no server-side
+        // check at all, so a mismatched submission could silently
+        // undercharge the customer while the charge is still marked paid
+        // in full. Fuel/damage/extension charges are paid in one shot —
+        // there is no partial-payment tracking on BillingCharge — so this
+        // is an exact-total check, not a minimum/maximum.
+        if (! empty($validated['billing_charge_unique_id'])) {
+            $error = $this->validateAmountAgainstBillingCharge($validated['billing_charge_unique_id'], (float) $validated['amount']);
+            if ($error !== null) {
+                return back()->withInput()->with('error', $error);
+            }
+        }
 
         DB::beginTransaction();
 
@@ -523,6 +574,16 @@ class PaymentStoreController extends Controller
     {
         $billingCharge = BillingCharge::where('unique_id', $validated['billing_charge_unique_id'])->firstOrFail();
         $customer      = Customer::findOrFail($validated['customer_id']);
+
+        // Sales Tax Architecture Correction: the submitted amount must equal
+        // this extension's canonical base+tax total. bePayAmount is a plain
+        // editable <input> pre-filled correctly by JS, but nothing
+        // previously stopped an edited/mismatched value from being charged
+        // to the gateway and persisted as a full payment.
+        $error = $this->validateAmountAgainstBillingCharge($billingCharge->unique_id, (float) $validated['amount']);
+        if ($error !== null) {
+            return $this->extensionPaymentFailure($validated, $error);
+        }
 
         // Idempotency: never touch the gateway (or anything else) for a
         // charge that is no longer open — a resubmit/double-click must not

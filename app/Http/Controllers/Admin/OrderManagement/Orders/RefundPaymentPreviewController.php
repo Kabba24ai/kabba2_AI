@@ -60,15 +60,32 @@ class RefundPaymentPreviewController extends Controller
             ? OrderPayment::where('order_id', $order->id)->where('idempotency_token', $idempotencyToken)->first()
             : null;
 
+        // Resolved BEFORE the allocation set is derived — mirrors
+        // RefundPaymentController exactly (the two must never drift: what
+        // this previews is what execute will do). For the server-
+        // authoritative calc types the client's `amount` is advisory only.
+        [$requestedTotal, $calcError] = PaymentAllocationService::resolveRequestedTotal($order, $calcType, (float) ($validated['amount'] ?? 0));
+        if ($calcError !== null) {
+            return response()->json(['success' => false, 'message' => $calcError], 422);
+        }
+
         $allocationsInput = $validated['allocations'] ?? null;
 
         if (!$allocationsInput) {
             $eligible = PaymentAllocationService::eligibleOriginalPayments($order);
 
             if ($eligible->count() === 1) {
+                // Same server-authoritative auto-derive as
+                // RefundPaymentController: Card Processing Fee Retained
+                // draws the full remaining refundable balance of the single
+                // eligible source — the client amount is ignored.
+                $autoAmount = $calcType === RefundCalculationType::CardProcessingFeeRetained
+                    ? round(PaymentAllocationService::remainingRefundable($eligible->first()), 2)
+                    : ($requestedTotal ?? (float) ($validated['amount'] ?? 0));
+
                 $allocationsInput = [[
                     'original_order_payment_id' => $eligible->first()->id,
-                    'amount' => (float) ($validated['amount'] ?? 0),
+                    'amount' => $autoAmount,
                 ]];
             } else {
                 return response()->json([
@@ -84,11 +101,6 @@ class RefundPaymentPreviewController extends Controller
             'original_order_payment_id' => (int) ($row['original_order_payment_id'] ?? 0),
             'amount' => (float) ($row['amount'] ?? 0),
         ], $allocationsInput);
-
-        [$requestedTotal, $calcError] = PaymentAllocationService::resolveRequestedTotal($order, $calcType, (float) ($validated['amount'] ?? 0));
-        if ($calcError !== null) {
-            return response()->json(['success' => false, 'message' => $calcError], 422);
-        }
 
         $validationErrors = PaymentAllocationService::validateAllocationSet(
             $order,

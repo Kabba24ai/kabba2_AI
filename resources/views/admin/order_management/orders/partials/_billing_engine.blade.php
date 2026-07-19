@@ -92,6 +92,14 @@
                         $base        = $charge->amount    ?? 0.0;
                         $tax         = $charge->tax_amount ?? 0.0;
                         $total       = $base + $tax;
+                        // Sales Tax Architecture Correction: surface WHICH
+                        // treatment produced this base/tax split, not just
+                        // the resulting dollar amounts.
+                        $taxTreatmentLabel = match ($charge->tax_type) {
+                            'add'     => 'Add Sales Tax',
+                            'reverse' => 'Reverse Sales Tax',
+                            default   => 'Tax Free',
+                        };
 
                         $isFuel          = $typeValue === 'fuel';
                         $isDamage        = $typeValue === 'damage';
@@ -157,6 +165,7 @@
 
                         {{-- Amount Breakdown --}}
                         <td class="px-4 py-3 text-right">
+                            <div class="text-xs text-gray-400" title="Sales Tax Treatment">{{ $taxTreatmentLabel }}</div>
                             <div class="text-xs text-gray-500">Base: ${{ number_format($base, 2) }}</div>
                             <div class="text-xs text-gray-400">Tax: ${{ number_format($tax, 2) }}</div>
                             <div class="text-sm font-bold text-gray-900">${{ number_format($total, 2) }}</div>

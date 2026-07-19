@@ -48,11 +48,13 @@ class ApiReportAuthenticationTest extends TestCase
         $this->apiBase = 'http://' . config('app.domains.api') . '/api/sales-reports/v1';
 
         // Some engines read the tax rate; seed it so valid-token calls return
-        // 200 rather than erroring for an unrelated reason.
-        Setting::create([
-            'setting_type' => 'General Settings', 'value_type' => 'text',
-            'setting_name' => 'sales_tax', 'setting_title' => 'sales_tax', 'setting_value' => '0.10',
-        ]);
+        // 200 rather than erroring for an unrelated reason. updateOrCreate,
+        // not create: SettingSeeder already seeds a 'sales_tax' row against
+        // a properly-migrated database (unique on setting_name).
+        Setting::updateOrCreate(
+            ['setting_name' => 'sales_tax'],
+            ['setting_type' => 'General Settings', 'value_type' => 'text', 'setting_title' => 'sales_tax', 'setting_value' => '0.10']
+        );
     }
 
     private function makeEmployee(string $email): User

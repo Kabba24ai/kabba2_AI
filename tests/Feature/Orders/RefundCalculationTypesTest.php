@@ -268,8 +268,15 @@ class RefundCalculationTypesTest extends TestCase
             'refund_calculation_type' => 'sales_tax_only',
         ])->assertOk();
 
+        // Canonical Phase 3C status semantics (syncRefundOperationOutcome):
+        // status reflects the ORDER's refund completeness — refunding only
+        // the $97.50 tax of a $1,097.50 order leaves $1,000 refundable, so
+        // the row is PartialRefund. The original Phase-2-era expectation of
+        // a bare Refund status predates that rule (Refund now means the
+        // order's remaining balance reached zero) and conflicts with the
+        // convention every green 3C suite already asserts.
         $refundRow = OrderPayment::where('order_id', $this->order->id)
-            ->where('status', OrderPaymentStatus::Refund)->firstOrFail();
+            ->where('status', OrderPaymentStatus::PartialRefund)->firstOrFail();
 
         $this->assertEquals(RefundCalculationType::SalesTaxOnly, $refundRow->refund_calculation_type);
         $this->assertEquals(97.50, (float) $refundRow->refund_amount);
@@ -290,7 +297,10 @@ class RefundCalculationTypesTest extends TestCase
             'start_date' => now()->subDay()->toDateString(),
             'end_date' => now()->addDay()->toDateString(),
         ]);
-        $row = $rows->firstWhere('order_number', $this->order->order_number);
+        // refundRows() rows carry `unique_id` (the engine's actual row
+        // contract) — they have never had an `order_number` field, so the
+        // original lookup could only ever return null.
+        $row = $rows->firstWhere('unique_id', $this->order->unique_id);
 
         $this->assertNotNull($row);
         $this->assertEquals(0.0, $row->subtotal); // no merchandise/rental impact
@@ -398,7 +408,13 @@ class RefundCalculationTypesTest extends TestCase
 
         $this->refund(['payment_type' => 'Cash', 'refund_calculation_type' => 'sales_tax_only'])->assertOk();
 
+        // The ledger resolves its window via SalesReportingService::
+        // resolveDateRange(), which requires date_range='custom' before it
+        // reads start_date/end_date (bare dates hit the default => [null,
+        // null] arm and the ledger returns empty) — same filter shape the
+        // green RefundReportingAndAuditTest ledger tests already use.
         $rows = app(PaymentReconciliationLedger::class)->rows([
+            'date_range' => 'custom',
             'start_date' => now()->subDay()->toDateString(),
             'end_date' => now()->addDay()->toDateString(),
         ]);
@@ -427,8 +443,10 @@ class RefundCalculationTypesTest extends TestCase
             'refund_calculation_type' => 'sales_tax_only',
         ])->assertOk();
 
+        // PartialRefund per canonical Phase 3C order-level status semantics
+        // — see test_sales_tax_only_refunds_the_full_remaining_tax above.
         $refundRow = OrderPayment::where('order_id', $this->order->id)
-            ->where('status', OrderPaymentStatus::Refund)->firstOrFail();
+            ->where('status', OrderPaymentStatus::PartialRefund)->firstOrFail();
 
         $this->assertSame('customer_cancellation', $refundRow->processed_reason_code);
         $this->assertEquals(RefundCalculationType::SalesTaxOnly, $refundRow->refund_calculation_type);

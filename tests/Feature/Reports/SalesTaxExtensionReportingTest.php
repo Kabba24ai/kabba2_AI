@@ -41,10 +41,10 @@ class SalesTaxExtensionReportingTest extends TestCase
     {
         parent::setUp();
 
-        Setting::create([
-            'setting_type' => 'General Settings', 'value_type' => 'text',
-            'setting_name' => 'sales_tax', 'setting_title' => 'sales_tax', 'setting_value' => '0.10',
-        ]);
+        Setting::updateOrCreate(
+            ['setting_name' => 'sales_tax'],
+            ['setting_type' => 'General Settings', 'value_type' => 'text', 'setting_title' => 'sales_tax', 'setting_value' => '0.10']
+        );
 
         $this->customer = Customer::create([
             'first_name' => 'Tax', 'last_name' => 'Audit',

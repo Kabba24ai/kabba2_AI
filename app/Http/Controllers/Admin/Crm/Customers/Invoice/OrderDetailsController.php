@@ -41,7 +41,12 @@ class OrderDetailsController extends Controller
                 'order_number' => $order->order_number,
                 'date' => $order->created_at ? $order->created_at->format(config('app.date.date_format')) : null,
                 'total' => $order->grand_total,
-                'status' => $order->last_payment_status,
+                // Payment Architecture Finalization (Tier 2): the order's
+                // aggregate collection/refund state, not just its most
+                // recent payment row's status.
+                'status' => \App\Services\PaymentDescriptionPresenter::orderStatusLabel(
+                    \App\Services\Orders\OrderPaymentSummary::for($order)
+                ),
                 'customer' => [
                     'name' => $order->customer_name,
                     'email' => $order->customer_email,

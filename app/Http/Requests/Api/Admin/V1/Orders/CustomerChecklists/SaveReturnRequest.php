@@ -58,6 +58,13 @@ class SaveReturnRequest extends ApiBaseFormRequest
             'end_hours' => 'nullable|string',
             'fuel_final_reading' => 'nullable|string',
             'fuel_total_charge' => 'nullable|string',
+            // Sales Tax Architecture Correction: optional so older mobile app
+            // builds that don't send it keep working (see SaveReturnController's
+            // documented server default). A future mobile app release should
+            // add its own picker exposing the same Add/Free/Reverse choices
+            // the CRM/admin modals already use — this field only adds
+            // server-side support, it cannot add a picker to the app itself.
+            'fuel_sales_tax_type' => ['nullable', 'in:add,free,reverse'],
             'total_charge' => 'nullable|string',
             'note' => 'nullable|string',
 

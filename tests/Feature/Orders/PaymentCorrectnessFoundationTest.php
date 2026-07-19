@@ -146,8 +146,11 @@ class PaymentCorrectnessFoundationTest extends TestCase
         // have permitted this despite only $400 ever collected.
         $response = $this->refund($order, ['amount' => 500]);
 
-        $response->assertStatus(400);
-        $response->assertJsonPath('remaining', 400.0);
+        $response->assertStatus(422);
+        $this->assertStringContainsString(
+            'exceeds its remaining refundable balance ($400)',
+            $response->json('message'),
+        );
     }
 
     public function test_per_payment_refund_cap_is_enforced(): void
@@ -162,7 +165,7 @@ class PaymentCorrectnessFoundationTest extends TestCase
 
         // Fully refunded — a second refund attempt must be rejected by the
         // per-payment cap even though nothing else has changed.
-        $this->refund($order, ['amount' => 1])->assertStatus(400);
+        $this->refund($order, ['amount' => 1])->assertStatus(422);
     }
 
     public function test_multi_payment_order_blocks_refund_with_a_clear_message_not_a_silent_guess(): void
@@ -200,7 +203,14 @@ class PaymentCorrectnessFoundationTest extends TestCase
             $mock->shouldReceive('refundOrder')->once()->andReturn(['status' => 'failed', 'message' => 'Declined']);
         });
 
-        $this->refund($order, ['amount' => 500, 'payment_type' => 'CreditCard'])->assertStatus(500);
+        $response = $this->refund($order, [
+            'amount' => 500,
+            'payment_type' => 'CreditCard',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('refund_operation_status', 'failed');
+        $response->assertJsonPath('sources.0.failure_reason', 'Declined');
 
         $order->refresh();
         $this->assertSame(500.0, $order->remaining_amount);
@@ -289,8 +299,18 @@ class PaymentCorrectnessFoundationTest extends TestCase
             'idempotency_token' => $token,
         ];
 
-        $this->putJson(route('admin.order-management.orders.receive-payment', $order->unique_id), $payload)->assertOk();
-        $this->putJson(route('admin.order-management.orders.receive-payment', $order->unique_id), $payload)->assertOk();
+        $response = $this->putJson(
+            route('admin.order-management.orders.receive-payment', $order->unique_id),
+            $payload
+        );
+
+
+        $response->assertOk();
+
+        $this->putJson(
+            route('admin.order-management.orders.receive-payment', $order->unique_id),
+            $payload
+        )->assertOk();
 
         $this->assertSame(1, $order->payments()->where('idempotency_token', $token)->count());
     }
@@ -314,8 +334,18 @@ class PaymentCorrectnessFoundationTest extends TestCase
             'responsible_person' => $this->employee->id, 'idempotency_token' => $token,
         ];
 
-        $this->putJson(route('admin.order-management.orders.receive-payment', $order->unique_id), $payload)->assertOk();
-        $this->putJson(route('admin.order-management.orders.receive-payment', $order->unique_id), $payload)->assertOk();
+        $response = $this->putJson(
+            route('admin.order-management.orders.receive-payment', $order->unique_id),
+            $payload
+        );
+
+
+        $response->assertOk();
+
+        $this->putJson(
+            route('admin.order-management.orders.receive-payment', $order->unique_id),
+            $payload
+        )->assertOk();
 
         $this->assertSame(1, $order->payments()->where('idempotency_token', $token)->count());
     }
@@ -376,7 +406,8 @@ class PaymentCorrectnessFoundationTest extends TestCase
     {
         $order = $this->makeOrder(1000.0);
         $product = $order->products()->create([
-            'product_name' => 'Test Equipment', 'sub_total' => 1000.0, 'quantity' => 1,
+            'product_name' => 'Test Equipment', 'price' => 1000.0,
+            'sub_total' => 1000.0, 'total' => 1000.0, 'quantity' => 1,
         ]);
         $order->payments()->create([
             'payment_method' => OrderPaymentMethod::COD->value, 'status' => OrderPaymentStatus::Pending->value,
@@ -418,7 +449,8 @@ class PaymentCorrectnessFoundationTest extends TestCase
     {
         $order = $this->makeOrder(500.0);
         $product = $order->products()->create([
-            'product_name' => 'Test Equipment', 'sub_total' => 500.0, 'quantity' => 1,
+            'product_name' => 'Test Equipment', 'price' => 500.0,
+            'sub_total' => 500.0, 'total' => 500.0, 'quantity' => 1,
         ]);
         $payment = $order->payments()->create([
             'payment_method' => OrderPaymentMethod::COD->value, 'status' => OrderPaymentStatus::Pending->value,

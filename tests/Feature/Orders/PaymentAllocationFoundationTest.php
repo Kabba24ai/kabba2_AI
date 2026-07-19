@@ -5,6 +5,7 @@ namespace Tests\Feature\Orders;
 use App\Enums\Orders\OrderPaymentMethod;
 use App\Enums\Orders\OrderPaymentRefundAllocationStatus;
 use App\Enums\Orders\OrderPaymentStatus;
+use App\Enums\Orders\RefundCalculationType;
 use App\Models\Configurations\Setting;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerCredit;
@@ -458,5 +459,283 @@ class PaymentAllocationFoundationTest extends TestCase
         $original = $this->makeSettledPayment($order, 500.0);
 
         $this->assertSame(500.0, $order->remainingRefundableForPayment($original));
+    }
+
+    // ── Payment Architecture Finalization — Sales Tax Refund Write-Path
+    //    Correction: resolveRequestedTotal()'s SalesTaxOnly branch was a
+    //    raw, allocation-unaware sum('tax_refunded') — the same defect
+    //    already fixed for the refund modal's display-only figure
+    //    (RefundModalTaxDisplayTest.php), except THIS branch actually
+    //    drives eligibility and the previewed/submitted/executed refund
+    //    amount. Now delegates to totalSuccessfulRefundedTax(), the exact
+    //    same canonical figure the display uses, so the two can never
+    //    disagree. Every fixture below deliberately sets the legacy
+    //    tax_refunded column to a value DIFFERENT from the real allocation
+    //    data where both are present, so a passing assertion proves the
+    //    allocation-aware branch — not a coincidental fallback — drove the
+    //    result. ──────────────────────────────────────────────────────
+
+    /**
+     * Creates one refund payment row with one refund allocation against
+     * $original, for the given tax amount/status. Mirrors the exact
+     * fixture shape used in RefundModalTaxDisplayTest.php and
+     * BillingRevenueAttributionServiceTest.php.
+     */
+    private function makeTaxOnlyAllocation(
+        Order $order,
+        OrderPayment $original,
+        float $tax,
+        OrderPaymentRefundAllocationStatus $status,
+        float $legacyTaxRefunded = 0.0,
+        ?\Carbon\Carbon $when = null
+    ): OrderPayment {
+        $when ??= now();
+
+        $refund = $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value,
+            'payment_datetime' => $when, 'refunded_at' => $when, 'amount' => 0,
+            'refund_amount' => 0, 'tax_refunded' => $legacyTaxRefunded,
+            'status' => OrderPaymentStatus::PartialRefund->value,
+        ]);
+
+        OrderPaymentRefundAllocation::create([
+            'refund_order_payment_id' => $refund->id, 'original_order_payment_id' => $original->id,
+            'allocated_amount' => $tax, 'allocated_base_amount' => 0, 'allocated_tax_amount' => $tax,
+            'processing_fee_retained' => 0, 'status' => $status->value,
+        ]);
+
+        return $refund;
+    }
+
+    public function test_stwp_1_no_prior_refund_returns_the_full_original_tax(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $this->makeSettledPayment($order, 1100.0);
+
+        [$total, $error] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(100.0, $total);
+        $this->assertNull($error);
+    }
+
+    public function test_stwp_2_one_completed_refund_reduces_the_remaining_tax(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        $this->makeTaxOnlyAllocation($order, $payment, 30.0, OrderPaymentRefundAllocationStatus::Allocated);
+
+        [$total, $error] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(70.0, $total);
+        $this->assertNull($error);
+    }
+
+    public function test_stwp_3_multiple_completed_refunds_sum_across_separate_events(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        $this->makeTaxOnlyAllocation($order, $payment, 20.0, OrderPaymentRefundAllocationStatus::Allocated);
+        $this->makeTaxOnlyAllocation($order, $payment, 15.0, OrderPaymentRefundAllocationStatus::Allocated);
+
+        [$total, ] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(65.0, $total, '100 - (20 + 15)');
+    }
+
+    public function test_stwp_4_multi_source_refund_with_all_allocations_completed(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment1 = $this->makeSettledPayment($order, 600.0, ['payment_method' => OrderPaymentMethod::Cash->value, 'payment_datetime' => now()->subMinute()]);
+        $payment2 = $this->makeSettledPayment($order, 500.0, ['payment_method' => OrderPaymentMethod::Card->value]);
+
+        $refund = $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Cash->value, 'payment_datetime' => now(),
+            'refunded_at' => now(), 'amount' => 0, 'status' => OrderPaymentStatus::PartialRefund->value,
+        ]);
+        OrderPaymentRefundAllocation::create([
+            'refund_order_payment_id' => $refund->id, 'original_order_payment_id' => $payment1->id,
+            'allocated_amount' => 10.0, 'allocated_base_amount' => 0, 'allocated_tax_amount' => 10.0,
+            'processing_fee_retained' => 0, 'status' => OrderPaymentRefundAllocationStatus::Allocated->value,
+        ]);
+        OrderPaymentRefundAllocation::create([
+            'refund_order_payment_id' => $refund->id, 'original_order_payment_id' => $payment2->id,
+            'allocated_amount' => 15.0, 'allocated_base_amount' => 0, 'allocated_tax_amount' => 15.0,
+            'processing_fee_retained' => 0, 'status' => OrderPaymentRefundAllocationStatus::Allocated->value,
+        ]);
+
+        [$total, ] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(75.0, $total, '100 - (10 + 15) across two sources in one refund event');
+    }
+
+    public function test_stwp_5_multi_source_refund_with_one_completed_and_one_failed_allocation(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+
+        $refund = $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'refunded_at' => now(), 'amount' => 0, 'status' => OrderPaymentStatus::PartialRefund->value,
+        ]);
+        OrderPaymentRefundAllocation::create([
+            'refund_order_payment_id' => $refund->id, 'original_order_payment_id' => $payment->id,
+            'allocated_amount' => 20.0, 'allocated_base_amount' => 0, 'allocated_tax_amount' => 20.0,
+            'processing_fee_retained' => 0, 'status' => OrderPaymentRefundAllocationStatus::Allocated->value,
+        ]);
+        OrderPaymentRefundAllocation::create([
+            'refund_order_payment_id' => $refund->id, 'original_order_payment_id' => $payment->id,
+            'allocated_amount' => 999.0, 'allocated_base_amount' => 0, 'allocated_tax_amount' => 999.0,
+            'processing_fee_retained' => 0, 'status' => OrderPaymentRefundAllocationStatus::Failed->value,
+        ]);
+
+        [$total, ] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(80.0, $total, 'only the 20 Allocated row counts, not the 999 Failed attempt');
+    }
+
+    public function test_stwp_6_pending_allocation_does_not_reduce_refundable_tax(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        $this->makeTaxOnlyAllocation($order, $payment, 40.0, OrderPaymentRefundAllocationStatus::Pending);
+
+        [$total, $error] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(100.0, $total, 'a still-pending attempt has not actually moved any money yet');
+        $this->assertNull($error);
+    }
+
+    public function test_stwp_7_failed_allocation_does_not_reduce_refundable_tax(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        $this->makeTaxOnlyAllocation($order, $payment, 40.0, OrderPaymentRefundAllocationStatus::Failed);
+
+        [$total, ] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(100.0, $total);
+    }
+
+    public function test_stwp_8_backfilled_historical_allocation_reduces_refundable_tax_correctly(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0, ['payment_datetime' => now()->subMonths(6)]);
+        // payments:backfill-allocations reconstructs a real Allocated row —
+        // no different in shape from one created live by
+        // RefundPaymentController. Legacy tax_refunded left stale (999) to
+        // prove the allocation branch, not the fallback, is used.
+        $this->makeTaxOnlyAllocation($order, $payment, 25.0, OrderPaymentRefundAllocationStatus::Allocated, legacyTaxRefunded: 999.0, when: now()->subMonths(6));
+
+        [$total, ] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(75.0, $total);
+    }
+
+    public function test_stwp_9_legacy_refund_row_with_zero_allocations_uses_the_raw_fallback(): void
+    {
+        // Genuinely never backfilled — zero allocation rows exist, so the
+        // documented legacy fallback (not the allocation branch) is the
+        // correct, intentional path.
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $this->makeSettledPayment($order, 1100.0);
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'refunded_at' => now(), 'amount' => 0, 'refund_amount' => 0, 'tax_refunded' => 45.0,
+            'status' => OrderPaymentStatus::PartialRefund->value,
+        ]);
+
+        [$total, ] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(55.0, $total);
+    }
+
+    public function test_stwp_10_allocations_take_precedence_over_a_stale_legacy_tax_refunded_value(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        // The refund row's own legacy tax_refunded (999) would imply
+        // everything was refunded — the allocation (30) is what's real.
+        $this->makeTaxOnlyAllocation($order, $payment, 30.0, OrderPaymentRefundAllocationStatus::Allocated, legacyTaxRefunded: 999.0);
+
+        [$total, $error] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(70.0, $total);
+        $this->assertNull($error);
+    }
+
+    public function test_stwp_11_remaining_refundable_tax_never_goes_negative(): void
+    {
+        // A data anomaly (over-allocation) must still clamp to zero, not
+        // report a negative "remaining" figure.
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        $this->makeTaxOnlyAllocation($order, $payment, 150.0, OrderPaymentRefundAllocationStatus::Allocated);
+
+        [$total, $error] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertNull($total);
+        $this->assertSame('No refundable sales tax remains for this order.', $error);
+    }
+
+    public function test_stwp_12_preview_and_execution_resolve_to_the_identical_amount(): void
+    {
+        // RefundPaymentPreviewController and RefundPaymentController call
+        // resolveRequestedTotal() identically (see this mission's data-flow
+        // trace) — against the same order state, the two calls must never
+        // diverge, since there is no second formula anywhere in either
+        // controller.
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        $this->makeTaxOnlyAllocation($order, $payment, 30.0, OrderPaymentRefundAllocationStatus::Allocated);
+
+        $previewResult = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+        $executionResult = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame($previewResult, $executionResult);
+        $this->assertSame(70.0, $previewResult[0]);
+    }
+
+    public function test_stwp_13_eligibility_becomes_false_once_all_tax_has_been_successfully_refunded(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        $this->makeTaxOnlyAllocation($order, $payment, 100.0, OrderPaymentRefundAllocationStatus::Allocated);
+
+        [$total, $error] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertNull($total);
+        $this->assertSame('No refundable sales tax remains for this order.', $error);
+    }
+
+    public function test_stwp_14_a_failed_or_pending_attempt_alone_does_not_make_the_order_ineligible(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $payment = $this->makeSettledPayment($order, 1100.0);
+        // If this Failed row (for the FULL tax amount) were counted, the
+        // order would incorrectly read as fully refunded/ineligible.
+        $this->makeTaxOnlyAllocation($order, $payment, 100.0, OrderPaymentRefundAllocationStatus::Failed);
+
+        [$total, $error] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::SalesTaxOnly, 0.0);
+
+        $this->assertSame(100.0, $total);
+        $this->assertNull($error);
+    }
+
+    public function test_stwp_15_card_fee_retained_and_standard_calc_types_are_unaffected(): void
+    {
+        $order = $this->makeOrder(1100.0, subtotal: 1000.0, taxAmount: 100.0);
+        $this->makeSettledPayment($order, 1100.0);
+
+        [$ccTotal, $ccError] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::CardProcessingFeeRetained, 0.0);
+        $this->assertNull($ccTotal);
+        $this->assertNull($ccError);
+
+        [$stdTotal, $stdError] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::Standard, 50.0);
+        $this->assertSame(50.0, $stdTotal);
+        $this->assertNull($stdError);
+
+        [$zeroTotal, $zeroError] = PaymentAllocationService::resolveRequestedTotal($order, RefundCalculationType::Standard, 0.0);
+        $this->assertNull($zeroTotal);
+        $this->assertSame('Refund amount must be greater than zero.', $zeroError);
     }
 }

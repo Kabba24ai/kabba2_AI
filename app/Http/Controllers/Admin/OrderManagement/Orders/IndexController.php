@@ -31,7 +31,13 @@ class IndexController extends Controller
 
             // Fetch orders from the database, most recent first
             $query = Order::query()
-                ->with('shippingAddress','billingAddress', 'products.product.categories', 'lastPayment', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.equipment', 'products.softAssignment.equipment', 'extensionCharge')->withCount('notes')
+                // Payment Architecture Finalization (Phase 4B): 'lastPayment'
+                // eager-load removed — this query's own filtering already
+                // moved off it in Tier 2 (see wherePaymentStatusFilter()
+                // below), and neither this controller's Blade output
+                // (_table.blade.php/index.blade.php) nor anything they
+                // include reads lastPayment/lastPaidPayment anywhere.
+                ->with('shippingAddress','billingAddress', 'products.product.categories', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.equipment', 'products.softAssignment.equipment', 'extensionCharge')->withCount('notes')
                 ->when($request->filled('customer_name'), function ($q) use ($request) {
                     $name = trim($request->customer_name);
                     $q->whereHas('billingAddress', function ($s) use ($name) {
@@ -87,14 +93,24 @@ class IndexController extends Controller
                     });
                 })
 
+                // Payment Architecture Finalization (Tier 2): these previously
+                // matched only Order::lastPayment (the single highest-id
+                // order_payments row) — a split-payment order paid partly Cash,
+                // partly Card would only ever match ONE of those method
+                // filters (whichever happened to be entered last), and a
+                // status filter could miss an order whose most recent row
+                // isn't the one carrying the searched-for status even though
+                // an earlier row does. Now matches when ANY of the order's
+                // payment rows satisfies the filter. The payment_status
+                // filter additionally uses scopeWherePaymentStatusFilter() so
+                // "Pending"/"Failed" mean "still unresolved," not "ever had a
+                // row with that status" — see the scope's own docblock.
                 ->when($request->filled('payment_method') && $request->payment_method !== 'All Methods', function ($q) use ($request) {
-                    // if lastPayment is a latest-of-many relation:
-                    $q->whereRelation('lastPayment', 'payment_method', $request->payment_method);
+                    $q->whereHas('payments', fn ($p) => $p->where('payment_method', $request->payment_method));
                 })
 
                 ->when($request->filled('payment_status') && $request->payment_status !== 'All Status', function ($q) use ($request) {
-                    // only match the latest payment's status
-                    $q->whereRelation('lastPayment', 'status', $request->payment_status);
+                    $q->wherePaymentStatusFilter($request->payment_status);
                 })
 
                 ->when($request->filled('equipment_id_search'), function ($q) use ($request) {

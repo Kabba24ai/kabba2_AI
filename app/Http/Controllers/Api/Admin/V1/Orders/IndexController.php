@@ -35,11 +35,17 @@ class IndexController extends BaseController
 
         $orders = Order::query()
             ->with('shippingAddress', 'billingAddress', 'licenseMedia', 'products.product', 'lastPayment', 'notes', 'products.deliveryMedia', 'products.pickupMedia', 'products.deliverySignatureMedia', 'products.returnSignatureMedia', 'products.deliveryStore', 'products.pickupStore', 'products.softEquipment')
+            // Payment Architecture Finalization (Tier 2): matched only
+            // Order::lastPayment (the single highest-id order_payments row)
+            // — a split-payment order could match/miss a status or method
+            // filter based purely on which row happened to be entered last.
+            // Now uses scopeWherePaymentStatusFilter() so "Pending"/"Failed"
+            // mean "still unresolved," not "ever had a row with that
+            // status" — see the scope's own docblock. Every other status
+            // keeps the simple "any row has this status" meaning.
             ->when(
                 $status && $status !== 'All',
-                fn($query) => $query->whereHas('lastPayment', function ($q) use ($status) {
-                    $q->where('status', $status);
-                }),
+                fn($query) => $query->wherePaymentStatusFilter($status),
             )
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('shippingAddress', function ($q) use ($search) {
@@ -53,7 +59,7 @@ class IndexController extends BaseController
                     $q->where('product_categories.id', $categoryId);
                 }),
             )
-            ->when($paymentMethod && $paymentMethod !== 'All', fn($query) => $query->whereHas('lastPayment', fn($q) => $q->where('payment_method', $paymentMethod)))
+            ->when($paymentMethod && $paymentMethod !== 'All', fn($query) => $query->whereHas('payments', fn($q) => $q->where('payment_method', $paymentMethod)))
             ->orderByDesc('id')
             ->paginate($perPage);
 

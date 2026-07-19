@@ -114,7 +114,7 @@ class ReceivePaymentController extends Controller
                         return back()->withInput()->with('error', 'Customer profile not found for saved card.');
                     }
 
-                    $authorizeNetService = new AuthorizeNetService();
+                    $authorizeNetService = app(AuthorizeNetService::class);
 
                     $paymentResult = $authorizeNetService->chargeCustomerProfile($customerProfileId, $paymentProfileId, $amount, [
                         'order_number' => $order->order_number,
@@ -154,7 +154,7 @@ class ReceivePaymentController extends Controller
                         DB::rollback();
                         return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
                     }
-                    $authorizeNetService = new AuthorizeNetService();
+                    $authorizeNetService = app(AuthorizeNetService::class);
                     if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
                         DB::rollback();
                         return redirect()->back()->withInput()->with('error', 'Payment token invalid.');

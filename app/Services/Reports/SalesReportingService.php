@@ -102,7 +102,21 @@ class SalesReportingService
         // all rental revenue from those orders, not just the targeted component. These filters
         // are applied post-aggregation in PureSalesSummaryReport::applyComponentFilters().
 
-        // Payment status — matches against the most recent order_payment record
+        // Payment status — matches when ANY of the order's payment rows
+        // qualifies (not just the most recently inserted one).
+        //
+        // Payment Architecture Finalization: this previously correlated
+        // only to the single highest-id order_payments row (a MAX(id)
+        // subquery, the same single-payment-row anti-pattern already fixed
+        // in PaymentReconciliationLedger/Customer). On a split-payment
+        // order, only the LAST payment method/status entered decided
+        // whether the whole order qualified for 'paid'/'pod'/'account' —
+        // so an order paid partly Cash + partly Card could be silently
+        // excluded from the 'paid' bucket if the last row entered happened
+        // to be, e.g., a later unrelated event. Now checks whether ANY
+        // qualifying row exists, matching the split-payment reality that
+        // more than one row can independently satisfy the bucket's rule.
+        //
         // 'paid'    = Card / Cash / Online / Cheque / Other + COD with status='Paid' (all realized)
         // 'pod'     = COD with status != 'Paid' (collected on delivery, not yet realized)
         // 'account' = Account method (not realized until CustomerAccount payment received)
@@ -111,8 +125,7 @@ class SalesReportingService
             $query->whereExists(function ($sub) use ($paymentStatus) {
                 $sub->selectRaw('1')
                     ->from('order_payments')
-                    ->whereColumn('order_payments.order_id', 'orders.id')
-                    ->whereRaw('order_payments.id = (SELECT MAX(op2.id) FROM order_payments op2 WHERE op2.order_id = orders.id)');
+                    ->whereColumn('order_payments.order_id', 'orders.id');
 
                 if ($paymentStatus === 'paid') {
                     // Exclude Account and unpaid COD; also exclude Voided/Failed/Pending

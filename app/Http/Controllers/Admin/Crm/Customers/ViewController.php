@@ -25,7 +25,8 @@ class ViewController extends Controller
             'orders.products', 'orders.payments',
             'notes' => fn ($q) => $q->with('user')->orderByDesc('created_at'),
             'invoices' => fn ($q) => $q->with('items')->orderByDesc('invoice_date'),
-            'accountApprovedBy', 'taxStatusApprovedBy', 'addresses.state', 'billingAddress', 'shippingAddress', 'accounts.responsibleUser', 'media',
+            'accountApprovedBy', 'taxStatusApprovedBy', 'addresses.state', 'billingAddress', 'shippingAddress',
+            'accounts.responsibleUser', 'accounts.billingChargeRefund.billingCharge.parentOrder', 'media',
             'customerCredits.responsibleUser',
         ])
             ->where('unique_id', $unique_id)

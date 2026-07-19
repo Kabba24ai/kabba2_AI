@@ -272,6 +272,27 @@ class CustomHelper
         return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">' . e($label) . '</span>';
     }
 
+    /**
+     * Payment Architecture Finalization (Tier 2) — the order-level
+     * counterpart to paymentStatusBadge() above. That helper renders a
+     * SINGLE order_payments row's status; this one renders an ORDER's
+     * aggregate collection + refund state
+     * (OrderPaymentSummary::balanceStatusLabel()). Every screen showing
+     * "this order's payment status" (order lists, Dispatch, Schedules, CRM
+     * customer views) must call this with the order's OrderPaymentSummary
+     * instead of passing Order::last_payment_status into
+     * paymentStatusBadge() — that reflects only whichever payment happened
+     * to be entered last, which disagrees with the order's real state on
+     * any order with more than one payment row.
+     */
+    public static function orderPaymentStatusBadge(\App\Services\Orders\OrderPaymentSummary $summary): string
+    {
+        $label = \App\Services\PaymentDescriptionPresenter::orderStatusLabel($summary);
+        $class = \App\Services\PaymentDescriptionPresenter::orderStatusBadgeClasses($summary);
+
+        return '<span class="px-2 py-1 rounded text-xs font-semibold ' . $class . '">' . e($label) . '</span>';
+    }
+
     public static function statusBadge(string|OrderPaymentStatus|null $status): string
     {
         // Convert enum to string value if needed
@@ -386,7 +407,24 @@ class CustomHelper
                             break;
 
                         case 'refund':
-                            if ($customer->getTaxStatus() === 'Taxable') {
+                            // Sales Tax Architecture Correction — bounded refund
+                            // enhancement: when RefundStoreController has already
+                            // resolved a real per-charge treatment (the employee
+                            // linked this refund to a specific originating
+                            // BillingCharge), use it instead of the customer-
+                            // exemption-driven default below. sales_tax_type is
+                            // never pre-set by any OTHER caller of this method for
+                            // a 'refund' record (RefundStoreController is the only
+                            // one that creates type='refund' rows), so this branch
+                            // cannot change behavior for a free-form refund with no
+                            // linked charge — those keep the exact prior formula.
+                            if (\App\Services\ChargeTaxCalculator::isValidTreatment($record->sales_tax_type)) {
+                                $resolved = \App\Services\ChargeTaxCalculator::calculate(
+                                    (float) $record->amount, $record->sales_tax_type, (float) $record->sales_tax
+                                );
+                                $record->sales_tax = $resolved['tax_rate'];
+                                $amountWithTax = $resolved['total_amount'];
+                            } elseif ($customer->getTaxStatus() === 'Taxable') {
                                 $record->sales_tax = $salesTaxRate;
                                 $amountWithTax = $record->amount + $record->amount * $record->sales_tax;
                             } else {

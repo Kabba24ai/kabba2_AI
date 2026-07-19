@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api\SalesReports\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\Reports\ApiSalesReportAdapter;
+use App\Services\Reports\Concerns\HasAllocationAwareRefundSql;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class SalesReportController extends Controller
 {
+    use HasAllocationAwareRefundSql;
+
     /**
      * Phase 2D consolidation: the trend, top-products/categories, summary,
      * discounts, and refunds endpoints read their numbers from the canonical
@@ -23,14 +26,87 @@ class SalesReportController extends Controller
      * > 0`) that could never execute — their own WHERE clause only ever
      * admits Paid/Account/Invoice* status rows, never Refunded/Partial
      * Refund, so the branch was unreachable dead code. Removed; each
-     * method's own comment explains it. These endpoints still do not net
-     * out refunds at all (their output was already always computed as if
-     * no refund had occurred, since the dead branch never ran) — doing so
-     * correctly requires the same canonical-engine work the other endpoints
-     * on this controller already received in Phase 2D, and is deferred to
-     * Payment Architecture Finalization – Source of Truth Consolidation.
+     * method's own comment explains it.
+     *
+     * Payment Architecture Finalization (Phase 4B): all three now net out
+     * completed refunds via applyRefundNettingToOrderProductsQuery()/
+     * refundNetRatioSql() below — the same allocation-aware SQL fragment
+     * (HasAllocationAwareRefundSql) and the same exclude-fully-refunded/
+     * ratio-net-partial-refunds shape as
+     * App\Services\Reports\Concerns\NetsRefundedRevenue, adapted to a query
+     * rooted at order_products (these endpoints have no canonical Order-
+     * builder-based engine to delegate to) rather than duplicated as a new
+     * formula.
      */
     public function __construct(private ApiSalesReportAdapter $adapter) {}
+
+    /**
+     * Exclude order_products rows belonging to a fully-refunded order, and
+     * join two per-order aggregates — order_totals.order_gross (the order's
+     * own SUM(sub_total)) and order_refunds.partial_refunded (allocation-
+     * aware net Partial Refund total, fee-excluded) — that
+     * refundNetRatioSql() below turns into a per-row netting ratio.
+     *
+     * Mirrors NetsRefundedRevenue::applyRefundNetting() exactly (same
+     * exclusion rule, same HasAllocationAwareRefundSql fragment), keyed to
+     * order_products.order_id instead of orders.id since these three V1 API
+     * endpoints query from order_products rather than an Eloquent Order
+     * builder.
+     */
+    private function applyRefundNettingToOrderProductsQuery($query): void
+    {
+        $query->whereNotExists(function ($sub) {
+            $sub->selectRaw('1')
+                ->from('order_payments as rp')
+                ->whereColumn('rp.order_id', 'order_products.order_id')
+                ->where('rp.status', 'Refunded')
+                ->whereNull('rp.deleted_at');
+        });
+
+        $query->leftJoinSub(
+            DB::table('order_products as op_gross')
+                ->selectRaw('order_id, SUM(sub_total) AS order_gross')
+                ->whereNull('deleted_at')
+                ->groupBy('order_id'),
+            'order_totals',
+            'order_totals.order_id',
+            '=',
+            'order_products.order_id'
+        );
+
+        $refundAmountSql = $this->allocationAwareRefundAmountSql('op_ref');
+        $query->leftJoinSub(
+            DB::table('order_payments as op_ref')
+                ->selectRaw("order_id, SUM({$refundAmountSql}) AS partial_refunded")
+                ->where('status', 'Partial Refund')
+                ->whereNull('deleted_at')
+                ->groupBy('order_id'),
+            'order_refunds',
+            'order_refunds.order_id',
+            '=',
+            'order_products.order_id'
+        );
+    }
+
+    /**
+     * Per-row net ratio — same formula as
+     * NetsRefundedRevenue::netRevenueExpr(): ratio = (order_gross -
+     * partial_refunded) / order_gross, floored at 0. Pending/Failed refund
+     * allocations never reach partial_refunded (allocationAwareRefundAmountSql
+     * only sums 'allocated' rows), so an unresolved refund attempt cannot
+     * reduce a completed total. Fully-refunded orders never reach this ratio
+     * at all — they're excluded entirely by applyRefundNettingToOrderProductsQuery()'s
+     * whereNotExists, which is the "unavoidable value change" documented in
+     * the Phase 4B report: previously (dead refund branch) a fully-refunded
+     * order's lines were counted as if never refunded; now they contribute 0.
+     */
+    private function refundNetRatioSql(): string
+    {
+        return 'GREATEST(0,
+            (COALESCE(order_totals.order_gross, order_products.sub_total) - COALESCE(order_refunds.partial_refunded, 0))
+            / NULLIF(COALESCE(order_totals.order_gross, order_products.sub_total), 0)
+        )';
+    }
 
     /**
      * Get rolling 30 days comparison data
@@ -309,15 +385,10 @@ class SalesReportController extends Controller
         $dateRange = $filters['dateRange'] ?? 'rolling_30';
         [$startDate, $endDate] = $this->getDateRangeForFilters($dateRange, $filters);
 
-        // Final Phase — Refund Consumer Cleanup: this query's own WHERE
-        // clause only ever admits Paid/Account/Invoice* order_payments rows
-        // (never Refunded/Partial Refund), so a joined row's
-        // order_payments.refund_amount was always 0 — refund netting here
-        // was dead code that could never execute, removed rather than left
-        // as a misleading always-zero branch. This endpoint does not net
-        // out refunds; doing so correctly is deferred to Payment
-        // Architecture Finalization, which is also why it isn't modeled by
-        // a canonical engine yet (see this class's docblock).
+        // Payment Architecture Finalization (Phase 4B): refund netting via
+        // applyRefundNettingToOrderProductsQuery()/refundNetRatioSql() (see
+        // class docblock) replaces the Final Phase's dead always-zero
+        // refund branch that used to sit here.
         $query = DB::table('order_products')
             ->join('order_payments', 'order_products.order_id', '=', 'order_payments.order_id')
             ->join('products', 'order_products.product_id', '=', 'products.id')
@@ -327,6 +398,7 @@ class SalesReportController extends Controller
                 $endDate->format('Y-m-d'),
             ]);
 
+        $this->applyRefundNettingToOrderProductsQuery($query);
         $this->applyFiltersToQuery($query, $filters);
 
         $data = $query->select(
@@ -334,7 +406,8 @@ class SalesReportController extends Controller
             'order_products.quantity',
             'order_products.sub_total',
             'order_products.tax',
-            'products.product_type'
+            'products.product_type',
+            DB::raw($this->refundNetRatioSql() . ' as refund_net_ratio')
         )->get();
 
         $breakdown = [
@@ -356,6 +429,12 @@ class SalesReportController extends Controller
 
             $quantity    = (int)($item->quantity ?? 1);
             $productType = $item->product_type ?? '';
+            // Payment Architecture Finalization (Phase 4B): every revenue
+            // component below is scaled by this order's refund-net ratio
+            // (1.0 when nothing was refunded) before being added to its
+            // bucket — mirrors NetsRefundedRevenue::netRevenueExpr()'s
+            // per-line proportional netting.
+            $refundNetRatio = (float) ($item->refund_net_ratio ?? 1.0);
 
             // ── Rental add-on prices stored in product_data ──────────────────
             $rentalItemPrices = $productData['product_rental_items_prices'] ?? [];
@@ -387,19 +466,19 @@ class SalesReportController extends Controller
             $basePrice   = (float)($productData['product_price'] ?? 0);
             $baseRevenue = $basePrice * $quantity;
 
-            // ── Accumulate into breakdown buckets ────────────────────────────
-            $breakdown['deliveryRevenue']        += $deliveryFee;
-            $breakdown['damageWaiverRevenue']    += $damageWaiver;
-            $breakdown['trackInsuranceRevenue']  += $trackInsurance;
-            $breakdown['prepaidCleaningRevenue'] += $prepaidCleaning;
-            $breakdown['prepaidFuelRevenue']     += $prepaidFuel;
+            // ── Accumulate into breakdown buckets (refund-net-ratio scaled) ───
+            $breakdown['deliveryRevenue']        += $deliveryFee * $refundNetRatio;
+            $breakdown['damageWaiverRevenue']    += $damageWaiver * $refundNetRatio;
+            $breakdown['trackInsuranceRevenue']  += $trackInsurance * $refundNetRatio;
+            $breakdown['prepaidCleaningRevenue'] += $prepaidCleaning * $refundNetRatio;
+            $breakdown['prepaidFuelRevenue']     += $prepaidFuel * $refundNetRatio;
             // Tire insurance and misc option items go to feesOther
-            $breakdown['feesOtherRevenue']       += ($tireInsurance + $optionsTotal);
+            $breakdown['feesOtherRevenue']       += ($tireInsurance + $optionsTotal) * $refundNetRatio;
 
             if ($productType === 'Retail') {
-                $breakdown['retailSales']   += $baseRevenue;
+                $breakdown['retailSales']   += $baseRevenue * $refundNetRatio;
             } else {
-                $breakdown['rentalRevenue'] += $baseRevenue;
+                $breakdown['rentalRevenue'] += $baseRevenue * $refundNetRatio;
             }
         }
 
@@ -424,12 +503,14 @@ class SalesReportController extends Controller
                 $endDate->format('Y-m-d')
             ]);
 
+        $this->applyRefundNettingToOrderProductsQuery($query);
         $this->applyFiltersToQuery($query, $filters);
 
         $data = $query->select(
             'order_products.total',
             'order_products.tax',
-            'order_payments.status'
+            'order_payments.status',
+            DB::raw($this->refundNetRatioSql() . ' as refund_net_ratio')
         )->get();
 
         $salesTaxCollected = 0;
@@ -442,15 +523,17 @@ class SalesReportController extends Controller
             'otherPayments' => 0
         ];
 
-        // Final Phase — Refund Consumer Cleanup: refund netting removed
-        // here — the query's own WHERE clause only ever admits
-        // Paid/Account/Invoice* rows, so order_payments.refund_amount was
-        // always 0 for every row reaching this loop; the sign-flip below
-        // was dead code. See getRevenueBreakdown()'s comment for the full
-        // explanation and deferral.
+        // Payment Architecture Finalization (Phase 4B): each row's
+        // total/tax is scaled by the order's refund-net ratio (see class
+        // docblock) before being split into buckets — replaces the Final
+        // Phase's dead always-zero refund branch that used to sit here.
         foreach ($data as $item) {
-            $amount = $item->total - $item->tax;
-            $tax = $item->tax ?? 0;
+            $refundNetRatio = (float) ($item->refund_net_ratio ?? 1.0);
+            $scaledTotal = ($item->total ?? 0) * $refundNetRatio;
+            $scaledTax = ($item->tax ?? 0) * $refundNetRatio;
+
+            $amount = $scaledTotal - $scaledTax;
+            $tax = $scaledTax;
 
             $salesTaxCollected += $tax;
 
@@ -558,6 +641,7 @@ class SalesReportController extends Controller
                 $endDate->format('Y-m-d')
             ]);
 
+        $this->applyRefundNettingToOrderProductsQuery($query);
         $this->applyFiltersToQuery($query, $filters);
 
         $data = $query->select(
@@ -568,7 +652,8 @@ class SalesReportController extends Controller
             'order_products.quantity',
             'products.product_name',
             'products.product_type',
-            DB::raw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_variant')) as product_variant")
+            DB::raw("JSON_UNQUOTE(JSON_EXTRACT(order_products.product_data, '$.product_variant')) as product_variant"),
+            DB::raw($this->refundNetRatioSql() . ' as refund_net_ratio')
         )->get();
 
         // Rental usage multipliers by variant (normalized to equivalent daily rental days)
@@ -581,16 +666,20 @@ class SalesReportController extends Controller
 
         $productMap = [];
 
-        // Final Phase — Refund Consumer Cleanup: the refund/non-refund
-        // split removed here was dead code — this query's own WHERE clause
-        // only ever admits Paid/Account/Invoice* order_payments rows, so
-        // order_payments.refund_amount was always 0 and the refund branch
-        // below could never execute. refundQuantity/refundAmount/
-        // refundRentalUsageQty remain in the response contract as fixed
-        // zeros rather than removed, since this endpoint's output shape is
-        // documented as unchanged; actually netting out refunds here is
-        // deferred to Payment Architecture Finalization (see
-        // getRevenueBreakdown()'s comment).
+        // Payment Architecture Finalization (Phase 4B): refundAmount is now
+        // the real allocation-aware net refund attributable to this line
+        // (lineTotal * (1 - refund_net_ratio) — see class docblock),
+        // replacing the Final Phase's permanently-dead always-zero branch.
+        // refundQuantity/refundRentalUsageQty remain fixed at 0 by design,
+        // not oversight: allocations are dollar amounts against a payment,
+        // with no per-order-product-line unit breakdown anywhere in the
+        // schema, so "how many units" a partial refund corresponds to is
+        // not derivable data — the same limitation the canonical demand
+        // engines (NetsRefundedRevenue) have, which also only net dollars,
+        // never a unit count. A fully-refunded order's lines are excluded
+        // from this response entirely (applyRefundNettingToOrderProductsQuery()'s
+        // whereNotExists), not merely zeroed — see the Phase 4B report for
+        // why this is the one unavoidable behavior change here.
         foreach ($data as $item) {
             $productId    = (string)$item->product_id;
             $lineTotal    = (float)($item->total ?? 0);
@@ -600,6 +689,8 @@ class SalesReportController extends Controller
             $variant      = strtolower($item->product_variant ?? 'daily');
             $multiplier   = $rentalMultipliers[$variant] ?? 1;
             $usageQty     = $isRental ? $quantity * $multiplier : 0;
+            $refundNetRatio = (float) ($item->refund_net_ratio ?? 1.0);
+            $lineRefundAmount = $lineTotal * (1 - $refundNetRatio);
 
             if (!isset($productMap[$productId])) {
                 $productMap[$productId] = [
@@ -626,6 +717,7 @@ class SalesReportController extends Controller
             $productMap[$productId]['taxCollected']        += $lineTax;
             $productMap[$productId]['salesCount']++;
             $productMap[$productId]['rentalUsageQuantity'] += $usageQty;
+            $productMap[$productId]['refundAmount']        += $lineRefundAmount;
         }
 
         $result = [];

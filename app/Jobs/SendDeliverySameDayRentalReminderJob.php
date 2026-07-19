@@ -3,8 +3,11 @@
 namespace App\Jobs;
 
 use App\Enums\Communication\SmsType;
+use App\Enums\Orders\OrderPaymentMethod;
+use App\Enums\Orders\OrderPaymentStatus;
 use App\Helpers\ConfigurationHelper;
 use App\Models\Orders\OrderProduct;
+use App\Services\Orders\OrderPaymentSummary;
 use App\Services\TwilioService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -62,9 +65,13 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
 
         $twilio = new TwilioService();
 
+        // Note: 'order.payments' is deliberately not eager-loaded here —
+        // OrderPaymentSummary::for() below queries $order->payments()
+        // fresh per order regardless (same as every other canonical
+        // consumer in this codebase), so preloading the relation wouldn't
+        // be used.
         $records = OrderProduct::with([
                 'order.shippingAddress',
-                'order.lastPayment',
                 'order.customer',
                 'deliveryStore',
                 'product',
@@ -82,14 +89,45 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
 
         \Log::channel('jobs')->info("Preparing to send {$count} same-day rental delivery reminder message(s).");
 
+        // Payment Architecture Finalization (Phase 4B): COD/paid routing now
+        // reads OrderPaymentSummary::unresolvedPaymentAttempts (built in
+        // Tier 2) instead of Order::lastPayment (the single highest-id
+        // row). Three distinct bugs this fixes at once:
+        //  1. lastPayment only ever sees ONE row — a still-genuinely-
+        //     outstanding COD/Pending placeholder could be hidden behind a
+        //     later, unrelated row (e.g. a partial deposit recorded after
+        //     the COD row was created), routing the order into the
+        //     "already covered" bucket instead of the COD reminder.
+        //  2. Conversely, a plain any-row COD+Pending check (the pattern
+        //     SendDeliveryDayBeforeRentalReminderJob/SendPodPaymentReminderJob
+        //     use) would keep flagging an order as COD forever even after
+        //     it was later fully paid by some other combination of rows —
+        //     unresolvedPaymentAttempts is precedence-safe: it goes empty
+        //     the instant collectionStatus reaches Paid in Full, exactly
+        //     the "a historical COD or Pending row must not override a
+        //     completed payment" rule this job needs.
+        //  3. payment_method/status are cast to backed enums on OrderPayment
+        //     (see OrderPayment::$casts), so the old
+        //     `data_get($lastPayment, 'payment_method') === 'COD'` string
+        //     comparison against a hydrated enum instance was always false
+        //     — COD detection never actually fired in production, regardless
+        //     of lastPayment vs any-row. Comparing against the enum cases
+        //     directly (OrderPaymentMethod::COD / OrderPaymentStatus::Pending)
+        //     fixes this too.
+        $isUnresolvedCod = function ($record) {
+            $order = data_get($record, 'order');
+            if (!$order) {
+                return false;
+            }
+
+            return OrderPaymentSummary::for($order)->unresolvedPaymentAttempts->contains(
+                fn ($p) => $p->payment_method === OrderPaymentMethod::COD && $p->status === OrderPaymentStatus::Pending
+            );
+        };
+
         // Exclude COD-Pending (POD unpaid) orders from the paid loop — they get a separate POD same-day message.
         // Also prevent duplicate sends via sms_logs dedup.
-        $paidRecords = $records->filter(function ($record) {
-            $lastPayment = data_get($record, 'order.lastPayment');
-            return !($lastPayment
-                && data_get($lastPayment, 'payment_method') === 'COD'
-                && data_get($lastPayment, 'status') === 'Pending');
-        });
+        $paidRecords = $records->filter(fn ($record) => !$isUnresolvedCod($record));
 
         foreach ($paidRecords as $record) {
             // Safely get phone number
@@ -171,10 +209,7 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
         }
 
         $sentSameDayCODCount = 0;
-        $codRecords = $records->filter(function ($record) {
-            $lastPayment = data_get($record, 'order.lastPayment');
-            return $lastPayment && data_get($lastPayment, 'payment_method') === 'COD' && data_get($lastPayment, 'status') === 'Pending';
-        });
+        $codRecords = $records->filter($isUnresolvedCod);
         foreach ($codRecords as $record) {
             // Safely get phone number
 

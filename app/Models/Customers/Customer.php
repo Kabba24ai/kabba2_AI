@@ -222,19 +222,24 @@ class Customer extends Authenticatable
             ->sum(fn ($order) => $order->net_paid);
     }
 
-    // Total Pending Sales (via OrderPayment status)
+    /**
+     * Payment Architecture Finalization: this had the same MAX(id)
+     * attribution flaw getPaidSalesAttribute() was already fixed for above
+     * — it joined each order to only its single highest-id order_payments
+     * row and summed the WHOLE order's grand_total whenever that one row
+     * happened to be Pending, ignoring however much of the order had
+     * already been settled by an earlier payment. Now sums each such
+     * order's actual outstanding balance (Order::balance_due, the
+     * canonical "not yet collected" figure) instead of the full
+     * grand_total, so a partially-paid order with a pending second payment
+     * only counts the remaining uncollected portion as "pending."
+     */
     public function getPendingSalesAttribute()
     {
         return $this->orders()
-            ->whereHas('payments', function ($query) {
-                $query->where('status', 'Pending')
-                    ->whereRaw('id = (
-                SELECT MAX(id)
-                FROM order_payments
-                WHERE order_id = orders.id
-            )');
-            })
-            ->sum('grand_total');
+            ->whereHas('payments', fn ($query) => $query->where('status', 'Pending'))
+            ->get()
+            ->sum(fn ($order) => $order->balance_due);
     }
 
     public function getTaxStatus(): string

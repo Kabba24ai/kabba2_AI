@@ -42,14 +42,28 @@ class ListResource extends JsonResource
 
             'amount' => CustomHelper::formatCurrency($this->grand_total) ?? '',
             'platform' => $this->platform ?? '',
+            // 'payment_type'/'payment_status' intentionally remain the most
+            // recent payment event's raw values, unchanged, for backward
+            // compatibility with existing API clients that parse them —
+            // this was always their documented meaning, not a broken
+            // promise. Payment Architecture Finalization (Tier 2): the
+            // *_label fields below are the corrected, order-aggregate
+            // truth (a split-payment order's status/methods can genuinely
+            // differ from its single most recent row) — new/updated
+            // clients should prefer those.
             'payment_type' => $this->last_payment_type ?? '',
             'payment_status' => $this->last_payment_status ?? '',
             // Human-readable canonical labels, additive alongside the raw
-            // machine values above (which stay unchanged for existing
-            // clients) — the same wording Order Details/receipts/reports
-            // use, so a client can display them without its own mapping.
-            'payment_type_label' => PaymentDescriptionPresenter::methodLabel($this->last_payment_type),
-            'payment_status_label' => PaymentDescriptionPresenter::statusLabel($this->last_payment_status),
+            // machine values above — the same wording Order Details/
+            // receipts/reports use, so a client can display them without
+            // its own mapping. Sourced from the order's aggregate payment
+            // summary, not the single most recent payment row.
+            'payment_type_label' => PaymentDescriptionPresenter::methodsUsedLabel(
+                \App\Services\Orders\OrderPaymentSummary::for($this->resource)->paymentMethodsUsed
+            ),
+            'payment_status_label' => PaymentDescriptionPresenter::orderStatusLabel(
+                \App\Services\Orders\OrderPaymentSummary::for($this->resource)
+            ),
             // Phase 2 payment experience: the figures a mobile client needs
             // to answer "has the customer paid / how much / how much is
             // left" without a second request — sourced from the same

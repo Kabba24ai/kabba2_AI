@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Services\Reports\Concerns\NetsRefundedRevenue;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -13,6 +14,8 @@ use Illuminate\Support\Collection;
  */
 class SalesByStoresReport
 {
+    use NetsRefundedRevenue;
+
     public function __construct(
         private SalesReportingService $reporting,
         private BillingRevenueAttributionService $billingAttribution,
@@ -100,10 +103,17 @@ class SalesByStoresReport
 
     private function queryByStore(array $filters): Collection
     {
-        $rows = $this->reporting->baseQuery($filters)
+        // Payment Architecture Finalization: this previously summed raw
+        // order_products.sub_total with zero refund awareness — a fully
+        // refunded order's original line revenue counted in full here (and
+        // fed straight into the Dashboard's Sales-By-Store preview card).
+        // Now shares the same exclude-fully-refunded + proportional
+        // partial-refund netting ProductSalesPerformanceEngine already uses.
+        $expr = $this->netRevenueExpr();
+        $rows = $this->applyRefundNetting($this->reporting->baseQuery($filters))
             ->selectRaw("
                 COALESCE(stores.store_name, 'Unassigned')  AS store_name,
-                SUM(order_products.sub_total)               AS revenue,
+                SUM({$expr})                                AS revenue,
                 COUNT(DISTINCT orders.id)                   AS transactions
             ")
             ->groupBy('order_products.delivery_store_id', 'stores.store_name')

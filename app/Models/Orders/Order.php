@@ -128,6 +128,44 @@ class Order extends Model
     }
 
     /**
+     * Payment Architecture Finalization (Tier 2) — filter semantics for
+     * "Pending"/"Failed" payment_status filters. A raw status value like
+     * 'Paid' or 'Refunded' unambiguously means "this order has a row with
+     * that status" — those states don't go stale. 'Pending'/'Failed' are
+     * different: a declined card attempt or an abandoned COD placeholder
+     * stops being operationally relevant the moment the order is later
+     * fully paid by some other combination of rows — an employee filtering
+     * an order list by "Failed" is looking for orders that STILL need
+     * attention, not a permanent historical tag. This scope expresses that
+     * distinction explicitly (see OrderPaymentSummary::
+     * unresolvedPaymentAttempts for the equivalent PHP-side rule, applied
+     * once a single order is already loaded) rather than silently
+     * reinterpreting what the filter means: 'Pending'/'Failed' additionally
+     * require the order not be fully paid; every other status keeps the
+     * simple "any row has this status" meaning.
+     */
+    public function scopeWherePaymentStatusFilter($query, string $status)
+    {
+        $query->whereHas('payments', fn ($q) => $q->where('status', $status));
+
+        if (!in_array($status, [\App\Enums\Orders\OrderPaymentStatus::Pending->value, \App\Enums\Orders\OrderPaymentStatus::Failed->value], true)) {
+            return $query;
+        }
+
+        $settledValues = collect(\App\Enums\Orders\OrderPaymentStatus::cases())
+            ->filter(fn ($s) => $s->isSettled() || $s === \App\Enums\Orders\OrderPaymentStatus::PartialPayment)
+            ->map(fn ($s) => $s->value)
+            ->all();
+
+        return $query->whereRaw(
+            '(SELECT COALESCE(SUM(op_settled.amount), 0) FROM order_payments op_settled
+              WHERE op_settled.order_id = orders.id AND op_settled.status IN (' . implode(',', array_fill(0, count($settledValues), '?')) . ')
+             ) < (orders.grand_total - 0.005)',
+            $settledValues
+        );
+    }
+
+    /**
      * The Rental Extension BillingCharge this order was created BY (set only
      * on extension child orders). The charge and the child order share one
      * lifecycle — see ExtensionTransactionService.

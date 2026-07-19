@@ -76,6 +76,12 @@ class CustomerAccount extends Model
         return $this->belongsTo(User::class, 'responsible_person_id');
     }
 
+    /** Billing Charge Refund Allocation — set only for a linked refund (type='refund') row. */
+    public function billingChargeRefund()
+    {
+        return $this->hasOne(\App\Models\Orders\BillingChargeRefund::class, 'customer_account_id');
+    }
+
     /**
      * Relationship to the Order.
      */

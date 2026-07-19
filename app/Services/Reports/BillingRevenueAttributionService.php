@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Services\Reports\Concerns\HasAllocationAwareRefundSql;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -38,6 +39,8 @@ use Illuminate\Support\Facades\DB;
  */
 class BillingRevenueAttributionService
 {
+    use HasAllocationAwareRefundSql;
+
     public const ATTRIBUTED_TYPES = ['extension'];
 
     public function __construct(private SalesReportingService $reporting) {}
@@ -171,10 +174,18 @@ class BillingRevenueAttributionService
             )
             ->leftJoin('product_categories as bpc', 'bpc.id', '=', 'bpcc.primary_category_id')
             ->leftJoin('stores as bst', 'bst.id', '=', DB::raw('COALESCE(bc.store_id, pop.delivery_store_id)'))
-            // Child order refunds, ex-tax, netted off the charge
+            // Child order refunds, ex-tax, netted off the charge —
+            // Payment Architecture Finalization: was raw
+            // SUM(refund_amount - tax_refunded), which overstates the
+            // netted-off amount whenever a multi-source refund partially or
+            // fully failed. Now allocation-aware (net-of-fee, net-of-tax),
+            // same fallback pattern SalesReportEngineV2 already uses.
             ->leftJoinSub(
-                DB::table('order_payments')
-                    ->selectRaw('order_id, SUM(refund_amount - COALESCE(tax_refunded, 0)) AS refunded_ex_tax')
+                DB::table('order_payments as bcr_op')
+                    ->selectRaw(
+                        'order_id, SUM(' . $this->allocationAwareRefundAmountSql('bcr_op') .
+                        ' - (' . $this->allocationAwareRefundTaxSql('bcr_op') . ')) AS refunded_ex_tax'
+                    )
                     ->whereIn('status', ['Refunded', 'Partial Refund'])
                     ->whereNull('deleted_at')
                     ->groupBy('order_id'),

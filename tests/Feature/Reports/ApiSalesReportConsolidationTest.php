@@ -42,10 +42,10 @@ class ApiSalesReportConsolidationTest extends TestCase
 
         $this->apiBase = 'http://' . config('app.domains.api') . '/api/sales-reports/v1';
 
-        Setting::create([
-            'setting_type' => 'General Settings', 'value_type' => 'text',
-            'setting_name' => 'sales_tax', 'setting_title' => 'sales_tax', 'setting_value' => '0.10',
-        ]);
+        Setting::updateOrCreate(
+            ['setting_name' => 'sales_tax'],
+            ['setting_type' => 'General Settings', 'value_type' => 'text', 'setting_title' => 'sales_tax', 'setting_value' => '0.10']
+        );
 
         $this->customer = Customer::create([
             'first_name' => 'Api', 'last_name' => 'Customer',
@@ -87,7 +87,11 @@ class ApiSalesReportConsolidationTest extends TestCase
             'tax'               => 200,
             'total'             => 2200,
             'delivery_store_id' => $this->store->id,
-            'product_data'      => ['product_type' => 'Rental'],
+            // 'product_price' included so getRevenueBreakdown() — which
+            // reads its buckets from product_data JSON, not sub_total —
+            // has a real nonzero number to net against in the Phase 4B
+            // refund-netting test below.
+            'product_data'      => ['product_type' => 'Rental', 'product_price' => 2000],
         ]);
 
         // TWO payment rows on purpose: the legacy unscoped order_payments
@@ -284,23 +288,27 @@ class ApiSalesReportConsolidationTest extends TestCase
     }
 
     /**
-     * Refund Project Final Phase — Refund Consumer Cleanup: revenue-breakdown,
-     * tax-and-payments, and product-sales-details each had a refund-netting
-     * branch that could never execute (their own WHERE clause excludes
-     * Refunded/Partial Refund rows before the branch is ever reached) — the
-     * branches were removed as dead code. This proves the removal changed
-     * nothing observable: adding a refund on top of the parent order's
-     * $2,200 Paid payment must not move any of these three endpoints'
-     * numbers, exactly as it never did before the cleanup (the dead branch
-     * never fired, refund or no refund).
+     * Refund Project Final Phase — Refund Consumer Cleanup left these three
+     * endpoints with a dead (unreachable) refund branch. Payment Architecture
+     * Finalization (Phase 4B) made refund netting real — see
+     * SalesReportController's class docblock and the dedicated
+     * ApiSalesReportRefundNettingTest suite for the full scenario matrix.
+     * This test now proves the opposite of what it originally asserted: a
+     * full refund on the parent order's $2,200 Paid payment MUST zero out
+     * all three endpoints' numbers for that order, not leave them
+     * unaffected. (The original assertion — that a refund changed nothing —
+     * was itself proof of the bug being fixed, not a spec to preserve.)
      */
-    public function test_revenue_breakdown_tax_and_payments_and_product_details_are_unaffected_by_a_refund(): void
+    public function test_revenue_breakdown_tax_and_payments_and_product_details_are_zeroed_out_by_a_full_refund(): void
     {
         $before = [
             'revenue' => $this->apiGet('/revenue-breakdown', $this->customQuery())->assertOk()->json(),
             'tax'     => $this->apiGet('/tax-and-payments', $this->customQuery())->assertOk()->json(),
             'product' => $this->apiGet('/product-sales-details', $this->customQuery())->assertOk()->json(),
         ];
+        $this->assertSame(2000.0, array_sum($before['revenue']), 'sanity: pre-refund revenue is counted (rentalRevenue from product_data.product_price)');
+        $this->assertSame(200.0, (float) $before['tax']['salesTaxCollected'], 'sanity: pre-refund tax is counted');
+        $this->assertNotEmpty($before['product'], 'sanity: pre-refund product line is present');
 
         $this->parent->payments()->create([
             'payment_method'   => OrderPaymentMethod::Cash->value,
@@ -318,7 +326,9 @@ class ApiSalesReportConsolidationTest extends TestCase
             'product' => $this->apiGet('/product-sales-details', $this->customQuery())->assertOk()->json(),
         ];
 
-        $this->assertSame($before, $after, 'refund netting was dead code before this cleanup — removing it must not change output');
+        $this->assertSame(0.0, array_sum($after['revenue']), 'a fully-refunded order must contribute zero revenue, not the pre-refund $2,200');
+        $this->assertSame(0.0, (float) $after['tax']['salesTaxCollected']);
+        $this->assertEmpty($after['product'], 'the product line must disappear entirely, not remain at its pre-refund value');
     }
 
     public function test_discounts_report_returns_real_numbers(): void

@@ -260,9 +260,9 @@
                         </div>
                     </td>
 
-                    {{-- Payment --}}
+                    {{-- Payment — Tier 2: the order's aggregate status, not just its last payment row. --}}
                     <td class="py-4 px-4 text-center">
-                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($orderProduct->order?->last_payment_status) !!}
+                        {!! $orderProduct->order ? \App\Helpers\CustomHelper::orderPaymentStatusBadge(\App\Services\Orders\OrderPaymentSummary::for($orderProduct->order)) : '-' !!}
                     </td>
 
                     {{-- Actions (no header text) --}}

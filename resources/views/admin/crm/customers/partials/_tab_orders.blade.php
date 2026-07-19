@@ -182,8 +182,16 @@
              <tbody id="ordersTable" class="divide-y divide-gray-200">
                  @forelse ($customer->orders->sortByDesc('order_date') as $order)
                      @foreach ($order->products as $product)
+                         {{-- Tier 2 fix: this used $order->payments->first() (the OLDEST
+                              payment row) to drive the status filter above while the
+                              visible badge below reads the order's real status — on any
+                              order with more than one payment row, filtering by "Paid"
+                              could hide an order that visibly showed Paid, and vice
+                              versa. Now keyed off the same last-payment-status the
+                              filter dropdown's vocabulary (pending/paid/account/
+                              partial-refund/refunded/failed) already assumes. --}}
                          <tr class="order-row"
-                             data-status="{{ strtolower(str_replace(' ', '-', $order->payments->first()->status->value ?? 'n/a')) }}">
+                             data-status="{{ strtolower(str_replace(' ', '-', $order->last_payment_status ?? 'n/a')) }}">
                              {{-- Order Number --}}
                              <td class="py-4 px-6 font-medium text-gray-900">
                                
@@ -206,15 +214,14 @@
                                 <!-- {{ config('app.currency.code') }}{{ number_format($product->total, 2) }} -->
                              </td>
 
-                             {{-- Payment Method --}}
+                             {{-- Payment Method — Tier 2: methods actually used across the whole order. --}}
                              <td class="py-4 px-6 text-right">
-                                 {{ $order?->last_payment_type?->label() ?? '-' }}
+                                 {{ $order ? \App\Services\PaymentDescriptionPresenter::methodsUsedLabel(\App\Services\Orders\OrderPaymentSummary::for($order)->paymentMethodsUsed) : '-' }}
                              </td>
 
-                             {{-- Order Status --}}
+                             {{-- Order Status — Tier 2: the order's aggregate status, not just its last payment row. --}}
                              <td class="py-4 px-6 text-right">
-                                 {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
-
+                                 {!! $order ? \App\Helpers\CustomHelper::orderPaymentStatusBadge(\App\Services\Orders\OrderPaymentSummary::for($order)) : '-' !!}
                              </td>
 
                              {{-- Order Date --}}

@@ -39,13 +39,25 @@ class IndexController extends Controller
             // Stream B is independent: a June refund on a May order appears
             // in June's report, not May's.
 
-            // Merge all four streams before any filtering so KPIs see the full dataset.
+            // Merge all five streams before any filtering so KPIs see the full dataset.
             // Stream D (billingRows) adds Billing Engine revenue not already in A or C:
             // extension charges and mobile-originated damage charges (customer_account_id IS NULL).
+            // Stream E (caLinkedTaxAndRefundRows) — Reporting Timing Correction:
+            // NOT "tax only" despite its history of being called that — it owns
+            // (a) the original positive tax of a customer_accounts-linked
+            // fuel/damage charge (neither Stream C nor Stream D can surface this;
+            // see the method's docblock for why), and (b) event-dated negative
+            // base+tax adjustments for successful Billing Charge Refund
+            // Allocations, each dated on the REFUND's own event date — never
+            // retroactively netted into the original charge's period. See
+            // caLinkedTaxAndRefundRows()'s docblock for the full design,
+            // including the canonical Stream-B-derived timing convention it
+            // follows and the store-attribution rule shared with Stream D.
             $allRows = $this->engine->salesRows($filters)
                 ->concat($this->engine->refundRows($filters))
                 ->concat($this->engine->accountRows($filters))
                 ->concat($this->engine->billingRows($filters))
+                ->concat($this->engine->caLinkedTaxAndRefundRows($filters))
                 ->sortByDesc(fn($row) => $row->date)
                 ->values();
 

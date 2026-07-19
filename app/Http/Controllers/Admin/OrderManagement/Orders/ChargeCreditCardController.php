@@ -93,10 +93,14 @@ class ChargeCreditCardController extends Controller
                     return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
                 }
                 $paymentResult = $authorizeNetService->createOpaqueDataTransaction($opaqueDataValue, $amount, ['order_number' => $order->order_number, 'customer' => $customer->toArray()]);
-                if ($paymentResult['status'] !== 'success') {
-                    logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . $paymentResult['message']);
-                    // DB::rollback();
-                    // return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
+                if (($paymentResult['status'] ?? null) !== 'success') {
+                    // A declined/failed gateway attempt must never be recorded
+                    // as a payment — same fix already applied to
+                    // ReceivePaymentController and PaymentStoreController's
+                    // extension flow (see their "Phase 3A fix" comments).
+                    logger()->error('Payment failed for Order ID: ' . $order->unique_id . ' - ' . ($paymentResult['message'] ?? 'Unknown error'));
+                    DB::rollback();
+                    return redirect()->back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
                 }
                 $payment = $order->payments()->create([
                     'payment_datetime' => now(),

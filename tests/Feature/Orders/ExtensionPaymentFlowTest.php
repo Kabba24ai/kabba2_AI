@@ -296,6 +296,53 @@ class ExtensionPaymentFlowTest extends TestCase
             ->assertSee('Credit / Debit Card');
     }
 
+    public function test_card_paid_extension_enables_card_processing_fee_retained_option(): void
+    {
+        // Reported defect: an extension order paid by card ended up with the
+        // "Full Amount Less Card Processing Fee" option disabled, claiming
+        // no card payment was on file even though one was. eligibleOriginalPayments()
+        // scopes to the order's own order_id, which for an extension child IS
+        // where handleExtensionPayment() writes the real card payment — so a
+        // card-paid extension must be exactly as eligible as an ordinary order.
+        foreach (['payment_api_public_key', 'payment_api_key'] as $name) {
+            Setting::create([
+                'setting_type' => 'Payment Settings', 'value_type' => 'password',
+                'setting_name' => $name, 'setting_title' => $name, 'setting_value' => 'test',
+            ]);
+        }
+        Setting::updateOrCreate(
+            ['setting_type' => 'Product Settings', 'setting_name' => 'credit_card_processing_fee'],
+            ['setting_title' => 'Credit Card Processing Fee', 'value_type' => 'number', 'setting_value' => 3.00]
+        );
+
+        $this->postJson(
+            route('admin.order-management.orders.extension.store', ['unique_id' => $this->order->unique_id]),
+            ['description' => 'Refundable week', 'base_amount' => '150.00', 'add_tax' => false,
+             'responsible_person' => $this->employee->id]
+        )->assertOk();
+
+        $cardUid = $this->attachSavedCard();
+        $this->mockGateway()->shouldReceive('chargeCustomerProfile')->once()->andReturn([
+            'status' => 'success', 'transaction_id' => 'TXN-777', 'auth_code' => 'A1',
+            'customer_profile_id' => 'CP-777', 'payment_profile_id' => 'PP-888',
+            'card_number' => 'XXXX1111', 'card_type' => 'Visa',
+        ]);
+
+        $this->post(route('admin.dashboard.paymentstore'), [
+            'source' => 'crm', 'type' => 'extension',
+            'billing_charge_unique_id' => $this->latestCharge()->unique_id,
+            'customer_id' => $this->customer->id, 'amount' => '150.00',
+            'payment_type' => 'CreditCard', 'card_option' => 'CardOnFile',
+            'existing_card_id' => $cardUid, 'responsible_person' => $this->employee->id,
+        ])->assertRedirect();
+
+        $response = $this->get(route('admin.order-management.orders.edit', $this->childOrder()->unique_id))
+            ->assertOk();
+
+        $response->assertSee('data-cc-fee-eligible="1"', false);
+        $response->assertDontSee('Only available when at least one original payment was made by Credit / Debit Card.');
+    }
+
     // ── Decline handling ───────────────────────────────────────────────
 
     public function test_declined_card_keeps_extension_unpaid_and_flags_modal_reopen(): void

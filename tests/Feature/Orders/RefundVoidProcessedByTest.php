@@ -80,6 +80,11 @@ class RefundVoidProcessedByTest extends TestCase
                 'reason'        => 'billing_error',
                 'processed_by'  => $this->employee->id,
                 'employee_code' => $this->employee->employee_code,
+                // Phase 3C/3D contract: void targets a SPECIFIC payment row
+                // (the UI's per-row void button always sends this; see
+                // MultiSourceRefundTest test_30). Required by
+                // VoidPaymentController's validation.
+                'order_payment_id' => $this->payment->id,
             ], $overrides)
         );
     }

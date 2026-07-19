@@ -543,4 +543,39 @@ class PaymentDescriptionPresenterTest extends TestCase
         $this->assertSame('Card Processing Fee Retained', RefundCalculationType::CardProcessingFeeRetained->label());
         $this->assertSame('Sales Tax Only', RefundCalculationType::SalesTaxOnly->label());
     }
+
+    // ── Tier 2: methodsUsedLabel() — order-level method summary ───────────
+
+    public function test_methods_used_label_returns_the_single_method_when_only_one_was_used(): void
+    {
+        $this->assertSame('Cash', PaymentDescriptionPresenter::methodsUsedLabel(collect([OrderPaymentMethod::Cash])));
+    }
+
+    public function test_methods_used_label_says_multiple_methods_when_more_than_one_was_used(): void
+    {
+        $label = PaymentDescriptionPresenter::methodsUsedLabel(collect([OrderPaymentMethod::Cash, OrderPaymentMethod::Card]));
+
+        $this->assertSame('Multiple Methods', $label);
+    }
+
+    public function test_methods_used_label_never_silently_picks_just_one_of_several(): void
+    {
+        // The bug this replaces: showing only Order::last_payment_type's
+        // label on a split-payment order silently dropped every other
+        // method. "Multiple Methods" must never collapse back to a single
+        // method's label when more than one was actually used.
+        $label = PaymentDescriptionPresenter::methodsUsedLabel(collect([
+            OrderPaymentMethod::Cash, OrderPaymentMethod::Card, OrderPaymentMethod::Cheque,
+        ]));
+
+        $this->assertSame('Multiple Methods', $label);
+        $this->assertNotSame('Cash', $label);
+        $this->assertNotSame('Credit / Debit Card', $label);
+        $this->assertNotSame('Check', $label);
+    }
+
+    public function test_methods_used_label_handles_empty_collection(): void
+    {
+        $this->assertSame('Unknown', PaymentDescriptionPresenter::methodsUsedLabel(collect()));
+    }
 }

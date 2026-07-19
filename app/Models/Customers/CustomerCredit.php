@@ -31,6 +31,7 @@ class CustomerCredit extends Model
         'unique_id',
         'customer_id',
         'order_id',
+        'order_payment_id',
         'type',
         'amount',
         'reason',

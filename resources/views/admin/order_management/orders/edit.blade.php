@@ -46,13 +46,33 @@
             {{-- MIDDLE: Payment Status + Links (centered like screenshot) --}}
             @php
                 use App\Enums\Orders\OrderPaymentStatus;
-                $totalPartialPaid = $order->payments()
-                    ->where('status', OrderPaymentStatus::PartialPayment->value)
-                    ->sum('amount');
+                use App\Services\Orders\OrderPaymentSummary;
+                // Payment Architecture Finalization (Tier 2): the badges
+                // below used to gate on Order::last_payment_status/
+                // last_payment_type — whichever payment row happened to be
+                // entered last — which can disagree with the order's real
+                // aggregate state on any order with more than one payment
+                // row (split payment, a retried failed attempt, etc.).
+                // Sourced from the canonical OrderPaymentSummary instead.
+                //
+                // Status precedence (see OrderPaymentSummary::
+                // unresolvedPaymentAttempts docblock for the full rule):
+                // an old Pending/Failed row stops driving the badges below
+                // the moment the order is genuinely fully paid by some
+                // combination of rows — it becomes purely historical at
+                // that point (still visible in Payment Details/timeline,
+                // never re-appearing as "PAYMENT FAILED"/"PENDING PAYMENT"
+                // on an order that's actually settled). Refund status then
+                // takes priority over a plain "Paid In Full" label once
+                // paid, since "Paid In Full" alone would be misleading on
+                // a refunded order.
+                $paymentSummary = OrderPaymentSummary::for($order);
+                $methodsUsedLabel = \App\Services\PaymentDescriptionPresenter::methodsUsedLabel($paymentSummary->paymentMethodsUsed);
+                $hasUnresolvedFailedPayment = $paymentSummary->unresolvedPaymentAttempts->contains(fn ($p) => $p->status === OrderPaymentStatus::Failed);
             @endphp
             <div class="flex-1 min-w-0 flex flex-col items-start xl:items-center gap-2">
                 <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
-                    @if (!$order->is_paid && in_array($order->last_payment_status, [OrderPaymentStatus::Pending->value, OrderPaymentStatus::Failed->value, OrderPaymentStatus::PartialPayment->value]))
+                    @if ($paymentSummary->unresolvedPaymentAttempts->isNotEmpty() || $paymentSummary->collectionStatus === OrderPaymentSummary::COLLECTION_PARTIALLY_PAID)
                         <button id="pendingPaymentBtn" type="button"
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-yellow-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
@@ -60,9 +80,9 @@
                         </button>
                     @endif
 
-                    @if ($order->last_payment_status === OrderPaymentStatus::PartialPayment->value && $totalPartialPaid > 0)
+                    @if ($paymentSummary->collectionStatus === OrderPaymentSummary::COLLECTION_PARTIALLY_PAID)
                         <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full">
-                            Partial Payment: {{ $order->last_payment_type?->label() ?? 'Unknown' }} · {{ \App\Helpers\CustomHelper::formatCurrency($totalPartialPaid) }}
+                            Partial Payment: {{ $methodsUsedLabel }} · {{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}
                         </span>
                         @if ($order->balance_due > 0)
                             <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-full">
@@ -78,17 +98,27 @@
                         </button>
                     @endif
 
-                    @if ($order->is_paid)
+                    @if ($order->is_paid && $paymentSummary->refundStatus !== OrderPaymentSummary::REFUND_NONE)
+                        {{-- Paid, but refund status takes precedence over a plain
+                             "Paid In Full" claim — a fully/partially refunded order
+                             must never present as if nothing was returned. --}}
+                        <span
+                            class="inline-flex items-center px-4 py-1 text-xs font-semibold text-white rounded-full {{ $paymentSummary->refundStatus === OrderPaymentSummary::REFUND_FULL ? 'bg-purple-500' : 'bg-orange-500' }}">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            {{ \App\Services\PaymentDescriptionPresenter::orderStatusLabel($paymentSummary) }}
+                            · {{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}
+                        </span>
+                    @elseif ($order->is_paid)
                         <span
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
                             Paid In Full Via -
-                            {{ $order->last_payment_type->label() }}
+                            {{ $methodsUsedLabel }}
                             · {{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}
                         </span>
                     @endif
 
-                    @if ($order->last_payment_status === OrderPaymentStatus::Failed->value)
+                    @if ($hasUnresolvedFailedPayment)
                         <span
                             class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
                             <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
@@ -124,7 +154,8 @@
                         <button id="refundPaymentBtn" type="button"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
-                            {{ $order->last_payment_status === 'Partial Refund' ? 'Partial Refund' : 'Refund' }}
+                            {{-- Tier 2: the order's aggregate refund status, not just its last payment row's status. --}}
+                            {{ $paymentSummary->refundStatus === \App\Services\Orders\OrderPaymentSummary::REFUND_PARTIAL ? 'Partial Refund' : 'Refund' }}
                         </button>
                     @endif
 
@@ -293,6 +324,7 @@
                     </div>
 
                     <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+                        target="_blank" rel="noopener noreferrer"
                         class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700 receipt-action">
                         <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
                         <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg"
@@ -2451,7 +2483,17 @@
     <div id="processPaymentModal"
         class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center"
         data-grand-total="{{ $order->grand_total }}"
-        data-total-paid="{{ $totalPartialPaid }}">
+        {{-- Canonical settled total from OrderPaymentSummary ($paymentSummary,
+             built unconditionally in the header PHP block). Replaces the old
+             $totalPartialPaid inline sum that only counted PartialPayment-status
+             rows — settled includes those plus Paid/Invoice rows, so the JS
+             balance-due math (grandTotal - totalPaid) stays right even when a
+             partially-collected order has mixed-status settled rows. NOTE:
+             never write the at-sign php directive token inside a Blade
+             comment — the compiler extracts php blocks BEFORE stripping
+             comments, and a stray token here once paired with a distant
+             endphp and silently vaporized ~385 lines of this template. --}}
+        data-total-paid="{{ $paymentSummary->totalSettledPayments }}">
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
@@ -2759,17 +2801,30 @@
             ];
         })->values();
 
-        $rfCcFeeEligibleSources = $rfSources->filter(fn ($s) => $s['is_card'] && $s['has_transaction'] && $s['card_fee_capacity'] > 0);
+        // Diagnostic breakdown — each narrower than the last — so the
+        // disabled-state message names the TRUE reason instead of always
+        // blaming "no card payment." A card-paid order can land in any of
+        // these buckets (missing gateway transaction, fee % unconfigured,
+        // fee capacity already used/too small to round above $0.00) and
+        // each needs its own message; collapsing them all into "no card
+        // payment was made" is misleading when a real card payment exists.
+        $rfCardSources = $rfSources->filter(fn ($s) => $s['is_card']);
+        $rfCardSourcesWithTransaction = $rfCardSources->filter(fn ($s) => $s['has_transaction']);
+        $rfCcFeeEligibleSources = $rfCardSourcesWithTransaction->filter(fn ($s) => $s['card_fee_capacity'] > 0);
 
         $rfCcFeeIneligibleReason = null;
         if ($rfAmbiguous) {
             $rfCcFeeIneligibleReason = 'Allocation unavailable for a legacy transaction on this order.';
-        } elseif ($rfCcFeeEligibleSources->isEmpty()) {
+        } elseif ($rfCardSources->isEmpty()) {
             $rfCcFeeIneligibleReason = 'Only available when at least one original payment was made by Credit / Debit Card.';
-        } elseif ((float) $order->remaining_amount <= 0) {
-            $rfCcFeeIneligibleReason = 'No refundable balance remains.';
+        } elseif ($rfCardSourcesWithTransaction->isEmpty()) {
+            $rfCcFeeIneligibleReason = 'The original card payment has no recorded gateway transaction on file and cannot be refunded via card automatically.';
         } elseif ($rfCcFeePercentage <= 0) {
             $rfCcFeeIneligibleReason = 'Configure a Credit Card Processing Fee in System Settings to enable this option.';
+        } elseif ($rfCcFeeEligibleSources->isEmpty()) {
+            $rfCcFeeIneligibleReason = 'No card processing fee capacity remains to retain for this order\'s original card payment(s).';
+        } elseif ((float) $order->remaining_amount <= 0) {
+            $rfCcFeeIneligibleReason = 'No refundable balance remains.';
         }
         $rfCcFeeEligible = $rfCcFeeIneligibleReason === null;
 
@@ -2793,9 +2848,14 @@
             }
         }
 
-        $rfAlreadyRefundedTax = (float) $order->payments()
-            ->whereIn('status', [\App\Enums\Orders\OrderPaymentStatus::PartialRefund->value, \App\Enums\Orders\OrderPaymentStatus::Refund->value])
-            ->sum('tax_refunded');
+        // Payment Architecture Finalization — Final Read-Side Cleanup: was a
+        // raw, allocation-unaware sum('tax_refunded') across every
+        // PartialRefund/Refund row — the one remaining unguarded tax-refund
+        // read the Phase 4B audit found. Now sourced from
+        // PaymentAllocationService::totalSuccessfulRefundedTax(), the same
+        // Allocated-only, multi-source-safe pattern totalSuccessfulRefunded()
+        // already uses for the base amount a few lines above.
+        $rfAlreadyRefundedTax = \App\Services\Orders\PaymentAllocationService::totalSuccessfulRefundedTax($order);
 
         // Final Phase — Financial Integrity Audit fix: this used to
         // re-derive "remaining refundable sales tax" with its own inline
@@ -3051,13 +3111,21 @@
                                 Payment Type
                             </label>
                             @php
-                                // Credit/Debit Card is only offered when that was actually
-                                // the original payment method — every other canonical
-                                // method comes straight from PaymentMethod::options(),
-                                // never a second hand-typed copy of its labels.
+                                // Credit/Debit Card is only offered when Card was actually
+                                // one of the original payment methods — every other
+                                // canonical method comes straight from
+                                // PaymentMethod::options(), never a second hand-typed
+                                // copy of its labels.
+                                //
+                                // Tier 2 fix: previously checked only
+                                // Order::last_payment_type (the single most recent
+                                // payment row), so a Cash+Card split-payment order
+                                // would hide this option whenever Card wasn't the LAST
+                                // row entered. Now checks every settled original
+                                // payment on the order via the canonical summary.
                                 $refundOptions = \App\Enums\Customers\PaymentMethod::options();
 
-                                if ($order->last_payment_type !== \App\Enums\Orders\OrderPaymentMethod::Card) {
+                                if (!\App\Services\Orders\OrderPaymentSummary::for($order)->paymentMethodsUsed->contains(\App\Enums\Orders\OrderPaymentMethod::Card)) {
                                     unset($refundOptions[\App\Enums\Customers\PaymentMethod::CreditCard->value]);
                                 }
                             @endphp
@@ -3257,14 +3325,23 @@
 
             <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
                 @if ($pdPayment)
+                    @php
+                        // Tier 2: Status/Method here must describe the ORDER
+                        // (matching "Amount Paid" and "Remaining Balance"
+                        // right below, which are already order-level
+                        // aggregates), not just this one $pdPayment row —
+                        // otherwise a split-payment order shows one method
+                        // next to a total that reflects every method.
+                        $pdSummary = \App\Services\Orders\OrderPaymentSummary::for($order);
+                    @endphp
                     <div class="bg-gray-50 rounded-lg p-4 text-sm space-y-1 text-gray-600">
                         <div class="flex justify-between">
                             <span>Status:</span>
-                            {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
+                            {!! \App\Helpers\CustomHelper::orderPaymentStatusBadge($pdSummary) !!}
                         </div>
                         <div class="flex justify-between">
                             <span>Method:</span>
-                            <span class="font-medium text-gray-900">{{ \App\Services\PaymentDescriptionPresenter::methodLabel($pdPayment->payment_method) }}</span>
+                            <span class="font-medium text-gray-900">{{ \App\Services\PaymentDescriptionPresenter::methodsUsedLabel($pdSummary->paymentMethodsUsed) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Date:</span>
@@ -7570,6 +7647,27 @@
                     // Wait for next repaint
                     requestAnimationFrame(() => {
                         const href = this.getAttribute('href');
+
+                        // Links marked target="_blank" (Print Receipt) open the
+                        // inline PDF in a new tab so the user prints from the
+                        // browser's viewer — this tab never navigates, so the
+                        // spinner/processing lock must be reset here or the
+                        // button stays stuck forever. Other receipt actions
+                        // (Email Receipt) keep the original same-tab navigation.
+                        if (this.getAttribute('target') === '_blank') {
+                            window.open(href, '_blank', 'noopener,noreferrer');
+                            setTimeout(() => {
+                                this.classList.remove('processing');
+                                const spin = this.querySelector('.loader-svg');
+                                if (spin) {
+                                    spin.classList.add('hidden');
+                                    const icn = this.querySelector('svg:not(.loader-svg)');
+                                    if (icn) icn.classList.remove('hidden');
+                                }
+                            }, 1500);
+                            return;
+                        }
+
                         window.location.href = href;
                     });
                 });

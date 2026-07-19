@@ -332,6 +332,26 @@ final class PaymentAllocationService
             ]);
         }
 
+        // Card Processing Fee Retained requires at least one original
+        // Credit / Debit Card source in the SET — the retained fee
+        // reimburses a card-processor charge, which never existed for a
+        // Cash/Cheque/etc. payment. This is deliberately a set-level rule,
+        // not per-source: a mixed set drawing from card AND non-card
+        // originals is legal (see MultiSourceRefundTest test_15 — the
+        // approved Phase 3C behavior), because calculateAllocationSplits()
+        // computes the fee per source and always yields 0.0 for non-card
+        // rows. Only a set with NO card source at all would fabricate a
+        // processing fee out of nothing, and that is what is rejected.
+        if ($calcType === RefundCalculationType::CardProcessingFeeRetained) {
+            $submitted = OrderPayment::whereIn('id', array_filter($ids, 'is_numeric'))->get();
+
+            if (!$submitted->contains(fn (OrderPayment $p) => $p->payment_method === OrderPaymentMethod::Card)) {
+                return array_merge($errors, [
+                    'Full Amount Less Card Processing Fee is only available for an original Credit / Debit Card payment.',
+                ]);
+            }
+        }
+
         $eligibleById = self::eligibleOriginalPayments($order)->keyBy('id');
         $sumCents = 0; // full resubmitted total — checked against $requestedTotal below
         $newSumCents = 0; // only rows not already successfully allocated — checked against the order's CURRENT remaining balance, which already excludes prior successes on a retry
@@ -452,9 +472,20 @@ final class PaymentAllocationService
     public static function resolveRequestedTotal(Order $order, RefundCalculationType $calcType, float $clientAmount): array
     {
         if ($calcType === RefundCalculationType::SalesTaxOnly) {
-            $alreadyRefundedTax = (float) $order->payments()
-                ->whereIn('status', [OrderPaymentStatus::PartialRefund, OrderPaymentStatus::Refund])
-                ->sum('tax_refunded');
+            // Payment Architecture Finalization — Sales Tax Refund
+            // Write-Path Correction: was a raw, allocation-unaware
+            // sum('tax_refunded') across every PartialRefund/Refund row —
+            // the same defect the Final Read-Side Cleanup already fixed
+            // for the refund modal's display-only figure, except THIS
+            // branch actually drives eligibility, the previewed amount,
+            // and the submitted/executed amount (both
+            // RefundPaymentController and RefundPaymentPreviewController
+            // call this method). Now sourced from
+            // totalSuccessfulRefundedTax() — Allocated-only, multi-source-
+            // safe, falls back to the legacy raw column only when an order
+            // has zero allocation rows at all — the exact same canonical
+            // figure the display now shows, so the two can never disagree.
+            $alreadyRefundedTax = self::totalSuccessfulRefundedTax($order);
 
             $remainingRefundableTax = max(0.0, round((float) $order->tax_amount - $alreadyRefundedTax, 2));
             $remainingRefundableTax = round(min($remainingRefundableTax, (float) $order->remaining_amount), 2);
@@ -660,6 +691,45 @@ final class PaymentAllocationService
                     ->sum(fn (OrderPaymentRefundAllocation $a) => (float) $a->allocated_amount - (float) ($a->processing_fee_retained ?? 0));
             } else {
                 $total += (float) $refund->refund_amount;
+            }
+        }
+
+        return round($total, 2);
+    }
+
+    /**
+     * Order-level "total sales tax successfully refunded" — the
+     * allocation-aware counterpart to totalSuccessfulRefunded() for the tax
+     * portion specifically. Payment Architecture Finalization — Final
+     * Read-Side Cleanup: replaces a raw, unguarded
+     * `sum('tax_refunded')` across every PartialRefund/Refund row that
+     * previously lived inline in edit.blade.php (the refund modal's
+     * "previously refunded tax" display), the one allocation-unaware
+     * tax-refund read the Phase 4B audit found. Mirrors
+     * totalSuccessfulRefunded()'s exact structure — same query, same
+     * Allocated-only filter, same legacy-fallback shape — so this is a
+     * direct structural copy for the tax column, not a new formula.
+     * Correctly nets sales-tax-only refunds (their allocated_tax_amount
+     * equals the full allocated amount, which is exactly what should count
+     * here) and multi-source refunds (every allocation row across every
+     * refund event on the order is summed). Falls back to a refund row's
+     * raw tax_refunded only when it has no allocations at all yet (legacy,
+     * not backfilled) — a backfilled row has real Allocated allocation
+     * rows with a correct allocated_tax_amount and takes the primary
+     * branch, same as every other legacy fallback in this class.
+     */
+    public static function totalSuccessfulRefundedTax(Order $order): float
+    {
+        $refunds = $order->payments()->refund()->with('refundAllocations')->get();
+
+        $total = 0.0;
+        foreach ($refunds as $refund) {
+            if ($refund->refundAllocations->isNotEmpty()) {
+                $total += (float) $refund->refundAllocations
+                    ->where('status', OrderPaymentRefundAllocationStatus::Allocated)
+                    ->sum(fn (OrderPaymentRefundAllocation $a) => (float) $a->allocated_tax_amount);
+            } else {
+                $total += (float) $refund->tax_refunded;
             }
         }
 

@@ -11,6 +11,19 @@
     <table role="presentation" style="width:100%; border-collapse:collapse;">
                     @php
                     $siteLogo = \App\Helpers\ConfigurationHelper::getBrandingLogo();
+                    // Render the logo only when it resolves to a real image
+                    // file. With no branding logo configured, getBrandingLogo()
+                    // returns null, parse_url(null) yields an empty path, and
+                    // public_path('') is the public DIRECTORY — DomPDF then
+                    // calls getimagesize() on a directory and throws. is_file()
+                    // rejects directories/missing files; getimagesize() rejects
+                    // non-image files the same way DomPDF itself would.
+                    $receiptLogoPath = $siteLogo
+                        ? public_path((string) (parse_url($siteLogo, PHP_URL_PATH) ?? ''))
+                        : null;
+                    $receiptLogoRenderable = $receiptLogoPath
+                        && is_file($receiptLogoPath)
+                        && @getimagesize($receiptLogoPath) !== false;
                     $sitename = \App\Helpers\ConfigurationHelper::getSettings('Website Management Branding','site_name');
                     $primaryStore = \App\Models\Stores\Store::primary()->first();
                     @endphp
@@ -31,7 +44,9 @@
                                         <table role="presentation" style="border-collapse:collapse;">
                                             <tr>
                                                 <td>
-                                                    <img src="{{ public_path(parse_url($siteLogo, PHP_URL_PATH)) }}" width="48" height="48" alt="Logo" style="display:block; margin:auto;">
+                                                    @if ($receiptLogoRenderable)
+                                                        <img src="{{ $receiptLogoPath }}" width="48" height="48" alt="Logo" style="display:block; margin:auto;">
+                                                    @endif
                                                 </td>
                                                 <td style="padding-left:12px; vertical-align:middle;">
                                                     <h3 style="font-weight:600; font-size:20px; margin:0; color:#111;"> {{ $sitename ?: "Rent 'n King" }}</h3>
@@ -398,23 +413,48 @@
 
 
 
+                                @php
+                                    $receiptStatusLabel = \App\Services\ReceiptService::currentPaymentStatusLabel($order);
+                                @endphp
                                 <!-- Text -->
                                 <div style="position:relative; font-weight:600; z-index:10;">
-                                    Payment Status: {{ \App\Services\ReceiptService::currentPaymentStatusLabel($order) }}
+                                    Payment Status: {{ $receiptStatusLabel }}
                                 </div>
 
-                                @php
-                                    $receiptMethodLabel = \App\Services\ReceiptService::currentPaymentMethodLabel($order);
-                                    $receiptTermsLabel = \App\Services\PaymentDescriptionPresenter::termsLabel($order);
-                                @endphp
-                                @if ($receiptMethodLabel)
-                                    <div style="position:relative; font-weight:600; z-index:10; margin-top:4px;">
-                                        Payment Method: {{ $receiptMethodLabel }}
-                                    </div>
-                                @elseif ($receiptTermsLabel)
-                                    <div style="position:relative; font-weight:600; z-index:10; margin-top:4px;">
-                                        Payment Terms: {{ $receiptTermsLabel }}
-                                    </div>
+                                @if ($receiptStatusLabel !== 'Voided')
+                                    @php
+                                        $receiptMethodLabel = \App\Services\ReceiptService::currentPaymentMethodLabel($order);
+                                        $receiptTermsLabel = \App\Services\PaymentDescriptionPresenter::termsLabel($order);
+                                        // Payment Architecture Finalization (Phase 4A): only
+                                        // fetched/shown when more than one method was used —
+                                        // a single-payment receipt (the common case) renders
+                                        // identically to before this change.
+                                        //
+                                        // Voided receipts (gate above) are intentionally
+                                        // minimal proof-of-cancellation: status line only —
+                                        // no method, no breakdown, no terms. The voided
+                                        // attempt's method must never be presented as how
+                                        // the order was paid, because it wasn't.
+                                        $receiptMethodBreakdown = $receiptMethodLabel === 'Multiple Methods'
+                                            ? \App\Services\ReceiptService::paymentMethodBreakdown($order)
+                                            : [];
+                                    @endphp
+                                    @if ($receiptMethodLabel)
+                                        <div style="position:relative; font-weight:600; z-index:10; margin-top:4px;">
+                                            Payment Method: {{ $receiptMethodLabel }}
+                                        </div>
+                                        @if (count($receiptMethodBreakdown) > 1)
+                                            <div style="position:relative; font-weight:400; font-size:12px; z-index:10; margin-top:2px;">
+                                                @foreach ($receiptMethodBreakdown as $receiptMethodLine)
+                                                    {{ $receiptMethodLine['method'] }}: {{ \App\Helpers\CustomHelper::formatCurrency($receiptMethodLine['amount']) }}@if (!$loop->last)<br>@endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    @elseif ($receiptTermsLabel)
+                                        <div style="position:relative; font-weight:600; z-index:10; margin-top:4px;">
+                                            Payment Terms: {{ $receiptTermsLabel }}
+                                        </div>
+                                    @endif
                                 @endif
 
                             </div>

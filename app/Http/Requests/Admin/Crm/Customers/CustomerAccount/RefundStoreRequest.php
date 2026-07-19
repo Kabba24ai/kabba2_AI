@@ -25,6 +25,22 @@ class RefundStoreRequest extends FormRequest
             'reason' => ['required'],
             'responsible_person' => ['required'],
             'notes' => ['nullable', 'string'],
+            // Billing Charge Refund Allocation — Safe Linked Refunds:
+            // optional link to the originating charge. Free-form refunds
+            // (goodwill credits, refunds unrelated to any specific charge)
+            // remain fully supported by simply omitting this field —
+            // existing behavior is unchanged when it's absent. Existence is
+            // the only thing validated here — ownership/eligibility/
+            // remaining-balance are all re-derived server-side in
+            // BillingChargeRefundService, never trusted from the client.
+            'billing_charge_unique_id' => ['nullable', 'string', 'exists:billing_charges,unique_id'],
+
+            // Client-generated, one per distinct submission attempt — same
+            // convention as RefundPaymentController/PaymentStoreController's
+            // idempotency_token. Only meaningful (locked/checked) when a
+            // billing_charge_unique_id is also present — free-form refunds
+            // have no allocation row to duplicate-guard.
+            'idempotency_token' => ['nullable', 'string', 'max:64'],
         ];
     }
 

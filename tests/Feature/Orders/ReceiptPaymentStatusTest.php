@@ -143,8 +143,13 @@ class ReceiptPaymentStatusTest extends TestCase
 
     // ── 5. Refunded / voided follow canonical rules ─────────────────────
 
-    public function test_fully_refunded_order_does_not_show_paid_in_full(): void
+    public function test_fully_refunded_order_shows_paid_in_full_and_fully_refunded(): void
     {
+        // Payment Architecture Finalization (Phase 4A): currentPaymentStatusLabel()
+        // now delegates to PaymentDescriptionPresenter::orderStatusLabel(),
+        // the same canonical label every other screen shows — a fully
+        // refunded order reads "Paid in Full · Fully Refunded", not a bare
+        // "Refunded" that erases the fact it was ever collected.
         $order = $this->makeOrder(150.0);
 
         $paid = $order->payments()->create([
@@ -165,11 +170,11 @@ class ReceiptPaymentStatusTest extends TestCase
         $order->refresh();
 
         $status = ReceiptService::currentPaymentStatusLabel($order);
-        $this->assertNotSame('Paid in Full', $status);
-        $this->assertSame('Refunded', $status);
+        $this->assertNotSame('Paid in Full', $status, 'must not read as if nothing was refunded');
+        $this->assertSame('Paid in Full · Fully Refunded', $status);
     }
 
-    public function test_partially_refunded_order_does_not_show_paid_in_full(): void
+    public function test_partially_refunded_order_shows_paid_in_full_and_partially_refunded(): void
     {
         $order = $this->makeOrder(150.0);
 
@@ -191,8 +196,54 @@ class ReceiptPaymentStatusTest extends TestCase
         $order->refresh();
 
         $status = ReceiptService::currentPaymentStatusLabel($order);
-        $this->assertNotSame('Paid in Full', $status);
-        $this->assertSame('Partially Refunded', $status);
+        $this->assertNotSame('Paid in Full', $status, 'must not read as if nothing was refunded');
+        $this->assertSame('Paid in Full · Partially Refunded', $status);
+    }
+
+    // ── Status precedence: a resolved failed attempt must not haunt the receipt ──
+
+    public function test_failed_card_attempt_with_no_successful_payment_shows_failed(): void
+    {
+        $order = $this->makeOrder(100.0);
+
+        $order->payments()->create([
+            'payment_method'   => OrderPaymentMethod::Card->value,
+            'payment_datetime' => now(),
+            'amount'           => 0,
+            'status'           => OrderPaymentStatus::Failed->value,
+        ]);
+        $order->refresh();
+
+        $this->assertSame('Failed', ReceiptService::currentPaymentStatusLabel($order));
+    }
+
+    public function test_failed_card_attempt_followed_by_successful_payment_shows_paid_in_full_not_failed(): void
+    {
+        // The exact precedence bug already fixed on the Order Details
+        // header, now verified for receipts too: an earlier failed
+        // attempt must stop driving the status the moment a later payment
+        // genuinely satisfies the order.
+        $order = $this->makeOrder(500.0);
+
+        $order->payments()->create([
+            'payment_method'   => OrderPaymentMethod::Card->value,
+            'payment_datetime' => now()->subMinute(),
+            'amount'           => 0,
+            'status'           => OrderPaymentStatus::Failed->value,
+        ]);
+        $order->payments()->create([
+            'payment_method'   => OrderPaymentMethod::Cash->value,
+            'payment_datetime' => now(),
+            'amount'           => 500.0,
+            'status'           => OrderPaymentStatus::Paid->value,
+        ]);
+        $order->refresh();
+
+        $this->assertSame('Paid in Full', ReceiptService::currentPaymentStatusLabel($order));
+
+        // And the stored creation-time snapshot must agree too.
+        $receipt = ReceiptService::getOrCreateReceipt($order);
+        $this->assertSame('paid', $receipt->payment_status);
     }
 
     public function test_voided_payment_does_not_show_paid_in_full(): void
@@ -213,7 +264,13 @@ class ReceiptPaymentStatusTest extends TestCase
         $order->refresh();
 
         $this->assertNotSame('Paid in Full', ReceiptService::currentPaymentStatusLabel($order));
-        $this->assertSame('Pending', ReceiptService::currentPaymentStatusLabel($order));
+        // Intentional behavioral change (voided-receipt business decision):
+        // customers need printable proof a charge was cancelled, so a
+        // voided, otherwise-unpaid order now reads 'Voided' — previously
+        // this asserted 'Pending' because OrderPaymentSummary was blind to
+        // Voided rows. Full voided-presentation coverage lives in
+        // ReceiptVoidedPresentationTest.
+        $this->assertSame('Voided', ReceiptService::currentPaymentStatusLabel($order));
     }
 
     // ── 6. Printed and emailed receipts share the same logic ───────────

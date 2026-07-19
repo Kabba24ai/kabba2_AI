@@ -4,6 +4,7 @@ namespace App\Services\Reports;
 
 use App\Models\Iam\Personnel\User;
 use App\Models\Stores\Store;
+use App\Services\Reports\Concerns\NetsRefundedRevenue;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\DB;
  */
 class EmployeePerformanceEngine
 {
+    use NetsRefundedRevenue;
+
     private const MONTHS = [
         1 => 'Jan', 2 => 'Feb',  3 => 'Mar',  4 => 'Apr',
         5 => 'May', 6 => 'Jun',  7 => 'Jul',  8 => 'Aug',
@@ -183,14 +186,21 @@ class EmployeePerformanceEngine
 
     /**
      * Top 10 categories by revenue for this employee (Chart 5).
-     * Uses gross sub_total (consistent with Product Analytics approach).
+     *
+     * Payment Architecture Finalization: this previously summed raw
+     * order_products.sub_total with no refund netting at all, despite this
+     * docblock's claim of parity with Product Analytics — a refunded
+     * order's original line revenue counted in full. Now genuinely shares
+     * ProductSalesPerformanceEngine's netting (exclude fully-refunded,
+     * proportionally reduce partial refunds).
      */
     private function categoryBreakdown(array $empFilters): array
     {
-        $rows = $this->reporting->baseQuery($empFilters)
+        $expr = $this->netRevenueExpr();
+        $rows = $this->applyRefundNetting($this->reporting->baseQuery($empFilters))
             ->selectRaw("
                 COALESCE(pc.title, 'Uncategorized') AS category_name,
-                SUM(order_products.sub_total)        AS revenue,
+                SUM({$expr})                         AS revenue,
                 SUM(order_products.quantity)         AS qty
             ")
             ->groupByRaw("COALESCE(pc.title, 'Uncategorized')")
@@ -206,7 +216,19 @@ class EmployeePerformanceEngine
     }
 
     /**
-     * Count of all COD orders vs converted COD orders for this employee in the date window.
+     * Count of all COD orders vs converted COD orders for this employee in
+     * the date window.
+     *
+     * Payment Architecture Finalization: previously joined each order to
+     * only its single highest-id order_payments row (a MAX(id) subquery,
+     * the same single-payment-row anti-pattern fixed elsewhere in this
+     * project) — an order whose COD row was NOT the most recent payment
+     * event (e.g. a later refund or an unrelated added row became the new
+     * MAX(id)) would be silently dropped from both total and converted
+     * counts. Filters directly on the COD row itself instead — an order
+     * has at most one COD row (created once at intake, updated in place on
+     * conversion, never recreated) — with distinct() as a safety net
+     * against double-counting if that assumption is ever violated.
      */
     private function podStats(array $filters, int $empId): array
     {
@@ -218,14 +240,14 @@ class EmployeePerformanceEngine
             ->where('orders.created_by_id', $empId)
             ->where('orders.created_by_type', User::class)
             ->where('order_payments.payment_method', 'COD')
-            ->whereRaw('order_payments.id = (SELECT MAX(op2.id) FROM order_payments op2 WHERE op2.order_id = orders.id)');
+            ->distinct();
 
         if ($start && $end) {
             $base->whereBetween('orders.order_date', [$start->toDateString(), $end->toDateString()]);
         }
 
-        $total     = (clone $base)->count();
-        $converted = (clone $base)->where('order_payments.status', 'Paid')->count();
+        $total     = (clone $base)->count('orders.id');
+        $converted = (clone $base)->where('order_payments.status', 'Paid')->count('orders.id');
 
         return [
             'total'     => $total,

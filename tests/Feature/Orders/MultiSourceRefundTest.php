@@ -257,33 +257,49 @@ class MultiSourceRefundTest extends TestCase
 
     public function test_9_order_level_refundable_cap_is_enforced(): void
     {
-        // Two payments totaling $1200 collected against a $1000 order (a
-        // partial-refund-then-more-payment history, or simply an
-        // over-collection — the cap tracks actual money in, not
-        // grand_total). After a first refund of $700 from A, the order's
-        // remaining balance is $500 — even though B still individually has
-        // $600 of its own capacity left, a request for $500.01 from B
-        // alone must still be rejected by the ORDER-level cap.
+        // The order-level cap binds INDEPENDENTLY of the per-source caps
+        // only when the order's refunded total includes money the
+        // per-source balances don't see — i.e. a legacy refund with no
+        // allocation rows. (When every refund is allocated, the order cap
+        // equals the sum of per-source caps and can never bind alone; an
+        // earlier version of this test tried to isolate it by over-drawing
+        // a single source, which the per-source cap now correctly rejects
+        // first.) So: $1200 collected across A and B, then a $700 LEGACY
+        // refund attributed to A via parent_order_payment_id (attributed,
+        // so the order stays unambiguous — see test_29a for the ambiguous
+        // case). The order's remaining balance drops to $500, but B's own
+        // per-source capacity is untouched at $600.
         $order = $this->makeOrder(1000.0);
         $a = $this->makeSettledPayment($order, 600.0);
         $b = $this->makeSettledPayment($order, 600.0);
 
-        $this->refund($order, [
-            'amount' => 700, 'payment_type' => 'Cash',
-            'allocations' => [['original_order_payment_id' => $a->id, 'amount' => 700]],
-        ])->assertOk();
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Cash->value, 'payment_datetime' => now(),
+            'refunded_at' => now(), 'status' => OrderPaymentStatus::PartialRefund->value,
+            'refund_amount' => 700.0, 'tax_refunded' => 0.0,
+            'parent_order_payment_id' => $a->id,
+        ]);
 
         $this->assertSame(500.0, (float) $order->fresh()->remaining_amount);
 
-        // Exactly at the boundary — must succeed.
+        // $600 from B passes B's per-source cap — only the ORDER-level cap
+        // can (and must) reject it.
+        $response = $this->refund($order, [
+            'amount' => 600, 'payment_type' => 'Cash',
+            'allocations' => [['original_order_payment_id' => $b->id, 'amount' => 600]],
+        ]);
+        $response->assertStatus(422);
+        $this->assertStringContainsString('remaining refundable balance', $response->json('message'));
+
+        // Exactly at the order boundary — must succeed.
         $this->refund($order, [
             'amount' => 500, 'payment_type' => 'Cash',
             'allocations' => [['original_order_payment_id' => $b->id, 'amount' => 500]],
         ])->assertOk();
 
-        // Now fully refunded — B still has $100 of its OWN capacity left
-        // (600 - 500), but the order has none. Must be rejected by the
-        // order-level cap even though the per-payment cap alone would allow it.
+        // Order fully refunded — B still has $100 of its OWN capacity left
+        // (600 - 500), but the order has none. Rejected by the order-level
+        // cap even though the per-payment cap alone would allow it.
         $response = $this->refund($order, [
             'amount' => 50, 'payment_type' => 'Cash',
             'allocations' => [['original_order_payment_id' => $b->id, 'amount' => 50]],
@@ -440,14 +456,29 @@ class MultiSourceRefundTest extends TestCase
             $mock->shouldReceive('refundOrder')->twice()->andReturn(['status' => 'success', 'gateway_refund_id' => 'GW-CAP']);
         });
 
-        // First fee-retained refund draws the full lifetime cap (3% of $1000 = $30).
+        // The lifetime cap is 3% of the ORIGINAL payment ($30 on $1000),
+        // shared across every refund against it — two partial fee-retained
+        // refunds must retain 3% of their own draw each (18 + 12) and
+        // together consume the cap exactly, never exceeding it. (An earlier
+        // version drew the whole $1000 in one refund but declared two
+        // gateway calls — internally inconsistent; this version performs
+        // the two refunds its mock always expected.)
         $this->refund($order, [
             'payment_type' => 'CreditCard', 'refund_calculation_type' => 'card_processing_fee_retained',
-            'allocations' => [['original_order_payment_id' => $card->id, 'amount' => 1000]],
+            'allocations' => [['original_order_payment_id' => $card->id, 'amount' => 600]],
         ])->assertOk();
 
-        $firstFee = (float) $order->payments()->refund()->first()->refundAllocations->first()->processing_fee_retained;
-        $this->assertEqualsWithDelta(30.0, $firstFee, 0.01);
+        $firstFee = (float) $order->payments()->refund()->orderBy('id')->first()->refundAllocations->first()->processing_fee_retained;
+        $this->assertEqualsWithDelta(18.0, $firstFee, 0.01);
+        $this->assertEqualsWithDelta(12.0, PaymentAllocationService::remainingCardFeeCapacity($card->fresh(), 3.0), 0.01);
+
+        $this->refund($order, [
+            'payment_type' => 'CreditCard', 'refund_calculation_type' => 'card_processing_fee_retained',
+            'allocations' => [['original_order_payment_id' => $card->id, 'amount' => 400]],
+        ])->assertOk();
+
+        $secondFee = (float) $order->payments()->refund()->orderByDesc('id')->first()->refundAllocations->first()->processing_fee_retained;
+        $this->assertEqualsWithDelta(12.0, $secondFee, 0.01);
 
         $cap = PaymentAllocationService::remainingCardFeeCapacity($card->fresh(), 3.0);
         $this->assertSame(0.0, $cap);
@@ -650,7 +681,11 @@ class MultiSourceRefundTest extends TestCase
 
         $this->mock(AuthorizeNetService::class, function ($mock) {
             $mock->shouldReceive('getTransactionDetails')->andReturn((object) ['status' => 'settledSuccessfully']);
-            $mock->shouldReceive('refundOrder')->once()->andReturn(['status' => 'success', 'gateway_refund_id' => 'GW-HIST']);
+            // A CASH payout never touches the gateway — payment_type is how
+            // the money LEAVES; drawing down a card original's balance is
+            // pure bookkeeping attribution. Gateway refunds happen only for
+            // CreditCard payouts (test_17 proves the per-card routing).
+            $mock->shouldReceive('refundOrder')->never();
         });
 
         $this->refund($order, [
@@ -792,7 +827,10 @@ class MultiSourceRefundTest extends TestCase
         $order = $this->makeOrder(1000.0);
         $cardB = $this->makeSettledPayment($order, 300.0, ['payment_method' => OrderPaymentMethod::Card->value, 'transaction_id' => 'TXN-REALLOC-FAIL']);
         $cardA = $this->makeSettledPayment($order, 500.0, ['payment_method' => OrderPaymentMethod::Card->value, 'transaction_id' => 'TXN-REALLOC-OK']);
-        $cash = $this->makeSettledPayment($order, 200.0);
+        // $300 — must cover the $300 reallocation below; the per-source cap
+        // (an allocation may never exceed its original payment's remaining
+        // balance) is enforced and an earlier $200 fixture violated it.
+        $cash = $this->makeSettledPayment($order, 300.0);
         $token = (string) Str::uuid();
 
         $this->mock(AuthorizeNetService::class, function ($mock) {
@@ -884,7 +922,10 @@ class MultiSourceRefundTest extends TestCase
         $order = $this->makeOrder(1000.0);
         $cardB = $this->makeSettledPayment($order, 300.0, ['payment_method' => OrderPaymentMethod::Card->value, 'transaction_id' => 'TXN-HISTREALLOC-FAIL']);
         $cardA = $this->makeSettledPayment($order, 500.0, ['payment_method' => OrderPaymentMethod::Card->value, 'transaction_id' => 'TXN-HISTREALLOC-OK']);
-        $cash = $this->makeSettledPayment($order, 200.0);
+        // $300 — must cover the $300 reallocation below; the per-source cap
+        // (an allocation may never exceed its original payment's remaining
+        // balance) is enforced and an earlier $200 fixture violated it.
+        $cash = $this->makeSettledPayment($order, 300.0);
         $token = (string) Str::uuid();
 
         $this->mock(AuthorizeNetService::class, function ($mock) {

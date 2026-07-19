@@ -65,6 +65,60 @@ final class OrderPaymentSummary
     public readonly Collection $refundablePayments;
 
     /**
+     * Every Pending or Failed original (non-refund) payment row on the
+     * order, oldest first, REGARDLESS of whether the order has since been
+     * fully paid by some other combination of rows. This is the complete
+     * HISTORICAL record — the right source for a payment-history/timeline
+     * view, where an old declined card attempt or an abandoned COD
+     * placeholder should still be visible for audit purposes even after
+     * the order is fully paid.
+     *
+     * Do NOT use this collection by itself to decide the order's CURRENT
+     * status or to drive a "needs attention" badge — its mere non-emptiness
+     * says nothing about whether the order is still actually waiting on
+     * anything. Use unresolvedPaymentAttempts below for that; see its
+     * docblock for the precedence rule.
+     *
+     * @var Collection<int, OrderPayment>
+     */
+    public readonly Collection $pendingOrFailedPayments;
+
+    /**
+     * The subset of pendingOrFailedPayments that still represents an
+     * ACTIVE, unresolved problem — i.e. the order has not since been fully
+     * paid by some (possibly different) combination of rows. Empty
+     * whenever collectionStatus is COLLECTION_PAID_IN_FULL, even if
+     * pendingOrFailedPayments itself is not: a declined card attempt or an
+     * abandoned/superseded Pending placeholder stops being "active" the
+     * moment the order's balance is genuinely satisfied by something else
+     * — it becomes purely historical at that point and must never
+     * continue to present the order itself as PAYMENT FAILED / PENDING
+     * PAYMENT.
+     *
+     * This is the field every "current status" consumer (Order Details
+     * header, any future API/CRM alert) must use for a Pending/Failed
+     * "needs attention" indicator — never pendingOrFailedPayments directly.
+     *
+     * @var Collection<int, OrderPayment>
+     */
+    public readonly Collection $unresolvedPaymentAttempts;
+
+    /**
+     * Every Voided payment row on the order, oldest first. A void is an
+     * in-place reversal of the original payment row (status → Voided,
+     * voided_at stamped — see VoidPaymentController); voided rows are
+     * therefore excluded from settled() AND from pendingOrFailedPayments,
+     * which made the summary blind to them before this field existed. A
+     * voided row means money was authorized/captured and then cancelled
+     * before settlement — it is not a refund (no money to return) and not
+     * a decline (the charge did succeed before being cancelled), and it
+     * must never contribute to totals, methods used, or refund state.
+     *
+     * @var Collection<int, OrderPayment>
+     */
+    public readonly Collection $voidedPayments;
+
+    /**
      * The most recent settled original payment — exposed ONLY for
      * backward-compatible single-payment display (e.g. legacy call sites
      * not yet migrated off Order::lastPaidPayment). Never use this to
@@ -102,6 +156,20 @@ final class OrderPaymentSummary
             ->filter(fn (OrderPayment $payment) => $order->remainingRefundableForPayment($payment) > 0.0)
             ->values();
         $this->latestSuccessfulPayment = $originalSettled->last();
+
+        $this->pendingOrFailedPayments = $order->payments()
+            ->whereIn('status', [OrderPaymentStatus::Pending->value, OrderPaymentStatus::Failed->value])
+            ->orderBy('id')
+            ->get();
+
+        $this->voidedPayments = $order->payments()
+            ->where('status', OrderPaymentStatus::Voided->value)
+            ->orderBy('id')
+            ->get();
+
+        $this->unresolvedPaymentAttempts = $this->collectionStatus === self::COLLECTION_PAID_IN_FULL
+            ? new Collection()
+            : $this->pendingOrFailedPayments;
     }
 
     public static function for(Order $order): self

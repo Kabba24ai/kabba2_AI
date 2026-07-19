@@ -336,7 +336,9 @@
                     </td>
 
                     <td class="py-4 px-2 text-center w-[80px]">
-                        {!! \App\Helpers\CustomHelper::paymentStatusBadge($orderProduct->order?->last_payment_status) !!}
+                        {{-- Payment Architecture Finalization (Tier 2): the order's
+                             aggregate status, not just its last payment row. --}}
+                        {!! $orderProduct->order ? \App\Helpers\CustomHelper::orderPaymentStatusBadge(\App\Services\Orders\OrderPaymentSummary::for($orderProduct->order)) : '-' !!}
                     </td>
 
                     <td class="py-4 px-1 text-center w-8">

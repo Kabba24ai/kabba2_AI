@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Enums\Orders\OrderPaymentRefundAllocationStatus;
+use App\Enums\Orders\OrderPaymentStatus;
 use App\Models\Orders\Order;
 use App\Models\Customers\Receipt;
+use App\Services\Orders\OrderPaymentSummary;
 use App\Services\PaymentDescriptionPresenter;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -91,14 +93,24 @@ class ReceiptService
      * DB column only supports 3 values — the richer, always-live label
      * actually shown on the receipt comes from currentPaymentStatusLabel()
      * below, never from this stored snapshot.
+     *
+     * Payment Architecture Finalization (Phase 4A): sourced from
+     * OrderPaymentSummary's aggregate collectionStatus/refundStatus and
+     * unresolvedPaymentAttempts (not Order::last_payment_status directly)
+     * so this can never call an order "failed" because of a stale failed
+     * attempt that a later payment already resolved — same precedence
+     * rule the Order Details header uses.
      */
     private static function mapPaymentStatus(Order $order): string
     {
-        if ($order->is_paid && (float) $order->balance_due <= 0 && (float) $order->total_refunded <= 0) {
+        $summary = OrderPaymentSummary::for($order);
+
+        if ($summary->collectionStatus === OrderPaymentSummary::COLLECTION_PAID_IN_FULL
+            && $summary->refundStatus === OrderPaymentSummary::REFUND_NONE) {
             return 'paid';
         }
 
-        if ($order->last_payment_status === \App\Enums\Orders\OrderPaymentStatus::Failed->value) {
+        if ($summary->unresolvedPaymentAttempts->contains(fn ($p) => $p->status === OrderPaymentStatus::Failed)) {
             return 'failed';
         }
 
@@ -107,36 +119,59 @@ class ReceiptService
 
     /**
      * The receipt's payment status as it should read RIGHT NOW — derived
-     * live from the order's current financial state (Order::is_paid /
-     * total_paid / total_refunded / balance_due, the same canonical
-     * accessors the Order Details screen uses via $order->is_paid etc.)
-     * rather than a value captured once when the receipt row was first
-     * created. This is the single source of truth for what the receipt
-     * displays; the print_receipt view calls this directly instead of
-     * reading the (potentially stale) stored Receipt::payment_status.
+     * live from the order's current aggregate financial state rather than
+     * a value captured once when the receipt row was first created. This
+     * is the single source of truth for what the receipt displays; the
+     * print_receipt view calls this directly instead of reading the
+     * (potentially stale) stored Receipt::payment_status.
      *
-     * No independent balance math and no payment-method checks — refunds,
-     * partial payments, and voids are read straight from the existing
-     * payment ledger accessors, never re-derived here.
+     * Payment Architecture Finalization (Phase 4A): delegates to
+     * PaymentDescriptionPresenter::orderStatusLabel() — the same aggregate
+     * status text every other screen (Order Details, CRM, Dispatch,
+     * Schedules, API) now shows, so a receipt never disagrees with the
+     * order's status shown anywhere else in the app. This intentionally
+     * changes wording for a refunded order — e.g. "Refunded" becomes
+     * "Paid in Full · Fully Refunded" — which is a correctness
+     * improvement, not a cosmetic one: the old bare "Refunded"/"Partially
+     * Refunded" text didn't distinguish "was paid in full, then refunded"
+     * from "was only ever partially paid before being refunded," which
+     * the canonical label now does.
+     *
+     * The one thing orderStatusLabel() doesn't distinguish — a genuinely
+     * still-unpaid order where the most relevant collection attempt
+     * failed, vs. one that simply hasn't been attempted yet — is preserved
+     * below via unresolvedPaymentAttempts (the precedence-safe field: a
+     * resolved order never reaches this branch at all, since
+     * collectionStatus would already read Paid/Partially Paid).
+     *
+     * Voided: customers routinely need printable proof that a charge was
+     * cancelled, so an order whose money was authorized/captured and then
+     * voided before settlement reads "Voided" — sourced from
+     * OrderPaymentSummary::voidedPayments (the actual Voided rows stamped
+     * by VoidPaymentController), never inferred from a Failed/declined
+     * attempt, which is a different thing entirely (the charge never
+     * succeeded, nothing existed to cancel). This branch is only reachable
+     * when nothing on the order is settled or refunded (label 'Unpaid'):
+     * a voided row alongside settled money correctly keeps reading
+     * Paid in Full / Partially Paid above. Voided outranks Failed here —
+     * when both rows exist, the void is the operationally meaningful
+     * event, and a mere declined attempt must never be presented as a
+     * void (nor vice versa).
      */
     public static function currentPaymentStatusLabel(Order $order): string
     {
-        $grandTotal    = (float) $order->grand_total;
-        $totalRefunded = (float) $order->total_refunded;
+        $summary = OrderPaymentSummary::for($order);
+        $label = PaymentDescriptionPresenter::orderStatusLabel($summary);
 
-        if ($totalRefunded > 0) {
-            return $totalRefunded >= $grandTotal ? 'Refunded' : 'Partially Refunded';
+        if ($label !== 'Unpaid') {
+            return $label;
         }
 
-        if ($order->is_paid && (float) $order->balance_due <= 0) {
-            return 'Paid in Full';
+        if ($summary->voidedPayments->isNotEmpty()) {
+            return 'Voided';
         }
 
-        if ((float) $order->total_paid > 0) {
-            return 'Partially Paid';
-        }
-
-        if ($order->last_payment_status === \App\Enums\Orders\OrderPaymentStatus::Failed->value) {
+        if ($summary->unresolvedPaymentAttempts->contains(fn ($p) => $p->status === OrderPaymentStatus::Failed)) {
             return 'Failed';
         }
 
@@ -145,33 +180,52 @@ class ReceiptService
 
     /**
      * The receipt's payment method as it should read RIGHT NOW — live from
-     * the order's most recent paid (or otherwise most recent) payment, the
-     * same "always live, never the frozen creation-time snapshot" pattern
-     * as currentPaymentStatusLabel(). This is what actually gets printed;
-     * the stored Receipt::payment_method column is kept for audit only.
+     * every settled original payment on the order, the same "always live,
+     * never the frozen creation-time snapshot" pattern as
+     * currentPaymentStatusLabel(). This is what actually gets printed; the
+     * stored Receipt::payment_method column is kept for audit only.
      *
-     * Returns null when there's no payment to describe yet (e.g. a Pay on
-     * Delivery order still pending) — callers should show Payment Terms
-     * instead in that case, via PaymentDescriptionPresenter::termsLabel().
+     * Payment Architecture Finalization (Phase 4A): previously read
+     * $order->lastPaidPayment ?? $order->lastPayment — a single row. On a
+     * split-payment order that silently showed only whichever method was
+     * entered most recently, exactly the bug class
+     * PaymentDescriptionPresenter::methodsUsedLabel() exists to fix
+     * everywhere else in the app. Sourced from
+     * OrderPaymentSummary::paymentMethodsUsed (every settled — Paid,
+     * PartialPayment, or legacy Invoice* — original payment) instead, so a
+     * two-method order now reads "Multiple Methods" here exactly as it
+     * already does on the Order Details header, CRM, Dispatch, and
+     * Schedules. This also means a payment attempt that only ever reached
+     * Pending/Failed (never actually settled) can no longer be shown as
+     * "the" payment method — a correctness fix, not just a rewording,
+     * since the old fallback-to-lastPayment could surface a declined
+     * card's method as if it had been charged.
+     *
+     * Returns null when there's no settled payment to describe yet (e.g. a
+     * Pay on Delivery order still pending) — callers should show Payment
+     * Terms instead in that case, via PaymentDescriptionPresenter::termsLabel().
      */
     public static function currentPaymentMethodLabel(Order $order): ?string
     {
-        $payment = $order->lastPaidPayment ?? $order->lastPayment;
+        $methodsUsed = OrderPaymentSummary::for($order)->paymentMethodsUsed;
 
-        if (!$payment) {
+        if ($methodsUsed->isEmpty()) {
             return null;
         }
 
-        return PaymentDescriptionPresenter::methodLabel($payment->payment_method);
+        return PaymentDescriptionPresenter::methodsUsedLabel($methodsUsed);
     }
 
     /**
      * Per-method amount breakdown across every Paid/PartialPayment row on
-     * the order — prepared for a future multi-method receipt ("Cash
-     * $100.00 / Credit Card $542.04") but NOT wired into the live receipt
-     * view yet, per Phase 2 scope (architecture only, no split-payment UI
-     * this round). Reads live from the existing payment ledger — no new
-     * table, no duplicated data.
+     * the order — e.g. "Cash $100.00 / Credit Card $542.04". Written in
+     * Phase 2 (architecture only, not yet wired to a view); Payment
+     * Architecture Finalization (Phase 4A) wires it into
+     * print_receipt.blade.php's Payment Method line, shown only when more
+     * than one method was used (currentPaymentMethodLabel() already says
+     * "Multiple Methods" in that case — this supplies the itemized amounts
+     * behind that label). Reads live from the existing payment ledger — no
+     * new table, no duplicated data.
      *
      * @return array<int, array{method: string, amount: float}>
      */
@@ -245,21 +299,34 @@ class ReceiptService
     }
 
     /**
-     * Map last payment method to receipt payment method. Cash means cash:
-     * COD (a payment-terms placeholder, never itself a completed method)
-     * and Account (an Accounts Receivable workflow marker, not a way
-     * funds were transferred) must never guess their way into 'cash' —
-     * they resolve to null (method not yet actually known) instead.
+     * Map a settled payment method to the narrow, single-value legacy
+     * Receipt::payment_method column (audit snapshot only — see
+     * currentPaymentMethodLabel() for the live, multi-method-aware label
+     * actually printed). Cash means cash: COD (a payment-terms placeholder,
+     * never itself a completed method) and Account (an Accounts Receivable
+     * workflow marker, not a way funds were transferred) must never guess
+     * their way into 'cash' — they resolve to null (method not yet
+     * actually known) instead.
+     *
+     * Payment Architecture Finalization (Phase 4A): sourced from the
+     * oldest SETTLED original payment (OrderPaymentSummary::
+     * paymentMethodsUsed->first()) rather than Order::lastPayment (any
+     * status, most recent row) — a Pending/Failed row's method can no
+     * longer be recorded here as if it had actually settled. This legacy
+     * column has no way to represent "multiple methods," so a
+     * split-payment order's snapshot is intentionally left as a
+     * single representative method; the live receipt display never reads
+     * this column for that case (see currentPaymentMethodLabel()).
      */
     private static function mapPaymentMethod(Order $order): string|null
     {
-        $lastPayment = $order->lastPayment;
+        $method = OrderPaymentSummary::for($order)->paymentMethodsUsed->first();
 
-        if (!$lastPayment) {
+        if (!$method) {
             return null;
         }
 
-        return match ($lastPayment->payment_method) {
+        return match ($method) {
             \App\Enums\Orders\OrderPaymentMethod::Card => 'card',
             \App\Enums\Orders\OrderPaymentMethod::Cash => 'cash',
             \App\Enums\Orders\OrderPaymentMethod::Online => 'online',

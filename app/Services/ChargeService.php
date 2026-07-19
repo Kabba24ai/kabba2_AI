@@ -11,6 +11,7 @@ use App\Models\Orders\OrderProduct;
 use App\Models\Iam\Personnel\User;
 use App\Events\Admin\Orders\OrderExtraChargeEvent;
 use App\Services\AlertLifecycleService;
+use App\Services\ChargeTaxCalculator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -32,14 +33,32 @@ class ChargeService
      *         minimum created_at of the order product's currently-active checklist question
      *         rows, which are recreated on every save-delivery call). Null preserves the
      *         previous, cycle-unaware behavior. See CORRECTION_PHASE1_PLAN.md Issue #1.
+     * @param  ?string       $salesTaxType  'add' | 'free' | 'reverse'. Sales Tax Architecture
+     *         Correction: previously hardcoded 'free' unconditionally. Reconsidered after
+     *         review: defaulting a NULL (app-not-yet-updated) submission to 'add' would be a
+     *         silent, unilateral tax-policy reversal for every mobile fuel charge — there was
+     *         never an employee-expressed intent to tax these (unlike the CRM/Dashboard fixes,
+     *         which restored a choice the employee actually made and the system discarded).
+     *         The mission's own caution against silently choosing an unstated business-policy
+     *         answer applies here just as much as to damage subtypes. Null therefore preserves
+     *         the exact current, already-in-production behavior ('free') rather than changing
+     *         it — 'add' becoming the default is an explicit business decision to make
+     *         separately, once someone can actually update the mobile app to expose a choice
+     *         and the decision can be rolled out deliberately rather than silently. An invalid
+     *         non-null value is still rejected rather than defaulted.
      * @return CustomerAccount|null  Returns null if the charge amount is zero or a record already exists.
      */
     public static function createFromOrderProduct(
         OrderProduct $orderProduct,
         string $type,
         ?int $responsibleUserId = null,
-        $cycleStartedAt = null
+        $cycleStartedAt = null,
+        ?string $salesTaxType = null
     ): ?CustomerAccount {
+        if ($salesTaxType !== null && !ChargeTaxCalculator::isValidTreatment($salesTaxType)) {
+            throw new \InvalidArgumentException("Invalid sales tax treatment '{$salesTaxType}'.");
+        }
+        $salesTaxType ??= ChargeTaxCalculator::TREATMENT_FREE;
         $amount = $type === 'fuel'
             ? (float) ($orderProduct->fuel_total_charge ?? 0)
             : (float) ($orderProduct->damage_charge ?? 0);
@@ -81,7 +100,7 @@ class ChargeService
         $record->responsible_person_id   = $user?->id;
         $record->responsible_person_name = $user?->full_name;
         $record->date                    = now();
-        $record->sales_tax_type          = 'free';
+        $record->sales_tax_type          = $salesTaxType;
         $record->sales_tax               = 0;
         $record->type                    = 'charge';
         $record->$alertField             = 'pending';

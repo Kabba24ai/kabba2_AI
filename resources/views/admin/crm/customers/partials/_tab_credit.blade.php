@@ -415,6 +415,33 @@
 
                            </div>
                            <div class="text-xs text-gray-500 hidden">Ref: {{ $transaction->unique_id }}</div>
+
+                           {{-- Billing Charge Refund Allocation — presentation only,
+                                no competing receipt. Shown only for a charge-linked
+                                refund (billingChargeRefund set); a free-form refund
+                                (no link) renders exactly as before, with nothing
+                                added here. --}}
+                           @if ($transaction->type === 'refund' && $transaction->billingChargeRefund)
+                               @php
+                                   $bcr = $transaction->billingChargeRefund;
+                                   $linkedCharge = $bcr->billingCharge;
+                                   $chargeTypeLabel = $linkedCharge?->billing_charge_type?->label() ?? 'Charge';
+                                   $originalTotal = $linkedCharge ? round((float) $linkedCharge->amount + (float) $linkedCharge->tax_amount, 2) : null;
+                                   $remaining = $linkedCharge ? \App\Services\Orders\BillingChargeRefundService::remainingRefundable($linkedCharge) : null;
+                                   $cumulativeRefunded = $linkedCharge ? round($originalTotal - $remaining['total'], 2) : null;
+                               @endphp
+                               <div class="mt-1 text-xs text-blue-700"
+                                    title="Original: base {{ \App\Helpers\CustomHelper::formatCurrency($linkedCharge?->amount ?? 0) }} / tax {{ \App\Helpers\CustomHelper::formatCurrency($linkedCharge?->tax_amount ?? 0) }} / total {{ \App\Helpers\CustomHelper::formatCurrency($originalTotal ?? 0) }}. This refund: base {{ \App\Helpers\CustomHelper::formatCurrency($bcr->base_amount) }} / tax {{ \App\Helpers\CustomHelper::formatCurrency($bcr->tax_amount) }} / total {{ \App\Helpers\CustomHelper::formatCurrency($bcr->total_amount) }}. Status: {{ $bcr->status?->value }}.">
+                                   Linked to {{ $chargeTypeLabel }}
+                                   @if ($linkedCharge?->parentOrder)
+                                       <a href="{{ route('admin.order-management.orders.edit', $linkedCharge->parentOrder->unique_id) }}" class="underline">{{ $linkedCharge->unique_id }}</a>
+                                   @elseif ($linkedCharge)
+                                       {{ $linkedCharge->unique_id }}
+                                   @endif
+                                   — Refunded {{ \App\Helpers\CustomHelper::formatCurrency($cumulativeRefunded ?? 0) }} of {{ \App\Helpers\CustomHelper::formatCurrency($originalTotal ?? 0) }}
+                                   (Remaining {{ \App\Helpers\CustomHelper::formatCurrency($remaining['total'] ?? 0) }})
+                               </div>
+                           @endif
                        </td>
                        <!-- Amount Without Tax -->
 
@@ -427,9 +454,17 @@
                            // not a rate, so neither TaxCalculationService method
                            // applies; its direct-subtraction formula is unchanged.
                            if ($transaction->type !== 'account_invoice') {
+                               // Billing Charge Refund Allocation: a charge-linked
+                               // refund stores its amount as the tax-INCLUSIVE
+                               // total (sales_tax_type='reverse'), same convention
+                               // as a reverse-treatment charge/discount — must be
+                               // included here or this display would silently add
+                               // tax a second time on top of an already-inclusive
+                               // amount (the stored balance/allocation figures are
+                               // unaffected either way; this is a display-only fix).
                                $isTaxIncluded = $transaction->sales_tax > 0 && (
                                    $transaction->type === 'payment' ||
-                                   (in_array($transaction->type, ['charge', 'discount']) && $transaction->sales_tax_type === 'reverse')
+                                   (in_array($transaction->type, ['charge', 'discount', 'refund']) && $transaction->sales_tax_type === 'reverse')
                                );
 
                                $taxBreakdown = $isTaxIncluded

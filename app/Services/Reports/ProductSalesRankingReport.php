@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Services\Reports\Concerns\NetsRefundedRevenue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ProductSalesRankingReport
 {
+    use NetsRefundedRevenue;
+
     public function __construct(
         private SalesReportingService $reporting,
         private BillingRevenueAttributionService $billingAttribution,
@@ -23,13 +26,20 @@ class ProductSalesRankingReport
         $sortBy  = $filters['sort_by'] ?? 'revenue';
         $orderBy = $sortBy === 'qty' ? 'qty_sold' : 'revenue';
 
-        $rows = $this->reporting->baseQuery($filters)
+        // Payment Architecture Finalization: this previously summed raw
+        // order_products.sub_total with zero refund awareness — a fully
+        // refunded order's original line revenue counted in full, and a
+        // partial refund was never netted out. Now shares the same
+        // exclude-fully-refunded + proportional-partial-refund netting
+        // ProductSalesPerformanceEngine already uses.
+        $expr = $this->netRevenueExpr();
+        $rows = $this->applyRefundNetting($this->reporting->baseQuery($filters))
             ->selectRaw("
                 order_products.product_id,
                 products.product_name,
                 products.product_type,
                 SUM(order_products.quantity)   AS qty_sold,
-                SUM(order_products.sub_total)  AS revenue
+                SUM({$expr})                   AS revenue
             ")
             ->groupBy('order_products.product_id', 'products.product_name', 'products.product_type')
             ->orderByDesc($orderBy)

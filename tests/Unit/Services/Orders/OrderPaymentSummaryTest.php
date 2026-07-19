@@ -54,6 +54,19 @@ class OrderPaymentSummaryTest extends TestCase
         $paymentsQuery->shouldReceive('settled')->andReturnSelf();
         $paymentsQuery->shouldReceive('orderBy')->andReturnSelf();
         $paymentsQuery->shouldReceive('get')->andReturn(collect($settledPayments));
+
+        // OrderPaymentSummary also queries payments()->whereIn('status',
+        // [Pending, Failed]) for pendingOrFailedPayments. That chain must
+        // resolve on a SEPARATE mock returning an empty set — not
+        // andReturnSelf(), which would feed the settled Paid rows into
+        // pendingOrFailedPayments and corrupt the unresolvedPaymentAttempts
+        // semantics. These unit scenarios model settled rows only; pending/
+        // failed coverage lives in the Feature suites.
+        $pendingQuery = Mockery::mock();
+        $pendingQuery->shouldReceive('orderBy')->andReturnSelf();
+        $pendingQuery->shouldReceive('get')->andReturn(collect());
+        $paymentsQuery->shouldReceive('whereIn')->andReturn($pendingQuery);
+
         $order->shouldReceive('payments')->andReturn($paymentsQuery);
 
         foreach ($settledPayments as $payment) {

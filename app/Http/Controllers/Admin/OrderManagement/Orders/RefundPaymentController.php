@@ -142,6 +142,22 @@ class RefundPaymentController extends Controller
                 ], 422);
             }
 
+            // Resolved FIRST, before the allocation set is derived: for the
+            // server-authoritative calculation types (Sales Tax Only) the
+            // client's `amount` field is advisory only — the true total
+            // comes from resolveRequestedTotal(). Sizing an auto-derived
+            // allocation from the client amount instead would turn a stale
+            // client figure (a browser tab left open while another partial
+            // refund changed the remaining tax) into a spurious
+            // sources-must-equal-requested 422 rather than the correct
+            // server-derived refund. Standard resolves to the client
+            // amount; Card Processing Fee Retained resolves to null (its
+            // per-source totals come from calculateAllocationSplits()).
+            [$requestedTotal, $calcError] = PaymentAllocationService::resolveRequestedTotal($order, $calcType, (float) $validated['amount']);
+            if ($calcError !== null) {
+                return response()->json(['success' => false, 'message' => $calcError], 422);
+            }
+
             // Resolve the allocation set: explicit from the request, or —
             // for backward compatibility with a caller that only ever knew
             // about a single-payment order — auto-derived when there is
@@ -154,9 +170,24 @@ class RefundPaymentController extends Controller
                 $eligible = PaymentAllocationService::eligibleOriginalPayments($order);
 
                 if ($eligible->count() === 1) {
+                    // Card Processing Fee Retained is a server-authoritative
+                    // full-remaining-balance calculation: the client's
+                    // `amount` is advisory only and IGNORED here. The gross
+                    // allocation is the eligible original payment's actual
+                    // remaining refundable balance; calculateAllocationSplits()
+                    // then derives the capped fee and the customer-facing
+                    // net from that gross. Sizing this from the client
+                    // amount instead let a stale/absurd client figure
+                    // either 422 at the per-source cap or, worse, refund an
+                    // arbitrary partial amount under a calc type defined as
+                    // "the full remaining amount less the fee."
+                    $autoAmount = $calcType === RefundCalculationType::CardProcessingFeeRetained
+                        ? round(PaymentAllocationService::remainingRefundable($eligible->first()), 2)
+                        : ($requestedTotal ?? (float) $validated['amount']);
+
                     $allocationsInput = [[
                         'original_order_payment_id' => $eligible->first()->id,
-                        'amount' => (float) $validated['amount'],
+                        'amount' => $autoAmount,
                     ]];
                 } else {
                     return response()->json([
@@ -172,11 +203,6 @@ class RefundPaymentController extends Controller
                 'original_order_payment_id' => (int) ($row['original_order_payment_id'] ?? 0),
                 'amount' => (float) ($row['amount'] ?? 0),
             ], $allocationsInput);
-
-            [$requestedTotal, $calcError] = PaymentAllocationService::resolveRequestedTotal($order, $calcType, (float) $validated['amount']);
-            if ($calcError !== null) {
-                return response()->json(['success' => false, 'message' => $calcError], 422);
-            }
 
             $validationErrors = PaymentAllocationService::validateAllocationSet(
                 $order,
@@ -355,7 +381,22 @@ class RefundPaymentController extends Controller
                                 $success = false;
                                 $failureReason = 'Original transaction not settled; retry after it settles.';
                             } else {
-                                $response = $anet->refundOrder($original->transaction_id, $split['amount'], [
+                                // The gateway receives the CUSTOMER-FACING
+                                // amount for this source: the gross drawn
+                                // from the original payment minus any
+                                // processing fee retained. Standard and
+                                // Sales Tax Only always have fee = 0, so
+                                // this equals the gross for them; only Card
+                                // Processing Fee Retained diverges — sending
+                                // the gross there would hand the retained
+                                // fee back to the cardholder. The GROSS
+                                // ($split['amount']) is still what is
+                                // recorded as allocated_amount below, since
+                                // it is what reduces the original payment's
+                                // remaining refundable capacity.
+                                $gatewayAmount = round($split['amount'] - $split['fee'], 2);
+
+                                $response = $anet->refundOrder($original->transaction_id, $gatewayAmount, [
                                     'order_number' => $order->order_number,
                                     'refund_note' => $reasonText,
                                 ]);
@@ -405,7 +446,8 @@ class RefundPaymentController extends Controller
                             "REFUND RECONCILIATION REQUIRED: gateway refund succeeded but could not be recorded. "
                             ."Order: {$order->unique_id} (id {$order->id}). Refund row id: {$refund->id}. "
                             ."Original payment id: {$original->id}, transaction_id: {$original->transaction_id}. "
-                            ."Gateway refund id: {$gatewayRefundId}. Amount: {$split['amount']}. "
+                            ."Gateway refund id: {$gatewayRefundId}. Gateway (net) amount: ".round($split['amount'] - $split['fee'], 2).". "
+                            ."Gross drawn: {$split['amount']}. Fee retained: {$split['fee']}. "
                             .'Persist error: '.$e->getMessage()
                         );
                         $success = false;

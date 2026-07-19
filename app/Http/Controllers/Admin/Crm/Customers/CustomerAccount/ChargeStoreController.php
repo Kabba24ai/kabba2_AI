@@ -10,6 +10,7 @@ use App\Http\DataObjects\BillingChargeRequest;
 use App\Http\Requests\Admin\Crm\Customers\CustomerAccount\ChargeStoreRequest;
 use App\Models\Customers\CustomerAccount;
 use App\Services\BillingEngine;
+use App\Services\ChargeTaxCalculator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Iam\Personnel\User ;
@@ -56,6 +57,18 @@ class ChargeStoreController extends Controller
 
             DB::commit();
 
+            // Sales Tax Architecture Correction: this block previously passed
+            // amount: (float) $record->amount with NO taxAmount argument to
+            // BillingEngine::charge() for BOTH branches below — the modal
+            // correctly captured and live-previewed sales_tax_type client-side,
+            // and updateCreditBalance() above correctly resolved the CustomerAccount
+            // ledger's own rate/balance, but the resulting tax was never carried
+            // into the BillingCharge row that every reporting engine actually
+            // reads. tax_amount silently persisted as 0 regardless of the
+            // employee's selection. Now sourced from the canonical
+            // ChargeTaxCalculator, same as every other charge-creation path.
+            $resolved = ChargeTaxCalculator::calculate((float) $record->amount, $record->sales_tax_type ?? 'free', (float) $record->sales_tax);
+
             // ── Billing Engine bridge ──────────────────────────────────────
             if ($validated['reason'] === 'Fuel Charge') {
                 // Phase 3C
@@ -64,7 +77,7 @@ class ChargeStoreController extends Controller
                         type:                BillingChargeType::Fuel->value,
                         orderId:             null, // CRM charge modal: no order context
                         customerId:          (int) $record->customer_id,
-                        amount:              (float) $record->amount,
+                        amount:              $resolved['base_amount'],
                         taxType:             $record->sales_tax_type ?? 'free',
                         responsiblePersonId: $user->id,
                         notes:               $record->notes,
@@ -80,6 +93,7 @@ class ChargeStoreController extends Controller
                         ],
                         idempotencyKey:    "crm_fuel_charge:{$record->id}",
                         customerAccountId: $record->id,
+                        taxAmount:         $resolved['tax_amount'],
                     ));
                 } catch (\Throwable $e) {
                     Log::channel('billing_engine')->error(
@@ -95,7 +109,7 @@ class ChargeStoreController extends Controller
                         type:                BillingChargeType::Damage->value,
                         orderId:             null, // CRM charge modal: no order context
                         customerId:          (int) $record->customer_id,
-                        amount:              (float) $record->amount,
+                        amount:              $resolved['base_amount'],
                         taxType:             $record->sales_tax_type ?? 'free',
                         responsiblePersonId: $user->id,
                         notes:               $record->notes,
@@ -112,6 +126,7 @@ class ChargeStoreController extends Controller
                         ],
                         idempotencyKey:    "crm_damage_charge:{$record->id}",
                         customerAccountId: $record->id,
+                        taxAmount:         $resolved['tax_amount'],
                     ));
                 } catch (\Throwable $e) {
                     Log::channel('billing_engine')->error(

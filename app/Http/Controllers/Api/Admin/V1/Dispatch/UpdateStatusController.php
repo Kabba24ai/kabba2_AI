@@ -28,6 +28,22 @@ class UpdateStatusController extends Controller
                 ->where('unique_id', $validated['order_product_unique_id'])
                 ->firstOrFail();
 
+            // Queue Line release enforcement (Phase 4 §2): dispatch marking a
+            // delivery job Completed is a release — same canonical guard as
+            // the driver-checklist path. Returns are never guarded.
+            if ($validated['schedule_type'] === 'Delivery'
+                && $validated['schedule_status'] === 'Completed'
+                && $job->delivery_status !== 'Completed') {
+                $job->loadMissing('softAssignment.equipment', 'queueLineItem');
+                if ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($job)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $blocked['message'],
+                        'error' => $blocked,
+                    ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+                }
+            }
+
             if ($validated['schedule_type'] === 'Delivery') {
                 $job->delivery_status = $validated['schedule_status'];
             } else {

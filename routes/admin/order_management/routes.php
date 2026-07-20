@@ -23,6 +23,9 @@ Route::prefix('order-management')
     // schedules
     require base_path('routes/admin/order_management/schedules/routes.php');
 
+    // queue line (outbound staging board — sits between Schedule and Dispatch)
+    require base_path('routes/admin/order_management/queue_line/routes.php');
+
     // dispatch (driver-focused, Truck-only view)
     require base_path('routes/admin/order_management/dispatch/routes.php');
 

@@ -26,6 +26,16 @@ class OrderProduct extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Administrative closure status (delivery_status / pickup_status): the
+     * leg was closed WITHOUT the physical run happening — cancelled
+     * bookings, corrections, refunded-before-delivery orders. It sets
+     * is_delivered/is_returned like a real completion, so any metric
+     * counting PHYSICAL work must exclude this status explicitly rather
+     * than trusting the booleans (see DeliveryPerformanceEngine).
+     */
+    public const STATUS_CLOSE_AS_COMPLETED = 'Close as Completed';
+
     protected $fillable = [
         'unique_id',
         'order_id',
@@ -282,6 +292,42 @@ class OrderProduct extends Model
     }
 
     /**
+     * Canonical "has this equipment entered the field?" test — the safety
+     * gate for automatic operational closure (RefundedOrderScheduleCloser).
+     *
+     * Evidence, strongest first:
+     *  - delivery_status 'Completed'  — every real delivery path writes it
+     *    (customer checklist, assign-equipment, manual status change, API)
+     *  - is_delivered                 — written in lockstep with the above;
+     *    kept as drift protection. NOTE: 'Close as Completed' also sets it,
+     *    so administratively closed rows read as delivered here — callers
+     *    that must distinguish administrative closure check delivery_status
+     *    for the literal 'Close as Completed' FIRST (see the closer).
+     *  - delivery_is_delivered / delivery_arrived_at — driver-app "Arrived"
+     *    signals. Not authoritative for delivery, but the equipment may be
+     *    on a truck at the customer's site, so for safety it counts as
+     *    having entered the field.
+     *
+     * Deliberately NOT evidence: terms/license/video completion (pre-delivery
+     * gating steps), dispatch planning fields (dispatch_delivery_date etc. are
+     * routing artifacts written before anything moves), and checklist-row
+     * existence (~31% of delivered products are checklist-exempt admin
+     * closures — see UpdateProductScheduleController).
+     */
+    public function hasBeenDelivered(): bool
+    {
+        if ($this->delivery_status === 'Completed' || $this->delivery_status === 'Close as Completed') {
+            return true;
+        }
+
+        if ($this->is_delivered) {
+            return true;
+        }
+
+        return (bool) $this->delivery_is_delivered || $this->delivery_arrived_at !== null;
+    }
+
+    /**
      * Reverse mapping: from transport modes to service_method and service_option.
      *
      * @return array
@@ -339,6 +385,11 @@ class OrderProduct extends Model
     public function softAssignment()
     {
         return $this->hasOne(EquipmentSoftAssign::class, 'order_product_id', 'id')->with('equipment');
+    }
+
+    public function queueLineItem()
+    {
+        return $this->hasOne(QueueLineItem::class, 'order_product_id', 'id');
     }
 
     public function softEquipment()

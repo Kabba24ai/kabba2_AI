@@ -2748,11 +2748,34 @@
                     </div>
                 </div>
 
+                <!-- Disposition — voiding a payment is not the same as
+                     cancelling the rental. Default keeps the rental active
+                     (void-then-recharge is the common correction workflow);
+                     cancellation must be an explicit choice. -->
+                <div class="border-t border-gray-200 pt-4">
+                    <p class="text-sm font-semibold text-gray-800 mb-2">After the void, this rental should…</p>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+                            <input type="radio" name="void_disposition" id="void_disposition_keep" value="keep" checked
+                                class="mt-0.5">
+                            <span><span class="font-medium">Continue as scheduled</span> — void the payment only
+                                (e.g. re-charging the customer). The order stays on Schedule and Dispatch.</span>
+                        </label>
+                        <label class="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+                            <input type="radio" name="void_disposition" id="void_disposition_cancel" value="cancel"
+                                class="mt-0.5">
+                            <span><span class="font-medium">Be cancelled</span> — also close the undelivered
+                                delivery schedule so the order leaves Schedule and Dispatch. Equipment already
+                                delivered stays tracked through return.</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 flex gap-3">
                     <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                     <div class="text-sm text-orange-800">
                         <p class="font-semibold mb-1">Are you sure you want to void this payment?</p>
-                        <p>This will void the full payment transaction through Authorize.net and mark the order as voided. Voided orders are removed from the rental schedule and excluded from sales reports. This action cannot be undone.</p>
+                        <p>This will void the full payment transaction through Authorize.net and mark the payment as voided. Voided payments are excluded from sales reports. This action cannot be undone.</p>
                     </div>
                 </div>
                 <div class="flex gap-3 justify-end">
@@ -7070,6 +7093,9 @@
                         reason_other: voidReasonOther.value.trim() || null,
                         processed_by: voidProcessedBy.value,
                         employee_code: voidEmployeeCode.value.trim(),
+                        // Explicit disposition — only a deliberate "cancel"
+                        // choice closes the schedule; a plain void never does.
+                        cancel_order: document.getElementById('void_disposition_cancel')?.checked === true,
                     }),
                 })
                 .then(r => r.json())

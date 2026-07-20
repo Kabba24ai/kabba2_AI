@@ -30,14 +30,20 @@ class IndexController extends Controller
             // filtering off it, and none of the Blade partials this
             // controller renders (_schedule_table/_table/index) read
             // lastPayment/lastPaidPayment.
+            //
+            // NOTE: this base query deliberately does NOT exclude orders
+            // with a Voided payment. Voiding a payment is payment-lifecycle
+            // activity, not an order cancellation — the common void-then-
+            // recharge correction workflow must keep the rental visible
+            // here throughout. When the employee explicitly chooses "Void
+            // payment & cancel rental" in the void modal, the schedule rows
+            // themselves are closed (Close as Completed) at the source, and
+            // the actionable filters exclude them like any other closed row.
             $query = OrderProduct::query()
                 ->with('equipment', 'equipment.productcategory', 'equipment.store', 'order', 'order.customer', 'product.categories', 'order.shippingAddress', 'order.notes', 'deliveryStore', 'pickupStore', 'softAssignment.equipment.store')
                 ->where('product_data->product_type', 'Rental')
                 ->whereHas('order')
-                ->whereNotNull('delivery_date')
-                ->whereDoesntHave('order.payments', function ($q) {
-                    $q->where('status', \App\Enums\Orders\OrderPaymentStatus::Voided->value);
-                });
+                ->whereNotNull('delivery_date');
 
             // Exclude rescheduled-pending items from the active schedule by default.
             // They are only visible when the user explicitly enables the Rescheduled Pending filter.

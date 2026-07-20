@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\OrderManagement\Orders\VoidRequest;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
 use App\Services\AuthorizeNetService;
+use App\Services\Orders\RefundedOrderScheduleCloser;
 
 class VoidPaymentController extends Controller
 {
@@ -103,6 +104,8 @@ class VoidPaymentController extends Controller
                     'extras'      => json_encode($processedAudit),
                 ]);
 
+                $this->closeSchedulesAfterVoid($order, $payment, $user, $request->boolean('cancel_order'));
+
                 return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
             }
 
@@ -139,11 +142,39 @@ class VoidPaymentController extends Controller
                 'extras'      => json_encode($processedAudit),
             ]);
 
+            $this->closeSchedulesAfterVoid($order, $payment, $user, $request->boolean('cancel_order'));
+
             return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
 
         } catch (\Exception $e) {
             logger()->error('Void payment error for order ' . $uniqueId . ': ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'An error occurred while voiding the payment.'], 500);
+        }
+    }
+
+    /**
+     * Automatic Schedule/Dispatch closure after a successful void — ONLY
+     * when the employee explicitly chose "Void payment & cancel rental" in
+     * the void modal ($cancelOrder). A plain void is payment-lifecycle
+     * activity: the void-then-recharge workflow must leave the rental on
+     * Schedule and Dispatch, so cancellation is never inferred from payment
+     * state. Void has no domain event (unlike refunds) and this controller
+     * is its single entry point, so the hook is called from both success
+     * exits here. Delivered equipment is never touched (guarded inside the
+     * closer). Reported, never rethrown: the void already succeeded at the
+     * gateway and must not be turned into an error response by a
+     * schedule-closure failure.
+     */
+    private function closeSchedulesAfterVoid($order, $payment, $user, bool $cancelOrder): void
+    {
+        if (!$cancelOrder) {
+            return;
+        }
+
+        try {
+            RefundedOrderScheduleCloser::afterVoid($order, $payment, $user);
+        } catch (\Throwable $e) {
+            report($e);
         }
     }
 }

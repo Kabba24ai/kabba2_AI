@@ -65,7 +65,10 @@ class SendDeliverySameDayRentalReminderJobTest extends TestCase
             'is_default_funnel' => true,
         ]);
 
-        Setting::create(['setting_name' => 'twilio_timezone', 'setting_type' => 'Communication Settings', 'setting_value' => 'America/Chicago']);
+        Setting::updateOrCreate(
+            ['setting_name' => 'twilio_timezone'],
+            ['setting_type' => 'Communication Settings', 'setting_value' => 'America/Chicago']
+        );
         $fakeEncrypted = Crypt::encryptString('FAKE_TEST_VALUE');
         foreach (['twilio_sid', 'twilio_auth_token', 'twilio_from_number', 'twilio_messaging_service_sid'] as $key) {
             Setting::create(['setting_name' => $key, 'setting_type' => 'Communication Settings', 'setting_value' => $fakeEncrypted]);
@@ -271,5 +274,75 @@ class SendDeliverySameDayRentalReminderJobTest extends TestCase
 
         $log = SMSLog::where('order_id', $order->id)->first();
         $this->assertSame(SmsType::DELIVERY_SAME_DAY_COD, $log->sms_type);
+    }
+
+    // ── Dedup guard (SMS_AUTOMATION_AUDIT.md F-2 / RC-2) ─────────────────
+    // Same pattern as SendDeliveryDayBeforeRentalReminderJob's existing
+    // sms_logs whereNotExists guard. This job sends one of two sms_types
+    // per order (standard vs. COD), so the guard must exclude an order
+    // that already has EITHER type logged.
+
+    public function test_sends_when_no_matching_sms_log_exists(): void
+    {
+        [$order] = $this->makeRecord('SDR-DEDUP-NOLOG');
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+
+        $this->runJob();
+
+        $this->assertSame(1, SMSLog::where('order_id', $order->id)->count());
+    }
+
+    public function test_does_not_resend_when_a_matching_sms_log_already_exists(): void
+    {
+        [$order] = $this->makeRecord('SDR-DEDUP-EXISTING');
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+        SMSLog::create([
+            'order_id' => $order->id, 'sms_type' => SmsType::DELIVERY_SAME_DAY->value,
+            'status' => 'sent', 'phone' => '+15555550100', 'message' => 'already sent',
+        ]);
+
+        $this->runJob();
+
+        $this->assertSame(1, SMSLog::where('order_id', $order->id)->count(), 'no second SMS should have been sent');
+    }
+
+    public function test_a_sms_log_for_a_different_sms_type_does_not_block_the_job(): void
+    {
+        [$order] = $this->makeRecord('SDR-DEDUP-OTHERTYPE');
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+        SMSLog::create([
+            'order_id' => $order->id, 'sms_type' => SmsType::RETURN_SAME_DAY->value,
+            'status' => 'sent', 'phone' => '+15555550100', 'message' => 'unrelated log',
+        ]);
+
+        $this->runJob();
+
+        $this->assertSame(2, SMSLog::where('order_id', $order->id)->count(), 'the unrelated sms_type log must not block this job\'s own send');
+        $this->assertTrue(
+            SMSLog::where('order_id', $order->id)->where('sms_type', SmsType::DELIVERY_SAME_DAY->value)->exists()
+        );
+    }
+
+    public function test_existing_date_and_pending_status_conditions_still_apply(): void
+    {
+        [$order, $orderProduct] = $this->makeRecord('SDR-DEDUP-NOTPENDING');
+        $orderProduct->update(['delivery_status' => 'Completed']);
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+
+        $this->runJob();
+
+        $this->assertSame(0, SMSLog::where('order_id', $order->id)->count(), 'delivery_status must still gate eligibility regardless of the new dedup guard');
     }
 }

@@ -82,6 +82,13 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
             ->where('product_data->product_type', 'Rental')
             ->whereDate('delivery_date', $today)
             ->where('delivery_status', 'Pending')
+            // Prevent duplicate sends if job somehow fires more than once —
+            // covers both messages this job can send (paid vs. COD bucket
+            // below), since only one of the two ever applies to a given order.
+            ->whereNotExists(fn($q) => $q->select(DB::raw(1))
+                ->from('sms_logs')
+                ->whereColumn('sms_logs.order_id', 'order_products.order_id')
+                ->whereIn('sms_logs.sms_type', [SmsType::DELIVERY_SAME_DAY->value, SmsType::DELIVERY_SAME_DAY_COD->value]))
             ->get();
 
         $count     = $records->count();

@@ -99,7 +99,7 @@ class QueueLinePresentationTest extends QueueLineTestCase
         $this->assertSame(1, substr_count($html, 'data-queue-row="card"'));
         $this->assertSame(1, substr_count($html, 'data-assignment-visual="unassigned"'));
         $this->assertStringContainsString('alt="' . $this->orderedProduct->product_name . '"', $html);
-        $this->assertStringContainsString('No machine selected yet', $html);
+        $this->assertStringContainsString('No equipment selected', $html);
         $this->assertStringNotContainsString('wire:click="stage(', $html);
     }
 
@@ -194,7 +194,7 @@ class QueueLinePresentationTest extends QueueLineTestCase
         $html = Livewire::test(Board::class)->html();
 
         // Fixed card dimensions regardless of content length
-        $this->assertStringContainsString('h-[31rem]', $html);
+        $this->assertStringContainsString('h-[25rem]', $html);
         $this->assertStringContainsString('truncate', $html);
         // Full values remain accessible via title attributes
         $this->assertStringContainsString('title="Ordered: ' . $longProduct->product_name . '"', $html);
@@ -215,21 +215,30 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
     // ── Priority tiers & polling ─────────────────────────────────────────
 
-    public function test_workflow_sections_render_and_urgency_survives_as_card_badges(): void
+    public function test_workflow_sections_render_and_rush_marker_sorts_first(): void
     {
-        // UI Iteration 1: the board is organized by WORKFLOW (Pending /
-        // Ready / Delivered Today); urgency is a badge on each card and
-        // still drives ordering inside a section (RUSH first, then Overdue
-        // → Today → Tomorrow).
+        // UI Reset: the board is organized by WORKFLOW (Pending / Staged /
+        // Delivered Today). Urgency badges left the cards (calm information
+        // display); the RUSH marker chip remains — it is queue management —
+        // and priority ordering is unchanged (RUSH first, then Overdue →
+        // Today → Tomorrow).
         $rushed = $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
         QueueLineService::rush($rushed, $this->admin);
-        $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
+        $overdue = $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
         $this->makeRow();
         $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
 
-        Livewire::test(Board::class)
-            ->assertSee('Queue Line — Pending')
-            ->assertSeeInOrder(['RUSH', 'Overdue', 'Today', 'Tomorrow']);
+        $html = Livewire::test(Board::class)->html();
+
+        $this->assertStringContainsString('Queue Line — Pending', $html);
+        // Exactly ONE marker chip (menu wording never counts as a marker)
+        $this->assertSame(1, substr_count($html, '>RUSH</span>'));
+        // The rushed tomorrow item renders before the overdue one
+        $this->assertTrue(
+            strpos($html, 'ID: ' . $rushed->order->order_number)
+                < strpos($html, 'ID: ' . $overdue->order->order_number),
+            'the rushed item must sort first inside the section',
+        );
     }
 
     public function test_standard_mode_polls_at_60s_and_wallboard_at_30s(): void
@@ -281,12 +290,12 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
         Livewire::test(Board::class, ['wallboard' => true])
             ->set('store', (string) $this->storeNorth->id)
-            ->assertSee('Order #' . $north->order->order_number)
-            ->assertDontSee('Order #' . $south->order->order_number)
+            ->assertSee('ID: ' . $north->order->order_number)
+            ->assertDontSee('ID: ' . $south->order->order_number)
             // a poll is just a re-render: state must hold
             ->call('$refresh')
             ->assertSet('store', (string) $this->storeNorth->id)
-            ->assertDontSee('Order #' . $south->order->order_number);
+            ->assertDontSee('ID: ' . $south->order->order_number);
     }
 
     public function test_wallboard_shows_operational_date_and_last_updated(): void

@@ -278,7 +278,25 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
 
     // ── Presentation (standard + wall-board) ─────────────────────────────
 
-    public function test_cards_show_current_fuel_state_with_attribution(): void
+    /**
+     * UI Reset (2026-07-20): cards no longer carry fuel chips — fuel
+     * currency is expressed by WORKFLOW SECTION membership (verified →
+     * Staged, otherwise Pending). This helper slices the rendered board
+     * into its section blocks so tests can assert which section a card
+     * landed in.
+     */
+    private function sectionBlock(string $html, string $section): string
+    {
+        $start = strpos($html, 'data-queue-section="' . $section . '"');
+        if ($start === false) {
+            return '';
+        }
+        $end = strpos($html, 'data-queue-section="', $start + 1);
+
+        return $end === false ? substr($html, $start) : substr($html, $start, $end - $start);
+    }
+
+    public function test_fuel_state_places_cards_in_the_correct_workflow_section(): void
     {
         $verified = $this->makeRow();
         $unit = $this->softAssign($verified);
@@ -289,11 +307,16 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
 
         foreach ([[], ['wallboard' => true]] as $params) {
             $html = Livewire::test(Board::class, $params)->html();
-            $this->assertStringContainsString('Fuel Full ✓', $html);
-            $this->assertStringContainsString('Fuel Not Verified', $html);
-            $this->assertStringContainsString('Fuel Tech', $html); // employee attribution
-            $this->assertSame(1, substr_count($html, 'data-fuel-state="verified"'));
-            $this->assertSame(1, substr_count($html, 'data-fuel-state="not-verified"'));
+            $this->assertStringContainsString(
+                'data-order-product-id="' . $verified->id . '"',
+                $this->sectionBlock($html, 'ready'),
+                'the fuel-verified card must render in the Staged section',
+            );
+            $this->assertStringContainsString(
+                'data-order-product-id="' . $notVerified->id . '"',
+                $this->sectionBlock($html, 'pending'),
+                'the unverified card must render in the Pending section',
+            );
         }
     }
 
@@ -307,17 +330,17 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
         EquipmentReassignmentService::switch($row->fresh(['softAssignment.equipment', 'order']), $xyz, $this->employee, $this->admin);
 
         $html = Livewire::test(Board::class)->html();
-        // Card immediately reads Not Verified for the replacement
-        $this->assertSame(1, substr_count($html, 'data-fuel-state="not-verified"'));
-        $this->assertSame(0, substr_count($html, 'data-fuel-state="verified"'));
+        // The replacement's episode has no verification → back to Pending
+        $this->assertStringContainsString('data-order-product-id="' . $row->id . '"', $this->sectionBlock($html, 'pending'));
+        $this->assertSame('', $this->sectionBlock($html, 'ready'), 'no card may present as fuel-verified');
     }
 
-    public function test_livewire_verify_flow_updates_the_card_and_preserves_the_store_filter(): void
+    public function test_livewire_verify_flow_updates_the_board_and_preserves_the_store_filter(): void
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
 
-        Livewire::test(Board::class)
+        $component = Livewire::test(Board::class)
             ->set('store', (string) $this->storeNorth->id)
             ->call('openFuelVerify', $row->id)
             ->assertSee('Verify Fuel Full')
@@ -329,19 +352,23 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
             ->call('confirmFuelVerify', $unit->id)
             ->assertSet('fuelItemId', null)
             ->assertSee('Fuel Full verified for')
-            ->assertSee('Fuel Full ✓')
             ->assertSet('store', (string) $this->storeNorth->id);
 
+        // Verified → the card now lives in the Staged section
+        $this->assertStringContainsString(
+            'data-order-product-id="' . $row->id . '"',
+            $this->sectionBlock($component->html(), 'ready'),
+        );
         $this->assertSame(1, QueueLineFuelVerification::count());
     }
 
-    public function test_livewire_reverse_flow_requires_reason_and_returns_card_to_not_verified(): void
+    public function test_livewire_reverse_flow_requires_reason_and_returns_card_to_pending(): void
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
         $verification = $this->verify($row, $unit)['verification'];
 
-        Livewire::test(Board::class)
+        $component = Livewire::test(Board::class)
             ->call('openFuelReverse', $row->id)
             ->assertSee('Reverse Fuel Verification')
             ->set('fuelPerformedBy', (string) $this->employee->id)
@@ -349,9 +376,13 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
             ->assertSee('reason is required')
             ->set('fuelReason', 'verified the wrong machine')
             ->call('confirmFuelReverse', $verification->id)
-            ->assertSee('Fuel verification reversed')
-            ->assertSee('Fuel Not Verified');
+            ->assertSee('Fuel verification reversed');
 
+        // Reversed → back to Pending; nothing presents as verified
+        $this->assertStringContainsString(
+            'data-order-product-id="' . $row->id . '"',
+            $this->sectionBlock($component->html(), 'pending'),
+        );
         $this->assertSame(2, QueueLineFuelVerification::count());
     }
 

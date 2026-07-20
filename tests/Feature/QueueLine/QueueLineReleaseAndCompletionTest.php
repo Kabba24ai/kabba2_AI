@@ -281,7 +281,7 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
             $this->assertStringContainsString('Delivered Today', $html);
             $this->assertSame(1, substr_count($html, 'data-delivered="1"'));
             $this->assertStringContainsString('data-order-product-id="' . $releasing->id . '"', $html);
-            $this->assertStringContainsString('Off the yard — no action needed', $html);
+            $this->assertStringContainsString('Delivered', $html);
             $this->assertStringContainsString('data-order-product-id="' . $sibling->id . '"', $html);
         }
     }

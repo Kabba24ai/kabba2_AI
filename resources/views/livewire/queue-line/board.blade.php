@@ -4,13 +4,13 @@
     // Wall-board tiers (Phase 4 §6): 1080p baseline, wall2k (QHD) bumps type,
     // wall4k scales cards + type together — bigger cards, not more tiny
     // columns. Real responsive classes, never CSS transforms/zoom.
-    // UI Iteration 1: one uniform card in every state; primary technician
-    // buttons (Confirm/Update Equipment · Verify Fuel Full) get 'btnPrimary'
-    // sizing — deliberately larger than everything else on the card.
+    // UI Reset (2026-07-20): the board is an INFORMATION DISPLAY — cards
+    // carry no workflow buttons, so heights shrink to the seven content
+    // rows. The only interactive card element is the ⋮ Queue menu.
     $ui = $wallboard
         ? [
             'cardW' => 'w-96 wall2k:w-[26rem] wall4k:w-[32rem]',
-            'cardH' => 'h-[36rem] wall2k:h-[38rem] wall4k:h-[52rem]',
+            'cardH' => 'h-[29rem] wall2k:h-[31rem] wall4k:h-[43rem]',
             'imgH' => 'h-44 wall2k:h-48 wall4k:h-72',
             'title' => 'text-xl wall2k:text-2xl wall4k:text-3xl',
             'body' => 'text-sm wall2k:text-base wall4k:text-xl',
@@ -20,18 +20,12 @@
             'btn' => 'px-3 py-2 text-sm wall2k:text-base wall4k:px-5 wall4k:py-3 wall4k:text-lg',
         ]
         : [
-            'cardW' => 'w-80', 'cardH' => 'h-[31rem]', 'imgH' => 'h-36',
+            'cardW' => 'w-80', 'cardH' => 'h-[25rem]', 'imgH' => 'h-36',
             'title' => 'text-base', 'body' => 'text-xs', 'badge' => 'text-xs',
             'sectionHeader' => 'text-lg', 'groupHeader' => 'text-base',
             'btn' => 'px-2 py-2 text-xs',
         ];
     $ui['btnBase'] = 'rounded border font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ' . $ui['btn'];
-    // Primary technician actions — tablet-first tap targets, always the
-    // loudest controls on the card.
-    $ui['btnPrimary'] = 'rounded-md border-2 font-bold text-center leading-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 '
-        . ($wallboard
-            ? 'px-3 py-3 text-base wall2k:text-lg wall4k:px-5 wall4k:py-4 wall4k:text-2xl'
-            : 'px-2 py-2.5 text-sm');
 @endphp
 <div wire:poll.{{ $this->pollSeconds() }}s>
     {{-- Toolbar --}}
@@ -145,7 +139,7 @@
             $sectionMeta = [
                 'pending' => [
                     'label' => 'Queue Line — Pending', 'icon' => 'wrench',
-                    'hint' => 'Confirm the machine and verify fuel',
+                    'hint' => 'Still needs a machine pulled or fuel verified',
                     'band' => 'bg-sky-700 text-white', 'wrapper' => 'border-sky-200', 'bandExtra' => '',
                 ],
                 // Section key 'ready' is internal only — the user-visible label

@@ -59,17 +59,17 @@ class QueueLineBoardTest extends QueueLineTestCase
         $this->softAssign($b);
 
         Livewire::test(Board::class)
-            ->assertSee('Order #' . $order->order_number)
+            ->assertSee('ID: ' . $order->order_number)
             ->assertSee('Grouped Customer')
             ->assertSee(route('admin.order-management.orders.edit', $order->unique_id));
 
         $html = Livewire::test(Board::class)->html();
-        $this->assertSame(2, substr_count($html, 'Order #' . $order->order_number));
+        $this->assertSame(2, substr_count($html, 'ID: ' . $order->order_number));
         $this->assertSame(2, substr_count($html, 'data-queue-row="card"'));
         $this->assertSame(2, substr_count($html, 'title="Grouped Customer"'));
     }
 
-    public function test_unassigned_item_renders_the_uniform_card_without_stage_control(): void
+    public function test_unassigned_item_renders_the_uniform_card_with_no_workflow_actions(): void
     {
         $row = $this->makeRow(); // eligible, no soft assignment
 
@@ -81,9 +81,16 @@ class QueueLineBoardTest extends QueueLineTestCase
         // Same card in every state — the equipment section adapts instead
         $this->assertSame(1, substr_count($html, 'data-queue-row="card"'));
         $this->assertSame(1, substr_count($html, 'data-assignment="unassigned"'));
-        $this->assertStringContainsString('Assign Equipment', $html);
-        // No stage control until a machine is selected
+        $this->assertStringContainsString('No equipment selected', $html);
+        // UI Reset: the board is an information display — assignment/fuel/
+        // history/stage workflows never render on the card
+        $this->assertStringNotContainsString('Assign Equipment', $html);
+        $this->assertStringNotContainsString('Verify Fuel', $html);
+        $this->assertStringNotContainsString('History', $html);
         $this->assertStringNotContainsString('wire:click="stage(', $html);
+        $this->assertStringNotContainsString('wire:click="openSwitch(', $html);
+        $this->assertStringNotContainsString('wire:click="openFuelVerify(', $html);
+        $this->assertStringNotContainsString('wire:click="openHistory(', $html);
     }
 
     public function test_unassigned_card_gains_equipment_section_once_soft_assigned(): void
@@ -97,19 +104,25 @@ class QueueLineBoardTest extends QueueLineTestCase
         $this->assertSame(1, substr_count($html, 'data-assignment="direct"'));
     }
 
-    public function test_urgency_renders_as_card_badges_in_priority_order(): void
+    public function test_urgency_still_orders_cards_inside_the_section(): void
     {
-        $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
-        $this->makeRow();
-        $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
+        // UI Reset: urgency badges left the card (calm information display),
+        // but sortItems ordering inside the section is unchanged:
+        // Overdue → Today → Tomorrow.
+        $overdue = $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
+        $today = $this->makeRow();
+        $tomorrow = $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
 
-        // sortItems ordering inside the section: Overdue → Today → Tomorrow
         Livewire::test(Board::class)
             ->assertSee('Queue Line — Pending')
-            ->assertSeeInOrder(['Overdue', 'Today', 'Tomorrow']);
+            ->assertSeeInOrder([
+                'ID: ' . $overdue->order->order_number,
+                'ID: ' . $today->order->order_number,
+                'ID: ' . $tomorrow->order->order_number,
+            ]);
     }
 
-    public function test_rushed_item_gets_the_rush_badge_and_sorts_first(): void
+    public function test_rushed_item_gets_the_rush_marker_and_sorts_first(): void
     {
         $other = $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
         $row = $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
@@ -118,7 +131,7 @@ class QueueLineBoardTest extends QueueLineTestCase
         // A rushed tomorrow item outranks an overdue one inside the section
         Livewire::test(Board::class)
             ->assertSee('RUSH')
-            ->assertSeeInOrder(['Order #' . $row->order->order_number, 'Order #' . $other->order->order_number]);
+            ->assertSeeInOrder(['ID: ' . $row->order->order_number, 'ID: ' . $other->order->order_number]);
     }
 
     public function test_empty_state_renders_when_nothing_is_eligible(): void
@@ -129,21 +142,18 @@ class QueueLineBoardTest extends QueueLineTestCase
 
     // ── Actions through the component ────────────────────────────────────
 
-    public function test_stage_and_unstage_through_the_component(): void
+    public function test_stage_and_unstage_actions_still_work_through_the_component(): void
     {
+        // UI Reset: the staging latch has no card control anymore (the board
+        // is display-only) — the component actions and service behavior are
+        // retained untouched for the workflows that own them.
         $row = $this->makeRow();
         $this->softAssign($row);
 
-        Livewire::test(Board::class)
-            ->call('stage', $row->id)
-            ->assertSee('On Queue Line');
-
+        Livewire::test(Board::class)->call('stage', $row->id);
         $this->assertNotNull($row->queueLineItem->staged_at);
 
-        Livewire::test(Board::class)
-            ->call('unstage', $row->id)
-            ->assertSee('Put On Queue Line'); // menu offers staging again
-
+        Livewire::test(Board::class)->call('unstage', $row->id);
         $this->assertNull($row->queueLineItem->fresh()->staged_at);
     }
 
@@ -193,11 +203,11 @@ class QueueLineBoardTest extends QueueLineTestCase
             ->assertSee($south->order->order_number)
             ->set('store', (string) $this->storeNorth->id)
             ->assertSee($north->order->order_number)
-            ->assertDontSee('Order #' . $south->order->order_number)
+            ->assertDontSee('ID: ' . $south->order->order_number)
             // an action must not reset the filter
             ->call('rush', $north->id)
             ->assertSet('store', (string) $this->storeNorth->id)
-            ->assertDontSee('Order #' . $south->order->order_number);
+            ->assertDontSee('ID: ' . $south->order->order_number);
     }
 
     // ── Presentation data ────────────────────────────────────────────────

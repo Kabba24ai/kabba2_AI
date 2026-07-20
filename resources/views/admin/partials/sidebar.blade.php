@@ -428,6 +428,14 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('admin.reports.fuel-charge-workspace.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.reports.fuel-charge-workspace.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-fire class="w-6 h-6" />
+                                        Fuel Charges
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('admin.reports.operation.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.reports.operation.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">

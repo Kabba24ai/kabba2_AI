@@ -14,7 +14,7 @@
         accent-hex="#f97316"
         chart-id="fuel-charge-donut"
         action-class="bg-orange-500 hover:bg-orange-600"
-        :href="route('admin.reports.calls-log.index') . '?tab=fuel'"
+        :href="route('admin.reports.fuel-charge-workspace.index')"
         action-label="Resolve Fuel Charges"
         :outstanding="$fuelSummary['outstanding'] ?? 0"
         :completed-today="$fuelSummary['completed_today'] ?? 0"

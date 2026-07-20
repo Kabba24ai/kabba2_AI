@@ -304,10 +304,15 @@ class RefundedOrderScheduleClosureTest extends TestCase
         $this->assertEquals($payment->id, $entry->order_payment_id);
     }
 
-    public function test_void_without_cancel_keeps_the_rental_on_schedule_and_dispatch(): void
+    public function test_void_without_cancel_hides_the_rental_until_the_recharge_settles(): void
     {
-        // SAFETY REQUIREMENT: a plain void (payment correction) must never
-        // remove an upcoming rental from operational view.
+        // Schedule Financial-Closure Alignment (2026-07-20) — SUPERSEDES the
+        // original "plain void stays visible" rule: a voided order with NO
+        // settled replacement payment is financially inactive and leaves
+        // the actionable Schedule/Dispatch views. The ROW is untouched
+        // (still Pending, never auto-closed), so the moment the recharge
+        // settles the rental reappears everywhere automatically — the
+        // void-then-recharge correction workflow still completes normally.
         [$order, $row, $payment] = $this->makeVoidableOrder('TXN-CLOSURE-2');
         $this->mockVoidableGateway('TXN-CLOSURE-2');
 
@@ -321,9 +326,14 @@ class RefundedOrderScheduleClosureTest extends TestCase
         $this->assertFalse((bool) $row->is_delivered);
         $this->assertCount(0, $this->autoCloseHistory($order));
 
-        // Still visible on the actionable Schedule subset AND Dispatch —
-        // including on the Schedule page, which previously blanket-hid any
-        // order carrying a Voided payment.
+        // Voided-out (nothing settled) → hidden from the actionable views
+        \App\Services\Orders\OrderFinancialActivity::flushMemo();
+        $this->assertStringNotContainsString($order->order_number, $this->scheduleHtml(['schedule_type' => ['Delivery']]));
+        $this->assertStringNotContainsString($order->order_number, $this->dispatchHtml());
+
+        // Recharge settles → the untouched Pending row is active work again
+        $this->payCash($order, 100);
+        \App\Services\Orders\OrderFinancialActivity::flushMemo();
         $this->assertStringContainsString($order->order_number, $this->scheduleHtml(['schedule_type' => ['Delivery']]));
         $this->assertStringContainsString($order->order_number, $this->dispatchHtml());
     }

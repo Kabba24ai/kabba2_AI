@@ -320,7 +320,9 @@ class Board extends Component
             $storeId = $this->store === 'all' ? null : (int) $this->store;
 
             $rows = QueueLineEligibility::sortItems(
-                QueueLineEligibility::boardQuery($storeId)->get()
+                QueueLineEligibility::filterFinanciallyActive(
+                    QueueLineEligibility::boardQuery($storeId)->get()
+                )
             );
 
             // Current fuel state for every visible card in ONE query — a row
@@ -467,8 +469,10 @@ class Board extends Component
                     $summary['maintenanceHold']++;
                 }
 
-                if ($equipment?->current_status?->value === 'damaged'
-                    || QueueLineEligibility::rentalReadyLabel($item) === QueueLineEligibility::RR_DAMAGED) {
+                // Equipment status only — Rental Ready inspection state is
+                // deliberately not surfaced on Queue Line (refinement
+                // 2026-07-20), so the tile mirrors exactly what cards show.
+                if ($equipment?->current_status?->value === 'damaged') {
                     $summary['damaged']++;
                 }
             }

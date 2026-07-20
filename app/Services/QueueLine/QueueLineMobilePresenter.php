@@ -40,7 +40,9 @@ final class QueueLineMobilePresenter
     public static function board(?int $storeId = null): array
     {
         $rows = QueueLineEligibility::sortItems(
-            QueueLineEligibility::boardQuery($storeId)->get()
+            QueueLineEligibility::filterFinanciallyActive(
+                QueueLineEligibility::boardQuery($storeId)->get()
+            )
         );
 
         $fuelByAssignment = self::fuelMap($rows);
@@ -56,7 +58,9 @@ final class QueueLineMobilePresenter
     /** Lightweight counts for the home-page badge (§15) — no item payloads. */
     public static function summary(?int $storeId = null): array
     {
-        $rows = QueueLineEligibility::boardQuery($storeId)->get();
+        $rows = QueueLineEligibility::filterFinanciallyActive(
+            QueueLineEligibility::boardQuery($storeId)->get()
+        );
         $fuelByAssignment = self::fuelMap($rows);
 
         return self::meta($rows, $fuelByAssignment)['counts'];

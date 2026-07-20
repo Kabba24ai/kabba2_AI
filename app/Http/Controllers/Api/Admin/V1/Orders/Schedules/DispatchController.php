@@ -199,6 +199,11 @@ class DispatchController extends BaseController
             }
         }
 
+        // Schedule Financial-Closure Alignment (2026-07-20): same read-side
+        // safeguard as the web Schedule/Dispatch — legacy rows on voided-out
+        // or fully-refunded orders are not dispatchable work.
+        \App\Services\Orders\OrderFinancialActivity::excludeInactiveOrderProducts($query);
+
         if ($isBothSelected || empty($scheduleTypes)) {
             // Only weigh a leg's priority/date when that leg is still Pending —
             // a Completed delivery's leftover priority shouldn't outrank the

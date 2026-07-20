@@ -248,6 +248,17 @@ class IndexController extends Controller
                       ->whereDate('pickup_date', '<', \Carbon\Carbon::today());
             }
 
+            // Schedule Financial-Closure Alignment (2026-07-20): financially
+            // inactive orders (voided-out / fully refunded / fee-retained
+            // operationally-complete refunds) are no longer active work.
+            // Rows the closure engine already closed never reach here
+            // (delivery_status filters); this read-side safeguard covers
+            // LEGACY rows recorded before RefundedOrderScheduleCloser
+            // shipped. Applied after every filter so pagination and the
+            // 'total' count stay SQL-consistent. Void-then-recharge and
+            // partial refunds remain visible (see OrderFinancialActivity).
+            \App\Services\Orders\OrderFinancialActivity::excludeInactiveOrderProducts($query);
+
             $perPage = $request->input('per_page', 30);
             $perPageVal = $perPage === 'all' ? max(1, $query->count()) : (int) $perPage;
             $orderProducts = $query->orderBy($orderByField, $orderBy)->paginate($perPageVal)->withQueryString(); // keeps filters in pagination links
@@ -282,12 +293,16 @@ class IndexController extends Controller
                 ];
             });
         $employees = $users->pluck('full_name', 'unique_id')->prepend('Select Employee', '');
-        $rescheduleOrder = Order::whereHas('products', function ($q) {
-            $q->where(function ($subQ) {
-                $subQ->where('delivery_status', 'Reschedule')
-                    ->orWhere('pickup_status', 'Reschedule');
-            });
-        })->count();
+        // Badge count obeys the same financial-activity rule as the rows it
+        // summarizes — counts and visible rows can never disagree.
+        $rescheduleOrder = \App\Services\Orders\OrderFinancialActivity::excludeInactiveOrders(
+            Order::whereHas('products', function ($q) {
+                $q->where(function ($subQ) {
+                    $subQ->where('delivery_status', 'Reschedule')
+                        ->orWhere('pickup_status', 'Reschedule');
+                });
+            })
+        )->count();
         // $all = $query->orderBy('delivery_date', 'asc')->limit(2)->get(); // keeps filters in pagination links
 
         // dd($all);

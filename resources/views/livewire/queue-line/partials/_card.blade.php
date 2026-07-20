@@ -41,13 +41,15 @@
     $isRushed = $queueItem?->isRushed() ?? false;
     $orderEditUrl = route('admin.order-management.orders.edit', $order->unique_id);
     $optionsCount = QueueLineEligibility::optionsCount($item);
-    $rrLabel = QueueLineEligibility::rentalReadyLabel($item);
 
     $imageProduct = $assignment === QueueLineEligibility::ASSIGNMENT_ALTERNATE
         ? $equipment?->assignedProduct
         : $item->product;
 
-    // Row 6 — equipment status + live warnings only (no reserved space)
+    // Row 6 — equipment status + live SCHEDULE warnings only. Rental Ready
+    // inspection progress is deliberately NOT shown here (refinement
+    // 2026-07-20): Queue Line is not a Rental Ready status board — the
+    // equipment status itself carries the immediate issue.
     $equipStatus = $equipment?->current_status?->value;
     $statusChip = $equipment ? match ($equipStatus) {
         'maintenance' => ['label' => 'Maintenance Hold', 'tone' => 'bg-amber-100 text-amber-900 border-amber-300'],
@@ -57,12 +59,6 @@
     } : null;
 
     $warnings = [];
-    if ($equipment && $equipStatus !== 'damaged' && $rrLabel === QueueLineEligibility::RR_DAMAGED) {
-        $warnings[] = ['label' => 'Damaged', 'tone' => 'bg-red-100 text-red-900 border-red-300'];
-    }
-    if ($equipment && $rrLabel !== QueueLineEligibility::RR_READY && $rrLabel !== QueueLineEligibility::RR_DAMAGED) {
-        $warnings[] = ['label' => 'RR: ' . $rrLabel, 'tone' => 'bg-amber-50 text-amber-800 border-amber-200'];
-    }
     if ($equipment?->store_id && $item->delivery_store_id && (int) $equipment->store_id !== (int) $item->delivery_store_id) {
         $warnings[] = [
             'label' => 'Wrong Location' . ($equipment->store?->store_name ? ' — at ' . $equipment->store->store_name : ''),
@@ -141,12 +137,10 @@
                 role="note" aria-label="Confirm the assigned machine matches the order">
                 Confirm Match
             </div>
-        @elseif ($assignment === QueueLineEligibility::ASSIGNMENT_UNASSIGNED)
-            <div class="absolute inset-x-0 top-0 bg-amber-500 text-white text-center py-1 {{ $ui['badge'] }} font-bold uppercase tracking-widest shadow"
-                role="note" aria-label="Needs Equipment Assignment">
-                Needs Equipment Assignment
-            </div>
         @endif
+        {{-- No banner for the unassigned state (refinement 2026-07-20):
+             selecting a machine is normal pull-list work, not an exception —
+             the "No equipment selected" row communicates it. --}}
     </div>
 
     <div class="flex flex-col flex-1 min-h-0 px-3 pt-2 pb-3">

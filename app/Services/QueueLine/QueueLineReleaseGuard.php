@@ -100,6 +100,21 @@ final class QueueLineReleaseGuard
             return false; // already left — repeats/late saves flow freely
         }
 
+        // A financially inactive order (voided-out / fully refunded) never
+        // appears on the board — the guard must not enforce for it either
+        // (no ghost enforcement for invisible items). Cheap suspect screen
+        // first so ordinary releases never pay for the full summary.
+        $order = $orderProduct->order;
+        if ($order) {
+            $suspect = $order->payments()
+                ->whereIn('status', \App\Services\Orders\OrderFinancialActivity::SUSPECT_PAYMENT_STATUSES)
+                ->exists();
+
+            if ($suspect && ! \App\Services\Orders\OrderFinancialActivity::isActive($order)) {
+                return false;
+            }
+        }
+
         return QueueLineEligibility::eligibleQuery()
             ->whereKey($orderProduct->id)
             ->exists();

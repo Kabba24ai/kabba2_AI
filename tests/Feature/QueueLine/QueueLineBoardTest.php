@@ -74,13 +74,15 @@ class QueueLineBoardTest extends QueueLineTestCase
         $row = $this->makeRow(); // eligible, no soft assignment
 
         $component = Livewire::test(Board::class)
-            ->assertSee('Needs Equipment Assignment')
             ->assertSee($row->product_name);
 
         $html = $component->html();
-        // Same card in every state — the equipment section adapts instead
+        // Same card in every state — the equipment section adapts instead.
+        // Refinement 2026-07-20: NO banner for the unassigned state —
+        // selecting a machine is normal pull-list work, not an exception.
         $this->assertSame(1, substr_count($html, 'data-queue-row="card"'));
         $this->assertSame(1, substr_count($html, 'data-assignment="unassigned"'));
+        $this->assertStringNotContainsString('Needs Equipment Assignment', $html);
         $this->assertStringContainsString('No equipment selected', $html);
         // UI Reset: the board is an information display — assignment/fuel/
         // history/stage workflows never render on the card

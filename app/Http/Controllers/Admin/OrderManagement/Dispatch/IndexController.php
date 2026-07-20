@@ -48,6 +48,10 @@ class IndexController extends Controller
             );
         }
 
+        // Driver cards obey the same financial-activity rule as the list
+        // (Schedule Financial-Closure Alignment, 2026-07-20).
+        \App\Services\Orders\OrderFinancialActivity::excludeInactiveOrderProducts($deliveryQuery);
+
         $deliveryJobs = $deliveryQuery->get()->groupBy('delivery_by');
 
         $returnQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'pickupStore', 'equipment', 'softAssignment.equipment'])
@@ -63,6 +67,8 @@ class IndexController extends Controller
                 \DB::raw('COALESCE(dispatch_return_date, pickup_date)'), '<=', $endDate
             );
         }
+
+        \App\Services\Orders\OrderFinancialActivity::excludeInactiveOrderProducts($returnQuery);
 
         $returnJobs = $returnQuery->get()->groupBy('pickup_by');
 
@@ -341,6 +347,12 @@ class IndexController extends Controller
                     }
                 }
             }
+
+            // Schedule Financial-Closure Alignment (2026-07-20): same
+            // read-side safeguard as Schedule — legacy rows on voided-out /
+            // fully-refunded orders are not dispatchable work. Applied once
+            // here so BOTH the split and combined views inherit it.
+            \App\Services\Orders\OrderFinancialActivity::excludeInactiveOrderProducts($query);
 
             $viewMode = $request->input('view_mode', 'combined');
             $perPage  = $request->input('per_page', 30);

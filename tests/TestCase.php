@@ -53,6 +53,12 @@ abstract class TestCase extends BaseTestCase
      */
     protected function setUpTraits()
     {
+        // OrderFinancialActivity memoizes per PHP request; test processes
+        // run many "requests" with recycled auto-increment ids, so the memo
+        // must be flushed per test or a prior test's verdict would leak
+        // onto an unrelated order that happens to share its id.
+        \App\Services\Orders\OrderFinancialActivity::flushMemo();
+
         $uses = array_flip(class_uses_recursive(static::class));
 
         if (

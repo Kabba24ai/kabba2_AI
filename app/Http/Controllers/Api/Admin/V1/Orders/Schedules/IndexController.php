@@ -125,6 +125,9 @@ class IndexController extends BaseController
                 fn($query) => $query->orderBy('pickup_date', 'asc'),
                 fn($query) => $query->orderBy('delivery_date', $dateFilter === 'Today' ? 'desc' : 'asc')
             )
+            // Schedule Financial-Closure Alignment (2026-07-20): legacy rows
+            // on voided-out / fully-refunded orders are not active work.
+            ->tap(fn ($query) => \App\Services\Orders\OrderFinancialActivity::excludeInactiveOrderProducts($query))
             ->paginate($perPage);
 
         if ($orders->isEmpty()) {

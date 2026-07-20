@@ -2,7 +2,9 @@
 
 namespace App\Services\QueueLine;
 
+use App\Models\Orders\Order;
 use App\Models\Orders\OrderProduct;
+use App\Services\Orders\OrderFinancialActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -73,6 +75,7 @@ final class QueueLineEligibility
             })
             ->with([
                 'order.lastPayment',
+                'order.payments',                 // financial-activity pre-screen (filterFinanciallyActive)
                 'product:id,unique_id,product_name',
                 'product.mediaChildren',          // image_url accessor source (Phase 2 cards)
                 'deliveryStore:id,unique_id,store_name',
@@ -82,6 +85,33 @@ final class QueueLineEligibility
                 'softAssignment.equipment.activeEquipmentRentalReadyTemplate', // RR badge
                 'queueLineItem',
             ]);
+    }
+
+    /**
+     * Active-order rule (refinement 2026-07-20; extracted to the neutral
+     * order domain during the Schedule Financial-Closure Alignment):
+     * voided-out and fully refunded orders are no longer active orders and
+     * must never appear on Queue Line. The rule itself lives in
+     * OrderFinancialActivity — the SAME definition Schedule and Dispatch
+     * consume; Queue Line does not own it. These wrappers exist only so
+     * queue callers keep one import.
+     */
+    public static function isOrderFinanciallyActive(Order $order): bool
+    {
+        return OrderFinancialActivity::isActive($order);
+    }
+
+    /**
+     * Board-path batched wrapper (order.payments is eager-loaded by
+     * boardQuery, so the suspect pre-screen costs zero queries — boards
+     * with no refund/void activity keep their flat query budget).
+     *
+     * @param  Collection<int, OrderProduct>  $rows  boardQuery() results
+     * @return Collection<int, OrderProduct>
+     */
+    public static function filterFinanciallyActive(Collection $rows): Collection
+    {
+        return OrderFinancialActivity::filterActiveOrderProducts($rows);
     }
 
     /** Overdue < today | Today = today | Tomorrow = today+1 (date-only, app timezone). */

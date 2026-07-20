@@ -95,7 +95,9 @@ class QueueLinePresentationTest extends QueueLineTestCase
         // UI Iteration 1: unassigned items use the SAME card — ordered
         // product image + Needs Equipment ribbon; the equipment section
         // adapts instead of the card changing shape
-        $this->assertStringContainsString('Needs Equipment Assignment', $html);
+        // Refinement 2026-07-20: no banner — the equipment row carries the
+        // unassigned state ("No equipment selected"), nothing shouts.
+        $this->assertStringNotContainsString('Needs Equipment Assignment', $html);
         $this->assertSame(1, substr_count($html, 'data-queue-row="card"'));
         $this->assertSame(1, substr_count($html, 'data-assignment-visual="unassigned"'));
         $this->assertStringContainsString('alt="' . $this->orderedProduct->product_name . '"', $html);
@@ -140,13 +142,12 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
         $html = Livewire::test(Board::class)->html();
 
-        // UI Iteration 1: warnings render ONLY while live — a Rental Ready
-        // unit shows no RR badge at all (quiet positive state); Damaged uses
-        // the warning badge, not an RR: prefix
-        $this->assertStringNotContainsString('RR: Rental Ready', $html);
-        $this->assertStringContainsString('RR: Draft / Incomplete', $html);
-        $this->assertStringContainsString('Damaged', $html);
-        $this->assertStringContainsString('RR: Not Inspected', $html);
+        // Refinement 2026-07-20: Queue Line is NOT a Rental Ready status
+        // board — no RR badge renders in ANY inspection state. The
+        // inspection data, rules, and screens are untouched; only the queue
+        // card presentation dropped it. Equipment status still shows.
+        $this->assertStringNotContainsString('RR:', $html);
+        $this->assertStringContainsString('Available', $html);
         // All four rows on the board — nothing filtered by inspection state
         $this->assertSame(4, substr_count($html, 'data-queue-row="card"'));
     }

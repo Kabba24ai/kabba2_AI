@@ -160,14 +160,14 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'rental_return_day_before_truck_message',
                 'setting_title' => 'Rental Return Day Before Truck Message',
-                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by 9:00 AM. Please have it clean, accessible, with the key included, and ready for return. Need more time? Rentals can’t auto-renew, but we’ll do everything we can to extend it for you if the schedule allows—just call or text (615) 815-6734 and we’ll do our best to make it happen.",
+                'default_value' => "Reminder: Your rental is scheduled for driver pick-up tomorrow by {{pickup_time}}. Please have it clean, accessible, with the key included, and ready for return. Need more time? Rentals can’t auto-renew, but we’ll do everything we can to extend it for you if the schedule allows—just call or text (615) 815-6734 and we’ll do our best to make it happen.",
                 'sort_order' => $sortOrder++,
             ],
             [
                 'value_type' => 'text',
                 'setting_name' => 'rental_return_day_before_store_message',
                 'setting_title' => 'Rental Return Day Before Store Message',
-                'default_value' => "Reminder: Your rental is scheduled to be returned to our store tomorrow by 9:00 AM. Please plan for drop-off and return it clean, full of fuel, and with the key included. Need more time? Rentals can’t auto-renew, but call or text (615) 815-6734 and we’ll do our best to extend it if availability allows.",
+                'default_value' => "Reminder: Your rental is scheduled to be returned to our store tomorrow by {{pickup_time}}. Please plan for drop-off and return it clean, full of fuel, and with the key included. Need more time? Rentals can’t auto-renew, but call or text (615) 815-6734 and we’ll do our best to extend it if availability allows.",
                 'sort_order' => $sortOrder++,
             ],
             [
@@ -181,7 +181,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'rental_return_same_day_store_message',
                 'setting_title' => 'Rental Return Same Day Store Message',
-                'default_value' => "Good morning! This is a reminder that your rental is due back to our store today by 9:00 AM. Please return it clean, full of fuel, and with the key included. Need an extension? Call or text us immediately this morning so we can do our best to make it happen before the day gets booked. (615) 815-6734",
+                'default_value' => "Good morning! This is a reminder that your rental is due back to our store today by {{pickup_time}}. Please return it clean, full of fuel, and with the key included. Need an extension? Call or text us immediately this morning so we can do our best to make it happen before the day gets booked. (615) 815-6734",
                 'sort_order' => $sortOrder++,
             ],
             [

@@ -114,9 +114,14 @@ class SendReturnSameDayRentalReminderJob implements ShouldQueue
             $customerName = trim(data_get($record, 'order.customer.first_name', '') . ' ' . data_get($record, 'order.customer.last_name', ''));
             $storeName    = $record->pickupStore?->store_name ?? '';
             $returnDate   = $record->pickup_date ? Carbon::parse($record->pickup_date)->format('M d, Y') : '';
+            // Actual scheduled pickup time for this order product — not a
+            // hardcoded standard time, so a Weekend Special (or any other
+            // non-standard) pickup schedule renders correctly. Empty string
+            // when unset, same fallback convention as $returnDate above.
+            $pickupTime = $record->pickup_time ? Carbon::parse($record->pickup_time)->format('g:i A') : '';
             $message = str_replace(
-                ['{{customer_name}}', '{{store_name}}', '{{return_date}}'],
-                [$customerName, $storeName, $returnDate],
+                ['{{customer_name}}', '{{store_name}}', '{{return_date}}', '{{pickup_time}}'],
+                [$customerName, $storeName, $returnDate, $pickupTime],
                 $message
             );
 

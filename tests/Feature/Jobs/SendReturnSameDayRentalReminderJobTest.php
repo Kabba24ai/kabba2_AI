@@ -54,16 +54,16 @@ class SendReturnSameDayRentalReminderJobTest extends TestCase
         }
 
         foreach ([
-            'rental_return_same_day_store_message' => 'RETURN_SAME_DAY_STORE_MSG for {{customer_name}}',
+            'rental_return_same_day_store_message' => 'RETURN_SAME_DAY_STORE_MSG for {{customer_name}} by {{pickup_time}}',
             'rental_return_same_day_store_message_enabled' => '1',
-            'rental_return_same_day_truck_message' => 'RETURN_SAME_DAY_TRUCK_MSG for {{customer_name}}',
+            'rental_return_same_day_truck_message' => 'RETURN_SAME_DAY_TRUCK_MSG for {{customer_name}} by {{pickup_time}}',
             'rental_return_same_day_truck_message_enabled' => '1',
         ] as $name => $value) {
             Setting::create(['setting_name' => $name, 'setting_type' => 'Default Sales Funnel Settings', 'setting_value' => $value]);
         }
     }
 
-    private function makeRecord(string $orderNumber, string $pickupStatus = 'Pending'): array
+    private function makeRecord(string $orderNumber, string $pickupStatus = 'Pending', ?string $pickupTime = '09:00:00'): array
     {
         $order = Order::create([
             'order_number'  => $orderNumber,
@@ -89,6 +89,7 @@ class SendReturnSameDayRentalReminderJobTest extends TestCase
             'pickup_date'            => Carbon::now('America/Chicago')->toDateString(),
             'pickup_status'          => $pickupStatus,
             'pickup_transport_mode'  => 'Store',
+            'pickup_time'            => $pickupTime,
         ]);
 
         return [$order, $orderProduct];
@@ -157,5 +158,63 @@ class SendReturnSameDayRentalReminderJobTest extends TestCase
         $this->runJob();
 
         $this->assertSame(0, SMSLog::where('order_id', $order->id)->count(), 'pickup_date must still gate eligibility regardless of the new dedup guard');
+    }
+
+    // ── {{pickup_time}} merge field (SMS_AUTOMATION_AUDIT.md — Weekend Special pickup-time correction) ──
+
+    public function test_weekend_special_order_receives_its_own_pickup_time(): void
+    {
+        [$order] = $this->makeRecord('RSD-WEEKEND', pickupTime: '14:00:00');
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertNotNull($log);
+        $this->assertStringContainsString('2:00 PM', $log->message);
+        $this->assertStringNotContainsString('9:00 AM', $log->message);
+    }
+
+    public function test_standard_order_continues_receiving_its_normal_pickup_time(): void
+    {
+        [$order] = $this->makeRecord('RSD-STANDARD', pickupTime: '09:00:00');
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertNotNull($log);
+        $this->assertStringContainsString('9:00 AM', $log->message);
+    }
+
+    public function test_pickup_time_is_formatted_in_12_hour_form_with_am_pm(): void
+    {
+        [$order] = $this->makeRecord('RSD-FORMAT', pickupTime: '16:30:00');
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertStringContainsString('4:30 PM', $log->message);
+    }
+
+    public function test_does_not_fall_back_to_the_previous_hardcoded_0900_value_when_an_actual_schedule_exists(): void
+    {
+        [$order] = $this->makeRecord('RSD-NOFALLBACK', pickupTime: '11:15:00');
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertStringContainsString('11:15 AM', $log->message);
+        $this->assertStringNotContainsString('9:00 AM', $log->message);
+    }
+
+    public function test_missing_pickup_time_is_handled_safely(): void
+    {
+        [$order] = $this->makeRecord('RSD-NOPICKUPTIME', pickupTime: null);
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertNotNull($log, 'the job must still send when pickup_time is unset');
+        $this->assertStringNotContainsString('{{pickup_time}}', $log->message, 'the raw merge token must never leak into the sent message');
+        $this->assertStringNotContainsString('9:00 AM', $log->message, 'a missing pickup_time must not fall back to the old hardcoded value');
     }
 }

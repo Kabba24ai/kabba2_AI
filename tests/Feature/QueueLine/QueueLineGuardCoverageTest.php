@@ -8,11 +8,17 @@ use App\Services\QueueLine\QueueFuelVerificationService;
 use App\Services\QueueLine\QueueLineService;
 
 /**
- * Phase 4 §2 — every alternate controller that can record a Completed
- * outbound delivery obeys the SAME canonical QueueLineReleaseGuard as the
- * two checklist release paths. Administrative statuses (Close as Completed,
- * Reschedule, Pending) and return legs are never guarded, and non-queue-
- * managed items pass through untouched.
+ * Phase 4 §2 (amended by the 2026-07-20 regression audit) — the status-
+ * transition controllers that record a Completed outbound delivery obey the
+ * SAME canonical QueueLineReleaseGuard as the two checklist release paths.
+ * Administrative statuses (Close as Completed, Reschedule, Pending) and
+ * return legs are never guarded, and non-queue-managed items pass through
+ * untouched.
+ *
+ * EXPLICITLY UNGUARDED: Orders\AssignEquipmentController. Equipment
+ * assignment belongs to the ORDER workflow — Queue Line must never block,
+ * require, or control it (approved architectural boundary). That inverse
+ * contract is pinned by EquipmentAssignmentIndependenceTest.
  */
 class QueueLineGuardCoverageTest extends QueueLineTestCase
 {
@@ -32,50 +38,18 @@ class QueueLineGuardCoverageTest extends QueueLineTestCase
         );
     }
 
-    // ── Admin web: Orders\AssignEquipmentController (hard-assign + Completed) ──
+    // ── Admin web: Orders\AssignEquipmentController — NEVER guarded ─────
+    // (Assignment independence itself is pinned in depth by
+    //  EquipmentAssignmentIndependenceTest; this test documents the guard's
+    //  scope boundary from the guard suite's side.)
 
-    public function test_admin_assign_equipment_release_is_blocked_without_fuel(): void
+    public function test_admin_assign_equipment_is_never_guarded_by_queue_line(): void
     {
+        // Queue-managed item, fuel NOT verified — the assignment workflow
+        // still completes. Fuel verification is a release rule for the
+        // checklist/dispatch paths only.
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
-
-        $response = $this->postJson(route('admin.order-management.orders.assign-equipment'), [
-            'order_product_unique_id' => $row->unique_id,
-            'equipment_unique_id' => $unit->unique_id,
-            'schedule_type' => 'Delivery',
-        ]);
-
-        $response->assertStatus(422)
-            ->assertJsonPath('success', false)
-            ->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED');
-
-        $row->refresh();
-        $this->assertSame('Pending', $row->delivery_status);
-        $this->assertNull($row->equipment_id);
-        $this->assertNotNull($row->softAssignment, 'the staged assignment must survive a blocked release');
-    }
-
-    public function test_admin_assign_equipment_rejects_a_unit_other_than_the_staged_one(): void
-    {
-        $row = $this->makeRow();
-        $this->softAssign($row);
-        $other = $this->makeEquipment(['assigned_product_id' => $row->product_id]);
-
-        $response = $this->postJson(route('admin.order-management.orders.assign-equipment'), [
-            'order_product_unique_id' => $row->unique_id,
-            'equipment_unique_id' => $other->unique_id,
-            'schedule_type' => 'Delivery',
-        ]);
-
-        $response->assertStatus(422)
-            ->assertJsonPath('error.code', 'QUEUE_ASSIGNMENT_CHANGED');
-    }
-
-    public function test_admin_assign_equipment_succeeds_once_fuel_is_verified(): void
-    {
-        $row = $this->makeRow();
-        $unit = $this->softAssign($row);
-        $this->verifyFuel($row);
 
         $response = $this->postJson(route('admin.order-management.orders.assign-equipment'), [
             'order_product_unique_id' => $row->unique_id,
@@ -88,32 +62,6 @@ class QueueLineGuardCoverageTest extends QueueLineTestCase
         $row->refresh();
         $this->assertSame('Completed', $row->delivery_status);
         $this->assertSame($unit->id, $row->equipment_id);
-    }
-
-    public function test_admin_assign_equipment_ignores_items_outside_queue_management(): void
-    {
-        // Next week = outside the Queue Line window → not queue-managed → no fuel demanded.
-        $row = $this->makeRow(null, ['delivery_date' => now()->addDays(7)->format('Y-m-d')]);
-        $unit = $this->softAssign($row);
-
-        $this->postJson(route('admin.order-management.orders.assign-equipment'), [
-            'order_product_unique_id' => $row->unique_id,
-            'equipment_unique_id' => $unit->unique_id,
-            'schedule_type' => 'Delivery',
-        ])->assertOk();
-    }
-
-    public function test_remove_forever_exits_enforcement_on_the_admin_release_path(): void
-    {
-        $row = $this->makeRow();
-        $unit = $this->softAssign($row);
-        QueueLineService::removeForever($row, $this->admin);
-
-        $this->postJson(route('admin.order-management.orders.assign-equipment'), [
-            'order_product_unique_id' => $row->unique_id,
-            'equipment_unique_id' => $unit->unique_id,
-            'schedule_type' => 'Delivery',
-        ])->assertOk();
     }
 
     // ── Admin web: order edit schedule editor (UpdateProductScheduleController) ──

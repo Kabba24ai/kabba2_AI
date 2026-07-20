@@ -65,18 +65,13 @@ class AssignEquipmentController extends Controller
             );
         }
 
-        // Queue Line release enforcement (Phase 4 §2): this action hard-assigns
-        // AND marks the delivery Completed — a true release. Same canonical
-        // guard as the checklist release paths; checked BEFORE the soft
-        // assignment is deleted so fuel is evaluated against the live episode.
-        $orderProduct->loadMissing('softAssignment.equipment', 'queueLineItem');
-        if ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($orderProduct, $equipment)) {
-            return response()->json([
-                'success' => false,
-                'message' => $blocked['message'],
-                'error' => $blocked,
-            ], 422);
-        }
+        // NO Queue Line guard here — deliberately (regression audit
+        // 2026-07-20, approved boundary): equipment assignment belongs to
+        // the ORDER workflow and must never require Queue Line staging or
+        // fuel verification. Queue Line observes assignment state; it never
+        // gates it. Release enforcement lives only on the true release
+        // paths (driver checklist, customer checklist, dispatch/schedule
+        // status transitions) — see QueueLineReleaseGuard.
 
         // Delete existing soft assignment and create new one
         $orderProduct->softAssignment()->delete();

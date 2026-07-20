@@ -87,7 +87,7 @@ class ChargeCreditCardController extends Controller
                     DB::rollback();
                     return redirect()->back()->withInput()->with('error', 'Payment data missing or invalid.');
                 }
-                $authorizeNetService = new AuthorizeNetService();
+                $authorizeNetService = app(AuthorizeNetService::class);
                 if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
                     DB::rollback();
                     return redirect()->back()->withInput()->with('error', 'Payment token invalid.');
@@ -138,6 +138,22 @@ class ChargeCreditCardController extends Controller
                     );
                 }
             }
+            // Same cross-method settlement fix as ReceivePaymentController /
+            // Api\Admin\V1\Orders\PaymentController — this charges the
+            // order's full grand_total via card, exactly the "COD order
+            // settled by another method" scenario. Close out any stale COD
+            // placeholder row so SendPodPaymentReminderJob stops treating
+            // this order as still unpaid. Superseded, not Paid: the
+            // placeholder's amount is a checkout-time stand-in for the full
+            // grand_total, and scopeSettled() sums by status — marking it
+            // Paid would double-count that amount against the order.
+            if ($order->is_paid) {
+                $order->payments()
+                    ->where('payment_method', OrderPaymentMethod::COD->value)
+                    ->where('status', OrderPaymentStatus::Pending->value)
+                    ->update(['status' => OrderPaymentStatus::Superseded->value]);
+            }
+
             DB::commit();
 
             event(new PaymentInitiateEvent($order, $user, $payment));

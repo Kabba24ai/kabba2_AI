@@ -21,6 +21,18 @@ enum OrderPaymentStatus : string
 
     case Voided = 'Voided';
 
+    /**
+     * A COD ("Pay on Delivery") placeholder row — created at checkout with
+     * amount = the order's full grand_total — whose order was instead paid
+     * off in full through a different payment method. Deliberately NOT
+     * Paid: OrderPayment::scopeSettled() (which feeds Order::total_paid /
+     * is_paid / refund-balance math) sums by status, so marking this row
+     * Paid would double-count a full grand_total of phantom revenue
+     * against the order alongside the real settling payment. System-set
+     * only — never selectable in a payment-entry form.
+     */
+    case Superseded = 'Superseded';
+
     public function label(): string
     {
        return match($this) {
@@ -37,6 +49,7 @@ enum OrderPaymentStatus : string
            self::InvoiceCheque => 'Paid by Check',
            self::InvoiceOther => 'Other Invoice Payment',
            self::Voided => 'Voided',
+           self::Superseded => 'Superseded (Paid via Other Method)',
        };
     }
 

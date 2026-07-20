@@ -282,15 +282,22 @@ class ReceivePaymentController extends Controller
                 }
 
             }
-            // When full payment is recorded via any method other than COD itself,
-            // the original COD Pending row must also be closed — otherwise the
-            // POD SMS reminder job still sees a COD+Pending row and keeps firing.
-            // if ($targetStatus === OrderPaymentStatus::Paid) {
-            //     $order->payments()
-            //         ->where('payment_method', OrderPaymentMethod::COD->value)
-            //         ->where('status', OrderPaymentStatus::Pending->value)
-            //         ->update(['status' => OrderPaymentStatus::Paid->value]);
-            // }
+            // When this payment fully settles the order, close out any stale
+            // COD "Pay on Delivery" placeholder row — otherwise
+            // SendPodPaymentReminderJob still sees a COD+Pending row and
+            // keeps sending payment-link/reminder SMS after the customer has
+            // already paid. Target status is Superseded, not Paid: the
+            // placeholder's amount is a checkout-time stand-in for the full
+            // grand_total, and scopeSettled() sums by status — marking it
+            // Paid would double-count that amount against the order.
+            // is_paid re-reads total_paid fresh, so a partial payment
+            // (order not yet fully paid) correctly leaves this a no-op.
+            if ($order->is_paid) {
+                $order->payments()
+                    ->where('payment_method', OrderPaymentMethod::COD->value)
+                    ->where('status', OrderPaymentStatus::Pending->value)
+                    ->update(['status' => OrderPaymentStatus::Superseded->value]);
+            }
 
             DB::commit();
 

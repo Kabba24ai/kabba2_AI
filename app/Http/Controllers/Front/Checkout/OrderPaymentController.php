@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Front\Checkout;
 
 use App\Http\Controllers\Controller;
+use App\Enums\Orders\OrderPaymentMethod;
+use App\Enums\Orders\OrderPaymentStatus;
 use App\Enums\Orders\PodPaymentLinkStatus;
 use App\Helpers\ConfigurationHelper;
 use App\Helpers\SignedUrlHelper;
@@ -124,7 +126,7 @@ class OrderPaymentController extends Controller
                 return response()->json(['success' => false, 'message' => 'This order is already fully paid.']);
             }
 
-            $authorizeNetService = new AuthorizeNetService();
+            $authorizeNetService = app(AuthorizeNetService::class);
 
             if (!$authorizeNetService->validateOpaqueData(['dataValue' => $opaqueDataValue, 'dataDescriptor' => $opaqueDataDescriptor])) {
                 DB::rollBack();
@@ -178,6 +180,20 @@ class OrderPaymentController extends Controller
             }
 
             CreateReceiptJob::dispatch($order->id, 'card');
+
+            // Same cross-method settlement fix as ReceivePaymentController /
+            // Api\Admin\V1\Orders\PaymentController — this is the page the
+            // POD payment-link SMS points to, the most direct case of
+            // "customer pays after receiving the link." Close out any stale
+            // COD placeholder row so SendPodPaymentReminderJob stops
+            // treating this order as still unpaid. Superseded, not Paid —
+            // see the matching comment in ReceivePaymentController.
+            if ($order->is_paid) {
+                $order->payments()
+                    ->where('payment_method', OrderPaymentMethod::COD->value)
+                    ->where('status', OrderPaymentStatus::Pending->value)
+                    ->update(['status' => OrderPaymentStatus::Superseded->value]);
+            }
 
             DB::commit();
 

@@ -275,6 +275,18 @@ class PaymentController extends BaseController
                 }
             }
 
+            // Same cross-method settlement fix as the admin Receive Payment
+            // flow — close out a stale COD placeholder row so
+            // SendPodPaymentReminderJob stops treating this order as still
+            // unpaid. See the matching comment in ReceivePaymentController
+            // for why the target status is Superseded, not Paid.
+            if ($order->is_paid) {
+                $order->payments()
+                    ->where('payment_method', OrderPaymentMethod::COD->value)
+                    ->where('status', OrderPaymentStatus::Pending->value)
+                    ->update(['status' => OrderPaymentStatus::Superseded->value]);
+            }
+
             DB::commit();
 
             event(new PaymentInitiateEvent($order, $user, $payment));

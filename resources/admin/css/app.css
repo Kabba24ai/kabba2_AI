@@ -6,6 +6,12 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Alpine: hide x-cloak elements until Alpine initializes (Queue Line card
+   Manage menus use x-show; without this the menus flash open on load). */
+[x-cloak] {
+  display: none !important;
+}
+
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;

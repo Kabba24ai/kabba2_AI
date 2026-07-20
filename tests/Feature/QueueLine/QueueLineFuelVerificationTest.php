@@ -289,7 +289,7 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
 
         foreach ([[], ['wallboard' => true]] as $params) {
             $html = Livewire::test(Board::class, $params)->html();
-            $this->assertStringContainsString('Fuel Full — Verified', $html);
+            $this->assertStringContainsString('Fuel Full ✓', $html);
             $this->assertStringContainsString('Fuel Not Verified', $html);
             $this->assertStringContainsString('Fuel Tech', $html); // employee attribution
             $this->assertSame(1, substr_count($html, 'data-fuel-state="verified"'));
@@ -329,7 +329,7 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
             ->call('confirmFuelVerify', $unit->id)
             ->assertSet('fuelItemId', null)
             ->assertSee('Fuel Full verified for')
-            ->assertSee('Fuel Full — Verified')
+            ->assertSee('Fuel Full ✓')
             ->assertSet('store', (string) $this->storeNorth->id);
 
         $this->assertSame(1, QueueLineFuelVerification::count());

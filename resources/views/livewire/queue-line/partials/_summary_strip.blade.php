@@ -5,15 +5,19 @@
      label; the actionable tiles also carry an icon. --}}
 @php
     $tiles = [
-        // key, label, icon, tone-when-nonzero (actionable tiles first + strongest)
+        // key, label, icon, tone-when-nonzero (workflow first, then urgency,
+        // then live warnings — mirrors the board's section order)
+        ['pending', 'Pending', 'wrench', 'bg-sky-700 text-white border-sky-800'],
+        ['ready', 'Staged', 'check', 'bg-green-600 text-white border-green-700'],
+        ['delivered', 'Delivered Today', null, 'bg-gray-200 text-gray-700 border-gray-300'],
         ['rush', 'Rush', 'bolt', 'bg-red-600 text-white border-red-700'],
         ['fuelNotVerified', 'Fuel Not Verified', 'fire', 'bg-amber-500 text-white border-amber-600'],
         ['needsEquipment', 'Needs Equipment', 'wrench', 'bg-slate-700 text-white border-slate-800'],
         ['overdue', 'Overdue', 'exclamation-triangle', 'bg-orange-500 text-white border-orange-600'],
         ['today', 'Due Today', null, 'bg-sky-600 text-white border-sky-700'],
         ['tomorrow', 'Due Tomorrow', null, 'bg-white text-gray-700 border-gray-300'],
-        ['alternate', 'Alternate Equipment', null, 'bg-purple-700 text-white border-purple-800'],
-        ['unknown', 'Product Unknown', null, 'bg-slate-600 text-white border-slate-700'],
+        ['alternate', 'Substitute', null, 'bg-purple-700 text-white border-purple-800'],
+        ['unknown', 'Confirm Match', null, 'bg-slate-600 text-white border-slate-700'],
         ['maintenanceHold', 'Maintenance Hold', null, 'bg-amber-100 text-amber-900 border-amber-300'],
         ['damaged', 'Damaged', null, 'bg-red-100 text-red-900 border-red-300'],
     ];
@@ -31,6 +35,8 @@
             <span class="flex items-center gap-1 {{ $ui['badge'] }} font-medium uppercase tracking-wide">
                 @if ($icon === 'bolt')
                     <x-heroicon-s-bolt class="w-4 h-4 wall4k:w-6 wall4k:h-6" aria-hidden="true" />
+                @elseif ($icon === 'check')
+                    <x-heroicon-s-check-circle class="w-4 h-4 wall4k:w-6 wall4k:h-6" aria-hidden="true" />
                 @elseif ($icon === 'fire')
                     <x-heroicon-s-fire class="w-4 h-4 wall4k:w-6 wall4k:h-6" aria-hidden="true" />
                 @elseif ($icon === 'wrench')

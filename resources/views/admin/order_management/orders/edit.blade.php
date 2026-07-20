@@ -547,6 +547,17 @@
         });
     </script>
 
+    @php
+        // Display tax percentage shared by the Damage Alert modal AND the
+        // Order Extension modal further down this file. This definition
+        // used to live inside the (since-removed) legacy fuel modal, and
+        // deleting that modal broke the extension modal 1,700 lines later
+        // — an Undefined variable $taxPercentage 500 on every Order
+        // Details load. Keep this defined BEFORE both consumers; do not
+        // bury it inside any one modal's markup again.
+        $taxPercentage = \App\Helpers\CustomHelper::displayPercentage($sales_tax);
+    @endphp
+
     {{-- Damage Alert Modal --}}
     <div id="orderDamageAlertModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">

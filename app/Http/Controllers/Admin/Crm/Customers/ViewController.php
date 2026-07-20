@@ -139,6 +139,9 @@ class ViewController extends Controller
             'company_website' => $domain,
             'website_extension' => $extension,
             'users' => $users,
+            // Shared New Fuel Charge modal on the credit tab — same managed
+            // preset list every other launcher shows.
+            'fuelNotePresets' => \App\Models\Dashboard\FuelNotePreset::ordered()->get(),
             'lastpaymentdate' => $lastpaymentdate,
             'customers' => $customers,
             'paymentSetting' => $paymentSetting,

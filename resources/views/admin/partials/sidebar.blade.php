@@ -1098,6 +1098,14 @@
                                         <x-heroicon-o-cog-8-tooth class="h-5 w-5" /> Settings
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('admin.configurations.note-presets.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.configurations.note-presets.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-chat-bubble-bottom-center-text class="w-6 h-6" />
+                                        Note Presets
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

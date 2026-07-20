@@ -1780,6 +1780,7 @@
         modal's order selector. --}}
    @include('admin.charges._new_fuel_charge_modal', [
        'users' => $users,
+       'fuelNotePresets' => $fuelNotePresets,
        'nfcContext' => 'crm',
    ])
    {{-- Billing Engine Commonization: the shared payment component, so

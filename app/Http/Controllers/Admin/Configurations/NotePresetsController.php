@@ -29,6 +29,41 @@ class NotePresetsController extends Controller
         ]);
     }
 
+    /**
+     * Live list for the shared Note Preset Manager (Billing Charge
+     * Operations polish) — every preset dropdown on a page refreshes from
+     * this after a manager mutation, without a page reload.
+     */
+    public function list(string $type)
+    {
+        return response()->json([
+            'success' => true,
+            'presets' => $this->modelFor($type)::ordered()->get(['id', 'label', 'sort_order']),
+        ]);
+    }
+
+    /**
+     * Persist a full display order — ids in the desired order become
+     * sort_order 0..n. Ids not in the list are untouched.
+     */
+    public function reorder(Request $request, string $type)
+    {
+        $model = $this->modelFor($type);
+
+        $validated = $request->validate([
+            'ids'   => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($model, $validated) {
+            foreach ($validated['ids'] as $index => $id) {
+                $model::where('id', $id)->update(['sort_order' => $index]);
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
+
     public function store(Request $request, string $type)
     {
         $model = $this->modelFor($type);

@@ -1803,8 +1803,9 @@
                    return;
                }
                // The credit ledger below is server-rendered — reload to show
-               // the new charge.
-               window.location.reload();
+               // the new charge (brief pause so the pay-later success
+               // toast is seen first).
+               setTimeout(() => window.location.reload(), 1200);
            };
        });
    </script>

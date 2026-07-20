@@ -65,11 +65,10 @@
              requires an explicit employee action. --}}
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Base Amount <span class="text-red-500">*</span></label>
-            <div class="flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:ring-1 focus-within:ring-blue-500">
-                <span class="text-gray-500 text-sm mr-1">$</span>
-                <input type="number" step="0.01" min="0.01" id="nfc-amount"
-                       class="flex-1 text-sm focus:outline-none" placeholder="0.00">
-            </div>
+            {{-- Canonical cents-based currency entry: typing 2249 reads
+                 $22.49 — the decimal places itself, so a fat-fingered
+                 $2,249.00 charge can't happen by accident. --}}
+            <x-admin.billing.currency-input id="nfc-amount" />
         </div>
 
         <div class="mb-3">
@@ -99,14 +98,8 @@
             <textarea id="nfc-notes" rows="2" maxlength="500"
                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                       placeholder="Gallons, fuel level, context…"></textarea>
-            @if ($fuelNotePresets->isNotEmpty())
-                <select id="nfc-preset-select" class="mt-2 w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600">
-                    <option value="">Insert preset note…</option>
-                    @foreach ($fuelNotePresets as $preset)
-                        <option value="{{ $preset->label }}">{{ $preset->label }}</option>
-                    @endforeach
-                </select>
-            @endif
+            <x-admin.billing.note-preset-select id="nfc-preset-select" type="fuel"
+                :presets="$fuelNotePresets" target-id="nfc-notes" />
         </div>
 
         <div class="mb-4">
@@ -245,21 +238,34 @@
 
     $('nfc-order-clear').addEventListener('click', () => setOrder(null));
     $('nfc-customer-clear').addEventListener('click', () => setCustomer(null, false));
-    const presetSelect = $('nfc-preset-select');
-    if (presetSelect) {
-        presetSelect.addEventListener('change', () => {
-            if (!presetSelect.value) return;
-            const notes = $('nfc-notes');
-            notes.value = notes.value.trim()
-                ? notes.value.trim() + ' ' + presetSelect.value
-                : presetSelect.value;
-            presetSelect.value = '';
-        });
-    }
+    // Preset insertion + management is the shared BillingNotePresets
+    // component (x-admin.billing.note-preset-select) — nothing modal-local.
     document.querySelectorAll('[data-nfc-close]').forEach((b) =>
         b.addEventListener('click', () => $('nfc-modal').classList.add('hidden')));
 
+    // Duplicate-submission guard: both save buttons lock for the whole
+    // request — a double-click can never create two charges.
+    let submitting = false;
+    function lockButtons(on) {
+        ['nfc-save', 'nfc-save-pay'].forEach((id) => {
+            $(id).disabled = on;
+            $(id).classList.toggle('opacity-50', on);
+            $(id).classList.toggle('cursor-not-allowed', on);
+        });
+    }
+
+    function showToast(message) {
+        if (window.notyf) { window.notyf.success(message); return; }
+        // Minimal fallback if the global toaster isn't on this page.
+        const el = document.createElement('div');
+        el.className = 'fixed top-4 right-4 z-[10020] bg-green-600 text-white text-sm rounded-md px-4 py-2 shadow-lg';
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+    }
+
     async function submit(continueToPayment) {
+        if (submitting) return;
         const err = $('nfc-error');
         err.classList.add('hidden');
 
@@ -284,19 +290,50 @@
             source_context: CONTEXT,
         };
 
-        const res = await fetch(URLS.store, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
-            body: JSON.stringify(payload),
-        });
-        const data = await res.json().catch(() => ({}));
+        submitting = true;
+        lockButtons(true);
+        let data;
+        try {
+            const res = await fetch(URLS.store, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+                body: JSON.stringify(payload),
+            });
+            data = await res.json().catch(() => ({}));
 
-        if (!res.ok || data.success === false) {
-            err.textContent = data.message
-                || Object.values(data.errors || {}).flat().join(' ')
-                || 'The charge could not be created.';
+            if (!res.ok || data.success === false) {
+                // Failure: the modal stays open with everything the
+                // employee entered intact — only the error is shown.
+                err.textContent = data.message
+                    || Object.values(data.errors || {}).flat().join(' ')
+                    || 'The charge could not be created.';
+                err.classList.remove('hidden');
+                return;
+            }
+        } catch (e) {
+            err.textContent = 'The request failed. Please try again.';
             err.classList.remove('hidden');
             return;
+        } finally {
+            submitting = false;
+            lockButtons(false);
+        }
+
+        // Pay Later: explicit confirmation identifying the charge — the
+        // employee is never left wondering whether the save happened.
+        // (Continue to Payment keeps its existing transition into the
+        // shared payment modal instead.)
+        if (!continueToPayment) {
+            const customerName = $('nfc-customer-label').textContent.replace('(from order)', '').trim();
+            const orderPart = state.orderId
+                ? ($('nfc-order-label').textContent.split('·')[0] || '').trim()
+                : '';
+            const total = Number(data.charge?.amount_total ?? payload.amount).toFixed(2);
+            const who = joinParts([customerName, orderPart]);
+            showToast(
+                'Fuel charge added' + (who ? ' for ' + who : '')
+                + ' — $' + total + ' remains outstanding.'
+            );
         }
 
         $('nfc-modal').classList.add('hidden');

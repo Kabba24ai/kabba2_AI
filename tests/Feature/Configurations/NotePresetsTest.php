@@ -86,4 +86,53 @@ class NotePresetsTest extends TestCase
             FuelNotePreset::ordered()->pluck('label')->all()
         );
     }
+
+    public function test_list_endpoint_returns_ordered_presets_as_json(): void
+    {
+        FuelNotePreset::create(['label' => 'Second', 'sort_order' => 1]);
+        FuelNotePreset::create(['label' => 'First', 'sort_order' => 0]);
+
+        $this->getJson(route('admin.configurations.note-presets.list', 'fuel'))
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('presets.0.label', 'First')
+            ->assertJsonPath('presets.1.label', 'Second');
+    }
+
+    public function test_reorder_endpoint_persists_the_submitted_order(): void
+    {
+        $a = ResolutionNotePreset::create(['label' => 'A', 'sort_order' => 0]);
+        $b = ResolutionNotePreset::create(['label' => 'B', 'sort_order' => 1]);
+        $c = ResolutionNotePreset::create(['label' => 'C', 'sort_order' => 2]);
+
+        $this->postJson(route('admin.configurations.note-presets.reorder', 'resolution'), [
+            'ids' => [$c->id, $a->id, $b->id],
+        ])->assertOk()->assertJsonPath('success', true);
+
+        $this->assertSame(
+            ['C', 'A', 'B'],
+            ResolutionNotePreset::ordered()->pluck('label')->all()
+        );
+    }
+
+    public function test_list_and_reorder_reject_unknown_types(): void
+    {
+        $this->getJson(route('admin.configurations.note-presets.list', 'bogus'))->assertNotFound();
+        $this->postJson(route('admin.configurations.note-presets.reorder', 'bogus'), ['ids' => [1]])->assertNotFound();
+    }
+
+    public function test_endpoints_require_authentication(): void
+    {
+        auth()->logout();
+        $this->flushSession();
+
+        // Unauthenticated requests must never succeed — the exact rejection
+        // shape (401 JSON vs 302 login redirect) follows the admin group's
+        // guard, so assert the outcome, not the mechanism.
+        $list = $this->getJson(route('admin.configurations.note-presets.list', 'fuel'));
+        $this->assertContains($list->getStatusCode(), [401, 302, 403]);
+
+        $reorder = $this->postJson(route('admin.configurations.note-presets.reorder', 'fuel'), ['ids' => [1]]);
+        $this->assertContains($reorder->getStatusCode(), [401, 302, 403]);
+    }
 }

@@ -38,14 +38,8 @@
             <button type="button" class="text-gray-400 hover:text-gray-600" data-modal-close>&times;</button>
         </div>
         <textarea id="ws-note-text" rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Note…"></textarea>
-        @if ($fuelNotePresets->isNotEmpty())
-            <select id="ws-note-preset-select" class="mt-2 w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600">
-                <option value="">Insert preset note…</option>
-                @foreach ($fuelNotePresets as $preset)
-                    <option value="{{ $preset->label }}">{{ $preset->label }}</option>
-                @endforeach
-            </select>
-        @endif
+        <x-admin.billing.note-preset-select id="ws-note-preset-select" type="fuel"
+            :presets="$fuelNotePresets" target-id="ws-note-text" />
         <div class="flex justify-end gap-2 mt-4">
             <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-modal-close>Cancel</button>
             <button type="button" id="ws-note-save" class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">Save Note</button>
@@ -82,14 +76,8 @@
         </div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Resolution note <span class="text-red-500">*</span></label>
         <textarea id="ws-resolve-note" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="How was this resolved?"></textarea>
-        @if ($resolutionPresets->isNotEmpty())
-            <select id="ws-resolve-preset-select" class="mt-2 w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600">
-                <option value="">Insert preset note…</option>
-                @foreach ($resolutionPresets as $preset)
-                    <option value="{{ $preset->label }}">{{ $preset->label }}</option>
-                @endforeach
-            </select>
-        @endif
+        <x-admin.billing.note-preset-select id="ws-resolve-preset-select" type="resolution"
+            :presets="$resolutionPresets" target-id="ws-resolve-note" />
         <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Resolved by</label>
         <select id="ws-resolve-user" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
             @foreach ($users as $u)
@@ -108,6 +96,10 @@
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
         <h3 class="text-base font-semibold text-gray-900 mb-2">Mark Uncollectible — <span data-modal-context></span></h3>
         <p class="text-sm text-gray-600">This removes the alert from the active queue and records it as uncollectible. This action is tracked in the alert lifecycle log.</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1 mt-4">Note <span class="text-gray-400 font-normal">— optional</span></label>
+        <textarea id="ws-uncollectible-note" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Why is this uncollectible?"></textarea>
+        <x-admin.billing.note-preset-select id="ws-uncollectible-preset-select" type="resolution"
+            :presets="$resolutionPresets" target-id="ws-uncollectible-note" />
         <label class="block text-sm font-medium text-gray-700 mb-1 mt-4">Marked by</label>
         <select id="ws-uncollectible-user" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
             @foreach ($users as $u)
@@ -286,6 +278,7 @@
                     $('ws-resolve-note').value = '';
                     openModal('ws-resolve-modal');
                 } else if (action === 'uncollectible') {
+                    $('ws-uncollectible-note').value = '';
                     openModal('ws-uncollectible-modal');
                 } else if (action === 'history') {
                     openModal('ws-history-modal');
@@ -333,17 +326,8 @@
     }
 
     // ── Notes ──────────────────────────────────────────────────────────
-    function bindPresetSelect(selectId, targetId) {
-        const sel = $(selectId);
-        if (!sel) return;
-        sel.addEventListener('change', () => {
-            if (!sel.value) return;
-            const target = $(targetId);
-            target.value = target.value.trim() ? target.value.trim() + ' ' + sel.value : sel.value;
-            sel.value = '';
-        });
-    }
-    bindPresetSelect('ws-note-preset-select', 'ws-note-text');
+    // Preset insertion + management is the shared BillingNotePresets
+    // component (x-admin.billing.note-preset-select) — nothing lives here.
 
     $('ws-note-save').addEventListener('click', async () => {
         const note = $('ws-note-text').value.trim();
@@ -379,8 +363,6 @@
     });
 
     // ── Resolve ────────────────────────────────────────────────────────
-    bindPresetSelect('ws-resolve-preset-select', 'ws-resolve-note');
-
     $('ws-resolve-save').addEventListener('click', async () => {
         const note = $('ws-resolve-note').value.trim();
         if (!note) { alert('A resolution note is required.'); return; }
@@ -398,14 +380,31 @@
     // ── Uncollectible ──────────────────────────────────────────────────
     $('ws-uncollectible-save').addEventListener('click', async () => {
         const by = $('ws-uncollectible-user').value;
+        const note = $('ws-uncollectible-note').value.trim();
         try {
             if (isChargeMode()) {
                 await postJson(URLS.uncollectibleCharge.replace(':bcid', activeRow.dataset.bcId), { resolved_by: by });
             } else {
                 await postJson(URLS.uncollectible.replace(':opid', activeRow.dataset.opId), { type: rowType() });
             }
-            changed();
-        } catch (e) { alert(e.message); }
+        } catch (e) { alert(e.message); return; }
+
+        // Optional context note — recorded through the EXISTING canonical
+        // note pathways (order note for OP rows, charge note for
+        // BillingCharge rows); the uncollectible transition itself is
+        // untouched. A note failure never undoes the completed transition.
+        if (note) {
+            try {
+                if (isChargeMode()) {
+                    await postJson(URLS.noteCharge.replace(':bcid', activeRow.dataset.bcId), { note: 'Uncollectible — ' + note });
+                } else {
+                    await postJson(URLS.notes.replace(':oid', activeRow.dataset.orderUid), { note: 'Uncollectible — ' + note, user_id: AUTH_USER_ID });
+                }
+            } catch (e) {
+                alert('Marked uncollectible, but the note could not be saved: ' + e.message);
+            }
+        }
+        changed();
     });
 
     // ── History ────────────────────────────────────────────────────────

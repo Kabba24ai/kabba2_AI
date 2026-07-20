@@ -550,7 +550,9 @@
                     window.BillingPayment.openForCharge(charge, @json('Order ' . $order->order_number));
                     return;
                 }
-                window.location.reload();
+                // Brief pause so the pay-later success toast is seen
+                // before the Billing Engine table refreshes.
+                setTimeout(() => window.location.reload(), 1200);
             };
         });
     </script>

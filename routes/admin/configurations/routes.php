@@ -77,6 +77,8 @@ Route::post('/application-code-settings', SaveApplicationCodeController::class)
     // Note Presets administration (Billing Engine UI refinement) — the
     // managed lists behind the fuel-note / resolution-note dropdowns.
     Route::get('/note-presets', [\App\Http\Controllers\Admin\Configurations\NotePresetsController::class, 'index'])->name('note-presets.index');
+    Route::get('/note-presets/{type}/list', [\App\Http\Controllers\Admin\Configurations\NotePresetsController::class, 'list'])->name('note-presets.list');
+    Route::post('/note-presets/{type}/reorder', [\App\Http\Controllers\Admin\Configurations\NotePresetsController::class, 'reorder'])->name('note-presets.reorder');
     Route::post('/note-presets/{type}', [\App\Http\Controllers\Admin\Configurations\NotePresetsController::class, 'store'])->name('note-presets.store');
     Route::put('/note-presets/{type}/{id}', [\App\Http\Controllers\Admin\Configurations\NotePresetsController::class, 'update'])->name('note-presets.update');
     Route::delete('/note-presets/{type}/{id}', [\App\Http\Controllers\Admin\Configurations\NotePresetsController::class, 'destroy'])->name('note-presets.destroy');

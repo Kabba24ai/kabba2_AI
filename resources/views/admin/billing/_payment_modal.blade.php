@@ -118,6 +118,12 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Notes <span class="text-red-500 hidden" id="wsp-notes-required">*</span></label>
                 <input type="text" name="notes" id="wsp-notes" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                        placeholder="Optional — required for Other">
+                {{-- Shared preset dropdown + manager (Billing Charge
+                     Operations polish). Purely additive: selecting or
+                     managing presets never touches the payment method,
+                     saved-card selection, amount, or idempotency token. --}}
+                <x-admin.billing.note-preset-select id="wsp-preset-select" type="fuel"
+                    :presets="$fuelNotePresets ?? collect()" target-id="wsp-notes" />
             </div>
 
             <div id="ws-payment-error" class="hidden mb-3 text-sm text-red-600"></div>

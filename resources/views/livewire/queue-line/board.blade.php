@@ -28,22 +28,71 @@
     $ui['btnBase'] = 'rounded border font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ' . $ui['btn'];
 @endphp
 <div wire:poll.{{ $this->pollSeconds() }}s>
-    {{-- Toolbar --}}
+    {{-- Toolbar. The wall board stays a PASSIVE display: it keeps only its
+         original store select and never renders the interactive filter bar. --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div class="flex flex-wrap items-center gap-3">
-            @if ($wallboard)
+        @if ($wallboard)
+            <div class="flex flex-wrap items-center gap-3">
                 <span class="text-2xl font-bold text-gray-900">Queue Line</span>
                 <span class="text-lg text-gray-500" data-operational-date>{{ now()->format('l, F j, Y') }}</span>
-            @endif
-            <label for="queue-store-filter" class="{{ $ui['body'] }} font-medium text-gray-700">Store</label>
-            <select id="queue-store-filter" wire:model.live="store"
-                class="border border-gray-300 rounded-md px-3 py-2 {{ $ui['body'] }} text-gray-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
-                <option value="all">All</option>
-                @foreach ($stores as $storeOption)
-                    <option value="{{ $storeOption->id }}">{{ $storeOption->store_name }}</option>
-                @endforeach
-            </select>
-        </div>
+                <label for="queue-store-filter" class="{{ $ui['body'] }} font-medium text-gray-700">Store</label>
+                <select id="queue-store-filter" wire:model.live="store"
+                    class="border border-gray-300 rounded-md px-3 py-2 {{ $ui['body'] }} text-gray-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
+                    <option value="all">All</option>
+                    @foreach ($stores as $storeOption)
+                        <option value="{{ $storeOption->id }}">{{ $storeOption->store_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @else
+            @php
+                $segBase = 'px-3 py-1.5 text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500';
+                $segOn = 'bg-sky-600 text-white';
+                $segOff = 'bg-white text-gray-600 hover:bg-gray-50';
+                $selectBase = 'border border-gray-300 rounded-md px-3 py-1.5 text-xs text-gray-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500';
+            @endphp
+            {{-- Filter Expansion (2026-07-20): Time · Store · Method ·
+                 Category · Product — AND-combined; every count below derives
+                 from the same filtered set. --}}
+            <div class="flex flex-wrap items-center gap-3" data-queue-filter-bar>
+                {{-- 1. Time — All (everything eligible: overdue + today +
+                     tomorrow) | Today Only (overdue + today) --}}
+                <div class="inline-flex rounded-md border border-gray-300 overflow-hidden divide-x divide-gray-300" role="group" aria-label="Time">
+                    <button type="button" wire:click="$set('time', 'all')" class="{{ $segBase }} {{ $time !== 'today' ? $segOn : $segOff }}">All</button>
+                    <button type="button" wire:click="$set('time', 'today')" class="{{ $segBase }} {{ $time === 'today' ? $segOn : $segOff }}">Today Only</button>
+                </div>
+
+                {{-- 2. Store — sticky via the app-wide FilterFreezer hook on
+                     the page shell (order's delivery store, same as Schedule) --}}
+                <select id="queue-store-filter" wire:model.live="store" aria-label="Store" class="{{ $selectBase }}">
+                    <option value="all">All Stores</option>
+                    @foreach ($stores as $storeOption)
+                        <option value="{{ $storeOption->id }}">{{ $storeOption->store_name }}</option>
+                    @endforeach
+                </select>
+
+                {{-- 3. Delivery method — canonical delivery_transport_mode --}}
+                <div class="inline-flex rounded-md border border-gray-300 overflow-hidden divide-x divide-gray-300" role="group" aria-label="Delivery Method">
+                    <button type="button" wire:click="$set('method', 'all')" class="{{ $segBase }} {{ $method === 'all' ? $segOn : $segOff }}">All</button>
+                    <button type="button" wire:click="$set('method', 'Truck')" class="{{ $segBase }} {{ $method === 'Truck' ? $segOn : $segOff }}">Truck</button>
+                    <button type="button" wire:click="$set('method', 'Store')" class="{{ $segBase }} {{ $method === 'Store' ? $segOn : $segOff }}">In-Store</button>
+                </div>
+
+                {{-- 4 + 5. Dependent Category → Product (ordered product) --}}
+                <select id="queue-category-filter" wire:model.live="category" aria-label="Category" class="{{ $selectBase }}">
+                    <option value="">All Categories</option>
+                    @foreach ($categoryOptions as $categoryId => $categoryTitle)
+                        <option value="{{ $categoryId }}">{{ $categoryTitle }}</option>
+                    @endforeach
+                </select>
+                <select id="queue-product-filter" wire:model.live="product" aria-label="Product" class="{{ $selectBase }} max-w-56">
+                    <option value="">All Products</option>
+                    @foreach ($productOptions as $productId => $productName)
+                        <option value="{{ $productId }}">{{ $productName }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
 
         <div class="flex flex-wrap items-center gap-4">
             <span class="{{ $ui['body'] }} text-gray-400" data-last-updated>

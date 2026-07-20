@@ -38,6 +38,40 @@ class Board extends Component
     /** Store filter: 'all' or a store id (string — HTML select values). */
     public string $store = 'all';
 
+    // ── Filter Expansion (2026-07-20) — presentation NARROWING only. None
+    // of these change Queue Line eligibility; they subset the already-
+    // eligible rows, and every section count derives from the same
+    // filtered collection so totals can never disagree with cards. ──────
+
+    /** Time: 'all' (default — everything eligible, i.e. overdue + today +
+     *  tomorrow under the current window) | 'today' ("Today Only":
+     *  overdue + today). */
+    public string $time = 'all';
+
+    /** Delivery method: 'all' | 'Truck' | 'Store' — the same canonical
+     *  delivery_transport_mode values Schedule and Dispatch filter on. */
+    public string $method = 'all';
+
+    /** Dependent Category → Product pair — validated server-side through
+     *  ProductFilterHelper exactly like the Orders and Schedule pages.
+     *  Product always filters the ORDERED product (product_id), never the
+     *  assigned/substituted equipment's mapping. */
+    public string $category = '';
+
+    public string $product = '';
+
+    /** Canonical dependency rule: a category change drops an incompatible
+     *  product selection (same normalization the Orders/Schedule filters
+     *  use); compatible selections survive untouched. */
+    public function updatedCategory(): void
+    {
+        $categoryId = \App\Helpers\ProductFilterHelper::normalizeCategoryId($this->category);
+
+        if (\App\Helpers\ProductFilterHelper::normalizeProductId($this->product, $categoryId) === null) {
+            $this->product = '';
+        }
+    }
+
     public bool $showSuppressed = false;
 
     public ?string $actionError = null;
@@ -318,12 +352,31 @@ class Board extends Component
 
         try {
             $storeId = $this->store === 'all' ? null : (int) $this->store;
+            $categoryId = \App\Helpers\ProductFilterHelper::normalizeCategoryId($this->category);
+            $productId = \App\Helpers\ProductFilterHelper::normalizeProductId($this->product, $categoryId);
+
+            // Narrowing filters ride the canonical board query — the same
+            // WHERE shapes Schedule uses (transport mode column; category
+            // via the product_category_children pivot; ORDERED product_id).
+            $boardQuery = QueueLineEligibility::boardQuery($storeId)
+                ->when($this->method !== 'all', fn ($q) => $q->where('delivery_transport_mode', $this->method))
+                ->when($categoryId, fn ($q) => $q->whereHas('product.categories', fn ($c) => $c->where('product_categories.id', $categoryId)))
+                ->when($productId, fn ($q) => $q->where('product_id', $productId));
 
             $rows = QueueLineEligibility::sortItems(
-                QueueLineEligibility::filterFinanciallyActive(
-                    QueueLineEligibility::boardQuery($storeId)->get()
-                )
+                QueueLineEligibility::filterFinanciallyActive($boardQuery->get())
             );
+
+            // Time narrowing uses the canonical bucket rule — 'all' keeps
+            // the full eligibility window untouched; 'today' (Today Only)
+            // drops the tomorrow bucket.
+            if ($this->time === 'today') {
+                $allowedBuckets = [QueueLineEligibility::BUCKET_OVERDUE, QueueLineEligibility::BUCKET_TODAY];
+
+                $rows = $rows
+                    ->filter(fn (OrderProduct $row) => in_array(QueueLineEligibility::bucketFor($row), $allowedBuckets, true))
+                    ->values();
+            }
 
             // Current fuel state for every visible card in ONE query — a row
             // is current only when keyed to the item's LIVE soft-assign
@@ -338,7 +391,7 @@ class Board extends Component
                 ->keyBy('equipment_soft_assign_id');
 
             $sections = $this->buildSections($rows, $fuelByAssignment);
-            $sections['delivered'] = $this->deliveredToday($storeId)->all();
+            $sections['delivered'] = $this->deliveredToday($storeId, $categoryId, $productId)->all();
             $suppressed = $this->suppressedItems();
         } catch (\Throwable $e) {
             report($e);
@@ -392,9 +445,31 @@ class Board extends Component
             }
         }
 
+        // Dependent Category → Product options — the same canonical sources
+        // the Orders and Schedule pages use (ProductFilterHelper +
+        // ProductCategory::getHierarchy). With no category selected the
+        // Product list is the full lineup; with one selected it reduces to
+        // that category's pivot membership. Wall-board mode renders no
+        // filter bar, so it skips the option queries entirely.
+        $categoryOptions = [];
+        $productOptions = collect();
+
+        if (! $this->wallboard) {
+            $categoryOptions = \App\Models\ProductManagement\ProductCategory::getHierarchy();
+            $productOptions = \App\Helpers\ProductFilterHelper::productOptions();
+
+            $normalizedCategory = \App\Helpers\ProductFilterHelper::normalizeCategoryId($this->category);
+            if ($normalizedCategory !== null) {
+                $memberIds = \App\Helpers\ProductFilterHelper::categoryProductMap()[$normalizedCategory] ?? [];
+                $productOptions = $productOptions->only($memberIds);
+            }
+        }
+
         return view('livewire.queue-line.board', [
             'sections' => $sections,
             'suppressedItems' => $suppressed,
+            'categoryOptions' => $categoryOptions,
+            'productOptions' => $productOptions,
             'stores' => Store::active()->orderBy('store_name')->get(['id', 'store_name']),
             'boardError' => $error,
             'lastUpdated' => now(), // re-stamped by every poll/action render
@@ -516,12 +591,19 @@ class Board extends Component
      * Returned as OrderProducts with their queueLineItem relation pre-set so
      * the single card partial renders them like any other item.
      */
-    private function deliveredToday(?int $storeId): Collection
+    private function deliveredToday(?int $storeId, ?int $categoryId = null, ?int $productId = null): Collection
     {
         return QueueLineItem::query()
             ->whereDate('completed_at', today())
-            ->whereHas('orderProduct', function ($q) use ($storeId) {
-                $q->when($storeId, fn ($q) => $q->where('delivery_store_id', $storeId));
+            ->whereHas('orderProduct', function ($q) use ($storeId, $categoryId, $productId) {
+                $q->when($storeId, fn ($q) => $q->where('delivery_store_id', $storeId))
+                    // Delivered Today obeys the same narrowing filters as the
+                    // active sections (method/category/product); the Time
+                    // filter is inherently satisfied — the section is
+                    // today-scoped by definition.
+                    ->when($this->method !== 'all', fn ($q) => $q->where('delivery_transport_mode', $this->method))
+                    ->when($categoryId, fn ($q) => $q->whereHas('product.categories', fn ($c) => $c->where('product_categories.id', $categoryId)))
+                    ->when($productId, fn ($q) => $q->where('product_id', $productId));
             })
             ->whereHas('order')
             ->with([

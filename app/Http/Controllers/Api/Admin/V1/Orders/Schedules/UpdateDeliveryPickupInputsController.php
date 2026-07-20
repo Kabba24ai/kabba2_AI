@@ -23,7 +23,11 @@ class UpdateDeliveryPickupInputsController extends Controller
         try {
             $schedule = OrderProduct::whereHas('order')
                 ->where('unique_id', $validated['order_product_unique_id'])
-                ->select(['id', 'order_id', 'unique_id', 'delivery_by', 'pickup_by', 'is_delivered', 'is_returned'])
+                // product_id + delivery_date/time are required by the model's
+                // updated hook (FunnelLifecycleService) when this request is
+                // the one that flips delivery_status to Completed — without
+                // them the partial select made that edge throw a TypeError.
+                ->select(['id', 'order_id', 'unique_id', 'product_id', 'delivery_date', 'delivery_time', 'delivery_by', 'pickup_by', 'is_delivered', 'is_returned'])
                 ->firstOrFail();
 
             $prefix = $validated['type'];
@@ -46,6 +50,21 @@ class UpdateDeliveryPickupInputsController extends Controller
             // claiming completion is not.
             if ($prefix === 'delivery') {
                 if ($schedule->delivery_by !== null) {
+                    // Queue Line release enforcement (Phase 4 §2): this branch
+                    // marks the delivery Completed, so it obeys the canonical
+                    // guard. Items already released through a guarded path are
+                    // completed (latched) and pass through untouched.
+                    $guardTarget = OrderProduct::with('softAssignment.equipment', 'queueLineItem')
+                        ->find($schedule->id);
+                    if ($guardTarget && ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($guardTarget))) {
+                        return response()->json([
+                            'status' => false,
+                            'success' => false,
+                            'message' => $blocked['message'],
+                            'error' => $blocked,
+                        ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+                    }
+
                     $fields['is_delivered']          = 1;
                     $fields['delivery_is_delivered'] = true;
                     $fields['delivery_status']       = 'Completed';

@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Log;
  *   REASON_PRODUCT_REMOVED       — individual product removed from order
  *   REASON_COD_CONVERTED         — COD/POD order received a paid payment
  *   REASON_CUSTOMER_DELETED      — customer record deleted
+ *   REASON_ORDER_FULLY_REFUNDED  — undelivered schedule auto-closed after full refund
+ *   REASON_ORDER_VOIDED          — undelivered schedule auto-closed after void
  *
  * Architecture note:
  *   Creating a 'Stopped' (or 'Skipped') OrderProductFunnelLog entry for a given
@@ -40,6 +42,8 @@ class FunnelLifecycleService
     public const REASON_PRODUCT_REMOVED          = 'Product Removed';
     public const REASON_COD_CONVERTED            = 'POD Converted To Paid';
     public const REASON_CUSTOMER_DELETED         = 'Customer Deleted';
+    public const REASON_ORDER_FULLY_REFUNDED     = 'Order Fully Refunded';
+    public const REASON_ORDER_VOIDED             = 'Order Voided';
 
     // ── Public API ────────────────────────────────────────────────────────────
 

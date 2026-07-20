@@ -1,10 +1,18 @@
 
-   <div class="bg-white rounded-xl shadow-sm p-6 md:flex-row md:items-center md:justify-between gap-4  mt-6">
+   <div class="bg-white rounded-xl shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4  mt-6">
        <!-- Left: Name and Account -->
        <div class="text-left">
            <h2 class="text-2xl font-bold text-gray-900">Customer Credit Account Management</h2>
            <p class="text-sm text-gray-600">Manage customer credit account transactions and balance</p>
        </div>
+       {{-- Shared New Fuel Charge modal entry point (Dashboard V2) — the
+            identical modal/endpoint the Dashboard and Fuel Workspace use,
+            opened with THIS customer preselected and locked. --}}
+       <button type="button" id="crm-new-fuel-charge"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shrink-0">
+           <x-heroicon-o-plus class="w-4 h-4" />
+           New Fuel Charge
+       </button>
    </div>
 
    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto  mt-6">
@@ -1764,3 +1772,38 @@
    </script>
 
    @endpush
+
+   {{-- Shared New Fuel Charge modal (Dashboard V2) — same Blade, JS,
+        validation, and endpoint as the Dashboard and Fuel Workspace entry
+        points. Customer is prefilled and locked to this CRM customer; the
+        employee may still attach one of the customer's orders via the
+        modal's order selector. --}}
+   @include('admin.charges._new_fuel_charge_modal', [
+       'users' => $users,
+       'nfcContext' => 'crm',
+   ])
+   {{-- Billing Engine Commonization: the shared payment component, so
+        "Save Charge — Continue to Payment" works identically here. --}}
+   @include('admin.billing._payment_modal')
+   <script>
+       document.addEventListener('DOMContentLoaded', function () {
+           document.getElementById('crm-new-fuel-charge')?.addEventListener('click', function () {
+               window.NewFuelCharge.open({
+                   customerId: {{ (int) $customer->id }},
+                   customerName: @json($customer->full_name),
+                   lockCustomer: true,
+               });
+           });
+           window.NewFuelCharge.onCreated = function (charge, continueToPayment) {
+               if (continueToPayment) {
+                   // Payment posts as a form and redirects back with a flash
+                   // — the ledger refreshes on that redirect.
+                   window.BillingPayment.openForCharge(charge, 'New fuel charge');
+                   return;
+               }
+               // The credit ledger below is server-rendered — reload to show
+               // the new charge.
+               window.location.reload();
+           };
+       });
+   </script>

@@ -29,6 +29,9 @@ Route::prefix('reports')
     // fuel charge alerts
     require base_path('routes/admin/reports/fuel_charge_alerts/routes.php');
 
+    // fuel charge workspace (Dashboard V2 Phase 1A)
+    require base_path('routes/admin/reports/fuel_charge_workspace/routes.php');
+
     // new damage alerts
     require base_path('routes/admin/reports/new_damage_alerts/routes.php');
 

@@ -2,129 +2,111 @@
 
 namespace App\Http\Controllers\Admin\Dashboard;
 
-use App\Enums\Billing\BillingChargeType;
-use App\Enums\Billing\BillingSourceEvent;
-use App\Enums\Billing\BillingSourceModule;
-use App\Helpers\CustomHelper;
 use App\Http\Controllers\Controller;
-use App\Http\DataObjects\BillingChargeRequest;
-use App\Models\Customers\CustomerAccount;
-use App\Models\Iam\Personnel\User;
-use App\Services\BillingEngine;
-use App\Services\ChargeTaxCalculator;
+use App\Models\Orders\Order;
+use App\Services\ChargeService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
+/**
+ * Shared New Fuel Charge modal — the ONE endpoint all three entry points
+ * post to (Dashboard card, Fuel Workspace, CRM customer page), with the
+ * identical normalized payload. Creation itself is
+ * ChargeService::createManualCharge() — this controller only validates
+ * and enforces the order/customer integrity rule.
+ */
 class FuelChargeStoreController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $request->validate([
-            'customer_id'        => ['required', 'exists:customers,id'],
+        $validated = $request->validate([
+            // Optional order link: when present, the CUSTOMER IS DERIVED
+            // FROM THE ORDER — a submitted customer_id must match it, so an
+            // employee can never attach order A's charge to customer B.
+            'order_id'           => ['nullable', 'integer', 'exists:orders,id'],
+            'customer_id'        => ['required_without:order_id', 'nullable', 'exists:customers,id'],
             'amount'             => ['required', 'numeric', 'min:0.01'],
             'notes'              => ['nullable', 'string', 'max:500'],
             'responsible_person' => ['required', 'exists:users,id'],
             'sales_tax_type'     => ['nullable', 'in:add,free,reverse'],
+            'source_context'     => ['nullable', 'in:dashboard,fuel_workspace,crm'],
         ]);
 
-        $user = User::findOrFail($request->responsible_person);
+        $orderId = $validated['order_id'] ?? null;
+        $customerId = $validated['customer_id'] ?? null;
 
-        // ── Legacy write (unchanged) ───────────────────────────────────────
-        DB::beginTransaction();
+        if ($orderId !== null) {
+            $order = Order::findOrFail($orderId);
+
+            if ($order->customer_id === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'That order has no customer on record — select the customer directly instead.',
+                ], 422);
+            }
+
+            if ($customerId !== null && (int) $customerId !== (int) $order->customer_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The selected customer does not match the selected order.',
+                ], 422);
+            }
+
+            $customerId = (int) $order->customer_id;
+        }
 
         try {
-            $record                          = new CustomerAccount();
-            $record->customer_id             = $request->customer_id;
-            $record->amount                  = $request->amount;
-            $record->reason                  = 'Fuel Charge';
-            $record->responsible_person_id   = $user->id;
-            $record->responsible_person_name = $user->full_name;
-            $record->notes                   = $request->notes;
-            $record->date                    = now();
-            $record->sales_tax_type          = $request->sales_tax_type ?? 'free';
-            $record->sales_tax               = 0;
-            $record->type                    = 'charge';
-            $record->fuel_alert_status       = 'pending';
-            $record->save();
-
-            CustomHelper::updateCreditBalance($record);
-
-            $description = "Fuel charge added.";
-            $description .= " Amount: $" . number_format($record->amount, 2) . ".";
-
-            if ($record->responsible_person_name) {
-                $description .= " Responsible person: {$record->responsible_person_name}.";
-            }
-
-            if ($request->filled('notes')) {
-                $description .= " Notes: {$request->notes}";
-            }
-
-            if ($record->customer) {
-                $record->customer->notes()->create([
-                    'customer_account_id' => $record->id,
-                    'description'         => $description,
-                    'created_by'          => auth()->id(),
-                ]);
-            }
-
-            DB::commit();
+            $record = ChargeService::createManualCharge(
+                customerId: (int) $customerId,
+                type: 'fuel',
+                amount: (float) $validated['amount'],
+                salesTaxType: $validated['sales_tax_type'] ?? null,
+                notes: $validated['notes'] ?? null,
+                responsibleUserId: (int) $validated['responsible_person'],
+                orderId: $orderId,
+                sourceContext: $validated['source_context'] ?? 'dashboard',
+            );
         } catch (\Throwable $e) {
-            DB::rollBack();
             report($e);
 
             return response()->json(['success' => false, 'message' => 'Something went wrong. Please try again.'], 500);
         }
 
-        // ── Billing Engine bridge (Phase 3A) ───────────────────────────────
-        // The legacy CustomerAccount write is already committed above.
-        // If the bridge write fails for any reason, we log the error and
-        // return a successful response — legacy data is already safe.
-        //
-        // Note: this controller has no order context (Dashboard modal is
-        // customer-level). parent_order_id is null for this charge path.
-
-        // updateCreditBalance() sets $record->sales_tax to the actual rate.
-        // Sales Tax Architecture Correction: now sourced from the canonical
-        // ChargeTaxCalculator instead of a copy of the same formula inline here.
-        $resolved = ChargeTaxCalculator::calculate((float) $record->amount, $record->sales_tax_type, (float) $record->sales_tax);
-        $billingBaseAmount = $resolved['base_amount'];
-        $billingTaxAmount  = $resolved['tax_amount'];
-
-        try {
-            BillingEngine::charge(new BillingChargeRequest(
-                type:                BillingChargeType::Fuel->value,
-                orderId:             null, // Dashboard modal: no order context
-                customerId:          (int) $record->customer_id,
-                amount:              $billingBaseAmount,
-                taxType:             $record->sales_tax_type,
-                responsiblePersonId: $user->id,
-                notes:               $record->notes,
-                sourceModule:        BillingSourceModule::AdminFuelCharge->value,
-                sourceEvent:         BillingSourceEvent::AdminFuelChargeCreated->value,
-                sourceReferenceType: 'CustomerAccount',
-                sourceReferenceId:   $record->id,
-                metadata:            [
-                    'legacy_controller'          => 'FuelChargeStoreController',
-                    'legacy_customer_account_id' => $record->id,
-                    'sales_tax_type'             => $record->sales_tax_type,
-                ],
-                idempotencyKey:      "admin_fuel_charge:{$record->id}",
-                customerAccountId:   $record->id,
-                taxAmount:           $billingTaxAmount,
-            ));
-        } catch (\Throwable $e) {
-            Log::channel('billing_engine')->error(
-                "BillingEngine bridge failed | controller=FuelChargeStoreController " .
-                "| customer_account_id={$record->id} | customer_id={$record->customer_id} " .
-                "| amount={$record->amount} | error={$e->getMessage()}"
-            );
-        }
+        // The Billing Engine bridge row created inside createManualCharge()
+        // — the canonical payment reference: submitting its unique_id with
+        // the payment turns on the exact-total validation and the
+        // BillingEngine::markPaid sync in PaymentStoreController.
+        $bridge = \App\Models\Orders\BillingCharge::where('customer_account_id', $record->id)
+            ->where('billing_charge_type', 'fuel')
+            ->latest('id')
+            ->first();
 
         return response()->json([
             'success' => true,
             'message' => 'Fuel Charge created successfully.',
+            // The Billing Engine post-charge payment handoff contract:
+            // everything the canonical payment workflow needs, supplied by
+            // the SHARED response — never assembled by individual launchers.
+            'charge' => [
+                'type'                       => 'fuel',
+                'customer_account_unique_id' => $record->unique_id,
+                'billing_charge_unique_id'   => $bridge?->unique_id,
+                'customer_id'                => (int) $record->customer_id,
+                'order_id'                   => $record->order_id,
+                'amount'                     => (float) $record->amount,
+                'sales_tax_type'             => $record->sales_tax_type,
+                // Tax-inclusive collectible total — updateCreditBalance()
+                // resolved sales_tax to the actual rate during creation.
+                // PaymentStoreController enforces this exact figure when the
+                // billing_charge_unique_id accompanies the payment.
+                'amount_total'               => \App\Services\ChargeTaxCalculator::calculate(
+                    (float) $record->amount, $record->sales_tax_type, (float) $record->sales_tax
+                )['total_amount'],
+                // Saved payment profiles from the shared flow — identical
+                // regardless of which surface launched the modal.
+                'customer_cards'             => $record->customer?->cards
+                    ?->map(fn ($c) => ['id' => $c->unique_id, 'label' => $c->card_number])
+                    ->values() ?? [],
+            ],
         ]);
     }
 }

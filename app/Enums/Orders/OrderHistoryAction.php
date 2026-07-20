@@ -45,6 +45,16 @@ enum OrderHistoryAction: string
     case RefundPartiallyCompleted = 'refund_partially_completed';
     case RefundFailed = 'refund_failed';
 
+    // Automatic operational closure (RefundedOrderScheduleCloser): the
+    // system closed undelivered schedules after a full refund or void —
+    // always System-attributed, never a manual employee selection.
+    case ScheduleAutoClosed = 'schedule_auto_closed';
+
+    // Canonical equipment switch (EquipmentReassignmentService): the yard
+    // swapped the staged unit before delivery — extras carry prev/new
+    // equipment, product mappings, classification, and dual attribution.
+    case EquipmentReassigned = 'equipment_reassigned';
+
     public function label(): string
     {
         return match ($this) {
@@ -82,6 +92,8 @@ enum OrderHistoryAction: string
             self::StoreCreditApplied => 'Store Credit Applied',
             self::RefundPartiallyCompleted => 'Refund Partially Completed',
             self::RefundFailed => 'Refund Failed',
+            self::ScheduleAutoClosed => 'Schedule Auto-Closed',
+            self::EquipmentReassigned => 'Equipment Switched',
         };
     }
 }

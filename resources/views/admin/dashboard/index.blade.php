@@ -47,6 +47,34 @@
             <livewire:dashboard.alerts-section />
         </div>
 
+        {{-- Shared New Fuel Charge modal (Dashboard V2) — opened by the
+             Fuel card's "+ New Fuel Charge" secondary button. Lives outside
+             the Livewire component so the 30s poll never re-renders it;
+             the button click is caught by delegation for the same reason. --}}
+        @include('admin.charges._new_fuel_charge_modal', [
+            'users' => $users,
+            'fuelNotePresets' => $fuelNotePresets,
+            'nfcContext' => 'dashboard',
+        ])
+        {{-- Billing Engine Commonization: the shared payment component, so
+             "Save Charge — Continue to Payment" works identically here. --}}
+        @include('admin.billing._payment_modal')
+        <script>
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('#fuel-new-charge-btn')) {
+                    window.NewFuelCharge.open({});
+                }
+            });
+            document.addEventListener('DOMContentLoaded', function () {
+                window.NewFuelCharge.onCreated = function (charge, continueToPayment) {
+                    if (window.Livewire) Livewire.dispatch('refreshAlerts');
+                    if (continueToPayment) {
+                        window.BillingPayment.openForCharge(charge, 'New fuel charge');
+                    }
+                };
+            });
+        </script>
+
         <!-- Section 4: Financial Overview (Dashboard V2 Phase 3) -->
         <div class="mb-6">
             @include('admin.dashboard.partials._financial_overview')

@@ -142,6 +142,25 @@ class ModuleSeeder extends Seeder
                 ],
             ],
             // Wait List [End]
+
+            // Queue Line [Start] — outbound staging board (permission named
+            // now for forward-compat; the global Gate::before bypass makes
+            // it inert until granular enforcement returns)
+            [
+                'module_category_name' => 'Queue Line',
+                'modules' => [
+                    [
+                        'module_name' => 'queue_line',
+                        'module_title' => 'Queue Line',
+                        'model_name' => 'QueueLineItem',
+                        'permission_names' => [
+                            'view' => 'View Queue Line',
+                            'manage' => 'Manage Queue Line',
+                        ],
+                    ],
+                ],
+            ],
+            // Queue Line [End]
         ];
     }
 

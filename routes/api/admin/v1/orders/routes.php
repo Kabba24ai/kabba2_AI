@@ -38,6 +38,10 @@ use App\Http\Controllers\Api\Admin\V1\Orders\Schedules\UpdateDeliveryPickupInput
 Route::group(['prefix' => 'orders'], function () {
     Route::post('/', IndexController::class);
     Route::post('/details', ShowController::class);
+
+    // Queue Line moved to its own standalone route family:
+    // api/admin/v1/queue-line (routes/api/admin/v1/queue_line/routes.php)
+
     Route::post('/upload-media', UploadMediaController::class);
     Route::post('/remove-media', RemoveMediaController::class);
     Route::post('/update-address', UpdateAddressController::class);

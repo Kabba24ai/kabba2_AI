@@ -175,7 +175,19 @@ class DeliveryPerformanceEngine
             // Truck only — Store-mode pickups/dropoffs are a counter
             // transaction, not a dispatched driver run.
             ->where("order_products.$transportMode", 'Truck')
-            ->where("order_products.$doneColumn", 1);
+            ->where("order_products.$doneColumn", 1)
+            // Administrative closures set is_delivered/is_returned without
+            // any physical run (cancelled bookings, refunded-before-delivery
+            // orders) — never count them as driver throughput. A row whose
+            // DELIVERY leg was administratively closed had no physical
+            // delivery AND no physical return; a delivered row whose return
+            // leg alone was administratively closed still counts as a real
+            // delivery but not as a real return.
+            ->where('order_products.delivery_status', '!=', OrderProduct::STATUS_CLOSE_AS_COMPLETED);
+
+        if ($leg !== 'delivery') {
+            $query->where('order_products.pickup_status', '!=', OrderProduct::STATUS_CLOSE_AS_COMPLETED);
+        }
 
         if ($start && $end) {
             $query->whereBetween('orders.order_date', [$start->toDateString(), $end->toDateString()]);

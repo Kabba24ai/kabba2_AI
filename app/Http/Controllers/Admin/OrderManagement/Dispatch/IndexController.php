@@ -193,9 +193,13 @@ class IndexController extends Controller
                     $q->where('delivery_transport_mode', 'Truck')
                       ->orWhere('pickup_transport_mode', 'Truck');
                 });
+                // 'Close as Completed' is the same terminal state as
+                // 'Completed' for dispatch purposes — a row closed either
+                // way (manually or automatically after a full refund/void)
+                // is no longer actionable work.
                 $query->where(function ($q) {
-                    $q->where('delivery_status', '!=', 'Completed')
-                      ->orWhere('pickup_status', '!=', 'Completed');
+                    $q->whereNotIn('delivery_status', ['Completed', 'Close as Completed'])
+                      ->orWhereNotIn('pickup_status', ['Completed', 'Close as Completed']);
                 });
             } else {
                 $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected) {

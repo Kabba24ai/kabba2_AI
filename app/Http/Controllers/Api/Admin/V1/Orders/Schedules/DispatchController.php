@@ -88,8 +88,11 @@ class DispatchController extends BaseController
                 $q->where('delivery_transport_mode', 'Truck')->orWhere('pickup_transport_mode', 'Truck');
             });
 
+            // 'Close as Completed' is the same terminal state as 'Completed'
+            // for dispatch purposes — closed rows are not actionable work.
             $query->where(function ($q) {
-                $q->where('delivery_status', '!=', 'Completed')->orWhere('pickup_status', '!=', 'Completed');
+                $q->whereNotIn('delivery_status', ['Completed', 'Close as Completed'])
+                    ->orWhereNotIn('pickup_status', ['Completed', 'Close as Completed']);
             });
         } else {
             $query->where(function ($q) use ($isDeliverySelected, $isReturnSelected) {

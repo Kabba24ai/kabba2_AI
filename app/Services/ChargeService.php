@@ -18,6 +18,143 @@ use Illuminate\Support\Facades\Log;
 class ChargeService
 {
     /**
+     * Shared New Fuel Charge modal (Dashboard V2) — the ONE canonical path
+     * for creating a MANUAL fuel/damage charge from any admin surface
+     * (Dashboard card, Fuel Workspace, CRM customer page). Consolidates the
+     * two previously-duplicated implementations (Dashboard
+     * FuelChargeStoreController and CRM ChargeStoreController each carried
+     * their own copy of the CustomerAccount write + BillingEngine bridge,
+     * both hardcoding orderId: null).
+     *
+     * Behavior is the audited union of those paths, unchanged:
+     *   1. Legacy CustomerAccount 'charge' row (alert status 'pending') in
+     *      its own committed transaction, plus updateCreditBalance() and a
+     *      customer note — legacy data is durable before the bridge runs.
+     *   2. BillingEngine bridge with the canonical ChargeTaxCalculator
+     *      split and a per-record idempotency key; bridge failure is logged
+     *      and never breaks the already-committed legacy write.
+     *
+     * New (and the reason this exists): optional $orderId links the charge
+     * to an order — customer/order integrity is the CALLER's contract (the
+     * controller derives/validates customer from the order). Phase 1
+     * deliberately never sets order_product_id here: OrderProduct-linked
+     * charges are created only by the checklist path
+     * (createFromOrderProduct above), and a manual CA row with an
+     * order_product_id would vanish from the canonical alert queue
+     * (ChargeAlertQueue's CRM branch requires order_product_id IS NULL) —
+     * exactly the duplicate/conflict class Phase 2 owns.
+     *
+     * @param  string  $type  'fuel' | 'damage'
+     * @param  string  $sourceContext  short slug for metadata/idempotency, e.g. 'dashboard', 'fuel_workspace', 'crm'
+     */
+    public static function createManualCharge(
+        int $customerId,
+        string $type,
+        float $amount,
+        ?string $salesTaxType,
+        ?string $notes,
+        int $responsibleUserId,
+        ?int $orderId = null,
+        string $sourceContext = 'dashboard',
+    ): CustomerAccount {
+        if ($salesTaxType !== null && !ChargeTaxCalculator::isValidTreatment($salesTaxType)) {
+            throw new \InvalidArgumentException("Invalid sales tax treatment '{$salesTaxType}'.");
+        }
+
+        $user = User::findOrFail($responsibleUserId);
+
+        $reason     = $type === 'fuel' ? 'Fuel Charge' : 'Damages';
+        $alertField = $type === 'fuel' ? 'fuel_alert_status' : 'damage_alert_status';
+
+        // ── Legacy write (committed first, same as both prior controllers) ──
+        $record = DB::transaction(function () use ($customerId, $orderId, $amount, $reason, $alertField, $salesTaxType, $notes, $user) {
+            $record                          = new CustomerAccount();
+            $record->customer_id             = $customerId;
+            $record->order_id                = $orderId;
+            $record->amount                  = $amount;
+            $record->reason                  = $reason;
+            $record->responsible_person_id   = $user->id;
+            $record->responsible_person_name = $user->full_name;
+            $record->notes                   = $notes;
+            $record->date                    = now();
+            $record->sales_tax_type          = $salesTaxType ?? 'free';
+            $record->sales_tax               = 0;
+            $record->type                    = 'charge';
+            $record->$alertField             = 'pending';
+            $record->save();
+
+            CustomHelper::updateCreditBalance($record);
+
+            $description = "{$reason} added.";
+            $description .= ' Amount: $' . number_format((float) $record->amount, 2) . '.';
+            if ($record->responsible_person_name) {
+                $description .= " Responsible person: {$record->responsible_person_name}.";
+            }
+            if (filled($notes)) {
+                $description .= " Notes: {$notes}";
+            }
+
+            if ($record->customer) {
+                $record->customer->notes()->create([
+                    'customer_account_id' => $record->id,
+                    'description'         => $description,
+                    'created_by'          => auth()->id(),
+                ]);
+            }
+
+            return $record;
+        });
+
+        // ── Billing Engine bridge (post-commit, failure never surfaces) ────
+        // updateCreditBalance() set $record->sales_tax to the actual rate.
+        $resolved = ChargeTaxCalculator::calculate((float) $record->amount, $record->sales_tax_type, (float) $record->sales_tax);
+
+        $billingType = $type === 'fuel'
+            ? \App\Enums\Billing\BillingChargeType::Fuel->value
+            : \App\Enums\Billing\BillingChargeType::Damage->value;
+        $sourceModule = $type === 'fuel'
+            ? \App\Enums\Billing\BillingSourceModule::AdminFuelCharge->value
+            : \App\Enums\Billing\BillingSourceModule::AdminDamageCharge->value;
+        $sourceEvent = $type === 'fuel'
+            ? \App\Enums\Billing\BillingSourceEvent::AdminFuelChargeCreated->value
+            : \App\Enums\Billing\BillingSourceEvent::AdminDamageChargeCreated->value;
+
+        try {
+            BillingEngine::charge(new \App\Http\DataObjects\BillingChargeRequest(
+                type:                $billingType,
+                orderId:             $orderId,
+                customerId:          (int) $record->customer_id,
+                amount:              $resolved['base_amount'],
+                taxType:             $record->sales_tax_type,
+                responsiblePersonId: $user->id,
+                notes:               $record->notes,
+                sourceModule:        $sourceModule,
+                sourceEvent:         $sourceEvent,
+                sourceReferenceType: 'CustomerAccount',
+                sourceReferenceId:   $record->id,
+                metadata:            [
+                    'creation_path'              => 'ChargeService::createManualCharge',
+                    'source_context'             => $sourceContext,
+                    'legacy_customer_account_id' => $record->id,
+                    'sales_tax_type'             => $record->sales_tax_type,
+                ],
+                idempotencyKey:      "manual_{$type}_charge:{$record->id}",
+                customerAccountId:   $record->id,
+                taxAmount:           $resolved['tax_amount'],
+            ));
+        } catch (\Throwable $e) {
+            Log::channel('billing_engine')->error(
+                'BillingEngine bridge failed | path=ChargeService::createManualCharge '
+                . "| context={$sourceContext} | customer_account_id={$record->id} "
+                . "| customer_id={$record->customer_id} | amount={$record->amount} "
+                . '| error=' . $e->getMessage()
+            );
+        }
+
+        return $record;
+    }
+
+    /**
      * Create a CustomerAccount charge record from a checklist-originated OrderProduct charge.
      * Idempotent — will not create a duplicate if one already exists for the same OP + type
      * within the same rental cycle (see $cycleStartedAt).

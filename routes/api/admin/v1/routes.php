@@ -50,6 +50,9 @@ Route::group(['prefix' => 'v1'], function ($router) {
 
         require base_path('routes/api/admin/v1/dispatch/routes.php');
 
+        // queue line — standalone yard staging module (board / switch / fuel / history)
+        require base_path('routes/api/admin/v1/queue_line/routes.php');
+
         require base_path('routes/api/admin/v1/tasks/routes.php');
     });
 });

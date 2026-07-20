@@ -47,6 +47,7 @@
                     $ordersActive = Route::is([
                         'admin.order-management.orders.*',
                         'admin.order-management.schedules.*',
+                        'admin.order-management.queue-line.*',
                         'admin.order-management.dispatch.*',
                         'admin.order-management.equipment-inventory.*',
                         'admin.order-management.schedule-assignment.*',
@@ -130,6 +131,14 @@
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.order-management.schedules.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-calendar class="h-5 w-5" /> Schedule
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('admin.order-management.queue-line.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.order-management.queue-line.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-queue-list class="h-5 w-5" /> Queue Line
                                     </a>
                                 </li>
 
@@ -416,6 +425,14 @@
                                         {{ Route::is('admin.reports.calls-log.*') || Route::is('admin.reports.fuel-charge-alerts.*') || Route::is('admin.reports.new-damage-alerts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-bell-alert class="w-6 h-6" />
                                         Dash Reports
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.reports.fuel-charge-workspace.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.reports.fuel-charge-workspace.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-fire class="w-6 h-6" />
+                                        Fuel Charges
                                     </a>
                                 </li>
                                 <li>

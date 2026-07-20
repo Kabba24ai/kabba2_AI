@@ -18,6 +18,10 @@ class VoidRequest extends ApiBaseFormRequest
             // independently re-validates this id belongs to the order and
             // is actually eligible before trusting it.
             'order_payment_id' => ['required', 'integer'],
+            // Explicit disposition: does voiding this payment also cancel
+            // the rental? Absent/false = void only — the schedule is NEVER
+            // closed on inference (void-then-recharge must stay active).
+            'cancel_order' => ['sometimes', 'boolean'],
         ], $this->processedByRules());
     }
 }

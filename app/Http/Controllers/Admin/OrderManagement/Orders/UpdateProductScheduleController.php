@@ -36,6 +36,24 @@ class UpdateProductScheduleController extends Controller
         }
         $user = auth()->user();
 
+        // Queue Line release enforcement (Phase 4 §2): manually flipping the
+        // delivery leg to 'Completed' records a physical release, so it obeys
+        // the same canonical guard as the checklist paths. Administrative
+        // statuses ('Close as Completed', 'Reschedule', 'Pending') are exempt
+        // by design, and non-queue-managed items pass through untouched.
+        if ($validatedData['type'] === 'delivery'
+            && ($validatedData['delivery_status'] ?? null) === 'Completed'
+            && $orderProduct->delivery_status !== 'Completed') {
+            $orderProduct->loadMissing('softAssignment.equipment', 'queueLineItem');
+            if ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($orderProduct)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $blocked['message'],
+                    'error' => $blocked,
+                ], 422);
+            }
+        }
+
         $deliveryChanged = false;
         $pickupChanged = false;
         $storeChange = false;

@@ -19,6 +19,12 @@
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
+  /* Queue Line wall-board display tiers: 1080p is the baseline; QHD/4K shop
+     TVs get progressively larger cards + type instead of more, smaller
+     columns. Set safely past laptop widths so ordinary admin screens never
+     trigger them. */
+  --breakpoint-wall2k: 2400px;
+  --breakpoint-wall4k: 3400px;
 
   --text-title-2xl: 72px;
   --text-title-2xl--line-height: 90px;

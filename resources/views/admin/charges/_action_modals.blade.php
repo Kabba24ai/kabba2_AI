@@ -26,12 +26,12 @@
         </div>
         <textarea id="ws-note-text" rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Note…"></textarea>
         @if ($fuelNotePresets->isNotEmpty())
-            <div class="flex flex-wrap gap-1.5 mt-2">
+            <select id="ws-note-preset-select" class="mt-2 w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600">
+                <option value="">Insert preset note…</option>
                 @foreach ($fuelNotePresets as $preset)
-                    <button type="button" data-note-preset
-                            class="px-2 py-1 rounded border border-gray-200 text-xs text-gray-600 hover:bg-gray-50">{{ $preset->label }}</button>
+                    <option value="{{ $preset->label }}">{{ $preset->label }}</option>
                 @endforeach
-            </div>
+            </select>
         @endif
         <div class="flex justify-end gap-2 mt-4">
             <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-modal-close>Cancel</button>
@@ -70,12 +70,12 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Resolution note <span class="text-red-500">*</span></label>
         <textarea id="ws-resolve-note" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="How was this resolved?"></textarea>
         @if ($resolutionPresets->isNotEmpty())
-            <div class="flex flex-wrap gap-1.5 mt-2">
+            <select id="ws-resolve-preset-select" class="mt-2 w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600">
+                <option value="">Insert preset note…</option>
                 @foreach ($resolutionPresets as $preset)
-                    <button type="button" data-resolve-preset
-                            class="px-2 py-1 rounded border border-gray-200 text-xs text-gray-600 hover:bg-gray-50">{{ $preset->label }}</button>
+                    <option value="{{ $preset->label }}">{{ $preset->label }}</option>
                 @endforeach
-            </div>
+            </select>
         @endif
         <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Resolved by</label>
         <select id="ws-resolve-user" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
@@ -213,8 +213,17 @@
     window.wsBindRowActions = bindRowActions;
 
     // ── Notes ──────────────────────────────────────────────────────────
-    document.querySelectorAll('[data-note-preset]').forEach((b) =>
-        b.addEventListener('click', () => { $('ws-note-text').value = b.textContent.trim(); }));
+    function bindPresetSelect(selectId, targetId) {
+        const sel = $(selectId);
+        if (!sel) return;
+        sel.addEventListener('change', () => {
+            if (!sel.value) return;
+            const target = $(targetId);
+            target.value = target.value.trim() ? target.value.trim() + ' ' + sel.value : sel.value;
+            sel.value = '';
+        });
+    }
+    bindPresetSelect('ws-note-preset-select', 'ws-note-text');
 
     $('ws-note-save').addEventListener('click', async () => {
         const note = $('ws-note-text').value.trim();
@@ -245,8 +254,7 @@
     });
 
     // ── Resolve ────────────────────────────────────────────────────────
-    document.querySelectorAll('[data-resolve-preset]').forEach((b) =>
-        b.addEventListener('click', () => { $('ws-resolve-note').value = b.textContent.trim(); }));
+    bindPresetSelect('ws-resolve-preset-select', 'ws-resolve-note');
 
     $('ws-resolve-save').addEventListener('click', async () => {
         const note = $('ws-resolve-note').value.trim();

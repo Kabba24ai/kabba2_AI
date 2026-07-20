@@ -62,8 +62,8 @@ class IndexController extends Controller
         // Modal support data — same sources the old dashboard modals used.
         $users             = User::active()->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
         $paymentSetting    = ConfigurationHelper::getSettings('Payment Settings');
-        $resolutionPresets = ResolutionNotePreset::orderBy('label')->get(['id', 'label']);
-        $fuelNotePresets   = FuelNotePreset::orderBy('label')->get(['id', 'label']);
+        $resolutionPresets = ResolutionNotePreset::ordered()->get(['id', 'label', 'sort_order']);
+        $fuelNotePresets   = FuelNotePreset::ordered()->get(['id', 'label', 'sort_order']);
 
         return view('admin.reports.fuel_charge_workspace.index', compact(
             'alerts', 'summary', 'status', 'users', 'paymentSetting', 'resolutionPresets', 'fuelNotePresets'

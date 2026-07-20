@@ -19,6 +19,8 @@
 @php
     $fuelNotePresets = $fuelNotePresets ?? collect();
     $nfcContext      = $nfcContext ?? 'dashboard';
+    $nfcTaxRate      = \App\Services\ChargeTaxCalculator::currentRate();
+    $nfcTaxPct       = rtrim(rtrim(number_format($nfcTaxRate * 100, 2, '.', ''), '0'), '.');
 @endphp
 
 <div id="nfc-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
@@ -58,20 +60,38 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+        {{-- Amount + tax — the Add Extension Charge pattern, now the
+             Billing Engine standard. Taxable is ALWAYS the default; No Tax
+             requires an explicit employee action. --}}
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Base Amount <span class="text-red-500">*</span></label>
+            <div class="flex items-center border border-gray-300 rounded-md px-3 py-2 focus-within:ring-1 focus-within:ring-blue-500">
+                <span class="text-gray-500 text-sm mr-1">$</span>
                 <input type="number" step="0.01" min="0.01" id="nfc-amount"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                       class="flex-1 text-sm focus:outline-none" placeholder="0.00">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Sales Tax</label>
-                <select id="nfc-tax" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-                    <option value="free">Tax Free</option>
-                    <option value="add">Add Sales Tax</option>
-                    <option value="reverse">Reverse Sales Tax</option>
-                </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax</label>
+            <div class="flex flex-wrap gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="nfc-tax" value="add" checked class="accent-teal-500">
+                    <span class="text-sm text-gray-700">Add {{ $nfcTaxPct }}% Tax</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="nfc-tax" value="free" class="accent-teal-500">
+                    <span class="text-sm text-gray-700">No Tax</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="nfc-tax" value="reverse" class="accent-teal-500">
+                    <span class="text-sm text-gray-700">Tax Included in Amount</span>
+                </label>
             </div>
+        </div>
+
+        <div class="mb-4">
+            <x-admin.billing.charge-summary id-prefix="nfc" :tax-percentage="$nfcTaxPct" />
         </div>
 
         <div class="mb-4">
@@ -80,12 +100,12 @@
                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                       placeholder="Gallons, fuel level, context…"></textarea>
             @if ($fuelNotePresets->isNotEmpty())
-                <div class="flex flex-wrap gap-1.5 mt-2">
+                <select id="nfc-preset-select" class="mt-2 w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600">
+                    <option value="">Insert preset note…</option>
                     @foreach ($fuelNotePresets as $preset)
-                        <button type="button" data-nfc-preset
-                                class="px-2 py-1 rounded border border-gray-200 text-xs text-gray-600 hover:bg-gray-50">{{ $preset->label }}</button>
+                        <option value="{{ $preset->label }}">{{ $preset->label }}</option>
                     @endforeach
-                </div>
+                </select>
             @endif
         </div>
 
@@ -116,6 +136,7 @@
 
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
     const CONTEXT = @json($nfcContext);
+    const TAX_RATE = Number(@json($nfcTaxRate)) || 0;
     const URLS = {
         store:     @json(route('admin.dashboard.fuel-charge.store')),
         orders:    @json(route('admin.dashboard.charge-modal.orders')),
@@ -123,10 +144,16 @@
     };
 
     const $ = (id) => document.getElementById(id);
-    const state = { orderId: null, customerId: null, customerLocked: false };
+    const state = { orderId: null, customerId: null, customerLocked: false, orderLocked: false };
 
     function esc(s) {
         return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // UI quality standard: the literal text "null"/"undefined" must never
+    // render — absent values are simply omitted.
+    function joinParts(parts, sep = ' · ') {
+        return parts.filter((p) => p !== null && p !== undefined && p !== '' && p !== 'null').join(sep);
     }
 
     function show(el, on) { el.classList.toggle('hidden', !on); el.classList.toggle('flex', on && el.id.endsWith('-selected')); }
@@ -134,10 +161,11 @@
     function setOrder(order) {
         state.orderId = order ? order.id : null;
         show($('nfc-order-selected'), !!order);
-        show($('nfc-order-search-wrap'), !order);
+        show($('nfc-order-search-wrap'), !order && !state.orderLocked);
+        $('nfc-order-clear').classList.toggle('hidden', state.orderLocked);
         if (order) {
             $('nfc-order-label').textContent =
-                `#${order.order_number} · ${order.customer_name} · ${order.order_date} · ${order.status}`;
+                joinParts([`Order ${order.order_number}`, order.customer_name, order.order_date]);
             // Customer is DERIVED from the order — locked, never mixable.
             setCustomer({ id: order.customer_id, name: order.customer_name }, true);
         } else if (!state.customerLocked) {
@@ -185,22 +213,41 @@
 
     typeahead('nfc-order-search', 'nfc-order-results', URLS.orders,
         (o) => `<div data-pick='${esc(JSON.stringify(o))}' class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
-                    <span class="font-medium">#${esc(o.order_number)}</span> · ${esc(o.customer_name)}
-                    <span class="text-gray-400">· ${esc(o.order_date)} · ${esc(o.status)}</span>
+                    <span class="font-medium">${esc(joinParts(['Order', o.order_number], ' '))}</span>
+                    <span class="text-gray-600">${esc(joinParts(['', o.customer_name]))}</span>
+                    <span class="text-gray-400">${esc(joinParts(['', o.order_date, o.status]))}</span>
                 </div>`,
         (o) => setOrder(o));
 
     typeahead('nfc-customer-search', 'nfc-customer-results', URLS.customers,
         (c) => `<div data-pick='${esc(JSON.stringify(c))}' class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
                     <span class="font-medium">${esc(c.name)}</span>
-                    <span class="text-gray-400">${c.company ? '· ' + esc(c.company) : ''} ${c.phone ? '· ' + esc(c.phone) : ''}</span>
+                    <span class="text-gray-400">${esc(joinParts(['', c.company, c.phone]))}</span>
                 </div>`,
         (c) => setCustomer(c, false));
 
+    function taxTreatment() {
+        return document.querySelector('input[name="nfc-tax"]:checked')?.value || 'add';
+    }
+    function refreshSummary() {
+        window.BillingSummary.update('nfc', $('nfc-amount').value, taxTreatment(), TAX_RATE);
+    }
+    $('nfc-amount').addEventListener('input', refreshSummary);
+    document.querySelectorAll('input[name="nfc-tax"]').forEach((r) => r.addEventListener('change', refreshSummary));
+
     $('nfc-order-clear').addEventListener('click', () => setOrder(null));
     $('nfc-customer-clear').addEventListener('click', () => setCustomer(null, false));
-    document.querySelectorAll('[data-nfc-preset]').forEach((b) =>
-        b.addEventListener('click', () => { $('nfc-notes').value = b.textContent.trim(); }));
+    const presetSelect = $('nfc-preset-select');
+    if (presetSelect) {
+        presetSelect.addEventListener('change', () => {
+            if (!presetSelect.value) return;
+            const notes = $('nfc-notes');
+            notes.value = notes.value.trim()
+                ? notes.value.trim() + ' ' + presetSelect.value
+                : presetSelect.value;
+            presetSelect.value = '';
+        });
+    }
     document.querySelectorAll('[data-nfc-close]').forEach((b) =>
         b.addEventListener('click', () => $('nfc-modal').classList.add('hidden')));
 
@@ -223,7 +270,7 @@
             order_id: state.orderId,
             customer_id: state.customerId,
             amount: Number($('nfc-amount').value),
-            sales_tax_type: $('nfc-tax').value,
+            sales_tax_type: taxTreatment(),
             notes: $('nfc-notes').value.trim() || null,
             responsible_person: $('nfc-user').value,
             source_context: CONTEXT,
@@ -256,16 +303,32 @@
     window.NewFuelCharge = {
         onCreated: null,
         open(opts = {}) {
+            // Launch modes (Billing Engine commonization):
+            //   selection mode      — Dashboard / Fuel Workspace (default)
+            //   locked-order mode   — Order Details (order + customer are
+            //                         fixed context, no selectors)
+            //   customer-locked     — CRM customer page
+            state.orderLocked = !!opts.lockOrderContext;
+            state.customerLocked = !!opts.lockCustomer || state.orderLocked;
             setOrder(null);
-            state.customerLocked = !!opts.lockCustomer;
-            if (opts.customerId) {
+
+            if (state.orderLocked) {
+                state.orderId = opts.orderId;
+                show($('nfc-order-selected'), true);
+                show($('nfc-order-search-wrap'), false);
+                $('nfc-order-clear').classList.add('hidden');
+                $('nfc-order-label').textContent = opts.orderLabel || 'Current order';
+                setCustomer({ id: opts.customerId, name: opts.customerName || 'Customer' }, true);
+            } else if (opts.customerId) {
                 setCustomer({ id: opts.customerId, name: opts.customerName || 'Selected customer' }, !!opts.lockCustomer);
             } else {
                 setCustomer(null, false);
             }
             $('nfc-amount').value = '';
             $('nfc-notes').value = '';
-            $('nfc-tax').value = 'free';
+            // Taxable is always the default — No Tax requires intent.
+            document.querySelector('input[name="nfc-tax"][value="add"]').checked = true;
+            refreshSummary();
             $('nfc-error').classList.add('hidden');
             $('nfc-modal').classList.remove('hidden');
         },

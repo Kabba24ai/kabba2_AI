@@ -394,8 +394,8 @@ class IndexController extends Controller
 
         $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
 
-        $resolutionPresets = ResolutionNotePreset::orderBy('label')->get();
-        $fuelNotePresets   = FuelNotePreset::orderBy('label')->get();
+        $resolutionPresets = ResolutionNotePreset::ordered()->get();
+        $fuelNotePresets   = FuelNotePreset::ordered()->get();
 
         $sales_tax = ConfigurationHelper::getSettings(null, 'sales_tax');
 

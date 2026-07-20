@@ -28,7 +28,7 @@ class FuelChargeStoreController extends Controller
             'notes'              => ['nullable', 'string', 'max:500'],
             'responsible_person' => ['required', 'exists:users,id'],
             'sales_tax_type'     => ['nullable', 'in:add,free,reverse'],
-            'source_context'     => ['nullable', 'in:dashboard,fuel_workspace,crm'],
+            'source_context'     => ['nullable', 'in:dashboard,fuel_workspace,crm,order_details'],
         ]);
 
         $orderId = $validated['order_id'] ?? null;

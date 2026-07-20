@@ -6,16 +6,20 @@
 --}}
 <div wire:poll.30s="refreshAlerts" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-    {{-- Fuel Charge Alerts --}}
+    {{-- Fuel Charge Alerts. Split footer (approved design): outlined
+         "+ New Fuel Charge" secondary opens the shared creation modal
+         (included by index.blade.php); filled Resolve stays primary.
+         Subtitle intentionally removed per the approved card design. --}}
     <x-admin.dashboard.charge-alert-card
         title="Fuel Charge Alerts"
-        subtitle="Fuel charges requiring resolution"
         icon-gradient="from-orange-500 to-orange-600"
         accent-hex="#f97316"
         chart-id="fuel-charge-donut"
         action-class="bg-orange-500 hover:bg-orange-600"
         :href="route('admin.reports.fuel-charge-workspace.index')"
         action-label="Resolve Fuel Charges"
+        secondary-label="New Fuel Charge"
+        secondary-id="fuel-new-charge-btn"
         :outstanding="$fuelSummary['outstanding'] ?? 0"
         :completed-today="$fuelSummary['completed_today'] ?? 0"
         :resolved-this-week="$fuelSummary['resolved_this_week'] ?? 0"

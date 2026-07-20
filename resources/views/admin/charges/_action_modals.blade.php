@@ -8,8 +8,12 @@
        $fuelNotePresets    FuelNotePreset list
 
      Every action posts to the PRE-EXISTING canonical dashboard endpoints —
-     no new business logic. The old 1,200-line dashboardApp was treated as
-     a functional inventory only; this is a fresh, minimal implementation. --}}
+     no new business logic. Payment lives in the shared Billing Engine
+     component (admin/billing/_payment_modal — Billing Engine
+     Commonization): the payment action here only dispatches to
+     window.BillingPayment; no payment UI or logic is owned by this file. --}}
+
+@include('admin.billing._payment_modal')
 
 @php $authUserId = auth()->id(); @endphp
 
@@ -114,104 +118,6 @@
     </div>
 </div>
 
-{{-- ── Payment modal — a REAL form POST to the canonical dashboard
-       payment endpoint (redirect + flash on completion, exactly like the
-       old dashboard modal and the CRM quick-payment form). ───────────── --}}
-<div id="ws-payment-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold text-gray-900">Collect Payment — <span data-modal-context></span></h3>
-            <button type="button" class="text-gray-400 hover:text-gray-600" data-modal-close>&times;</button>
-        </div>
-
-        <form id="ws-payment-form" method="POST" action="{{ route('admin.dashboard.paymentstore') }}">
-            @csrf
-            <input type="hidden" name="customer_id" id="wsp-customer-id">
-            <input type="hidden" name="order_id" id="wsp-order-id">
-            <input type="hidden" name="order_product_id" id="wsp-op-id">
-            <input type="hidden" name="type" value="{{ $chargeType }}">
-            <input type="hidden" name="source" value="order">
-            <input type="hidden" name="idempotency_token" id="wsp-idempotency">
-            <input type="hidden" name="opaqueDataValue" id="wsp-opaque-value">
-            <input type="hidden" name="opaqueDataDescriptor" id="wsp-opaque-descriptor">
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
-                <input type="number" step="0.01" min="0.01" name="amount" id="wsp-amount" required
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span class="text-red-500">*</span></label>
-                <select name="payment_type" id="wsp-payment-type" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-                    @foreach (\App\Enums\Customers\PaymentMethod::options() as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="mb-4 hidden" id="wsp-cheque-wrap">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Check Number</label>
-                <input type="text" name="cheque_number" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-            </div>
-
-            <div class="mb-4 hidden" id="wsp-card-options-wrap">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Card Option <span class="text-red-500">*</span></label>
-                <select name="card_option" id="wsp-card-option" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-                    <option value="CardOnFile">Card on File</option>
-                    <option value="NewCard">New Card</option>
-                </select>
-            </div>
-
-            <div class="mb-4 hidden" id="wsp-saved-cards-wrap">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Saved Card <span class="text-red-500">*</span></label>
-                <select name="existing_card_id" id="wsp-existing-card" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"></select>
-            </div>
-
-            <div class="hidden" id="wsp-new-card-wrap">
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <input type="text" name="firstName" placeholder="First name" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                    <input type="text" name="lastName" placeholder="Last name" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                </div>
-                <input type="text" id="wsp-card-number" placeholder="Card number" autocomplete="off"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-3">
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <input type="text" id="wsp-card-expiry" placeholder="MM/YY" autocomplete="off" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                    <input type="text" id="wsp-card-cvc" placeholder="CVC" autocomplete="off" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Received By <span class="text-red-500">*</span></label>
-                <select name="responsible_person" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
-                    @foreach ($users as $u)
-                        <option value="{{ $u->id }}" @selected($u->id === $authUserId)>{{ $u->first_name }} {{ $u->last_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="mb-4" id="wsp-notes-wrap">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Notes <span class="text-red-500 hidden" id="wsp-notes-required">*</span></label>
-                <input type="text" name="notes" id="wsp-notes" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                       placeholder="Optional — required for Other">
-            </div>
-
-            <div id="ws-payment-error" class="hidden mb-3 text-sm text-red-600"></div>
-
-            <div class="flex justify-end gap-2">
-                <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-modal-close>Cancel</button>
-                <button type="submit" id="wsp-submit" class="px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700">Collect Payment</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-@if (app()->environment('production'))
-    <script src="https://js.authorize.net/v1/Accept.js"></script>
-@else
-    <script src="https://jstest.authorize.net/v1/Accept.js"></script>
-@endif
-
 <script>
 (function () {
     'use strict';
@@ -219,10 +125,6 @@
     const TYPE = @json($chargeType);
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
     const AUTH_USER_ID = @json($authUserId);
-    const ACCEPT_AUTH = {
-        clientKey: @json(safe_decrypt($paymentSetting['payment_api_public_key'] ?? null)),
-        apiLoginID: @json(safe_decrypt($paymentSetting['payment_api_key'] ?? null)),
-    };
 
     // Canonical endpoints — path templates resolved per row at open time.
     const URLS = {
@@ -301,8 +203,8 @@
                     openModal('ws-history-modal');
                     loadHistory(activeRow.dataset.orderDbId);
                 } else if (action === 'payment') {
-                    prepPaymentModal();
-                    openModal('ws-payment-modal');
+                    window.BillingPayment.openForAlertRow(activeRow.dataset,
+                        activeRow.dataset.customerName + (activeRow.dataset.orderNumber ? ' · ' + activeRow.dataset.orderNumber : ''));
                 }
             });
         });
@@ -389,76 +291,5 @@
             body.innerHTML = '<p class="text-red-600 text-sm">Could not load charge history.</p>';
         }
     }
-
-    // ── Payment ────────────────────────────────────────────────────────
-    function prepPaymentModal() {
-        $('wsp-customer-id').value = activeRow.dataset.customerId;
-        $('wsp-order-id').value = activeRow.dataset.orderDbId || '';
-        $('wsp-op-id').value = activeRow.dataset.opId || '';
-        $('wsp-amount').value = activeRow.dataset.amount;
-        $('wsp-idempotency').value = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
-        $('wsp-opaque-value').value = '';
-        $('wsp-opaque-descriptor').value = '';
-        $('ws-payment-error').classList.add('hidden');
-
-        const cards = JSON.parse(activeRow.dataset.cards || '[]');
-        const sel = $('wsp-existing-card');
-        sel.innerHTML = cards.map((c) => `<option value="${c.id}">${c.label}</option>`).join('')
-            || '<option value="">No saved cards</option>';
-
-        syncPaymentFields();
-    }
-
-    function syncPaymentFields() {
-        const method = $('wsp-payment-type').value;
-        const isCard = method === 'CreditCard';
-        $('wsp-cheque-wrap').classList.toggle('hidden', method !== 'Cheque');
-        $('wsp-card-options-wrap').classList.toggle('hidden', !isCard);
-        $('wsp-notes-required').classList.toggle('hidden', method !== 'Other');
-        $('wsp-notes').required = method === 'Other';
-
-        const option = $('wsp-card-option').value;
-        $('wsp-saved-cards-wrap').classList.toggle('hidden', !(isCard && option === 'CardOnFile'));
-        $('wsp-new-card-wrap').classList.toggle('hidden', !(isCard && option === 'NewCard'));
-    }
-    $('wsp-payment-type').addEventListener('change', syncPaymentFields);
-    $('wsp-card-option').addEventListener('change', syncPaymentFields);
-
-    $('ws-payment-form').addEventListener('submit', function (e) {
-        const method = $('wsp-payment-type').value;
-        const option = $('wsp-card-option').value;
-
-        if (method !== 'CreditCard' || option !== 'NewCard') {
-            return; // plain form POST — canonical redirect + flash flow
-        }
-
-        // New card: tokenize via Accept.js first, then submit with opaque data.
-        e.preventDefault();
-        const err = $('ws-payment-error');
-        err.classList.add('hidden');
-
-        const [month, year] = ($('wsp-card-expiry').value || '').split('/');
-        Accept.dispatchData({
-            authData: ACCEPT_AUTH,
-            cardData: {
-                cardNumber: ($('wsp-card-number').value || '').replace(/\s+/g, ''),
-                month: (month || '').trim(),
-                year: (year || '').trim(),
-                cardCode: ($('wsp-card-cvc').value || '').trim(),
-            },
-        }, (response) => {
-            if (response.messages.resultCode === 'Error') {
-                err.textContent = response.messages.message.map((m) => m.text).join(' ');
-                err.classList.remove('hidden');
-                return;
-            }
-            $('wsp-opaque-value').value = response.opaqueData.dataValue;
-            $('wsp-opaque-descriptor').value = response.opaqueData.dataDescriptor;
-            // PAN never leaves the browser — only the token is posted.
-            $('wsp-card-number').value = '';
-            $('wsp-card-cvc').value = '';
-            $('ws-payment-form').submit();
-        });
-    });
 })();
 </script>

@@ -19,7 +19,14 @@
                 <h1 class="text-xl font-bold text-gray-900">Fuel Charge Workspace</h1>
                 <p class="text-sm text-gray-500 mt-0.5">Review, adjust, collect, and resolve fuel charge alerts.</p>
             </div>
-            <a href="{{ route('admin.dashboard.index') }}" class="text-sm text-blue-600 hover:underline">← Dashboard</a>
+            <div class="flex items-center gap-4">
+                <button type="button" id="ws-new-fuel-charge"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <x-heroicon-o-plus class="w-4 h-4" />
+                    New Fuel Charge
+                </button>
+                <a href="{{ route('admin.dashboard.index') }}" class="text-sm text-blue-600 hover:underline">← Dashboard</a>
+            </div>
         </div>
 
         {{-- Mini dashboard (compact — operational awareness only) --}}
@@ -54,6 +61,12 @@
     </div>
 
     @include('admin.charges._action_modals', ['chargeType' => 'fuel'])
+
+    @include('admin.charges._new_fuel_charge_modal', [
+        'users' => $users,
+        'fuelNotePresets' => $fuelNotePresets,
+        'nfcContext' => 'fuel_workspace',
+    ])
 
 @endsection
 
@@ -106,6 +119,19 @@
     window.wsRefreshWorkspace = async function () {
         await origRefresh();
         bindPagination();
+    };
+
+    // Shared New Fuel Charge modal wiring: refresh queue + metrics (filters
+    // preserved) after creation; "Save & Collect Payment" continues into
+    // the canonical payment modal as a CRM-source payment.
+    document.getElementById('ws-new-fuel-charge').addEventListener('click', () => {
+        window.NewFuelCharge.open({});
+    });
+    window.NewFuelCharge.onCreated = async function (charge, continueToPayment) {
+        await window.wsRefreshWorkspace();
+        if (continueToPayment) {
+            window.BillingPayment.openForCharge(charge, 'New fuel charge');
+        }
     };
 })();
 </script>

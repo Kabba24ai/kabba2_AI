@@ -7,6 +7,11 @@
     'href' => '#',
     'actionLabel' => 'View',
     'actionClass' => 'bg-orange-500 hover:bg-orange-600',
+    // Optional outlined secondary action rendered LEFT of the primary
+    // (split footer, e.g. "+ New Fuel Charge"). Rendered only when a label
+    // is given — the Damage card is unaffected until it opts in.
+    'secondaryLabel' => null,
+    'secondaryId' => null,
     'outstanding' => 0,
     'completedToday' => 0,
     'resolvedThisWeek' => 0,
@@ -32,7 +37,9 @@
         </div>
         <div>
             <h3 class="text-lg font-bold text-gray-900">{{ $title }}</h3>
-            <p class="text-sm text-gray-600">{{ $subtitle }}</p>
+            @if (filled($subtitle))
+                <p class="text-sm text-gray-600">{{ $subtitle }}</p>
+            @endif
         </div>
     </div>
 
@@ -78,10 +85,21 @@
         </div>
     </div>
 
-    {{-- Primary action: compact, centered, identical fixed width on both cards --}}
-    <div class="mt-5 flex justify-center">
+    {{-- Footer actions. Split footer when a secondary action is provided
+         (outlined secondary + filled primary — one filled button only);
+         otherwise the original compact, centered primary. --}}
+    <div class="mt-5 flex justify-center gap-3">
+        @if (filled($secondaryLabel))
+            <button type="button" @if($secondaryId) id="{{ $secondaryId }}" @endif
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 flex-shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                {{ $secondaryLabel }}
+            </button>
+        @endif
         <a href="{{ $href }}"
-           class="w-52 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-semibold shadow-sm transition-colors {{ $actionClass }}">
+           class="{{ filled($secondaryLabel) ? '' : 'w-52' }} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-semibold shadow-sm transition-colors {{ $actionClass }}">
             {{ $actionLabel }}
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 flex-shrink-0">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />

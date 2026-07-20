@@ -70,4 +70,8 @@ Route::post(
 Route::post('/fuel-charge/store', FuelChargeStoreController::class)->name('fuel-charge.store');
 Route::post('/damage-charge/store', DamageChargeStoreController::class)->name('damage-charge.store');
 
+// Shared New Fuel Charge modal — read-only typeahead lookups.
+Route::get('/charge-modal/orders', [\App\Http\Controllers\Admin\Dashboard\ChargeModalLookupController::class, 'orders'])->name('charge-modal.orders');
+Route::get('/charge-modal/customers', [\App\Http\Controllers\Admin\Dashboard\ChargeModalLookupController::class, 'customers'])->name('charge-modal.customers');
+
 });

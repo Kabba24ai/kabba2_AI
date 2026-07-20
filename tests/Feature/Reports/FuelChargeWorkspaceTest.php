@@ -16,13 +16,16 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Dashboard V2 Phase 1A — Fuel Charge Workspace.
+ * Fuel Charge Workspace (Billing Charge Operations Commonization).
  *
  * The load-bearing guarantee: the workspace queue and the dashboard Fuel
  * card consume the IDENTICAL ChargeAlertQueue service, so their Outstanding
- * counts reconcile by construction. These tests pin that, plus the Phase 1
- * CRM rule (visible, clearly labeled, strictly read-only) and the presence
- * of the full OrderProduct action set.
+ * counts reconcile by construction. These tests pin that, plus the approved
+ * capability rule — actions come from charge state and business rules,
+ * never origin: OrderProduct rows carry the full op-mode action set;
+ * CRM/manual rows WITH a Billing Engine bridge carry the charge-mode set;
+ * CRM rows WITHOUT a bridge (no canonical BillingCharge to operate on)
+ * stay link-only.
  */
 class FuelChargeWorkspaceTest extends TestCase
 {
@@ -132,8 +135,11 @@ class FuelChargeWorkspaceTest extends TestCase
         }
     }
 
-    public function test_crm_row_is_visible_but_strictly_read_only(): void
+    public function test_crm_row_without_billing_bridge_is_link_only(): void
     {
+        // No BillingCharge bridge exists for this CA — there is no canonical
+        // charge object to operate on, so the row stays link-only (business
+        // rule, not origin).
         $this->makeCrmFuelCharge();
 
         $response = $this->get(route('admin.reports.fuel-charge-workspace.index'));
@@ -141,8 +147,67 @@ class FuelChargeWorkspaceTest extends TestCase
 
         $response->assertSee('Manual');
         $response->assertSee('Manage in CRM');
-        // The CRM row must expose NO action buttons — Phase 2 owns its sync.
         $this->assertStringNotContainsString('data-action=', $html);
+    }
+
+    public function test_crm_row_with_billing_bridge_carries_charge_mode_actions(): void
+    {
+        $account = $this->makeCrmFuelCharge();
+
+        $bridge = \App\Models\Orders\BillingCharge::create([
+            'billing_charge_type' => 'fuel',
+            'status' => 'pending',
+            'customer_id' => $this->customer->id,
+            'amount' => 40.0,
+            'tax_amount' => 0.0,
+            'tax_type' => 'free',
+            'customer_account_id' => $account->id,
+        ]);
+
+        $html = $this->get(route('admin.reports.fuel-charge-workspace.index'))->getContent();
+
+        // Charge-mode row keyed by the bridge's unique_id…
+        $this->assertStringContainsString('data-action-mode="charge"', $html);
+        $this->assertStringContainsString('data-bc-id="' . $bridge->unique_id . '"', $html);
+
+        // …with the canonical state-based action set (Adjust deliberately
+        // withheld pending Phase 2 CA-ledger sync; History needs an order).
+        foreach (['notes', 'payment', 'resolve', 'uncollectible'] as $action) {
+            $this->assertStringContainsString('data-action="' . $action . '"', $html, "missing {$action}");
+        }
+        $this->assertStringNotContainsString('data-action="adjust"', $html);
+        $this->assertStringNotContainsString('data-action="history"', $html);
+
+        // The informational link remains alongside the actions.
+        $this->assertStringContainsString('Manage in CRM', $html);
+    }
+
+    public function test_completed_row_with_paid_bridge_offers_refund(): void
+    {
+        $account = $this->makeCrmFuelCharge();
+        $account->fuel_alert_status = 'completed';
+        $account->save();
+
+        $bridge = \App\Models\Orders\BillingCharge::create([
+            'billing_charge_type' => 'fuel',
+            'status' => 'paid',
+            'customer_id' => $this->customer->id,
+            'amount' => 40.0,
+            'tax_amount' => 0.0,
+            'tax_type' => 'free',
+            'customer_account_id' => $account->id,
+        ]);
+
+        $html = $this->get(route('admin.reports.fuel-charge-workspace.index', [
+            'status' => 'completed',
+        ]))->getContent();
+
+        $this->assertStringContainsString('data-action="refund"', $html);
+        $this->assertStringContainsString('data-refund-remaining="40.00"', $html);
+        $this->assertStringContainsString('data-bc-id="' . $bridge->unique_id . '"', $html);
+        // Terminal rows never re-offer the open-state lifecycle actions.
+        $this->assertStringNotContainsString('data-action="resolve"', $html);
+        $this->assertStringNotContainsString('data-action="payment"', $html);
     }
 
     public function test_filters_narrow_the_queue_without_changing_the_summary(): void

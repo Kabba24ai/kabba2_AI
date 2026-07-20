@@ -8,8 +8,10 @@ use App\Models\Customers\CustomerAccount;
 use App\Models\Dashboard\FuelNotePreset;
 use App\Models\Dashboard\ResolutionNotePreset;
 use App\Models\Iam\Personnel\User;
+use App\Models\Orders\BillingCharge;
 use App\Models\Orders\OrderProduct;
 use App\Services\Alerts\ChargeAlertQueue;
+use App\Services\Orders\BillingChargeRefundService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -129,15 +131,44 @@ class IndexController extends Controller
             $crmQuery->whereHas('order', fn ($q) => $q->where('order_number', 'like', "%{$needle}%")->orWhere('unique_id', 'like', "%{$needle}%"));
         }
 
-        $opRows = $opQuery->latest('id')->get()->map(function ($op) use ($status) {
+        $opRecords  = $opQuery->latest('id')->get();
+        $crmRecords = $crmQuery->latest()->get();
+
+        // Billing Engine bridge lookup (Billing Charge Operations
+        // Commonization): terminal rows gain their canonical BillingCharge
+        // reference so the shared action bar can offer charge-keyed actions
+        // — most importantly Refund, which renders only when the PAID
+        // bridge row still has a remaining refundable balance. Rows whose
+        // charge predates the Billing Engine simply have no bridge and get
+        // no charge-keyed actions (business rule, not origin).
+        $opBridges = BillingCharge::whereIn('order_product_id', $opRecords->pluck('id'))
+            ->where('billing_charge_type', 'fuel')
+            ->get()
+            ->keyBy('order_product_id');
+        $crmBridges = BillingCharge::whereIn('customer_account_id', $crmRecords->pluck('id'))
+            ->where('billing_charge_type', 'fuel')
+            ->get()
+            ->keyBy('customer_account_id');
+
+        $refundRemaining = function (?BillingCharge $bridge): float {
+            if (!$bridge || !$bridge->isPaid()) {
+                return 0.0;
+            }
+
+            return (float) BillingChargeRefundService::remainingRefundable($bridge)['total'];
+        };
+
+        $opRows = $opRecords->map(function ($op) use ($status, $opBridges, $refundRemaining) {
             $base = (float) ($op->fuel_total_charge ?? 0);
             $current = max(0, $base + $op->fuelChargeLogs->sum('change_amount'));
+            $bridge = $opBridges->get($op->id);
 
             return [
                 'customerName' => $op->order?->customer?->full_name ?? '—',
                 'customer' => ['id' => $op->order?->customer?->id, 'cards' => collect()],
                 'orderId' => $op->order?->unique_id,
                 'order_number' => $op->order?->order_number ?? '—',
+                'order_db_id' => $op->order?->id,
                 'orderLink' => $op->order ? route('admin.order-management.orders.edit', $op->order->unique_id) : null,
                 'amountOwed' => '$' . number_format($current, 2),
                 'date' => optional($op->order?->created_at)->toDateString(),
@@ -146,14 +177,17 @@ class IndexController extends Controller
                 'notes' => collect(),
                 'equipment' => ['name' => $op->equipment?->equipment_name],
                 'order_product' => ['id' => $op->id, 'unique_id' => $op->unique_id, 'current_fuel_charge' => $current],
+                'billing_charge_unique_id' => $bridge?->unique_id,
+                'refund_remaining' => $refundRemaining($bridge),
                 'terminal_status' => $status,
             ];
         });
 
-        $crmRows = $crmQuery->latest()->get()->map(function ($account) use ($status) {
+        $crmRows = $crmRecords->map(function ($account) use ($status, $crmBridges, $refundRemaining) {
             $base = (float) ($account->amount ?? 0);
             $rate = (float) ($account->sales_tax ?? 0);
             $total = ($account->sales_tax_type === 'add' && $rate > 0) ? $base + $base * $rate : $base;
+            $bridge = $crmBridges->get($account->id);
 
             return [
                 'source' => 'crm',
@@ -161,6 +195,7 @@ class IndexController extends Controller
                 'customer' => ['id' => $account->customer_id, 'cards' => collect()],
                 'orderId' => $account->order?->unique_id,
                 'order_number' => $account->order?->order_number,
+                'order_db_id' => $account->order?->id,
                 'orderLink' => $account->order
                     ? route('admin.order-management.orders.edit', $account->order->unique_id)
                     : ($account->customer ? route('admin.crm.customers.view', $account->customer->unique_id) : null),
@@ -173,6 +208,8 @@ class IndexController extends Controller
                 'equipment' => null,
                 'order_product' => null,
                 'customer_account_id' => $account->unique_id,
+                'billing_charge_unique_id' => $bridge?->unique_id,
+                'refund_remaining' => $refundRemaining($bridge),
                 'terminal_status' => $status,
             ];
         });

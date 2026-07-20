@@ -1,17 +1,30 @@
-{{-- Dashboard V2 Phase 1A — shared charge-action modals + behavior.
-     Included by the Fuel Charge Workspace (and, in Phase 1B, the Damage
-     Workspace) with:
-       $chargeType         'fuel' | 'damage'
+{{-- Billing Charge Operations Commonization — THE shared charge-action
+     modals + behavior for every surface that manages charges (Fuel
+     Workspace, Order Details Billing Engine, future Damage Workspace).
+     Included with:
+       $chargeType         'fuel' | 'damage'  (preset flavor + op-mode type)
        $users              active users for attribution selects
        $paymentSetting     Payment Settings (Accept.js keys)
        $resolutionPresets  ResolutionNotePreset list
        $fuelNotePresets    FuelNotePreset list
 
-     Every action posts to the PRE-EXISTING canonical dashboard endpoints —
-     no new business logic. Payment lives in the shared Billing Engine
-     component (admin/billing/_payment_modal — Billing Engine
-     Commonization): the payment action here only dispatches to
-     window.BillingPayment; no payment UI or logic is owned by this file. --}}
+     Rows opt in via data-charge-row + data-action-mode:
+       'op'     — legacy OrderProduct-keyed rows: actions post to the
+                  pre-existing canonical dashboard endpoints (unchanged).
+       'charge' — BillingCharge-keyed rows: actions post to the canonical
+                  billing-charges.* endpoints (unchanged).
+     The MODALS, wording, icons, and flow are identical either way — only
+     the endpoint family differs, chosen per row, never per page.
+
+     No business logic lives here. Payment is the shared Billing Engine
+     component (admin/billing/_payment_modal); refunds post to the
+     PRE-EXISTING linked-refund endpoint (RefundStoreController::
+     storeLinkedRefund — eligibility, remaining-refundable, split, locking
+     and idempotency are all enforced server-side there).
+
+     After a successful action the bundle calls ChargeActions.onChanged()
+     — full page reload by default; a page may plug in its own refresher
+     (the workspace swaps queue fragments in place). --}}
 
 @include('admin.billing._payment_modal')
 
@@ -95,6 +108,12 @@
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
         <h3 class="text-base font-semibold text-gray-900 mb-2">Mark Uncollectible — <span data-modal-context></span></h3>
         <p class="text-sm text-gray-600">This removes the alert from the active queue and records it as uncollectible. This action is tracked in the alert lifecycle log.</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1 mt-4">Marked by</label>
+        <select id="ws-uncollectible-user" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+            @foreach ($users as $u)
+                <option value="{{ $u->id }}" @selected($u->id === $authUserId)>{{ $u->first_name }} {{ $u->last_name }}</option>
+            @endforeach
+        </select>
         <div class="flex justify-end gap-2 mt-5">
             <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-modal-close>Cancel</button>
             <button type="button" id="ws-uncollectible-save" class="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700">Mark Uncollectible</button>
@@ -118,6 +137,72 @@
     </div>
 </div>
 
+{{-- ── Refund modal ────────────────────────────────────────────────────
+     A REAL form POST to the pre-existing linked-refund endpoint
+     (RefundStoreController::storeLinkedRefund). Only PAID fuel/damage
+     charges with a remaining refundable balance render the refund action;
+     the server independently re-derives eligibility, remaining balance,
+     and the base/tax split — nothing here is trusted. Redirect + flash on
+     completion, same as the CRM Process Refund flow. --}}
+<div id="ws-refund-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-gray-900">Refund — <span data-modal-context></span></h3>
+            <button type="button" class="text-gray-400 hover:text-gray-600" data-modal-close>&times;</button>
+        </div>
+        <form id="ws-refund-form" method="POST" action="{{ route('admin.crm.customers.customer-account.refundstore') }}">
+            @csrf
+            <input type="hidden" name="customer_id" id="ws-refund-customer-id">
+            <input type="hidden" name="billing_charge_unique_id" id="ws-refund-bc-id">
+            <input type="hidden" name="idempotency_token" id="ws-refund-idempotency">
+
+            <p class="text-sm text-gray-600 mb-3">
+                Remaining refundable: <span id="ws-refund-remaining" class="font-semibold text-gray-900"></span>
+            </p>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Refund Amount <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" min="0.01" name="amount" id="ws-refund-amount" required
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <p class="text-xs text-gray-500 mt-1">Tax-inclusive — the base/tax split is derived from the original charge.</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Refund Reason <span class="text-red-500">*</span></label>
+                <select name="reason" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                    <option value="">Select refund reason</option>
+                    <option value="Billing Overcharge">Billing Overcharge</option>
+                    <option value="Damage Waiver Protection">Damage Waiver Protection</option>
+                    <option value="Customer Cancellation">Customer Cancellation</option>
+                    <option value="Damaged Item">Damaged Item</option>
+                    <option value="Duplicate Charge">Duplicate Charge</option>
+                    <option value="Wrong Item Shipped">Wrong Item Shipped</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                <select name="responsible_person" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                    @foreach ($users as $u)
+                        <option value="{{ $u->id }}" @selected($u->id === $authUserId)>{{ $u->first_name }} {{ $u->last_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <input type="text" name="notes" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Optional">
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-modal-close>Cancel</button>
+                <button type="submit" class="px-4 py-2 text-sm rounded-md bg-amber-500 text-white hover:bg-amber-600">Process Refund</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 (function () {
     'use strict';
@@ -127,18 +212,33 @@
     const AUTH_USER_ID = @json($authUserId);
 
     // Canonical endpoints — path templates resolved per row at open time.
+    // Two families, chosen by each row's data-action-mode (never by page):
+    //   op:     legacy OrderProduct-keyed dashboard endpoints
+    //   charge: BillingCharge-keyed billing-engine endpoints
     const URLS = {
-        notes:         @json(route('admin.dashboard.notes.store', ':oid')),
-        adjust:        @json(route('admin.dashboard.amount.update', ':opuid')),
-        resolve:       @json(route('admin.dashboard.extra-charges.resolved', ':opid')),
-        uncollectible: @json(route('admin.dashboard.extra-charges.uncollectible', ':opid')),
-        history:       @json(route('admin.dashboard.extra-charges.show', ':orderid')),
+        notes:               @json(route('admin.dashboard.notes.store', ':oid')),
+        adjust:              @json(route('admin.dashboard.amount.update', ':opuid')),
+        resolve:             @json(route('admin.dashboard.extra-charges.resolved', ':opid')),
+        uncollectible:       @json(route('admin.dashboard.extra-charges.uncollectible', ':opid')),
+        history:             @json(route('admin.dashboard.extra-charges.show', ':orderid')),
+        noteCharge:          @json(route('admin.order-management.orders.billing-charges.note', ':bcid')),
+        adjustCharge:        @json(route('admin.order-management.orders.billing-charges.adjust', ':bcid')),
+        resolveCharge:       @json(route('admin.order-management.orders.billing-charges.resolve', ':bcid')),
+        uncollectibleCharge: @json(route('admin.order-management.orders.billing-charges.uncollectible', ':bcid')),
     };
 
     let activeRow = null;
 
     const $ = (id) => document.getElementById(id);
     const money = (n) => '$' + Number(n).toFixed(2);
+    const isChargeMode = () => activeRow?.dataset.actionMode === 'charge';
+    const rowType = () => activeRow?.dataset.type || TYPE;
+
+    function freshToken() {
+        return (window.crypto && window.crypto.randomUUID)
+            ? window.crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
 
     function openModal(id) {
         const modal = $(id);
@@ -167,22 +267,10 @@
         return data;
     }
 
-    // Refresh queue + summary in place, preserving current filters/page.
-    async function refreshWorkspace() {
-        const params = new URLSearchParams(window.wsCurrentFilters ? window.wsCurrentFilters() : {});
-        params.set('fragment', '1');
-        const res = await fetch(`${window.location.pathname}?${params}`, { headers: { 'Accept': 'application/json' } });
-        const data = await res.json();
-        document.querySelector('[data-queue-wrap]').innerHTML = data.queue_html;
-        document.querySelector('[data-summary-wrap]').innerHTML = data.summary_html;
-        bindRowActions();
-    }
-    window.wsRefreshWorkspace = refreshWorkspace;
-
     function bindRowActions() {
-        document.querySelectorAll('[data-alert-row] [data-action]').forEach((btn) => {
+        document.querySelectorAll('[data-charge-row] [data-action]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                activeRow = btn.closest('[data-alert-row]');
+                activeRow = btn.closest('[data-charge-row]');
                 const action = btn.dataset.action;
 
                 if (action === 'notes') {
@@ -203,14 +291,46 @@
                     openModal('ws-history-modal');
                     loadHistory(activeRow.dataset.orderDbId);
                 } else if (action === 'payment') {
-                    window.BillingPayment.openForAlertRow(activeRow.dataset,
-                        activeRow.dataset.customerName + (activeRow.dataset.orderNumber ? ' · ' + activeRow.dataset.orderNumber : ''));
+                    const label = activeRow.dataset.customerName
+                        + (activeRow.dataset.orderNumber ? ' · ' + activeRow.dataset.orderNumber : '');
+                    if (isChargeMode()) {
+                        window.BillingPayment.openForBillingRow(activeRow.dataset, label);
+                    } else {
+                        window.BillingPayment.openForAlertRow(activeRow.dataset, label);
+                    }
+                } else if (action === 'refund') {
+                    const remaining = Number(activeRow.dataset.refundRemaining || 0);
+                    $('ws-refund-customer-id').value = activeRow.dataset.customerId || '';
+                    $('ws-refund-bc-id').value = activeRow.dataset.bcId || '';
+                    $('ws-refund-idempotency').value = freshToken();
+                    $('ws-refund-remaining').textContent = money(remaining);
+                    const amt = $('ws-refund-amount');
+                    amt.value = remaining.toFixed(2);
+                    amt.max = remaining.toFixed(2);
+                    openModal('ws-refund-modal');
+                } else {
+                    // Page-specific actions (e.g. view-damage, extension
+                    // delete) — the host page plugs in a handler.
+                    window.ChargeActions.onAction?.(action, activeRow);
                 }
             });
         });
     }
     bindRowActions();
+
+    // Pluggable post-action refresh: full reload by default (Order Details),
+    // replaced by the workspace with its in-place fragment refresh.
+    window.ChargeActions = {
+        bind: bindRowActions,
+        onChanged: () => window.location.reload(),
+    };
+    // Back-compat alias for pages that still call the old name.
     window.wsBindRowActions = bindRowActions;
+
+    function changed() {
+        closeModals();
+        window.ChargeActions.onChanged();
+    }
 
     // ── Notes ──────────────────────────────────────────────────────────
     function bindPresetSelect(selectId, targetId) {
@@ -229,9 +349,12 @@
         const note = $('ws-note-text').value.trim();
         if (!note) return;
         try {
-            await postJson(URLS.notes.replace(':oid', activeRow.dataset.orderUid), { note, user_id: AUTH_USER_ID });
-            closeModals();
-            refreshWorkspace();
+            if (isChargeMode()) {
+                await postJson(URLS.noteCharge.replace(':bcid', activeRow.dataset.bcId), { note });
+            } else {
+                await postJson(URLS.notes.replace(':oid', activeRow.dataset.orderUid), { note, user_id: AUTH_USER_ID });
+            }
+            changed();
         } catch (e) { alert(e.message); }
     });
 
@@ -244,12 +367,14 @@
     $('ws-adjust-save').addEventListener('click', async () => {
         const change = Number($('ws-adjust-amount').value);
         if (!change) return;
+        const note = $('ws-adjust-note').value.trim();
         try {
-            await postJson(URLS.adjust.replace(':opuid', activeRow.dataset.opUid), {
-                amount: change, type: TYPE, note: $('ws-adjust-note').value.trim(),
-            });
-            closeModals();
-            refreshWorkspace();
+            if (isChargeMode()) {
+                await postJson(URLS.adjustCharge.replace(':bcid', activeRow.dataset.bcId), { amount: change, note });
+            } else {
+                await postJson(URLS.adjust.replace(':opuid', activeRow.dataset.opUid), { amount: change, type: rowType(), note });
+            }
+            changed();
         } catch (e) { alert(e.message); }
     });
 
@@ -259,21 +384,27 @@
     $('ws-resolve-save').addEventListener('click', async () => {
         const note = $('ws-resolve-note').value.trim();
         if (!note) { alert('A resolution note is required.'); return; }
+        const by = $('ws-resolve-user').value;
         try {
-            await postJson(URLS.resolve.replace(':opid', activeRow.dataset.opId), {
-                type: TYPE, resolution_note: note, resolved_by: $('ws-resolve-user').value,
-            });
-            closeModals();
-            refreshWorkspace();
+            if (isChargeMode()) {
+                await postJson(URLS.resolveCharge.replace(':bcid', activeRow.dataset.bcId), { resolution_note: note, resolved_by: by });
+            } else {
+                await postJson(URLS.resolve.replace(':opid', activeRow.dataset.opId), { type: rowType(), resolution_note: note, resolved_by: by });
+            }
+            changed();
         } catch (e) { alert(e.message); }
     });
 
     // ── Uncollectible ──────────────────────────────────────────────────
     $('ws-uncollectible-save').addEventListener('click', async () => {
+        const by = $('ws-uncollectible-user').value;
         try {
-            await postJson(URLS.uncollectible.replace(':opid', activeRow.dataset.opId), { type: TYPE });
-            closeModals();
-            refreshWorkspace();
+            if (isChargeMode()) {
+                await postJson(URLS.uncollectibleCharge.replace(':bcid', activeRow.dataset.bcId), { resolved_by: by });
+            } else {
+                await postJson(URLS.uncollectible.replace(':opid', activeRow.dataset.opId), { type: rowType() });
+            }
+            changed();
         } catch (e) { alert(e.message); }
     });
 

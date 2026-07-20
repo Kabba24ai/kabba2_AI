@@ -84,6 +84,22 @@
         return data;
     };
 
+    // In-place queue + summary refresh, preserving current filters/page.
+    // Plugged into the shared action bundle below so every charge action
+    // refreshes fragments instead of reloading the page.
+    async function refreshWorkspace() {
+        const params = new URLSearchParams(window.wsCurrentFilters());
+        params.set('fragment', '1');
+        const res = await fetch(`${window.location.pathname}?${params}`, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        document.querySelector('[data-queue-wrap]').innerHTML = data.queue_html;
+        document.querySelector('[data-summary-wrap]').innerHTML = data.summary_html;
+        window.ChargeActions.bind();
+    }
+    window.wsRefreshWorkspace = refreshWorkspace;
+    // Late-bound so the pagination-rebinding wrapper below is honored.
+    window.ChargeActions.onChanged = () => window.wsRefreshWorkspace();
+
     async function reload(resetPage = true) {
         if (resetPage) page = 1;
         await window.wsRefreshWorkspace();

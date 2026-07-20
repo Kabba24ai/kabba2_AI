@@ -3,15 +3,24 @@
     Variable: $billingCharges — Collection<BillingCharge>
     Source: billing_charges WHERE parent_order_id = order.id
 
-    Both billing_charge_type and status are cast to backed enums on the model.
-    All enum usage goes through ->value, ->label(), ->badgeClass(), ->isOpen().
-
-    Action icons appear on fuel and damage rows. Extension rows show no actions.
-    Payment modal is a standard form POST to admin.dashboard.paymentstore (source=crm).
-    Resolve / Uncollectible / Note / Adjust use AJAX via billing-engine-specific routes.
-    View Damage Details (damage only): shown when BillingCharge has an orderProduct linked.
-    Icon order matches Dashboard Damage Alerts: Pay → Resolve → Uncollectible → View → Adjust → Note.
+    Billing Charge Operations Commonization: rows render through the SHARED
+    billing components — x-admin.billing.charge-status-badge,
+    charge-origin-badge, and charge-actions — the same vocabulary, order,
+    icons, and tooltips as the Fuel Charge Workspace. Behavior comes from
+    the shared admin/charges/_action_modals bundle (rows are action-mode
+    'charge': billing-charges.* endpoints, unchanged), payment from the
+    shared admin/billing/_payment_modal (window.BillingPayment), and Refund
+    posts to the pre-existing linked-refund endpoint — shown only on PAID
+    fuel/damage charges with a remaining refundable balance.
+    Page-specific actions (View Damage Details, extension Delete) are
+    dispatched through ChargeActions.onAction to handlers in edit.blade.php.
 --}}
+@php
+    $beCustomerCards = $order->customer?->cards
+        ?->map(fn ($c) => ['id' => $c->unique_id, 'label' => $c->card_number])
+        ->values() ?? collect();
+    $beCustomerName = $order->customer?->full_name ?? $order->customer_name;
+@endphp
 <div class="bg-white rounded-xl border border-green-200 shadow-sm mb-4">
     {{-- Header --}}
     <div class="flex items-center justify-between px-4 py-3 border-b border-green-100 bg-green-50 rounded-t-xl">
@@ -91,9 +100,9 @@
                         $isFuelIcon  = $typeValue === 'fuel';
                         $iconDef     = $typeIconClasses[$typeValue]   ?? ['heroicon' => 'heroicon-o-currency-dollar', 'bg' => 'bg-gray-100', 'color' => 'text-gray-500'];
 
-                        $statusLabel = $statusEnum?->label()      ?? 'Pending';
-                        $statusBadge = $statusEnum?->badgeClass()  ?? 'bg-amber-100 text-amber-800';
                         $isOpen      = $statusEnum?->isOpen()      ?? false;
+                        $isPaid      = $statusEnum === \App\Enums\Billing\BillingChargeStatus::Paid;
+                        $origin      = \App\Services\BillingChargePresenter::originForCharge($charge);
 
                         $base        = $charge->amount    ?? 0.0;
                         $tax         = $charge->tax_amount ?? 0.0;
@@ -124,6 +133,34 @@
                             : '';
                         // View Damage Details requires a linked OrderProduct (only mobile-checklist damage charges set this)
                         $hasOrderProduct = $isDamage && $charge->orderProduct !== null;
+
+                        // Linked-refund availability — PAID fuel/damage with a
+                        // remaining refundable balance (allocation-aware; the
+                        // endpoint re-derives all of this server-side).
+                        $refundRemaining = ($isPaid && ($isFuel || $isDamage))
+                            ? (float) \App\Services\Orders\BillingChargeRefundService::remainingRefundable($charge)['total']
+                            : 0.0;
+
+                        // Capability from charge state + business rules only
+                        // (approved architecture rule) — never from the page.
+                        $rowActions = [];
+                        if ($isFuel || $isDamage) {
+                            if ($isOpen) {
+                                $rowActions = ['history', 'notes', 'adjust', 'payment', 'resolve', 'uncollectible'];
+                            } else {
+                                $rowActions = ['history', 'notes'];
+                                if ($refundRemaining > 0) {
+                                    $rowActions[] = 'refund';
+                                }
+                            }
+                            if ($hasOrderProduct) {
+                                $rowActions[] = 'view-damage';
+                            }
+                        } elseif ($isExtension) {
+                            $rowActions = $isOpen
+                                ? ['notes', 'adjust', 'payment', 'delete']
+                                : ['notes', 'delete'];
+                        }
                     @endphp
 
                     <tr class="hover:bg-gray-50 transition-colors">
@@ -142,6 +179,11 @@
                                     </span>
                                 @endif
                                 <span class="font-semibold text-gray-900 text-xs">{{ $typeLabel }}</span>
+                                @if ($origin)
+                                    <x-admin.billing.charge-origin-badge
+                                        :origin="$charge->order_product_id !== null ? 'checklist' : 'manual'"
+                                        :title="$origin['title']" />
+                                @endif
                             </div>
                         </td>
 
@@ -179,9 +221,7 @@
 
                         {{-- Status --}}
                         <td class="px-4 py-3 text-center">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusBadge }}">
-                                {{ $statusLabel }}
-                            </span>
+                            <x-admin.billing.charge-status-badge :status="$statusEnum ?? 'pending'" />
                         </td>
 
                         {{-- Outstanding --}}
@@ -193,91 +233,27 @@
                             @endif
                         </td>
 
-                        {{-- Actions (fuel, damage, and extension rows) --}}
+                        {{-- Actions — the canonical shared action bar --}}
                         <td class="px-4 py-3 text-center">
-                            @if($isFuel || $isDamage || $isExtension)
-                                <div class="flex items-center justify-center gap-1.5"
-                                     data-be-unique-id="{{ $charge->unique_id }}"
-                                     data-be-ca-unique="{{ $caUniqueId }}"
-                                     data-be-customer-id="{{ $charge->customer_id }}"
-                                     data-be-base="{{ $base }}"
-                                     data-be-total="{{ $total }}"
-                                     data-be-is-open="{{ $isOpen ? '1' : '0' }}"
-                                     data-be-type="{{ $typeValue }}"
-                                     data-be-order-product-id="{{ $charge->orderProduct?->id ?? '' }}"
-                                     data-be-child-number="{{ $extChildNumber }}"
-                                     data-be-paystate="{{ $extPayState }}">
-
-                                    @if($isOpen)
-                                        {{-- Make a Payment (all types) --}}
-                                        <button type="button"
-                                            onclick="beOpenPayment(this.closest('[data-be-unique-id]'))"
-                                            title="Make a Payment"
-                                            class="w-6 h-6 rounded flex items-center justify-center text-green-600 hover:bg-green-100 transition"
-                                            aria-label="Make a Payment">
-                                            <x-heroicon-o-currency-dollar class="w-4 h-4" />
-                                        </button>
-
-                                        @if(!$isExtension)
-                                            {{-- Mark as Resolved (fuel/damage only) --}}
-                                            <button type="button"
-                                                onclick="beOpenResolve(this.closest('[data-be-unique-id]'))"
-                                                title="Mark as Resolved"
-                                                class="w-6 h-6 rounded flex items-center justify-center text-blue-600 hover:bg-blue-100 transition"
-                                                aria-label="Mark as Resolved">
-                                                <x-heroicon-o-check-circle class="w-4 h-4" />
-                                            </button>
-
-                                            {{-- Mark as Uncollectible (fuel/damage only) --}}
-                                            <button type="button"
-                                                onclick="beOpenUncollectible(this.closest('[data-be-unique-id]'))"
-                                                title="Mark as Uncollectible"
-                                                class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition"
-                                                aria-label="Mark as Uncollectible">
-                                                <x-heroicon-o-x-circle class="w-4 h-4" />
-                                            </button>
-                                        @endif
-
-                                        {{-- View Damage Details (damage only, requires linked OrderProduct) --}}
-                                        @if($hasOrderProduct)
-                                            <button type="button"
-                                                onclick="beOpenViewDamage(this.closest('[data-be-unique-id]'))"
-                                                title="View Damage Details"
-                                                class="w-6 h-6 rounded flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition"
-                                                aria-label="View Damage Details">
-                                                <x-heroicon-o-eye class="w-4 h-4" />
-                                            </button>
-                                        @endif
-
-                                        {{-- Adjust Charge (all types) --}}
-                                        <button type="button"
-                                            onclick="beOpenAdjust(this.closest('[data-be-unique-id]'))"
-                                            title="{{ $isExtension ? 'Adjust Extension Amount' : ($isDamage ? 'Adjust Damage Charge' : 'Adjust Fuel Charge') }}"
-                                            class="w-6 h-6 rounded flex items-center justify-center text-amber-500 hover:bg-amber-100 transition"
-                                            aria-label="Adjust Charge">
-                                            <x-heroicon-o-adjustments-horizontal class="w-4 h-4" />
-                                        </button>
-                                    @endif
-
-                                    {{-- Add Note (all types, always visible) --}}
-                                    <button type="button"
-                                        onclick="beOpenNote(this.closest('[data-be-unique-id]'))"
-                                        title="Add Note"
-                                        class="w-6 h-6 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 transition"
-                                        aria-label="Add Note">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4" />
-                                    </button>
-
-                                    @if($isExtension)
-                                        {{-- Delete Extension (extension only, always visible) --}}
-                                        <button type="button"
-                                            onclick="beOpenDelete(this.closest('[data-be-unique-id]'))"
-                                            title="Delete Extension"
-                                            class="w-6 h-6 rounded flex items-center justify-center text-red-500 hover:bg-red-100 transition"
-                                            aria-label="Delete Extension">
-                                            <x-heroicon-o-trash class="w-4 h-4" />
-                                        </button>
-                                    @endif
+                            @if(!empty($rowActions))
+                                <div class="flex items-center justify-center"
+                                     data-charge-row
+                                     data-action-mode="charge"
+                                     data-type="{{ $typeValue }}"
+                                     data-bc-id="{{ $charge->unique_id }}"
+                                     data-ca-id="{{ $caUniqueId }}"
+                                     data-customer-id="{{ $charge->customer_id }}"
+                                     data-customer-name="{{ $beCustomerName }}"
+                                     data-order-db-id="{{ $order->id }}"
+                                     data-order-uid="{{ $order->unique_id }}"
+                                     data-order-number="{{ $order->order_number }}"
+                                     data-amount="{{ number_format((float) $base, 2, '.', '') }}"
+                                     data-amount-total="{{ number_format((float) $total, 2, '.', '') }}"
+                                     data-cards='@json($beCustomerCards)'
+                                     data-refund-remaining="{{ number_format($refundRemaining, 2, '.', '') }}"
+                                     data-child-number="{{ $extChildNumber }}"
+                                     data-paystate="{{ $extPayState }}">
+                                    <x-admin.billing.charge-actions :actions="$rowActions" />
                                 </div>
                             @endif
                         </td>

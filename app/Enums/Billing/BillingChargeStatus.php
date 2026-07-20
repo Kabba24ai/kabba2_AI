@@ -21,14 +21,21 @@ enum BillingChargeStatus: string
         };
     }
 
+    /**
+     * Canonical status palette (Billing Charge Operations Commonization —
+     * approved): Pending=orange, Paid=green, Resolved=blue,
+     * Uncollectible=gray, Voided=gray struck through. Every surface renders
+     * this vocabulary via x-admin.billing.charge-status-badge /
+     * BillingChargePresenter — do not re-declare status colors in views.
+     */
     public function badgeClass(): string
     {
         return match($this) {
-            self::Pending       => 'bg-amber-100 text-amber-800',
-            self::Paid          => 'bg-green-100 text-green-800',
-            self::Resolved      => 'bg-blue-100 text-blue-800',
-            self::Uncollectible => 'bg-gray-100 text-gray-500',
-            self::Voided        => 'bg-red-100 text-red-400',
+            self::Pending       => 'bg-orange-50 text-orange-700 border-orange-200',
+            self::Paid          => 'bg-green-50 text-green-700 border-green-200',
+            self::Resolved      => 'bg-blue-50 text-blue-700 border-blue-200',
+            self::Uncollectible => 'bg-gray-100 text-gray-500 border-gray-200',
+            self::Voided        => 'bg-gray-100 text-gray-400 border-gray-200 line-through',
         };
     }
 

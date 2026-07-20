@@ -12,10 +12,23 @@
      also include _action_modals never end up with duplicate DOM.
 
      JS API:
-       BillingPayment.openForAlertRow(dataset, label) — workspace queue rows
-       BillingPayment.openForCharge(charge, label)    — just-created charges
-                                                        (the shared creation-
-                                                        response contract) --}}
+       BillingPayment.openForAlertRow(dataset, label)  — OrderProduct-keyed
+                                                         queue rows (source=order)
+       BillingPayment.openForCharge(charge, label)     — just-created charges
+                                                         (the shared creation-
+                                                         response contract)
+       BillingPayment.openForBillingRow(dataset, label) — existing BillingCharge
+                                                         rows (Billing Engine
+                                                         table, CRM-origin queue
+                                                         rows); amount locked to
+                                                         the charge total the
+                                                         server enforces
+       BillingPayment.openForExtension(charge, opts)   — step 2 of Add Extension
+                                                         Charge (pay now / save
+                                                         as Pay Later)
+       BillingPayment.showError(message)               — surface a failed-
+                                                         attempt reason inside
+                                                         the open modal --}}
 @once
 @php $bpAuthUserId = auth()->id(); @endphp
 
@@ -38,6 +51,12 @@
             <input type="hidden" name="idempotency_token" id="wsp-idempotency">
             <input type="hidden" name="opaqueDataValue" id="wsp-opaque-value">
             <input type="hidden" name="opaqueDataDescriptor" id="wsp-opaque-descriptor">
+
+            {{-- Flow context (e.g. step 2 of Add Extension Charge) --}}
+            <div id="wsp-context" class="hidden mb-4 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2">
+                <p class="text-xs font-semibold text-orange-700 uppercase tracking-wide" id="wsp-context-title"></p>
+                <p id="wsp-context-text" class="text-sm text-orange-800 mt-0.5"></p>
+            </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
@@ -88,7 +107,7 @@
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Received By <span class="text-red-500">*</span></label>
-                <select name="responsible_person" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <select name="responsible_person" id="wsp-person" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
                     @foreach ($users as $u)
                         <option value="{{ $u->id }}" @selected($u->id === $bpAuthUserId)>{{ $u->first_name }} {{ $u->last_name }}</option>
                     @endforeach
@@ -104,7 +123,7 @@
             <div id="ws-payment-error" class="hidden mb-3 text-sm text-red-600"></div>
 
             <div class="flex justify-end gap-2">
-                <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-bp-close>Cancel</button>
+                <button type="button" id="wsp-cancel" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-bp-close>Cancel</button>
                 <button type="submit" id="wsp-submit" class="px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700">Collect Payment</button>
             </div>
         </form>
@@ -132,11 +151,19 @@
         return crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random();
     }
 
+    // Extension pay-now flow state: closing the modal without paying must
+    // reload so the just-created (still unpaid) extension row appears.
+    let reloadOnClose = false;
+
     function resetCommon() {
         $('wsp-idempotency').value = freshToken();
         $('wsp-opaque-value').value = '';
         $('wsp-opaque-descriptor').value = '';
         $('ws-payment-error').classList.add('hidden');
+        $('wsp-context').classList.add('hidden');
+        $('wsp-submit').textContent = 'Collect Payment';
+        $('wsp-cancel').textContent = 'Cancel';
+        reloadOnClose = false;
     }
 
     function setCards(cards) {
@@ -167,7 +194,13 @@
     $('wsp-card-option').addEventListener('change', syncPaymentFields);
 
     document.querySelectorAll('[data-bp-close]').forEach((b) =>
-        b.addEventListener('click', () => $('ws-payment-modal').classList.add('hidden')));
+        b.addEventListener('click', () => {
+            $('ws-payment-modal').classList.add('hidden');
+            if (reloadOnClose) {
+                reloadOnClose = false;
+                window.location.reload();
+            }
+        }));
 
     window.BillingPayment = {
         /**
@@ -213,6 +246,70 @@
             setCards(charge.customer_cards || []);
             syncPaymentFields();
             openModal(label);
+        },
+
+        /**
+         * Existing BillingCharge row (Billing Engine table on Order
+         * Details, CRM-origin workspace rows): source=crm with the CA and
+         * BillingCharge references, so PaymentStoreController runs its
+         * charge-linked path — exact tax-inclusive total enforced
+         * server-side, BillingEngine::markPaid synced. The amount is
+         * locked to the total the server will accept.
+         */
+        openForBillingRow(ds, label) {
+            resetCommon();
+            $('wsp-source').value = 'crm';
+            $('wsp-type').value = ds.type || 'fuel';
+            $('wsp-ca-id').value = ds.caId || '';
+            $('wsp-bc-id').value = ds.bcId || '';
+            $('wsp-customer-id').value = ds.customerId || '';
+            $('wsp-order-id').value = '';
+            $('wsp-op-id').value = '';
+            $('wsp-amount').value = Number(ds.amountTotal || ds.amount || 0).toFixed(2);
+            $('wsp-amount').readOnly = true;
+            $('wsp-amount-note').classList.remove('hidden');
+            setCards(JSON.parse(ds.cards || '[]'));
+            syncPaymentFields();
+            openModal(label);
+        },
+
+        /**
+         * Step 2 of Add Extension Charge: pay the just-created extension
+         * now, or close as Pay Later (closing reloads so the unpaid row
+         * appears in the Billing Engine table). Same form, same
+         * controller, same gateway path as every other charge payment.
+         */
+        openForExtension(charge, opts = {}) {
+            resetCommon();
+            reloadOnClose = true;
+            $('wsp-source').value = 'crm';
+            $('wsp-type').value = 'extension';
+            $('wsp-ca-id').value = '';
+            $('wsp-bc-id').value = charge.unique_id || '';
+            $('wsp-customer-id').value = charge.customer_id || '';
+            $('wsp-order-id').value = '';
+            $('wsp-op-id').value = '';
+            $('wsp-amount').value = Number(charge.total || 0).toFixed(2);
+            $('wsp-amount').readOnly = true;
+            $('wsp-amount-note').classList.remove('hidden');
+            if (opts.personId) $('wsp-person').value = opts.personId;
+            $('wsp-context-title').textContent = 'Extension Created';
+            $('wsp-context-text').textContent =
+                'Extension ' + (charge.order_number || '') + ' — $' + Number(charge.total || 0).toFixed(2)
+                + '. Record the payment now, or save as Pay Later.';
+            $('wsp-context').classList.remove('hidden');
+            $('wsp-submit').textContent = 'Create Extension & Record Payment';
+            $('wsp-cancel').textContent = 'Save as Pay Later';
+            setCards(opts.cards || []);
+            syncPaymentFields();
+            openModal(opts.label || ('Extension ' + (charge.order_number || '')));
+        },
+
+        /** Show a failure reason (e.g. a declined gateway attempt) inside the modal. */
+        showError(message) {
+            const err = $('ws-payment-error');
+            err.textContent = message || 'The payment could not be completed.';
+            err.classList.remove('hidden');
         },
     };
 

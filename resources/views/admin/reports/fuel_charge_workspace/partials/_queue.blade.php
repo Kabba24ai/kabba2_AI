@@ -1,16 +1,24 @@
-{{-- Dashboard V2 Phase 1A — the Fuel Charge queue. One alert per row.
-     OrderProduct rows carry the full action set (canonical dashboard
-     endpoints); CRM rows are deliberately read-only in Phase 1 — they stay
-     visible so the count reconciles with the dashboard card, but their
-     synchronization problems belong to Phase 2. --}}
-@php
-    $terminalBadge = fn (?string $s): array => match ($s) {
-        'resolved'      => ['Resolved', 'bg-green-50 text-green-700 border-green-200'],
-        'completed'     => ['Completed', 'bg-green-50 text-green-700 border-green-200'],
-        'uncollectible' => ['Uncollectible', 'bg-gray-100 text-gray-500 border-gray-200'],
-        default         => ['Active', 'bg-orange-50 text-orange-700 border-orange-200'],
-    };
-@endphp
+{{-- Billing Charge Operations Commonization — the Fuel Charge queue.
+     One alert per row, rendered entirely through the shared billing
+     components (status badge, origin badge, action bar) so this surface
+     and the Order Details Billing Engine present identically.
+
+     Capability comes from CHARGE STATE + business rules, never origin:
+       - OrderProduct rows (action-mode 'op') use the canonical dashboard
+         endpoints, exactly as before.
+       - CRM/manual rows with a Billing Engine bridge (action-mode
+         'charge') use the canonical billing-charges.* endpoints — the
+         Phase-1 read-only treatment is retired (approved decision).
+       - CRM rows WITHOUT a bridge row stay link-only: there is no
+         canonical BillingCharge to operate on (business rule, not origin).
+       - Adjust is withheld from CRM rows for now: the billing-charges
+         adjust endpoint changes only billing_charges.amount and would
+         desync the CustomerAccount ledger amount these rows bill from —
+         a Phase 2 CRM-synchronization item, documented in the mission
+         report.
+       - Refund renders only on completed rows whose PAID BillingCharge
+         still has a remaining refundable balance (enriched by the
+         controller); the linked-refund endpoint re-validates everything. --}}
 
 @if ($alerts->isEmpty())
     <div class="text-center py-16 text-gray-400">
@@ -21,16 +29,44 @@
         @foreach ($alerts as $alert)
             @php
                 $isCrm = ($alert['source'] ?? null) === 'crm';
-                [$badgeLabel, $badgeClass] = $terminalBadge($alert['terminal_status'] ?? null);
-                $ageDays = isset($alert['_sort_ts']) && $alert['_sort_ts'] > 0
-                    ? max(0, (int) floor((now()->timestamp - (int) $alert['_sort_ts']) / 86400))
-                    : null;
+                $isTerminal = ($alert['terminal_status'] ?? null) !== null;
+                $bcUniqueId = $alert['billing_charge_unique_id'] ?? null;
+                $actionMode = $isCrm ? 'charge' : 'op';
+                $ageDays = \App\Services\BillingChargePresenter::ageDays((int) ($alert['_sort_ts'] ?? 0));
                 $latestNotes = collect($alert['notes'] ?? []);
                 $amountNumeric = (float) str_replace(['$', ','], '', $alert['amountOwed'] === 'Pending' ? '0' : $alert['amountOwed']);
+                $refundRemaining = (float) ($alert['refund_remaining'] ?? 0);
+
+                // Capability — from state and business rules only.
+                $actions = [];
+                if (!$isTerminal) {
+                    if (!$isCrm) {
+                        $actions = ['history', 'notes', 'adjust', 'payment', 'resolve', 'uncollectible'];
+                    } elseif ($bcUniqueId) {
+                        // Manual charge with a canonical BillingCharge: full
+                        // lifecycle via the billing-charges endpoints.
+                        // (Adjust withheld — see header comment.)
+                        $actions = ['notes', 'payment', 'resolve', 'uncollectible'];
+                        if (!empty($alert['order_db_id'])) {
+                            array_unshift($actions, 'history');
+                        }
+                    }
+                } else {
+                    if (!empty($alert['order_db_id'])) {
+                        $actions[] = 'history';
+                    }
+                    if (!$isCrm || $bcUniqueId) {
+                        $actions[] = 'notes';
+                    }
+                    if ($refundRemaining > 0 && $bcUniqueId) {
+                        $actions[] = 'refund';
+                    }
+                }
             @endphp
 
             <div class="border border-gray-200 rounded-xl bg-white p-4 hover:shadow-md transition"
-                 data-alert-row
+                 data-charge-row
+                 data-action-mode="{{ $actionMode }}"
                  data-type="fuel"
                  data-source="{{ $isCrm ? 'crm' : 'op' }}"
                  data-op-id="{{ $alert['order_product']['id'] ?? '' }}"
@@ -41,8 +77,11 @@
                  data-customer-id="{{ $alert['customer']['id'] ?? '' }}"
                  data-customer-name="{{ $alert['customerName'] }}"
                  data-amount="{{ number_format($amountNumeric, 2, '.', '') }}"
+                 data-amount-total="{{ number_format($amountNumeric, 2, '.', '') }}"
                  data-cards='@json(collect($alert['customer']['cards'] ?? [])->values())'
-                 data-customer-account-id="{{ $alert['customer_account_id'] ?? '' }}">
+                 data-bc-id="{{ $bcUniqueId ?? '' }}"
+                 data-ca-id="{{ $alert['customer_account_id'] ?? '' }}"
+                 data-refund-remaining="{{ number_format($refundRemaining, 2, '.', '') }}">
 
                 <div class="flex justify-between gap-4">
                     {{-- Left: context --}}
@@ -50,15 +89,9 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <h3 class="text-sm font-semibold text-gray-900">{{ $alert['customerName'] }}</h3>
 
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border {{ $badgeClass }}">
-                                {{ $badgeLabel }}
-                            </span>
+                            <x-admin.billing.charge-status-badge :status="$alert['terminal_status'] ?? 'pending'" />
 
-                            @if ($isCrm)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                    Manual
-                                </span>
-                            @endif
+                            <x-admin.billing.charge-origin-badge :origin="$isCrm ? 'manual' : 'checklist'" />
 
                             @if ($latestNotes->isNotEmpty())
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-yellow-50 text-yellow-700 border border-yellow-200"
@@ -110,41 +143,18 @@
                         <div class="text-xs text-gray-400">Fuel Charge</div>
                     </div>
 
-                    {{-- Right: actions --}}
-                    <div class="flex flex-col justify-center border-l border-gray-100 pl-4 shrink-0">
-                        @if ($isCrm)
-                            <a href="{{ $alert['crmLink'] ?? $alert['orderLink'] }}"
-                               class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline whitespace-nowrap">
+                    {{-- Right: canonical action bar --}}
+                    <div class="flex flex-col justify-center items-end gap-1.5 border-l border-gray-100 pl-4 shrink-0">
+                        @if (!empty($actions))
+                            <x-admin.billing.charge-actions :actions="$actions" />
+                        @endif
+
+                        @if ($isCrm && !empty($alert['crmLink']))
+                            <a href="{{ $alert['crmLink'] }}"
+                               class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline whitespace-nowrap">
                                 Manage in CRM
-                                <x-heroicon-o-arrow-right class="w-4 h-4" />
+                                <x-heroicon-o-arrow-right class="w-3.5 h-3.5" />
                             </a>
-                        @elseif (($alert['terminal_status'] ?? null) === null)
-                            <div class="flex items-center gap-1.5">
-                                <button type="button" data-action="history" title="Charge History"
-                                        class="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-300 transition">
-                                    <x-heroicon-o-clock class="w-4 h-4" />
-                                </button>
-                                <button type="button" data-action="notes" title="Notes"
-                                        class="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-yellow-600 hover:border-yellow-300 transition">
-                                    <x-heroicon-o-chat-bubble-left class="w-4 h-4" />
-                                </button>
-                                <button type="button" data-action="adjust" title="Adjust Amount"
-                                        class="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-300 transition">
-                                    <x-heroicon-o-pencil-square class="w-4 h-4" />
-                                </button>
-                                <button type="button" data-action="payment" title="Collect Payment"
-                                        class="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-300 transition">
-                                    <x-heroicon-o-credit-card class="w-4 h-4" />
-                                </button>
-                                <button type="button" data-action="resolve" title="Resolve"
-                                        class="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-emerald-600 hover:border-emerald-300 transition">
-                                    <x-heroicon-o-check-circle class="w-4 h-4" />
-                                </button>
-                                <button type="button" data-action="uncollectible" title="Mark Uncollectible"
-                                        class="p-2 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-300 transition">
-                                    <x-heroicon-o-no-symbol class="w-4 h-4" />
-                                </button>
-                            </div>
                         @endif
                     </div>
                 </div>

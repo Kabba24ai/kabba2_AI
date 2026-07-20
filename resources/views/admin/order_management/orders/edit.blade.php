@@ -532,7 +532,15 @@
         'fuelNotePresets' => $fuelNotePresets,
         'nfcContext' => 'order_details',
     ])
-    @include('admin.billing._payment_modal', ['users' => $employees])
+    {{-- Shared charge-action bundle (Billing Charge Operations
+         Commonization): notes/adjust/resolve/uncollectible/history/refund
+         modals + behavior for the Billing Engine table rows, and the shared
+         payment modal (nested @once include). Replaces the page-local
+         beFuel* modals and #beFuelPaymentModal this page used to carry. --}}
+    @include('admin.charges._action_modals', [
+        'chargeType' => 'fuel',
+        'users' => $employees,
+    ])
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.NewFuelCharge.onCreated = function (charge, continueToPayment) {
@@ -4110,303 +4118,6 @@
             <button type="button" onclick="beCloseModal('beViewDamageModal')"
                     class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
                 Close
-            </button>
-        </div>
-    </div>
-</div>
-
-{{-- ╔══════════════════════════════════════════════════════════════════════╗
-     ║  Billing Engine — Charge Action Modals                              ║
-     ║  Shown for billing_charges.billing_charge_type = 'fuel' or         ║
-     ║  'damage'. Type is set dynamically via beActiveType.               ║
-     ╚══════════════════════════════════════════════════════════════════════╝ --}}
-
-{{-- Make a Payment — canonical methods (Cash/Check/Tap to Pay/Store Credit/Gift Card/Zelle/Venmo/Other) + Credit/Debit Card with Authorize.net --}}
-<div id="beFuelPaymentModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh]">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h3 class="text-base font-semibold text-gray-900">Make a Payment</h3>
-            <button type="button" onclick="beCloseModal('beFuelPaymentModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
-        </div>
-        <form id="bePayForm" method="POST" action="{{ route('admin.dashboard.paymentstore') }}">
-            @csrf
-            <input type="hidden" name="source" value="crm">
-            <input type="hidden" name="type" id="bePayType" value="">
-            <input type="hidden" name="customer_id" id="bePayCustomerId" value="">
-            <input type="hidden" name="customer_account_id" id="bePayCaUniqueId" value="">
-            <input type="hidden" name="billing_charge_unique_id" id="bePayChargeUniqueId" value="">
-            <input type="hidden" name="opaqueDataValue" id="beOpaqueDataValue">
-            <input type="hidden" name="opaqueDataDescriptor" id="beOpaqueDataDescriptor">
-            <input type="hidden" name="idempotency_token" id="bePayIdempotencyToken">
-            <div class="px-6 py-4 space-y-4">
-                {{-- Extension-flow context (step 2 of Add Extension Charge) --}}
-                <div id="bePayContext" class="hidden rounded-lg border border-orange-200 bg-orange-50 px-3 py-2">
-                    <p class="text-xs font-semibold text-orange-700 uppercase tracking-wide">Extension Created</p>
-                    <p id="bePayContextText" class="text-sm text-orange-800 mt-0.5"></p>
-                </div>
-                {{-- Failure reason when a payment attempt was declined --}}
-                <div id="bePayError" class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
-                {{-- Amount --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
-                    <input type="number" name="amount" id="bePayAmount" min="0.01" step="0.01"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
-                           placeholder="0.00" required>
-                </div>
-                {{-- Payment Type --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label>
-                    <select name="payment_type" id="bePaymentType"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" required>
-                        @foreach(\App\Enums\Customers\PaymentMethod::options() as $val => $label)
-                            <option value="{{ $val }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                {{-- Check Number (shown when Cheque selected) --}}
-                <div id="bePayChequeField" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Check Number</label>
-                    <input type="text" name="cheque_number" id="bePayChequeNumber"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
-                           placeholder="Enter check number">
-                </div>
-                {{-- Card Options (shown when CreditCard selected) --}}
-                <div id="bePayCardOptions" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Options</label>
-                    <select id="bePayCardOption" name="card_option"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
-                        <option value="NewCard">New Card</option>
-                        <option value="CardOnFile">Card on File</option>
-                    </select>
-                </div>
-                {{-- New Card Fields (shown when card_option = NewCard) --}}
-                <div id="bePayNewCardFields" class="hidden">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="text" name="firstName" placeholder="First name"
-                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
-                        <input type="text" name="lastName" placeholder="Last name"
-                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
-                        <input type="text" id="bePayCardNumber" name="cardNumber" placeholder="Card number" maxlength="19"
-                               class="col-span-2 border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
-                        <input type="text" id="bePayExpiry" name="expiry" placeholder="MM/YY" maxlength="5"
-                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
-                        <input type="text" id="bePayCvc" name="cvc" placeholder="CVC" maxlength="4"
-                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
-                    </div>
-                </div>
-                {{-- Card on File dropdown (shown when card_option = CardOnFile) --}}
-                <div id="bePayCardOnFile" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Saved Card</label>
-                    <select name="existing_card_id" id="bePayExistingCard"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
-                        <option value="">-- Select a saved card --</option>
-                    </select>
-                </div>
-                {{-- Responsible Person --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Responsible Person</label>
-                    <select name="responsible_person" id="bePayPerson"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" required>
-                        <option value="">Select person...</option>
-                        @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                {{-- Notes (required when Payment Type is "Other") --}}
-                <div>
-                    <label id="bePayNotesLabel" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea name="notes" id="bePayNotes" rows="2"
-                              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
-                              placeholder="Optional notes..."></textarea>
-                </div>
-            </div>
-            <div class="px-6 py-4 border-t flex justify-end gap-3">
-                <button type="button" id="bePayCancelBtn" onclick="beCloseModal('beFuelPaymentModal')"
-                        class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
-                    Cancel
-                </button>
-                <button type="submit" id="bePaySubmitBtn"
-                        class="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition flex items-center gap-2">
-                    <span id="bePayBtnText">Record Payment</span>
-                    <svg id="bePayBtnSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- Mark as Resolved --}}
-<div id="beFuelResolveModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h3 class="text-base font-semibold text-gray-900">Mark as Resolved</h3>
-            <button type="button" onclick="beCloseModal('beFuelResolveModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
-        </div>
-        <div class="px-6 py-4 space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Resolution Note</label>
-                @if($resolutionPresets->isNotEmpty())
-                <select id="beResolvePreset" onchange="if(this.value) document.getElementById('beResolveNote').value = this.value;"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="">Select preset...</option>
-                    @foreach($resolutionPresets as $preset)
-                        <option value="{{ $preset->label }}">{{ $preset->label }}</option>
-                    @endforeach
-                </select>
-                @endif
-                <textarea id="beResolveNote" rows="3"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          placeholder="Enter resolution note..."></textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Resolved By</label>
-                <select id="beResolveBy"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="">Select person...</option>
-                    @foreach($employees as $emp)
-                        <option value="{{ $emp->id }}" {{ auth()->id() == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-        <div class="px-6 py-4 border-t flex justify-end gap-3">
-            <button type="button" onclick="beCloseModal('beFuelResolveModal')"
-                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
-                Cancel
-            </button>
-            <button type="button" id="beResolveSaveBtn" onclick="beSubmitResolve()"
-                    class="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition">
-                Mark as Resolved
-            </button>
-        </div>
-    </div>
-</div>
-
-{{-- Mark as Uncollectible --}}
-<div id="beFuelUncollectibleModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h3 class="text-base font-semibold text-gray-900">Mark as Uncollectible</h3>
-            <button type="button" onclick="beCloseModal('beFuelUncollectibleModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
-        </div>
-        <div class="px-6 py-4 space-y-4">
-            <p class="text-sm text-gray-600">This will mark the charge as uncollectible. This action cannot be undone.</p>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Resolved By</label>
-                <select id="beUncollectibleBy"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
-                    <option value="">Select person...</option>
-                    @foreach($employees as $emp)
-                        <option value="{{ $emp->id }}" {{ auth()->id() == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-        <div class="px-6 py-4 border-t flex justify-end gap-3">
-            <button type="button" onclick="beCloseModal('beFuelUncollectibleModal')"
-                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
-                Cancel
-            </button>
-            <button type="button" id="beUncollectibleSaveBtn" onclick="beSubmitUncollectible()"
-                    class="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition">
-                Confirm
-            </button>
-        </div>
-    </div>
-</div>
-
-{{-- Add Note --}}
-<div id="beFuelNoteModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h3 class="text-base font-semibold text-gray-900">Add Note</h3>
-            <button type="button" onclick="beCloseModal('beFuelNoteModal')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
-        </div>
-        <div class="px-6 py-4 space-y-4">
-            @if($fuelNotePresets->isNotEmpty())
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Preset</label>
-                <select id="beNotePreset" onchange="if(this.value) document.getElementById('beNoteText').value = this.value;"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 focus:outline-none">
-                    <option value="">Select preset...</option>
-                    @foreach($fuelNotePresets as $preset)
-                        <option value="{{ $preset->label }}">{{ $preset->label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @endif
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
-                <textarea id="beNoteText" rows="4"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 focus:outline-none"
-                          placeholder="Enter note..."></textarea>
-            </div>
-        </div>
-        <div class="px-6 py-4 border-t flex justify-end gap-3">
-            <button type="button" onclick="beCloseModal('beFuelNoteModal')"
-                    class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
-                Cancel
-            </button>
-            <button type="button" id="beNoteSaveBtn" onclick="beSubmitNote()"
-                    class="px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-white hover:bg-gray-900 transition">
-                Save Note
-            </button>
-        </div>
-    </div>
-</div>
-
-{{-- Adjust Fuel Charge --}}
-<div id="beFuelAdjustModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
-    <div class="bg-white rounded-lg shadow-xl w-full mx-auto max-w-lg border border-gray-200 overflow-hidden flex flex-col">
-        <!-- Header -->
-        <div class="px-6 pt-4 border-b">
-            <h3 class="text-lg font-semibold text-gray-800">Adjust Charge</h3>
-            <p class="text-xs text-gray-500 mt-1 pb-4">Add or subtract an adjustment from the original charge amount</p>
-        </div>
-        <!-- Amount Summary -->
-        <div class="px-6 py-4 bg-gray-50 space-y-2 text-sm">
-            <div class="flex justify-between">
-                <span class="text-gray-600">Base Fuel Amount</span>
-                <span class="font-medium text-gray-900" id="beAdjustBase">$0.00</span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">Current Total (after adjustments)</span>
-                <span class="font-semibold text-gray-900" id="beAdjustCurrent">$0.00</span>
-            </div>
-        </div>
-        <!-- Adjustment Input -->
-        <div class="px-6 py-4 space-y-3">
-            <label class="block text-sm font-medium text-gray-700">Adjustment Amount</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">$</span>
-                <input id="beAdjustAmount" type="number" step="0.01"
-                       class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       placeholder="e.g. 100 or -50">
-            </div>
-            <p class="text-xs text-gray-500">
-                Use a <strong>positive</strong> value to increase, or <strong>negative</strong> value to reduce the charge.
-            </p>
-        </div>
-        <!-- Live Preview -->
-        <div class="px-6 py-3 bg-blue-50 text-sm">
-            <div class="flex justify-between">
-                <span class="text-gray-700 font-medium">New Total After Adjustment</span>
-                <span class="font-bold text-blue-700" id="beAdjustPreview">$0.00</span>
-            </div>
-        </div>
-        <!-- Actions -->
-        <div class="flex justify-end gap-2 px-6 py-4 border-t">
-            <button type="button" onclick="beCloseModal('beFuelAdjustModal')"
-                    class="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-700">
-                Cancel
-            </button>
-            <button type="button" id="beAdjustSaveBtn" onclick="beSubmitAdjust()"
-                    class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-                Save Adjustment
             </button>
         </div>
     </div>
@@ -8142,26 +7853,11 @@
     (function () {
         const csrfToken      = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const beCurrentOrderId = {{ $order->id }};
-        let beActiveUniqueId = '';
-        let beActiveCaUniqueId = '';
-        let beActiveCustomerId = '';
-        let beActiveBase = 0;
-        let beActiveTotal = 0;
-        let beActiveType = 'fuel';
 
-        // Extension-flow state: when the payment modal is step 2 of Add
-        // Extension Charge, closing it must refresh the page so the newly
-        // created (still unpaid) extension row appears in the Billing Engine.
-        let beExtensionFlow = false;
-        let bePayBtnLabel   = 'Record Payment';
-
+        // Modal open/close for the page-specific View Damage modal.
         window.beCloseModal = function(id) {
             const el = document.getElementById(id);
             if (el) { el.classList.remove('flex'); el.classList.add('hidden'); }
-            if (id === 'beFuelPaymentModal' && beExtensionFlow) {
-                beExtensionFlow = false;
-                window.location.reload();
-            }
         };
 
         function beOpenModal(id) {
@@ -8169,298 +7865,52 @@
             if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
         }
 
-        function beSetActive(row) {
-            beActiveUniqueId   = row.dataset.beUniqueId   || '';
-            beActiveCaUniqueId = row.dataset.beCaUnique   || '';
-            beActiveCustomerId = row.dataset.beCustomerId  || '';
-            beActiveBase       = parseFloat(row.dataset.beBase  || 0);
-            beActiveTotal      = parseFloat(row.dataset.beTotal || 0);
-            beActiveType       = row.dataset.beType        || 'fuel';
-        }
+        // Saved cards for this order's customer — used by the shared
+        // payment modal's extension pay-now step.
+        window.beCustomerCards = @json($order->customer?->cards?->map(fn($c) => ['id' => $c->unique_id, 'label' => $c->card_number])->values() ?? []);
 
-        // Saved cards for this order's customer — populated by PHP at render time
-        const beCustomerCards = @json($order->customer?->cards?->map(fn($c) => ['id' => $c->unique_id, 'label' => $c->card_number])->values() ?? []);
-
-        function resetBePaymentState() {
-            beExtensionFlow = false;
-            bePayBtnLabel   = 'Record Payment';
-            // One token per modal-open, reused across retries of that same
-            // submission — same pattern as openRefundModal()/
-            // openProcessPaymentModal() — now actually enforced
-            // server-side by PaymentStoreController's Cache::lock.
-            document.getElementById('bePayIdempotencyToken').value =
-                (window.crypto && window.crypto.randomUUID)
-                    ? window.crypto.randomUUID()
-                    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-            document.getElementById('bePayContext').classList.add('hidden');
-            const errBox = document.getElementById('bePayError');
-            errBox.classList.add('hidden');
-            errBox.textContent = '';
-            document.getElementById('bePayCancelBtn').textContent = 'Cancel';
-            const paymentType   = document.getElementById('bePaymentType');
-            const chequeField   = document.getElementById('bePayChequeField');
-            const cardOptions   = document.getElementById('bePayCardOptions');
-            const newCardFields = document.getElementById('bePayNewCardFields');
-            const cardOnFile    = document.getElementById('bePayCardOnFile');
-            const cardOption    = document.getElementById('bePayCardOption');
-            if (paymentType)   paymentType.value = '';
-            if (chequeField)   chequeField.classList.add('hidden');
-            if (cardOptions)   cardOptions.classList.add('hidden');
-            if (newCardFields) newCardFields.classList.add('hidden');
-            if (cardOnFile)    cardOnFile.classList.add('hidden');
-            if (cardOption)    cardOption.value = 'NewCard';
-            const n = document.getElementById('bePayCardNumber');
-            const x = document.getElementById('bePayExpiry');
-            const v = document.getElementById('bePayCvc');
-            if (n) n.value = '';
-            if (x) x.value = '';
-            if (v) v.value = '';
-            document.getElementById('beOpaqueDataValue').value      = '';
-            document.getElementById('beOpaqueDataDescriptor').value = '';
-            document.getElementById('bePayChequeNumber').value      = '';
-            const sb = document.getElementById('bePaySubmitBtn');
-            const bt = document.getElementById('bePayBtnText');
-            const sp = document.getElementById('bePayBtnSpinner');
-            if (sb) sb.disabled = false;
-            if (bt) bt.textContent = bePayBtnLabel;
-            if (sp) sp.classList.add('hidden');
-        }
-
-        // Payment type → show/hide conditional sections
-        document.getElementById('bePaymentType')?.addEventListener('change', function() {
-            document.getElementById('bePayChequeField').classList.add('hidden');
-            document.getElementById('bePayCardOptions').classList.add('hidden');
-            document.getElementById('bePayNewCardFields').classList.add('hidden');
-            document.getElementById('bePayCardOnFile').classList.add('hidden');
-            if (this.value === 'CreditCard') {
-                document.getElementById('bePayCardOptions').classList.remove('hidden');
-                document.getElementById('bePayCardOption').dispatchEvent(new Event('change'));
-            } else if (this.value === 'Cheque') {
-                document.getElementById('bePayChequeField').classList.remove('hidden');
-            }
-
-            // "Other" carries no inherent meaning on its own — the note
-            // becomes required (mirrors PaymentStoreRequest's server-side rule).
-            const isOther = this.value === 'Other';
-            const notesLabel = document.getElementById('bePayNotesLabel');
-            const notesField = document.getElementById('bePayNotes');
-            notesLabel.textContent = isOther ? 'Describe Payment Method' : 'Notes';
-            notesLabel.classList.toggle('required', isOther);
-            notesField.placeholder = isOther ? 'E.g. Manufacturer Credit, Trade Credit' : 'Optional notes...';
+        // Payment collection, notes, adjust, resolve, uncollectible,
+        // history, and refund are ALL handled by the shared charge-action
+        // bundle (admin/charges/_action_modals) + shared payment modal
+        // (window.BillingPayment) — this page only supplies its two
+        // page-specific actions through the ChargeActions hook.
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.ChargeActions) return;
+            window.ChargeActions.onAction = function (action, row) {
+                if (action === 'view-damage') window.beOpenViewDamage(row);
+                if (action === 'delete')      window.beOpenDelete(row);
+            };
+            // The shared bundle is included near the top of this page and
+            // bound before the Billing Engine table exists in the DOM —
+            // rebind now that every row is rendered.
+            window.ChargeActions.bind();
         });
-
-        document.getElementById('bePayCardOption')?.addEventListener('change', function() {
-            if (this.value === 'NewCard') {
-                document.getElementById('bePayNewCardFields').classList.remove('hidden');
-                document.getElementById('bePayCardOnFile').classList.add('hidden');
-            } else {
-                document.getElementById('bePayNewCardFields').classList.add('hidden');
-                document.getElementById('bePayCardOnFile').classList.remove('hidden');
-            }
-        });
-
-        // Card number / expiry / cvc formatting
-        document.getElementById('bePayCardNumber')?.addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim();
-        });
-        document.getElementById('bePayExpiry')?.addEventListener('input', function() {
-            let val = this.value.replace(/[^0-9]/g, '').substring(0, 4);
-            if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
-            this.value = val;
-        });
-        document.getElementById('bePayCvc')?.addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '').substring(0, 4);
-        });
-
-        // Submit handler — tokenize new card via Accept.js before POSTing
-        document.getElementById('bePayForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const payType   = document.getElementById('bePaymentType').value;
-            const cardOpt   = document.getElementById('bePayCardOption').value;
-            const submitBtn = document.getElementById('bePaySubmitBtn');
-            const btnText   = document.getElementById('bePayBtnText');
-            const btnSpinner = document.getElementById('bePayBtnSpinner');
-
-            if (payType !== 'CreditCard' || cardOpt === 'CardOnFile') {
-                submitBtn.disabled = true;
-                btnText.textContent = 'Processing...';
-                btnSpinner.classList.remove('hidden');
-                this.submit();
-                return;
-            }
-
-            // New card — tokenize first via Authorize.net Accept.js
-            submitBtn.disabled = true;
-            btnText.textContent = 'Processing...';
-            btnSpinner.classList.remove('hidden');
-
-            const expiry = document.getElementById('bePayExpiry').value;
-            let [expMonth, expYearShort] = expiry.split('/');
-            expMonth     = expMonth?.trim();
-            expYearShort = expYearShort?.trim();
-            const expYear = expYearShort?.length === 2 ? '20' + expYearShort : expYearShort;
-
-            try {
-                Accept.dispatchData({
-                    authData: {
-                        clientKey:  '{{ safe_decrypt($paymentSetting['payment_api_public_key']) }}',
-                        apiLoginID: '{{ safe_decrypt($paymentSetting['payment_api_key']) }}'
-                    },
-                    cardData: {
-                        cardNumber: document.getElementById('bePayCardNumber').value.replace(/\s/g, ''),
-                        month:      expMonth,
-                        year:       expYear,
-                        cardCode:   document.getElementById('bePayCvc').value,
-                    }
-                }, function(response) {
-                    if (response.messages.resultCode === 'Error') {
-                        const msg = response.messages.message?.[0]?.text || 'Tokenization failed.';
-                        notyf.error(msg);
-                        submitBtn.disabled = false;
-                        btnText.textContent = bePayBtnLabel;
-                        btnSpinner.classList.add('hidden');
-                        return;
-                    }
-                    notyf.success('Payment details validated successfully!');
-                    document.getElementById('beOpaqueDataValue').value      = response.opaqueData.dataValue;
-                    document.getElementById('beOpaqueDataDescriptor').value = response.opaqueData.dataDescriptor;
-                    document.getElementById('bePayForm').submit();
-                });
-            } catch (err) {
-                notyf.error('Something went wrong during payment processing.');
-                submitBtn.disabled = false;
-                btnText.textContent = bePayBtnLabel;
-                btnSpinner.classList.add('hidden');
-            }
-        });
-
-        window.beOpenPayment = function(row) {
-            beSetActive(row);
-            resetBePaymentState();
-            document.getElementById('bePayChargeUniqueId').value = beActiveUniqueId;
-            document.getElementById('bePayCaUniqueId').value     = beActiveCaUniqueId;
-            document.getElementById('bePayCustomerId').value     = beActiveCustomerId;
-            document.getElementById('bePayAmount').value         = beActiveTotal.toFixed(2);
-            document.getElementById('bePayType').value           = beActiveType;
-
-            // Populate saved cards for this order's customer
-            const cardSelect = document.getElementById('bePayExistingCard');
-            const cardOption = document.getElementById('bePayCardOption');
-            cardSelect.innerHTML = '<option value="">-- Select a saved card --</option>';
-            if (Array.isArray(beCustomerCards) && beCustomerCards.length > 0) {
-                beCustomerCards.forEach(card => {
-                    cardSelect.insertAdjacentHTML('beforeend', `<option value="${card.id}">${card.label}</option>`);
-                });
-                cardOption.value = 'CardOnFile';
-            } else {
-                cardOption.value = 'NewCard';
-            }
-            beOpenModal('beFuelPaymentModal');
-        };
-
-        // Step 2 of Add Extension Charge: open the SAME payment modal against
-        // the just-created charge — no hunting for the Billing Engine row.
-        // Same form, same controller, same gateway path as the row action.
-        window.beOpenExtensionPayment = function(charge, personId) {
-            resetBePaymentState();
-            beExtensionFlow = true;
-            bePayBtnLabel   = 'Create Extension & Record Payment';
-
-            document.getElementById('bePayChargeUniqueId').value = charge.unique_id;
-            document.getElementById('bePayCaUniqueId').value     = '';
-            document.getElementById('bePayCustomerId').value     = charge.customer_id;
-            document.getElementById('bePayAmount').value         = Number(charge.total).toFixed(2);
-            document.getElementById('bePayType').value           = 'extension';
-            document.getElementById('bePayBtnText').textContent  = bePayBtnLabel;
-            document.getElementById('bePayCancelBtn').textContent = 'Save as Pay Later';
-
-            // Carry the extension's responsible person into the payment step
-            if (personId) document.getElementById('bePayPerson').value = personId;
-
-            const context = document.getElementById('bePayContext');
-            document.getElementById('bePayContextText').textContent =
-                'Extension ' + charge.order_number + ' — $' + Number(charge.total).toFixed(2)
-                + '. Record the payment now, or save as Pay Later.';
-            context.classList.remove('hidden');
-
-            // Same saved-card prepopulation as the row action
-            const cardSelect = document.getElementById('bePayExistingCard');
-            const cardOption = document.getElementById('bePayCardOption');
-            cardSelect.innerHTML = '<option value="">-- Select a saved card --</option>';
-            if (Array.isArray(beCustomerCards) && beCustomerCards.length > 0) {
-                beCustomerCards.forEach(card => {
-                    cardSelect.insertAdjacentHTML('beforeend', `<option value="${card.id}">${card.label}</option>`);
-                });
-                cardOption.value = 'CardOnFile';
-            } else {
-                cardOption.value = 'NewCard';
-            }
-            beOpenModal('beFuelPaymentModal');
-        };
 
         @if (session('be_reopen_charge'))
         // A payment attempt failed on this charge — put the employee straight
-        // back into the Make a Payment step with the failure reason visible.
+        // back into the Collect Payment step with the failure reason visible.
         (function () {
-            const row = document.querySelector('[data-be-unique-id="{{ session('be_reopen_charge') }}"]');
-            if (!row) return;
-            window.beOpenPayment(row);
+            const row = document.querySelector('[data-bc-id="{{ session('be_reopen_charge') }}"]');
+            if (!row || !window.BillingPayment) return;
+            const label = (row.dataset.customerName || '')
+                + (row.dataset.orderNumber ? ' · ' + row.dataset.orderNumber : '');
+            window.BillingPayment.openForBillingRow(row.dataset, label);
             @if (session('error'))
-                const errBox = document.getElementById('bePayError');
-                errBox.textContent = @json(session('error'));
-                errBox.classList.remove('hidden');
+                window.BillingPayment.showError(@json(session('error')));
             @endif
         })();
         @endif
 
-        window.beOpenResolve = function(row) {
-            beSetActive(row);
-            document.getElementById('beResolveNote').value = '';
-            const preset = document.getElementById('beResolvePreset');
-            if (preset) preset.value = '';
-            beOpenModal('beFuelResolveModal');
-        };
-
-        window.beOpenUncollectible = function(row) {
-            beSetActive(row);
-            beOpenModal('beFuelUncollectibleModal');
-        };
-
-        window.beOpenNote = function(row) {
-            beSetActive(row);
-            document.getElementById('beNoteText').value = '';
-            const preset = document.getElementById('beNotePreset');
-            if (preset) preset.value = '';
-            beOpenModal('beFuelNoteModal');
-        };
-
-        window.beOpenAdjust = function(row) {
-            beSetActive(row);
-            const input   = document.getElementById('beAdjustAmount');
-            const preview = document.getElementById('beAdjustPreview');
-            input.value = '';
-            document.getElementById('beAdjustBase').textContent    = '$' + beActiveBase.toFixed(2);
-            document.getElementById('beAdjustCurrent').textContent = '$' + beActiveTotal.toFixed(2);
-            preview.textContent = '$' + beActiveTotal.toFixed(2);
-            input.oninput = () => {
-                const delta = parseFloat(input.value || 0);
-                const next  = Math.max(0, beActiveTotal + delta);
-                preview.textContent = '$' + next.toFixed(2);
-            };
-            beOpenModal('beFuelAdjustModal');
-        };
-
         window.beOpenDelete = function(row) {
-            beSetActive(row);
-            const childNumber = row.dataset.beChildNumber;
+            const childNumber = row.dataset.childNumber;
             window.extDeleteFlow.open({
                 contextHtml: 'Deleting this Rental Extension will also remove '
                     + (childNumber
                         ? 'child order <span class="font-semibold">#' + childNumber + '</span>'
                         : 'its linked child order')
                     + '.<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
-                paystate: row.dataset.bePaystate,
-                url: beRouteDelete.replace('__ID__', beActiveUniqueId),
+                paystate: row.dataset.paystate,
+                url: beRouteDelete.replace('__ID__', row.dataset.bcId),
                 payload: {},
                 onSuccess: function (data) {
                     notyf.success(data.message || 'Extension transaction deleted.');
@@ -8470,8 +7920,6 @@
         };
 
         window.beOpenViewDamage = function(row) {
-            beSetActive(row);
-
             const modal   = document.getElementById('beViewDamageModal');
             const loading = document.getElementById('beViewDamageLoading');
             const empty   = document.getElementById('beViewDamageEmpty');
@@ -8517,82 +7965,7 @@
             .catch(() => { loading.classList.add('hidden'); empty.classList.remove('hidden'); });
         };
 
-        function bePost(url, payload, btnId, successMsg) {
-            const btn = document.getElementById(btnId);
-            if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                body: JSON.stringify(payload),
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    notyf.success(data.message || successMsg);
-                    ['beFuelResolveModal','beFuelUncollectibleModal','beFuelNoteModal','beFuelAdjustModal'].forEach(id => beCloseModal(id));
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    notyf.error(data.message || 'Something went wrong.');
-                }
-            })
-            .catch(() => notyf.error('Request failed. Please try again.'))
-            .finally(() => {
-                if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Save'; }
-            });
-        }
-
-        const beRouteResolve       = '{{ route('admin.order-management.orders.billing-charges.resolve', '__ID__') }}';
-        const beRouteUncollectible = '{{ route('admin.order-management.orders.billing-charges.uncollectible', '__ID__') }}';
-        const beRouteNote          = '{{ route('admin.order-management.orders.billing-charges.note', '__ID__') }}';
-        const beRouteAdjust        = '{{ route('admin.order-management.orders.billing-charges.adjust', '__ID__') }}';
-        const beRouteDelete        = '{{ route('admin.order-management.orders.billing-charges.delete', '__ID__') }}';
-
-        window.beSubmitResolve = function() {
-            const note = document.getElementById('beResolveNote').value.trim();
-            const by   = document.getElementById('beResolveBy').value;
-            if (!note) { notyf.error('Please enter a resolution note.'); return; }
-            if (!by)   { notyf.error('Please select a person.'); return; }
-            bePost(
-                beRouteResolve.replace('__ID__', beActiveUniqueId),
-                { resolution_note: note, resolved_by: by },
-                'beResolveSaveBtn',
-                'Charge marked as resolved.'
-            );
-        };
-
-        window.beSubmitUncollectible = function() {
-            const by = document.getElementById('beUncollectibleBy').value;
-            if (!by) { notyf.error('Please select a person.'); return; }
-            bePost(
-                beRouteUncollectible.replace('__ID__', beActiveUniqueId),
-                { resolved_by: by },
-                'beUncollectibleSaveBtn',
-                'Charge marked as uncollectible.'
-            );
-        };
-
-        window.beSubmitNote = function() {
-            const note = document.getElementById('beNoteText').value.trim();
-            if (!note) { notyf.error('Please enter a note.'); return; }
-            bePost(
-                beRouteNote.replace('__ID__', beActiveUniqueId),
-                { note },
-                'beNoteSaveBtn',
-                'Note saved.'
-            );
-        };
-
-        window.beSubmitAdjust = function() {
-            const amount = document.getElementById('beAdjustAmount').value.trim();
-            if (!amount || isNaN(parseFloat(amount))) { notyf.error('Please enter a valid amount.'); return; }
-            bePost(
-                beRouteAdjust.replace('__ID__', beActiveUniqueId),
-                { amount: parseFloat(amount) },
-                'beAdjustSaveBtn',
-                'Charge adjusted.'
-            );
-        };
+        const beRouteDelete = '{{ route('admin.order-management.orders.billing-charges.delete', '__ID__') }}';
     })();
 
     // ── Extension Charges ──────────────────────────────────────────────────────
@@ -8766,9 +8139,14 @@
                 if (data.success) {
                     notyf.success(data.message);
                     closeExtensionModal();
-                    if (payNow && data.billing_charge && window.beOpenExtensionPayment) {
-                        // Step 2: the existing payment modal, prefilled
-                        window.beOpenExtensionPayment(data.billing_charge, person);
+                    if (payNow && data.billing_charge && window.BillingPayment) {
+                        // Step 2: the SHARED payment modal, prefilled — pay
+                        // now, or close as Pay Later (reloads to show the
+                        // unpaid extension row).
+                        window.BillingPayment.openForExtension(data.billing_charge, {
+                            personId: person,
+                            cards: window.beCustomerCards || [],
+                        });
                     } else {
                         window.location.reload();
                     }

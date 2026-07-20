@@ -22,7 +22,13 @@ class AlertChargeController extends Controller
     public function __invoke(Request $request, string $uniqueId)
     {
         $request->validate([
-            'type'               => ['required', 'in:fuel,damage'],
+            // Fuel creation moved to the shared New Fuel Charge modal
+            // (FuelChargeStoreController -> ChargeService::createManualCharge)
+            // — the fuel branch here was unreachable dead code and has been
+            // retired (Billing Charge Operations Commonization). This
+            // controller now serves the legacy Damage Alert modal only,
+            // until Phase 1B moves damage onto the shared path too.
+            'type'               => ['required', 'in:damage'],
             'amount'             => ['required', 'numeric', 'min:0.01'],
             'notes'              => ['nullable', 'string', 'max:500'],
             'responsible_person' => ['required', 'exists:users,id'],
@@ -39,7 +45,7 @@ class AlertChargeController extends Controller
             $record->customer_id             = $order->customer_id;
             $record->order_id                = $order->id;
             $record->amount                  = $request->amount;
-            $record->reason                  = $request->type === 'fuel' ? 'Fuel Charge' : 'Damages';
+            $record->reason                  = 'Damages';
             $record->responsible_person_id   = $user->id;
             $record->responsible_person_name = $user->full_name;
             $record->notes                   = $request->notes;
@@ -47,13 +53,13 @@ class AlertChargeController extends Controller
             $record->sales_tax_type          = $request->sales_tax_type ?? 'free';
             $record->sales_tax               = 0;
             $record->type                    = 'charge';
-            $record->fuel_alert_status       = $request->type === 'fuel'   ? 'pending' : null;
-            $record->damage_alert_status     = $request->type === 'damage' ? 'pending' : null;
+            $record->fuel_alert_status       = null;
+            $record->damage_alert_status     = 'pending';
             $record->save();
 
             CustomHelper::updateCreditBalance($record);
 
-            $chargeType = $request->type === 'fuel' ? 'Fuel charge' : 'Damage charge';
+            $chargeType = 'Damage charge';
 
             $description = "{$chargeType} added.";
             $description .= " Amount: $" . number_format($record->amount, 2) . ".";
@@ -84,41 +90,8 @@ class AlertChargeController extends Controller
             $billingBaseAmount = $resolved['base_amount'];
             $billingTaxAmount  = $resolved['tax_amount'];
 
-            // ── Billing Engine bridge ──────────────────────────────────────
-            if ($request->type === 'fuel') {
-                // Phase 3B
-                try {
-                    BillingEngine::charge(new BillingChargeRequest(
-                        type:                BillingChargeType::Fuel->value,
-                        orderId:             $order->id,
-                        customerId:          (int) $order->customer_id,
-                        amount:              $billingBaseAmount,
-                        taxType:             $record->sales_tax_type,
-                        responsiblePersonId: $user->id,
-                        notes:               $record->notes,
-                        sourceModule:        BillingSourceModule::AdminFuelCharge->value,
-                        sourceEvent:         BillingSourceEvent::AdminFuelChargeCreated->value,
-                        sourceReferenceType: 'CustomerAccount',
-                        sourceReferenceId:   $record->id,
-                        metadata: [
-                            'legacy_controller'          => 'AlertChargeController',
-                            'legacy_customer_account_id' => $record->id,
-                            'order_id'                   => $order->id,
-                            'order_unique_id'            => $uniqueId,
-                            'sales_tax_type'             => $record->sales_tax_type,
-                        ],
-                        idempotencyKey:    "admin_fuel_alert_charge:{$record->id}",
-                        customerAccountId: $record->id,
-                        taxAmount:         $billingTaxAmount,
-                    ));
-                } catch (\Throwable $e) {
-                    Log::channel('billing_engine')->error(
-                        "BillingEngine bridge failed | controller=AlertChargeController " .
-                        "| customer_account_id={$record->id} | order_id={$order->id} " .
-                        "| error=" . $e->getMessage()
-                    );
-                }
-            } elseif ($request->type === 'damage') {
+            // ── Billing Engine bridge (damage only) ───────────────────────
+            if ($request->type === 'damage') {
                 // Phase 4C
                 try {
                     BillingEngine::charge(new BillingChargeRequest(
@@ -157,7 +130,7 @@ class AlertChargeController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => ($request->type === 'fuel' ? 'Fuel Charge' : 'Damage Alert') . ' created successfully.',
+                'message' => 'Damage Alert created successfully.',
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();

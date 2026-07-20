@@ -34,15 +34,16 @@
             Calls Log Report
         </button>
 
-        <button type="button" id="tab-fuel"
-            onclick="switchTab('fuel')"
-            class="dash-tab inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border transition-all
+        {{-- Fuel management moved to the Fuel Charge Workspace (Billing
+             Charge Operations Commonization) — the legacy Fuel Charge
+             Alerts tab is retired; this link-tab preserves the habit path. --}}
+        <a href="{{ route('admin.reports.fuel-charge-workspace.index') }}"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border transition-all
                    bg-white text-gray-600 border-gray-300 hover:bg-gray-50">
-            <svg fill="currentColor" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                <path d="M96 128C96 92.7 124.7 64 160 64L320 64C355.3 64 384 92.7 384 128L384 320L392 320C440.6 320 480 359.4 480 408L480 440C480 453.3 490.7 464 504 464C517.3 464 528 453.3 528 440L528 286C500.4 278.9 480 253.8 480 224L480 164.5L454.2 136.2C445.3 126.4 446 111.2 455.8 102.3C465.6 93.4 480.8 94.1 489.7 103.9L561.4 182.7C570.8 193 576 206.4 576 220.4L576 440C576 479.8 543.8 512 504 512C464.2 512 432 479.8 432 440L432 408C432 385.9 414.1 368 392 368L384 368L384 529.4C393.3 532.7 400 541.6 400 552C400 565.3 389.3 576 376 576L104 576C90.7 576 80 565.3 80 552C80 541.5 86.7 532.7 96 529.4L96 128z"/>
-            </svg>
-            Fuel Charge Alerts
-        </button>
+            <x-heroicon-o-fire class="w-4 h-4" />
+            Fuel Charge Workspace
+            <x-heroicon-o-arrow-top-right-on-square class="w-3.5 h-3.5 text-gray-400" />
+        </a>
 
         <button type="button" id="tab-damage"
             onclick="switchTab('damage')"
@@ -126,70 +127,6 @@
             </div>
             <div id="calls-log-wrapper">
                 @include('admin.reports.calls_log.partials._table', ['calls' => $calls])
-            </div>
-        </div>
-
-    </div>
-
-    {{-- ===== FUEL CHARGE ALERTS TAB ===== --}}
-    <div id="panel-fuel" class="hidden">
-
-        {{-- Filters --}}
-        <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0 mb-6">
-            <div class="flex flex-wrap items-end gap-4 w-full">
-
-                <div class="w-full sm:w-auto">
-                    <button type="button" id="fuel-clear-filters"
-                        class="text-sm text-gray-600 bg-white px-4 py-3 flex gap-2 items-center rounded-md border border-gray-300">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                        Clear
-                    </button>
-                </div>
-
-                <div class="w-full sm:w-48">
-                    <div class="relative bg-white">
-                        <input type="text" id="fuel_search_name" placeholder="Customer name"
-                            class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
-                        <x-heroicon-o-magnifying-glass
-                            class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                </div>
-
-                <div class="w-full sm:w-48">
-                    <div class="relative bg-white">
-                        <input type="text" id="fuel_search_order" placeholder="Order #"
-                            class="pl-3 pr-10 py-3 px-3 border border-gray-300 rounded-md text-sm w-full focus:ring-blue-500 focus:border-blue-500" />
-                        <x-heroicon-o-magnifying-glass
-                            class="absolute w-4 h-4 text-gray-400 right-3 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                </div>
-
-                <div class="w-full sm:w-44">
-                    <select id="fuel_search_status"
-                        class="border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="completed">Completed</option>
-                        <option value="uncollectible">Uncollectible</option>
-                    </select>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-            <div class="flex items-center justify-between mb-4">
-                <h4 class="text-sm font-semibold text-gray-700">All Fuel Charge Records</h4>
-                <span class="text-xs text-gray-400">Newest first</span>
-            </div>
-            <div id="fuel-alerts-wrapper">
-                {{-- @include('admin.reports.fuel_charge_alerts.partials._table', ['allFuelRecords' => [$allFuelRecords]]) --}}
-                @include('admin.reports.fuel_charge_alerts.partials._table', [
-    'allFuelRecords' => $allFuelRecords
-])
             </div>
         </div>
 
@@ -717,8 +654,8 @@ function submitRescheduleCall() {
 
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
-const TABS = ['calls', 'fuel', 'damage'];
-const tabLoaded = { calls: true, fuel: false, damage: false };
+const TABS = ['calls', 'damage'];
+const tabLoaded = { calls: true, damage: false };
 
 function switchTab(tab) {
     TABS.forEach(t => {
@@ -727,7 +664,6 @@ function switchTab(tab) {
         if (t === tab) {
             btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-300', 'hover:bg-gray-50');
             if (t === 'calls')  btn.classList.add('bg-red-600',    'text-white', 'border-red-600',    'shadow-sm');
-            if (t === 'fuel')   btn.classList.add('bg-orange-500', 'text-white', 'border-orange-500', 'shadow-sm');
             if (t === 'damage') btn.classList.add('bg-red-600',    'text-white', 'border-red-600',    'shadow-sm');
         } else {
             btn.classList.remove('bg-red-600', 'bg-orange-500', 'text-white', 'border-red-600', 'border-orange-500', 'shadow-sm');
@@ -737,7 +673,6 @@ function switchTab(tab) {
 
     if (!tabLoaded[tab]) {
         tabLoaded[tab] = true;
-        if (tab === 'fuel')   window.fetchFuel(1);
         if (tab === 'damage') window.fetchDamage(1);
     }
 }
@@ -798,59 +733,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     Paginator.init({ wrapper, fetchCallback: fetchCalls });
     fetchCalls(1);
-})();
-
-// ── Fuel Charge Alerts Filters ────────────────────────────────────────────────
-(function () {
-    const wrapper     = document.getElementById('fuel-alerts-wrapper');
-    const nameInput   = document.getElementById('fuel_search_name');
-    const orderInput  = document.getElementById('fuel_search_order');
-    const statusSel   = document.getElementById('fuel_search_status');
-    const clearBtn    = document.getElementById('fuel-clear-filters');
-    let debounceTimer = null;
-
-    window.fetchFuel = function (page = 1) {
-        const params = new URLSearchParams();
-        if (nameInput.value)  params.set('search_name',   nameInput.value);
-        if (orderInput.value) params.set('search_order',  orderInput.value);
-        if (statusSel.value)  params.set('search_status', statusSel.value);
-        params.set('page', page);
-
-        const perPage = wrapper.querySelector('[name="per_page"]')?.value || 30;
-        params.set('per_page', perPage);
-
-        // console.log('perPage', perPage);
-        // console.log(params.toString());
-
-        wrapper.classList.add('opacity-50', 'pointer-events-none');
-
-        fetch("{{ route('admin.reports.fuel-charge-alerts.index') }}?" + params.toString(), {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(data => { if (data.success) wrapper.innerHTML = data.html; })
-        .catch(err => { wrapper.innerHTML = '<p class="text-center py-10 text-red-500 text-sm">Failed to load records. Please refresh and try again.</p>'; console.error('Fuel fetch error:', err); })
-        .finally(() => wrapper.classList.remove('opacity-50', 'pointer-events-none'));
-    };
-
-    function debounce(fn, ms = 350) {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(fn, ms);
-    }
-
-    [nameInput, orderInput].forEach(el =>
-        el.addEventListener('input', () => debounce(() => fetchFuel(1)))
-    );
-    statusSel.addEventListener('change', () => fetchFuel(1));
-
-    clearBtn.addEventListener('click', function () {
-        nameInput.value  = '';
-        orderInput.value = '';
-        statusSel.value  = '';
-        fetchFuel(1);
-    });
-
-    Paginator.init({ wrapper, fetchCallback: fetchFuel });
 })();
 
 // ── New Damage Alerts Filters ─────────────────────────────────────────────────

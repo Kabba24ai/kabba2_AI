@@ -67,10 +67,11 @@ class IndexController extends Controller
 
         $users = User::orderBy('first_name')->get();
 
-        // Fuel and Damage tabs load via AJAX on first tab activation — no pre-load needed.
-        $allFuelRecords   = collect();
+        // Damage tab loads via AJAX on first tab activation — no pre-load
+        // needed. (The legacy Fuel tab is retired: fuel charges are managed
+        // in the Fuel Charge Workspace.)
         $allDamageRecords = collect();
 
-        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'allFuelRecords', 'allDamageRecords'));
+        return view('admin.reports.calls_log.index', compact('calls', 'customers', 'users', 'allDamageRecords'));
     }
 }

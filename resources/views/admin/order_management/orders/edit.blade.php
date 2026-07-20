@@ -522,30 +522,103 @@
         @include('admin.order_management.orders.partials._refund_allocation_details', ['refundEvents' => $allRefundEvents])
     @endif
 
-    {{-- Shared New Fuel Charge modal (Billing Engine commonization) —
-         locked-order launch mode: this order + its customer are fixed
-         context; same normalized payload / canonical creation path as the
-         Dashboard, Fuel Workspace, and CRM launchers. Replaces the legacy
-         order-page fuel modal (AlertChargeController now serves Damage only). --}}
-    @include('admin.charges._new_fuel_charge_modal', [
-        'users' => $employees,
-        'fuelNotePresets' => $fuelNotePresets,
-        'nfcContext' => 'order_details',
-    ])
-    @include('admin.billing._payment_modal', ['users' => $employees])
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            window.NewFuelCharge.onCreated = function (charge, continueToPayment) {
-                if (continueToPayment) {
-                    // Payment posts as a form and redirects back — the
-                    // Billing Engine table refreshes on that redirect.
-                    window.BillingPayment.openForCharge(charge, @json('Order ' . $order->order_number));
-                    return;
-                }
-                window.location.reload();
-            };
-        });
-    </script>
+    {{-- Fuel Charge Modal --}}
+    <div id="orderFuelChargeModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden flex flex-col max-h-full">
+            {{-- Header --}}
+            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-medium text-gray-900">New Charge</h2>
+                </div>
+                <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+            </div>
+
+            <div class="px-6 overflow-y-auto space-y-5 py-5">
+                {{-- Charge Amount --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Amount <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-500 text-sm pointer-events-none">$</span>
+                        <input id="orderFuelAmount" type="number" step="0.01" min="0.01" placeholder="0.00"
+                            class="w-full pl-7 pr-3 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                {{-- Sales Tax Treatment --}}
+                @php $taxPercentage = \App\Helpers\CustomHelper::displayPercentage($sales_tax); @endphp
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sales Tax Treatment</label>
+                    <div class="space-y-2 text-sm text-gray-700">
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="add" checked class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Add Sales Tax</p>
+                                <p class="text-gray-500">Add {{ $taxPercentage }}% sales tax to the entered amount</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="free" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Tax Free</p>
+                                <p class="text-gray-500">No sales tax applied to this charge</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2">
+                            <input type="radio" name="orderFuelSalesTax" value="reverse" class="mt-1.5 text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <p class="font-medium">Reverse Sales Tax</p>
+                                <p class="text-gray-500">Split entered amount proportionally between base amount and tax</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Charge Reason (fixed, read-only) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Charge Reason <span class="text-red-500">*</span></label>
+                    <p class="text-base font-semibold text-red-500">Fuel Charge</p>
+                </div>
+
+                {{-- Person Responsible --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Person Responsible <span class="text-red-500">*</span></label>
+                    <select id="orderFuelPerson" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select person responsible</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <textarea id="orderFuelNotes" rows="3"
+                        class="w-full px-3 py-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter any additional notes about this charge..."></textarea>
+                </div>
+
+                {{-- Buttons --}}
+                <div class="flex justify-end gap-2 pb-2">
+                    <button type="button" onclick="document.getElementById('orderFuelChargeModal').classList.replace('flex','hidden')"
+                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
+                    <button type="button" id="orderFuelSubmitBtn"
+                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
+                        <span id="orderFuelBtnText">Add Charge</span>
+                        <svg id="orderFuelSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- Damage Alert Modal --}}
     <div id="orderDamageAlertModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4 py-10">
@@ -8105,7 +8178,7 @@
             .then(data => {
                 if (data.success) {
                     notyf.success(data.message);
-                    closeModal('orderDamageAlertModal');
+                    closeModal(type === 'fuel' ? 'orderFuelChargeModal' : 'orderDamageAlertModal');
                     // Reload so the Billing Engine block reflects the new charge immediately.
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
@@ -8121,8 +8194,9 @@
             });
         }
 
-        // Fuel creation moved to the shared New Fuel Charge modal
-        // (Billing Engine commonization) — only Damage still posts here.
+        document.getElementById('orderFuelSubmitBtn').addEventListener('click', () =>
+            submitAlertCharge('fuel', 'orderFuelAmount', 'orderFuelPerson', 'orderFuelNotes', 'orderFuelSubmitBtn'));
+
         document.getElementById('orderDamageSubmitBtn').addEventListener('click', () =>
             submitAlertCharge('damage', 'orderDamageAmount', 'orderDamagePerson', 'orderDamageNotes', 'orderDamageSubmitBtn'));
     })();

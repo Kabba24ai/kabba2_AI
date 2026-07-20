@@ -144,7 +144,7 @@
     };
 
     const $ = (id) => document.getElementById(id);
-    const state = { orderId: null, customerId: null, customerLocked: false, orderLocked: false };
+    const state = { orderId: null, customerId: null, customerLocked: false };
 
     function esc(s) {
         return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -161,8 +161,7 @@
     function setOrder(order) {
         state.orderId = order ? order.id : null;
         show($('nfc-order-selected'), !!order);
-        show($('nfc-order-search-wrap'), !order && !state.orderLocked);
-        $('nfc-order-clear').classList.toggle('hidden', state.orderLocked);
+        show($('nfc-order-search-wrap'), !order);
         if (order) {
             $('nfc-order-label').textContent =
                 joinParts([`Order ${order.order_number}`, order.customer_name, order.order_date]);
@@ -303,23 +302,9 @@
     window.NewFuelCharge = {
         onCreated: null,
         open(opts = {}) {
-            // Launch modes (Billing Engine commonization):
-            //   selection mode      — Dashboard / Fuel Workspace (default)
-            //   locked-order mode   — Order Details (order + customer are
-            //                         fixed context, no selectors)
-            //   customer-locked     — CRM customer page
-            state.orderLocked = !!opts.lockOrderContext;
-            state.customerLocked = !!opts.lockCustomer || state.orderLocked;
             setOrder(null);
-
-            if (state.orderLocked) {
-                state.orderId = opts.orderId;
-                show($('nfc-order-selected'), true);
-                show($('nfc-order-search-wrap'), false);
-                $('nfc-order-clear').classList.add('hidden');
-                $('nfc-order-label').textContent = opts.orderLabel || 'Current order';
-                setCustomer({ id: opts.customerId, name: opts.customerName || 'Customer' }, true);
-            } else if (opts.customerId) {
+            state.customerLocked = !!opts.lockCustomer;
+            if (opts.customerId) {
                 setCustomer({ id: opts.customerId, name: opts.customerName || 'Selected customer' }, !!opts.lockCustomer);
             } else {
                 setCustomer(null, false);

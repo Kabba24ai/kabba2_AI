@@ -26,11 +26,13 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
         // One direct visual containing an <img> whose src is EXACTLY the
         // canonical accessor output (no second image-resolution path) with
-        // meaningful alt text
+        // meaningful alt text — and no overlay ribbon (direct is the quiet,
+        // normal state)
         $this->assertSame(1, substr_count($html, 'data-assignment-visual="direct"'));
         $this->assertStringContainsString('src="' . $this->orderedProduct->image_url . '"', $html);
         $this->assertStringContainsString('alt="' . $this->orderedProduct->product_name . '"', $html);
-        $this->assertStringContainsString('Direct Assignment', $html);
+        $this->assertStringNotContainsString('Substitute', $html);
+        $this->assertStringNotContainsString('Confirm Match', $html);
     }
 
     public function test_product_without_media_uses_the_canonical_fallback_image(): void
@@ -43,7 +45,7 @@ class QueueLinePresentationTest extends QueueLineTestCase
         $this->assertStringContainsString('No_Image_Available.jpg', $html);
     }
 
-    public function test_alternate_uses_the_shared_treatment_and_never_an_image(): void
+    public function test_substitution_shows_the_assigned_products_image_with_a_substitute_ribbon(): void
     {
         $row = $this->makeRow();
         $assignedProduct = Product::create([
@@ -54,19 +56,20 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
         $html = Livewire::test(Board::class)->html();
 
+        // UI Iteration 1: the image is the ASSIGNED product's (the machine
+        // class physically leaving the yard), branded with a bold ribbon —
+        // alt text proves which product resolved the image.
         $this->assertSame(1, substr_count($html, 'data-assignment-visual="alternate"'));
-        $this->assertStringContainsString('Alternate Equipment', $html);
-        $this->assertStringContainsString('Verify the machine before loading', $html);
-        // Ordered AND assigned products both shown
-        $this->assertStringContainsString('Ordered:', $html);
+        $this->assertStringContainsString('Substitute', $html);
+        $this->assertStringContainsString('alt="' . $assignedProduct->product_name . '"', $html);
+        // Ordered product stays first in the identity block; the substitution
+        // is spelled out beneath it
         $this->assertStringContainsString($this->orderedProduct->product_name, $html);
-        $this->assertStringContainsString('Assigned product:', $html);
+        $this->assertStringContainsString('Substituting with', $html);
         $this->assertStringContainsString($assignedProduct->product_name, $html);
-        // Never an image pretending to be the machine
-        $this->assertStringNotContainsString('<img', $html);
     }
 
-    public function test_unknown_is_distinct_from_alternate_and_shows_the_unit(): void
+    public function test_unknown_is_distinct_from_substitute_and_shows_the_unit(): void
     {
         $row = $this->makeRow();
         $unit = $this->makeEquipment(['assigned_product_id' => null]);
@@ -74,23 +77,29 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
         $html = Livewire::test(Board::class)->html();
 
+        // Unknown mapping: ordered product's image + a Confirm Match ribbon —
+        // never presented as an intentional substitution
         $this->assertSame(1, substr_count($html, 'data-assignment-visual="unknown"'));
-        $this->assertStringContainsString('Assignment Product Unknown', $html);
-        $this->assertStringContainsString('Confirm this machine matches the order', $html);
+        $this->assertStringContainsString('Confirm Match', $html);
+        $this->assertStringContainsString('alt="' . $this->orderedProduct->product_name . '"', $html);
         $this->assertStringContainsString($unit->equipment_name, $html); // reliable identifier
-        $this->assertStringNotContainsString('Alternate Equipment', $html);
-        $this->assertStringNotContainsString('<img', $html);
+        $this->assertStringNotContainsString('Substitute', $html);
     }
 
-    public function test_needs_equipment_row_has_no_imagery_and_no_stage_control(): void
+    public function test_needs_equipment_renders_the_same_card_with_ordered_image_and_no_stage_control(): void
     {
         $this->makeRow(); // eligible, unassigned
 
         $html = Livewire::test(Board::class)->html();
 
+        // UI Iteration 1: unassigned items use the SAME card — ordered
+        // product image + Needs Equipment ribbon; the equipment section
+        // adapts instead of the card changing shape
         $this->assertStringContainsString('Needs Equipment Assignment', $html);
-        $this->assertStringNotContainsString('<img', $html);
-        $this->assertStringNotContainsString('data-assignment-visual', $html);
+        $this->assertSame(1, substr_count($html, 'data-queue-row="card"'));
+        $this->assertSame(1, substr_count($html, 'data-assignment-visual="unassigned"'));
+        $this->assertStringContainsString('alt="' . $this->orderedProduct->product_name . '"', $html);
+        $this->assertStringContainsString('No machine selected yet', $html);
         $this->assertStringNotContainsString('wire:click="stage(', $html);
     }
 
@@ -131,9 +140,12 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
         $html = Livewire::test(Board::class)->html();
 
-        $this->assertStringContainsString('RR: Rental Ready', $html);
+        // UI Iteration 1: warnings render ONLY while live — a Rental Ready
+        // unit shows no RR badge at all (quiet positive state); Damaged uses
+        // the warning badge, not an RR: prefix
+        $this->assertStringNotContainsString('RR: Rental Ready', $html);
         $this->assertStringContainsString('RR: Draft / Incomplete', $html);
-        $this->assertStringContainsString('RR: Damaged', $html);
+        $this->assertStringContainsString('Damaged', $html);
         $this->assertStringContainsString('RR: Not Inspected', $html);
         // All four rows on the board — nothing filtered by inspection state
         $this->assertSame(4, substr_count($html, 'data-queue-row="card"'));
@@ -156,7 +168,7 @@ class QueueLinePresentationTest extends QueueLineTestCase
         $this->softAssign($damagedRow, $damagedUnit);
 
         $html = Livewire::test(Board::class)->html();
-        $this->assertStringContainsString('Maint. Hold', $html);
+        $this->assertStringContainsString('Maintenance Hold', $html);
         $this->assertStringContainsString('Damaged', $html);
         $this->assertSame(2, substr_count($html, 'data-queue-row="card"'));
 
@@ -182,7 +194,7 @@ class QueueLinePresentationTest extends QueueLineTestCase
         $html = Livewire::test(Board::class)->html();
 
         // Fixed card dimensions regardless of content length
-        $this->assertStringContainsString('h-[28rem]', $html);
+        $this->assertStringContainsString('h-[31rem]', $html);
         $this->assertStringContainsString('truncate', $html);
         // Full values remain accessible via title attributes
         $this->assertStringContainsString('title="Ordered: ' . $longProduct->product_name . '"', $html);
@@ -203,8 +215,12 @@ class QueueLinePresentationTest extends QueueLineTestCase
 
     // ── Priority tiers & polling ─────────────────────────────────────────
 
-    public function test_priority_sections_carry_distinct_labeled_headers(): void
+    public function test_workflow_sections_render_and_urgency_survives_as_card_badges(): void
     {
+        // UI Iteration 1: the board is organized by WORKFLOW (Pending /
+        // Ready / Delivered Today); urgency is a badge on each card and
+        // still drives ordering inside a section (RUSH first, then Overdue
+        // → Today → Tomorrow).
         $rushed = $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
         QueueLineService::rush($rushed, $this->admin);
         $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
@@ -212,7 +228,8 @@ class QueueLinePresentationTest extends QueueLineTestCase
         $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
 
         Livewire::test(Board::class)
-            ->assertSeeInOrder(['Rush', 'Overdue', 'Due Today', 'Due Tomorrow — Plan Ahead']);
+            ->assertSee('Queue Line — Pending')
+            ->assertSeeInOrder(['RUSH', 'Overdue', 'Today', 'Tomorrow']);
     }
 
     public function test_standard_mode_polls_at_60s_and_wallboard_at_30s(): void

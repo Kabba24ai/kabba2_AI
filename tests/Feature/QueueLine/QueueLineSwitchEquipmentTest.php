@@ -299,7 +299,7 @@ class QueueLineSwitchEquipmentTest extends QueueLineTestCase
 
         $component = Livewire::test(Board::class)
             ->call('openSwitch', $row->id)
-            ->assertSee('Switch Equipment')
+            ->assertSee('Confirm / Update Equipment') // UI Iteration 1 wording — same canonical switch behavior
             ->assertSee('Order #' . $row->order->order_number)
             // barcode-style exact search
             ->set('switchSearch', 'SCAN-900')

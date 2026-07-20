@@ -12,7 +12,7 @@
         <div class="flex items-center justify-between p-4 border-b">
             <div>
                 <h2 class="text-lg font-semibold text-gray-900">
-                    {{ $currentUnit ? 'Switch Equipment' : 'Assign Equipment' }}
+                    {{ $currentUnit ? 'Confirm / Update Equipment' : 'Assign Equipment' }}
                 </h2>
                 <p class="text-sm text-gray-500 mt-0.5">
                     Order #{{ $switchingItem->order->order_number }} —
@@ -21,6 +21,12 @@
                         · currently <span class="font-medium text-gray-700">{{ $currentUnit->equipment_name }}</span>
                     @endif
                 </p>
+                @if ($currentUnit)
+                    <p class="text-xs text-gray-400 mt-1">
+                        If {{ $currentUnit->equipment_name }} is the machine you're pulling, nothing needs to change — just close this window.
+                        Select a different unit below to update the assignment.
+                    </p>
+                @endif
             </div>
             <button type="button" wire:click="closeSwitch"
                 class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"

@@ -47,8 +47,11 @@ class QueueLineBoardTest extends QueueLineTestCase
 
     // ── Board content ────────────────────────────────────────────────────
 
-    public function test_cards_group_by_order_and_link_to_order_edit(): void
+    public function test_every_card_is_standalone_with_its_own_order_context(): void
     {
+        // UI Iteration 1: no order grouping — each card carries Order ID,
+        // customer, and payment status itself (a technician never needs to
+        // look outside the card).
         $order = $this->makeOrder(['customer_name' => 'Grouped Customer']);
         $a = $this->makeRow($order);
         $b = $this->makeRow($order);
@@ -60,13 +63,13 @@ class QueueLineBoardTest extends QueueLineTestCase
             ->assertSee('Grouped Customer')
             ->assertSee(route('admin.order-management.orders.edit', $order->unique_id));
 
-        // Order-level context renders ONCE per group even with two cards
         $html = Livewire::test(Board::class)->html();
-        $this->assertSame(1, substr_count($html, 'Order #' . $order->order_number));
+        $this->assertSame(2, substr_count($html, 'Order #' . $order->order_number));
         $this->assertSame(2, substr_count($html, 'data-queue-row="card"'));
+        $this->assertSame(2, substr_count($html, 'title="Grouped Customer"'));
     }
 
-    public function test_unassigned_item_renders_needs_equipment_row_without_stage_control(): void
+    public function test_unassigned_item_renders_the_uniform_card_without_stage_control(): void
     {
         $row = $this->makeRow(); // eligible, no soft assignment
 
@@ -75,40 +78,47 @@ class QueueLineBoardTest extends QueueLineTestCase
             ->assertSee($row->product_name);
 
         $html = $component->html();
-        $this->assertSame(1, substr_count($html, 'data-queue-row="unassigned"'));
-        $this->assertSame(0, substr_count($html, 'data-queue-row="card"'));
-        // No stage control on the attention row
+        // Same card in every state — the equipment section adapts instead
+        $this->assertSame(1, substr_count($html, 'data-queue-row="card"'));
+        $this->assertSame(1, substr_count($html, 'data-assignment="unassigned"'));
+        $this->assertStringContainsString('Assign Equipment', $html);
+        // No stage control until a machine is selected
         $this->assertStringNotContainsString('wire:click="stage(', $html);
     }
 
-    public function test_unassigned_row_becomes_a_card_once_soft_assigned(): void
+    public function test_unassigned_card_gains_equipment_section_once_soft_assigned(): void
     {
         $row = $this->makeRow();
         $this->softAssign($row);
 
         $html = Livewire::test(Board::class)->html();
         $this->assertSame(1, substr_count($html, 'data-queue-row="card"'));
-        $this->assertSame(0, substr_count($html, 'data-queue-row="unassigned"'));
+        $this->assertSame(0, substr_count($html, 'data-assignment="unassigned"'));
+        $this->assertSame(1, substr_count($html, 'data-assignment="direct"'));
     }
 
-    public function test_sections_render_with_tomorrow_visually_subdued(): void
+    public function test_urgency_renders_as_card_badges_in_priority_order(): void
     {
         $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
         $this->makeRow();
         $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
 
+        // sortItems ordering inside the section: Overdue → Today → Tomorrow
         Livewire::test(Board::class)
-            ->assertSeeInOrder(['Overdue', 'Due Today', 'Due Tomorrow'])
-            ->assertSee('opacity-70', false); // the Tomorrow wrapper treatment
+            ->assertSee('Queue Line — Pending')
+            ->assertSeeInOrder(['Overdue', 'Today', 'Tomorrow']);
     }
 
-    public function test_rushed_item_moves_to_the_rush_section(): void
+    public function test_rushed_item_gets_the_rush_badge_and_sorts_first(): void
     {
+        $other = $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
         $row = $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
         QueueLineService::rush($row, $this->admin);
 
+        // A rushed tomorrow item outranks an overdue one inside the section
         Livewire::test(Board::class)
-            ->assertSeeInOrder(['RUSH', $row->product_name]);
+            ->assertSee('RUSH')
+            ->assertSeeInOrder(['Order #' . $row->order->order_number, 'Order #' . $other->order->order_number]);
     }
 
     public function test_empty_state_renders_when_nothing_is_eligible(): void
@@ -132,7 +142,7 @@ class QueueLineBoardTest extends QueueLineTestCase
 
         Livewire::test(Board::class)
             ->call('unstage', $row->id)
-            ->assertSee('Not Staged');
+            ->assertSee('Put On Queue Line'); // menu offers staging again
 
         $this->assertNull($row->queueLineItem->fresh()->staged_at);
     }
@@ -211,9 +221,9 @@ class QueueLineBoardTest extends QueueLineTestCase
         Livewire::test(Board::class)
             ->assertSee('Delivery Truck')
             ->assertSee('Delivery In Store')
-            ->assertSee('Options: 2')
-            ->assertSee('Options: 0')
-            ->assertSee('Direct Assignment')
+            ->assertSee('+ 2 options')
+            // zero options render nothing — no space reserved
+            ->assertDontSee('+ 0 options')
             ->assertSee($this->storeNorth->store_name);
 
         // Option NAMES never render on cards
@@ -221,7 +231,7 @@ class QueueLineBoardTest extends QueueLineTestCase
             ->assertDontSee('Smooth Bucket');
     }
 
-    public function test_alternate_and_unknown_cards_never_show_the_ordered_product_image(): void
+    public function test_image_always_comes_from_a_product_and_substitution_uses_the_assigned_products(): void
     {
         $alternate = $this->makeRow();
         $otherProduct = \App\Models\ProductManagement\Product::create([
@@ -233,13 +243,16 @@ class QueueLineBoardTest extends QueueLineTestCase
         $this->softAssign($unknown, $this->makeEquipment(['assigned_product_id' => null]));
 
         $component = Livewire::test(Board::class)
-            ->assertSee('Alternate Equipment')
-            ->assertSee('Assignment Product Unknown');
+            ->assertSee('Substitute')
+            ->assertSee('Confirm Match');
 
-        // Phase 1 renders no product imagery at all — nothing on the board
-        // can misrepresent the assigned machine.
+        // UI Iteration 1: every card carries a PRODUCT image (never an
+        // equipment photo) — the substitution card resolves it from the
+        // ASSIGNED product, the unknown card from the ordered product; alt
+        // text proves which product resolved each image.
         $html = $component->html();
-        $this->assertStringNotContainsString('<img', $html);
-        $this->assertStringNotContainsString($this->orderedProduct->image_url, $html);
+        $this->assertSame(2, substr_count($html, '<img'));
+        $this->assertStringContainsString('alt="' . $otherProduct->product_name . '"', $html);
+        $this->assertStringContainsString('alt="' . $this->orderedProduct->product_name . '"', $html);
     }
 }

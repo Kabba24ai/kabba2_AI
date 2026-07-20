@@ -312,8 +312,9 @@ class Board extends Component
     public function render()
     {
         $error = null;
-        $sections = [];
+        $sections = ['pending' => [], 'ready' => [], 'delivered' => []];
         $suppressed = collect();
+        $fuelByAssignment = collect();
 
         try {
             $storeId = $this->store === 'all' ? null : (int) $this->store;
@@ -322,23 +323,25 @@ class Board extends Component
                 QueueLineEligibility::boardQuery($storeId)->get()
             );
 
-            $sections = $this->buildSections($rows);
+            // Current fuel state for every visible card in ONE query — a row
+            // is current only when keyed to the item's LIVE soft-assign
+            // episode (matched in the card partial against softAssignment->id).
+            // Resolved BEFORE sections because Ready membership depends on it.
+            $fuelByAssignment = QueueLineFuelVerification::query()
+                ->whereIn('order_product_id', $rows->pluck('id')->all() ?: [0])
+                ->where('action', QueueLineFuelVerification::ACTION_VERIFIED)
+                ->whereDoesntHave('reversal')
+                ->with('performedBy:id,first_name,last_name')
+                ->get()
+                ->keyBy('equipment_soft_assign_id');
+
+            $sections = $this->buildSections($rows, $fuelByAssignment);
+            $sections['delivered'] = $this->deliveredToday($storeId)->all();
             $suppressed = $this->suppressedItems();
         } catch (\Throwable $e) {
             report($e);
             $error = 'The Queue Line board could not be loaded. Please refresh — if this keeps happening, contact support.';
         }
-
-        // Current fuel state for every visible card in ONE query — a row is
-        // current only when keyed to the item's LIVE soft-assign episode
-        // (matched in the card partial against softAssignment->id).
-        $fuelByAssignment = QueueLineFuelVerification::query()
-            ->whereIn('order_product_id', collect($sections)->flatten(3)->whereInstanceOf(OrderProduct::class)->pluck('id')->all() ?: [0])
-            ->where('action', QueueLineFuelVerification::ACTION_VERIFIED)
-            ->whereDoesntHave('reversal')
-            ->with('performedBy:id,first_name,last_name')
-            ->get()
-            ->keyBy('equipment_soft_assign_id');
 
         $switchingItem = null;
         $switchCandidates = collect();
@@ -411,7 +414,7 @@ class Board extends Component
      * ALREADY-LOADED board collection + the single batched fuel lookup. No
      * additional queries, and the counts inherit the store filter for free.
      *
-     * @param  array<string, array<int, array{order: mixed, items: array<int, OrderProduct>}>>  $sections
+     * @param  array<string, array<int, OrderProduct>>  $sections  pending/ready/delivered flat card lists
      * @param  Collection  $fuelByAssignment  current verifications keyed by soft-assign episode id
      * @return array<string, int>
      */
@@ -419,6 +422,9 @@ class Board extends Component
     {
         $summary = [
             'cards' => 0,
+            'pending' => count($sections['pending'] ?? []),
+            'ready' => count($sections['ready'] ?? []),
+            'delivered' => count($sections['delivered'] ?? []),
             'rush' => 0, 'overdue' => 0, 'today' => 0, 'tomorrow' => 0,
             'needsEquipment' => 0,
             'fuelNotVerified' => 0,
@@ -428,40 +434,42 @@ class Board extends Component
             'damaged' => 0,
         ];
 
-        foreach ($sections as $sectionKey => $groups) {
-            foreach ($groups as $group) {
-                foreach ($group['items'] as $item) {
-                    $summary['cards']++;
-                    $summary[$sectionKey]++;
+        foreach (['pending', 'ready'] as $sectionKey) {
+            foreach ($sections[$sectionKey] ?? [] as $item) {
+                $summary['cards']++;
 
-                    $classification = QueueLineEligibility::classifyAssignment($item);
+                if ($item->queueLineItem?->isRushed()) {
+                    $summary['rush']++;
+                }
+                $summary[QueueLineEligibility::bucketFor($item)]++;
 
-                    if ($classification === QueueLineEligibility::ASSIGNMENT_UNASSIGNED) {
-                        $summary['needsEquipment']++;
+                $classification = QueueLineEligibility::classifyAssignment($item);
 
-                        continue; // fuel/equipment metrics need an assigned unit
-                    }
+                if ($classification === QueueLineEligibility::ASSIGNMENT_UNASSIGNED) {
+                    $summary['needsEquipment']++;
 
-                    if ($classification === QueueLineEligibility::ASSIGNMENT_ALTERNATE) {
-                        $summary['alternate']++;
-                    } elseif ($classification === QueueLineEligibility::ASSIGNMENT_UNKNOWN) {
-                        $summary['unknown']++;
-                    }
+                    continue; // fuel/equipment metrics need an assigned unit
+                }
 
-                    if (! isset($fuelByAssignment[$item->softAssignment->id])) {
-                        $summary['fuelNotVerified']++;
-                    }
+                if ($classification === QueueLineEligibility::ASSIGNMENT_ALTERNATE) {
+                    $summary['alternate']++;
+                } elseif ($classification === QueueLineEligibility::ASSIGNMENT_UNKNOWN) {
+                    $summary['unknown']++;
+                }
 
-                    $equipment = $item->softAssignment->equipment;
+                if (! isset($fuelByAssignment[$item->softAssignment->id])) {
+                    $summary['fuelNotVerified']++;
+                }
 
-                    if ($equipment?->current_status?->value === 'maintenance') {
-                        $summary['maintenanceHold']++;
-                    }
+                $equipment = $item->softAssignment->equipment;
 
-                    if ($equipment?->current_status?->value === 'damaged'
-                        || QueueLineEligibility::rentalReadyLabel($item) === QueueLineEligibility::RR_DAMAGED) {
-                        $summary['damaged']++;
-                    }
+                if ($equipment?->current_status?->value === 'maintenance') {
+                    $summary['maintenanceHold']++;
+                }
+
+                if ($equipment?->current_status?->value === 'damaged'
+                    || QueueLineEligibility::rentalReadyLabel($item) === QueueLineEligibility::RR_DAMAGED) {
+                    $summary['damaged']++;
                 }
             }
         }
@@ -470,30 +478,65 @@ class Board extends Component
     }
 
     /**
-     * RUSH / Overdue / Today / Tomorrow sections, each grouped by order.
-     * A rushed item lives ONLY in the RUSH section; its non-rushed siblings
-     * stay in their date buckets (RUSH is item-specific). Group order inside
-     * a section follows the first (highest-priority) item of each order.
+     * UI Iteration 1 — workflow sections replace the date-bucket sections:
+     *   Pending = something still needs a technician (no machine selected,
+     *             or fuel not yet verified for the live episode)
+     *   Ready   = machine selected AND fuel verified — mirrors the mobile
+     *             readiness rule (QueueLineMobilePresenter::readiness), so
+     *             web and mobile always agree on what "ready" means.
+     * Urgency (RUSH/Overdue/Today/Tomorrow) stays visible as card badges and
+     * still drives ordering INSIDE each section (sortItems runs first).
+     * Cards are flat — every card is standalone; order context lives on the
+     * card header, not on a wrapping group.
+     *
+     * @return array{pending: array<int, OrderProduct>, ready: array<int, OrderProduct>}
      */
-    private function buildSections(Collection $rows): array
+    private function buildSections(Collection $rows, Collection $fuelByAssignment): array
     {
-        $sections = ['rush' => [], 'overdue' => [], 'today' => [], 'tomorrow' => []];
+        $sections = ['pending' => [], 'ready' => []];
 
         foreach ($rows as $row) {
-            $section = $row->queueLineItem?->isRushed()
-                ? 'rush'
-                : QueueLineEligibility::bucketFor($row);
+            $assigned = $row->softAssignment?->equipment !== null;
+            $fuelVerified = $assigned && isset($fuelByAssignment[$row->softAssignment->id]);
 
-            $orderId = $row->order_id;
-
-            if (! isset($sections[$section][$orderId])) {
-                $sections[$section][$orderId] = ['order' => $row->order, 'items' => []];
-            }
-
-            $sections[$section][$orderId]['items'][] = $row;
+            $sections[$assigned && $fuelVerified ? 'ready' : 'pending'][] = $row;
         }
 
         return $sections;
+    }
+
+    /**
+     * Delivered Today — items whose equipment physically left the yard today
+     * (QueueLineService::complete latch). Read-only reference cards: the
+     * board query excludes completed items, so this is the one extra feed.
+     * Returned as OrderProducts with their queueLineItem relation pre-set so
+     * the single card partial renders them like any other item.
+     */
+    private function deliveredToday(?int $storeId): Collection
+    {
+        return QueueLineItem::query()
+            ->whereDate('completed_at', today())
+            ->whereHas('orderProduct', function ($q) use ($storeId) {
+                $q->when($storeId, fn ($q) => $q->where('delivery_store_id', $storeId));
+            })
+            ->whereHas('order')
+            ->with([
+                'orderProduct.product.mediaChildren',
+                'orderProduct.equipment.assignedProduct.mediaChildren',
+                'orderProduct.equipment.store:id,store_name',
+                'orderProduct.deliveryStore:id,unique_id,store_name',
+                'orderProduct.softAssignment.equipment.assignedProduct',
+                'order.lastPayment',
+            ])
+            ->orderByDesc('completed_at')
+            ->get()
+            ->filter(fn (QueueLineItem $item) => $item->orderProduct !== null && $item->order !== null)
+            ->map(function (QueueLineItem $item) {
+                return $item->orderProduct
+                    ->setRelation('queueLineItem', $item)
+                    ->setRelation('order', $item->order);
+            })
+            ->values();
     }
 
     /** Removed-Forever drawer: every suppressed item, regardless of current window. */

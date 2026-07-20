@@ -120,12 +120,20 @@
 
         <div id="nfc-error" class="hidden mb-3 text-sm text-red-600"></div>
 
-        <div class="flex justify-end gap-2">
+        {{-- Deliberate two-line, centered button labels — the long labels
+             wrap unpredictably as one line at this modal width. --}}
+        <div class="flex justify-end items-stretch gap-2">
             <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-nfc-close>Cancel</button>
             <button type="button" id="nfc-save"
-                    class="px-4 py-2 text-sm rounded-md border border-orange-500 text-orange-600 hover:bg-orange-50">Save Charge — Pay Later</button>
+                    class="px-4 py-1.5 text-sm rounded-md border border-orange-500 text-orange-600 hover:bg-orange-50 text-center leading-snug">
+                <span class="block">Save Charge</span>
+                <span class="block">Pay Later</span>
+            </button>
             <button type="button" id="nfc-save-pay"
-                    class="px-4 py-2 text-sm rounded-md bg-orange-500 text-white hover:bg-orange-600">Save Charge — Continue to Payment</button>
+                    class="px-4 py-1.5 text-sm rounded-md bg-orange-500 text-white hover:bg-orange-600 text-center leading-snug">
+                <span class="block">Save Charge</span>
+                <span class="block">Continue to Payment</span>
+            </button>
         </div>
     </div>
 </div>

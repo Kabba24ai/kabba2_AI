@@ -7903,12 +7903,21 @@
 
         window.beOpenDelete = function(row) {
             const childNumber = row.dataset.childNumber;
+            const typeLabels = { extension: 'Order Extension', fuel: 'Fuel Charge', damage: 'Damage Charge' };
             window.extDeleteFlow.open({
                 contextHtml: 'Deleting this Rental Extension will also remove '
                     + (childNumber
                         ? 'child order <span class="font-semibold">#' + childNumber + '</span>'
                         : 'its linked child order')
                     + '.<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
+                // Structured identification for the confirmation modal
+                summary: {
+                    type: typeLabels[row.dataset.type] || row.dataset.type,
+                    customer: row.dataset.customerName,
+                    order: row.dataset.orderNumber
+                        + (childNumber ? ' (child #' + childNumber + ')' : ''),
+                    amount: '$' + Number(row.dataset.amountTotal || 0).toFixed(2),
+                },
                 paystate: row.dataset.paystate,
                 url: beRouteDelete.replace('__ID__', row.dataset.bcId),
                 payload: {},

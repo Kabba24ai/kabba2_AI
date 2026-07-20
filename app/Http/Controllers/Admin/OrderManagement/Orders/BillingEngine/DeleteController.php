@@ -51,11 +51,17 @@ class DeleteController extends Controller
             $disposition,
         );
 
+        // Explicit confirmation identifying exactly what was deleted.
+        $identity = trim(
+            ($child?->order_number ? "extension #{$child->order_number}" : "charge {$charge->unique_id}")
+            . ' — $' . number_format((float) $charge->amount + (float) $charge->tax_amount, 2)
+        );
+
         return response()->json([
             'success' => true,
             'message' => $result['already_deleted']
-                ? 'This extension transaction was already deleted.'
-                : 'Extension charge and its child order were deleted together.',
+                ? "This extension transaction ({$identity}) was already deleted."
+                : "Deleted permanently: {$identity}, including its child order.",
         ]);
     }
 }

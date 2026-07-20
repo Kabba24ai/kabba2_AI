@@ -27,7 +27,16 @@
         <div class="px-6 py-4 overflow-y-auto flex flex-col gap-4">
             <div id="extDeleteContext" class="text-sm text-gray-700 leading-relaxed"></div>
 
+            {{-- Structured identification of exactly what is being deleted
+                 (populated when the caller supplies cfg.summary — the
+                 canonical charge action bar always does) --}}
+            <div id="extDeleteSummary" class="hidden text-sm border border-gray-200 rounded-md divide-y divide-gray-100"></div>
+
             <div id="extDeletePayState" class="text-xs"></div>
+
+            <div class="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                Deletion is permanent and may affect financial history. This action cannot be undone from the interface.
+            </div>
 
             {{-- Administrative disposition — required for paid transactions
                  with no Kabba-recorded refund or void --}}
@@ -83,6 +92,13 @@
                 </div>
             </div>
 
+            <div>
+                <label class="text-sm font-medium text-gray-700">Type <span class="font-bold tracking-wide">DELETE</span> to enable deletion</label>
+                <input type="text" id="extDeleteTypeConfirm" autocomplete="off" spellcheck="false"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm tracking-widest"
+                    placeholder="DELETE" />
+            </div>
+
             <div id="extDeleteError" class="hidden text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2"></div>
         </div>
 
@@ -92,9 +108,9 @@
                 class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                 Cancel
             </button>
-            <button type="button" id="extDeleteConfirmBtn"
-                class="px-5 py-2.5 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 shadow-sm transition">
-                Delete Both Records
+            <button type="button" id="extDeleteConfirmBtn" disabled
+                class="px-5 py-2.5 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
+                Delete Charge Permanently
             </button>
         </div>
     </div>
@@ -114,13 +130,36 @@
         const notes       = document.getElementById('extDeleteNotes');
         const errorBox    = document.getElementById('extDeleteError');
         const confirmBtn  = document.getElementById('extDeleteConfirmBtn');
+        const summaryBox  = document.getElementById('extDeleteSummary');
+        const typeConfirm = document.getElementById('extDeleteTypeConfirm');
 
         let current = null;
+        let submitting = false;
 
         function close() {
             modal.classList.replace('flex', 'hidden');
+            // Closing/canceling performs NO action and clears the typed
+            // confirmation, so a reopened modal always starts locked.
+            typeConfirm.value = '';
+            syncConfirmGate();
             current = null;
         }
+
+        // The destructive button stays disabled until the employee types
+        // the exact confirmation text.
+        function syncConfirmGate() {
+            confirmBtn.disabled = submitting || typeConfirm.value.trim() !== 'DELETE';
+        }
+        typeConfirm.addEventListener('input', syncConfirmGate);
+
+        // Escape and backdrop clicks close without deleting (and clear the
+        // typed confirmation via close()).
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.classList.contains('flex')) close();
+        });
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) close();
+        });
 
         function showError(message) {
             errorBox.textContent = message;
@@ -140,6 +179,10 @@
 
         confirmBtn.addEventListener('click', function () {
             if (!current) return;
+            // Belt-and-braces re-checks: exact typed confirmation and no
+            // in-flight request (double-clicks and repeats are inert; the
+            // server additionally no-ops repeated deletions).
+            if (submitting || typeConfirm.value.trim() !== 'DELETE') return;
 
             errorBox.classList.add('hidden');
             const payload = Object.assign({}, current.payload || {});
@@ -157,6 +200,7 @@
                 payload.notes         = notes.value.trim() || null;
             }
 
+            submitting = true;
             confirmBtn.disabled = true;
             confirmBtn.textContent = 'Deleting…';
 
@@ -189,8 +233,9 @@
             })
             .catch(() => showError('Request failed. Please try again.'))
             .finally(() => {
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = 'Delete Both Records';
+                submitting = false;
+                confirmBtn.textContent = 'Delete Charge Permanently';
+                syncConfirmGate();
             });
         });
 
@@ -199,6 +244,28 @@
                 current = cfg;
 
                 context.innerHTML = cfg.contextHtml;
+
+                // Structured identification block (charge type, customer,
+                // order, amount) when the caller supplies it.
+                if (cfg.summary) {
+                    const esc = (v) => String(v ?? '—').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                    const row = (label, value) =>
+                        '<div class="flex justify-between gap-4 px-3 py-2"><span class="text-gray-500">' + label
+                        + '</span><span class="font-semibold text-gray-900 text-right">' + esc(value) + '</span></div>';
+                    summaryBox.innerHTML =
+                        row('Charge type', cfg.summary.type)
+                        + row('Customer', cfg.summary.customer)
+                        + (cfg.summary.order ? row('Order', cfg.summary.order) : '')
+                        + row('Charge amount', cfg.summary.amount);
+                    summaryBox.classList.remove('hidden');
+                } else {
+                    summaryBox.classList.add('hidden');
+                    summaryBox.innerHTML = '';
+                }
+
+                typeConfirm.value = '';
+                submitting = false;
+                syncConfirmGate();
 
                 const stateLabels = {
                     unpaid:          ['Payment status: Unpaid', 'text-amber-700 bg-amber-50 border-amber-200'],

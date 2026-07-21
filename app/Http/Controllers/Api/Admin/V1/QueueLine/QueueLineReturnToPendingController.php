@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
  * Idempotent by nature: repeating the call on an already-Pending item
  * reverses nothing further and succeeds.
  *
+ * Queue Line Return To Pending
  * @group Admin App
  * @authenticated
  */

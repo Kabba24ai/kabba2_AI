@@ -21,6 +21,7 @@ use Illuminate\Http\JsonResponse;
  * the canonical no-op, reported as replayed (the idempotency token is
  * accepted for client bookkeeping; the operation is naturally idempotent).
  *
+ * Queue Line Switch Equipment
  * @group Admin App
  * @authenticated
  */

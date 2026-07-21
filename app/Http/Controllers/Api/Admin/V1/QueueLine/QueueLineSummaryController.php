@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
  * GET queue-line/summary — lightweight counts for the home-page badge (§15).
  * Never returns item payloads; the app must not load the board for a badge.
  *
+ * Queue Line Summary
  * @group Admin App
  * @authenticated
  */

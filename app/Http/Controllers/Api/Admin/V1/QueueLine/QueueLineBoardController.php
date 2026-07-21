@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
  * store (note: this application has no per-user store restriction model —
  * the filter is a view scope, and an invalid store id is rejected).
  *
+ * Queue Line Board
  * @group Admin App
  * @authenticated
  */

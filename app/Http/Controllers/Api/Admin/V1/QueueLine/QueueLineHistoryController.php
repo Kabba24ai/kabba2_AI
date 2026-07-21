@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
  * endpoints. Prior-assignment fuel events carry current_episode=false so
  * they can never be mistaken for the current verification.
  *
+ * Queue Line History
  * @group Admin App
  * @authenticated
  */

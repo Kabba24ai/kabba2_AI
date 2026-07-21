@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
  * state (assignment, fuel, readiness, suppression, completion) for the
  * mobile detail screen. Read-only.
  *
+ * Queue Line Item Detail
  * @group Admin App
  * @authenticated
  */

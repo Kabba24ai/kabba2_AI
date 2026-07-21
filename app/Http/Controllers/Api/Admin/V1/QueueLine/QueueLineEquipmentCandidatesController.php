@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
  * candidate. `requires_reason` tells the app whether the canonical service
  * will demand a reason (non-direct match) — the rule itself stays server-side.
  *
+ * Queue Line Equipment Candidates
  * @group Admin App
  * @authenticated
  */

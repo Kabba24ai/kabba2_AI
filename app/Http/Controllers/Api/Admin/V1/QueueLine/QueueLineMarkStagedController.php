@@ -25,6 +25,7 @@ use Illuminate\Http\JsonResponse;
  * Stale screens get QUEUE_ASSIGNMENT_CHANGED with the currently assigned
  * unit; the idempotency token replays the original event safely.
  *
+ * Queue Line Mark Staged
  * @group Admin App
  * @authenticated
  */

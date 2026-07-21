@@ -110,7 +110,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'rental_delivery_day_before_store_message',
                 'setting_title' => 'Rental Delivery Day Before Store Message',
-                'default_value' => "Just a reminder: Your rental starts tomorrow. We open at 7:00 AM and work to get equipment out as early as possible. Daily/Weekly/Monthly rentals officially start at 9:00 AM, and Weekend Specials start at 2:00 PM, but we always try to put the equipment in your hands as early as we can. Call or text us at (615) 815-6734 with questions.",
+                'default_value' => "Just a reminder: Your rental starts tomorrow. We open at 7:00 AM and work to get equipment out as early as possible. Your rental officially starts at {{delivery_time}}, but we always try to put the equipment in your hands as early as we can. Call or text us at (615) 815-6734 with questions.",
                 'sort_order' => $sortOrder++,
             ],
             [
@@ -124,7 +124,7 @@ class SettingSeeder extends Seeder
                 'value_type' => 'text',
                 'setting_name' => 'rental_delivery_same_day_store_message',
                 'setting_title' => 'Rental Delivery Same Day Store Message',
-                'default_value' => "Good morning! We’re open at 7:00 AM and aim to have equipment ready early. Daily/Weekly rentals officially start at 9:00 AM, and Weekend Specials at 2:00 PM, though many customers pick up earlier when equipment is prepped. Call or text us at (615) 815-6734 if you need anything.",
+                'default_value' => "Good morning! We’re open at 7:00 AM and aim to have equipment ready early. Your rental officially starts at {{delivery_time}}, though many customers pick up earlier when equipment is prepped. Call or text us at (615) 815-6734 if you need anything.",
                 'sort_order' => $sortOrder++,
             ],
             [

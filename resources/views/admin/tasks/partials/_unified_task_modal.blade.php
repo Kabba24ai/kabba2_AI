@@ -795,9 +795,20 @@
         return res.json();
     }
 
-    // Close on backdrop click
+    // Close on backdrop click — unless that click is just dismissing an open
+    // date picker. The flatpickr calendar lives outside the modal DOM and only
+    // closes on an outside click, so without this guard the dismissing click
+    // hits the backdrop and throws away the whole form. Flatpickr closes on
+    // mousedown, so capture its open state before it does.
+    var _utPickerWasOpen = false;
+    document.addEventListener('mousedown', function () {
+        _utPickerWasOpen = !!(_utFlatpickr && _utFlatpickr.isOpen);
+    }, true);
+
     document.getElementById('UnifiedTaskModal').addEventListener('click', function (e) {
-        if (e.target === this) closeNewTaskModal();
+        if (e.target !== this) return;
+        if (_utPickerWasOpen) return; // that click only closed the calendar
+        closeNewTaskModal();
     });
 
 }());

@@ -96,6 +96,11 @@ abstract class QueueLineTestCase extends TestCase
             'equipment_id'   => 'EQP-QL-' . uniqid(),
             'brand'          => 'TestBrand',
             'current_status' => 'available',
+            // Default fixture = a fuel-burning keyed machine, so every suite
+            // written before check-applicability (2026-07-21) keeps its
+            // fuel+key semantics. Trait-less units override these to null.
+            'power_source_type' => 'diesel',
+            'key_starting_mechanism' => '1_key',
         ], $overrides));
     }
 

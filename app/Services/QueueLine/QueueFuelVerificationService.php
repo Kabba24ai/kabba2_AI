@@ -63,26 +63,7 @@ final class QueueFuelVerificationService
         self::assertVerifiable($orderProduct);
 
         return DB::transaction(function () use ($orderProduct, $expected, $performedBy, $actor, $source, $idempotencyToken) {
-            // Serialize concurrent sign-offs on the same assignment episode
-            $assignment = $orderProduct->softAssignment()->lockForUpdate()->first();
-
-            if (! $assignment || ! $assignment->equipment) {
-                throw new QueueLineOperationException('No equipment is assigned to this item — assign a machine before verifying fuel.', 'QUEUE_EQUIPMENT_REQUIRED');
-            }
-
-            if ($assignment->equipment->trashed()) {
-                throw new QueueLineOperationException('The assigned equipment record is no longer active.', 'QUEUE_EQUIPMENT_INACTIVE');
-            }
-
-            // Stale-screen guard: the sign-off is for a PHYSICAL unit. If the
-            // assignment changed after the screen loaded, reject clearly.
-            if ((int) $assignment->equipment_id !== (int) $expected->id) {
-                throw new QueueLineOperationException(sprintf(
-                    'The assignment changed — this item is now %s, not %s. Refresh and verify the machine actually staged.',
-                    $assignment->equipment->equipment_name,
-                    $expected->equipment_name,
-                ), 'QUEUE_ASSIGNMENT_CHANGED');
-            }
+            $assignment = self::lockCurrentAssignment($orderProduct, $expected);
 
             // Natural idempotency: one effective verification per episode.
             // A double-click or concurrent duplicate returns the same event.
@@ -167,6 +148,42 @@ final class QueueFuelVerificationService
     }
 
     /**
+     * Lock and validate the item's live assignment against the unit the
+     * caller's screen displayed — the shared guard set for EVERY staging
+     * write (fuel, key, or neither): serialize on the soft-assign row,
+     * require an assigned active unit, reject a stale screen. Public so
+     * QueueLineStagingService can stage equipment with no fuel check while
+     * keeping the exact same protections (applicability mission 2026-07-21).
+     *
+     * @throws QueueLineOperationException
+     */
+    public static function lockCurrentAssignment(OrderProduct $orderProduct, Equipment $expected): \App\Models\MaintenanceManagement\EquipmentSoftAssign
+    {
+        // Serialize concurrent sign-offs on the same assignment episode
+        $assignment = $orderProduct->softAssignment()->lockForUpdate()->first();
+
+        if (! $assignment || ! $assignment->equipment) {
+            throw new QueueLineOperationException('No equipment is assigned to this item — assign a machine before verifying fuel.', 'QUEUE_EQUIPMENT_REQUIRED');
+        }
+
+        if ($assignment->equipment->trashed()) {
+            throw new QueueLineOperationException('The assigned equipment record is no longer active.', 'QUEUE_EQUIPMENT_INACTIVE');
+        }
+
+        // Stale-screen guard: the sign-off is for a PHYSICAL unit. If the
+        // assignment changed after the screen loaded, reject clearly.
+        if ((int) $assignment->equipment_id !== (int) $expected->id) {
+            throw new QueueLineOperationException(sprintf(
+                'The assignment changed — this item is now %s, not %s. Refresh and verify the machine actually staged.',
+                $assignment->equipment->equipment_name,
+                $expected->equipment_name,
+            ), 'QUEUE_ASSIGNMENT_CHANGED');
+        }
+
+        return $assignment;
+    }
+
+    /**
      * The item's CURRENT verification — episode-bound: only a sign-off made
      * against the live soft-assignment row counts; anything else is history.
      */
@@ -202,9 +219,10 @@ final class QueueFuelVerificationService
 
     /**
      * Verification preconditions beyond the assignment itself: the item must
-     * be under active Queue Line management.
+     * be under active Queue Line management. Public because staging shares
+     * these preconditions even when no fuel row will be written.
      */
-    private static function assertVerifiable(OrderProduct $orderProduct): void
+    public static function assertVerifiable(OrderProduct $orderProduct): void
     {
         if (! $orderProduct->order) {
             throw new QueueLineOperationException('This order no longer exists.', 'QUEUE_ITEM_NOT_FOUND');

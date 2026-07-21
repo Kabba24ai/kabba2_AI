@@ -11,11 +11,13 @@ class QueueLineMarkStagedRequest extends ApiBaseFormRequest
         return [
             'equipment_unique_id' => ['required', 'string', 'max:255'],
             'performed_by' => ['required', 'string', 'max:255'], // user unique_id
-            // Staging is all-or-nothing: both must be affirmatively true.
-            // Anything else is rejected with a corrective error — there is
-            // no partial staging state to record.
-            'fuel_full' => ['required', 'boolean'],
-            'key_with_machine' => ['required', 'boolean'],
+            // Staging is all-or-nothing for every check that APPLIES to the
+            // unit (fuel only for Diesel/Gas, key only for keyed starting
+            // mechanisms — the payload's fuel.state / key.state says which).
+            // An applicable check must be affirmatively true; a
+            // not_applicable one may be omitted and is ignored either way.
+            'fuel_full' => ['nullable', 'boolean'],
+            'key_with_machine' => ['nullable', 'boolean'],
             'idempotency_token' => ['nullable', 'string', 'max:255'],
         ];
     }

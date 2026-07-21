@@ -144,13 +144,21 @@ final class QueueLineMobilePresenter
                 'rental_ready' => QueueLineEligibility::rentalReadyLabel($row),
             ] : null,
             'options_count' => QueueLineEligibility::optionsCount($row),
+            // Applicability (2026-07-21): 'not_applicable' = the unit has no
+            // such trait (not Diesel/Gas → no fuel; no 1 Key / 2 Keys
+            // starting mechanism → no key). The app must HIDE that check in
+            // the staging dialog and omit its field from mark-staged.
             'fuel' => [
-                'state' => $fuel ? 'verified' : 'not_verified',
+                'state' => $equipment && ! $equipment->requiresFuelCheck()
+                    ? 'not_applicable'
+                    : ($fuel ? 'verified' : 'not_verified'),
                 'verified_by' => $fuel?->performedBy?->full_name,
                 'verified_at' => $fuel?->created_at?->toIso8601String(),
             ],
             'key' => [
-                'state' => $key ? 'confirmed' : 'not_confirmed',
+                'state' => $equipment && ! $equipment->requiresKeyCheck()
+                    ? 'not_applicable'
+                    : ($key ? 'confirmed' : 'not_confirmed'),
                 'confirmed_by' => $key?->performedBy?->full_name,
                 'confirmed_at' => $key?->created_at?->toIso8601String(),
             ],

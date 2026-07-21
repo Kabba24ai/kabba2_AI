@@ -60,8 +60,10 @@ class QueueLineMarkStagedController extends Controller
                 expected: $equipment,
                 performedBy: $performedBy,
                 actor: auth('api_user')->user(),
-                fuelFull: (bool) $validated['fuel_full'],
-                keyWithMachine: (bool) $validated['key_with_machine'],
+                // Omitted/null when the payload marked the check
+                // not_applicable — the service ignores it for such units
+                fuelFull: (bool) ($validated['fuel_full'] ?? false),
+                keyWithMachine: (bool) ($validated['key_with_machine'] ?? false),
                 source: QueueLineFuelVerification::SOURCE_MOBILE,
                 idempotencyToken: $validated['idempotency_token'] ?? null,
             );

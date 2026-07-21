@@ -61,12 +61,19 @@
             && $stagingSelectedUnit->current_status?->value !== 'rented'
             && (! $reasonRequired || trim($stagingReason) !== ''));
 
+    $stagedUnit = $stagingMode === 'assign' ? $stagingSelectedUnit : $baselineUnit;
+
+    // Applicability (2026-07-21): each check renders ONLY where the physical
+    // trait exists on the unit being staged — fuel for explicit Diesel/Gas,
+    // key for explicit 1 Key / 2 Keys. A plain attachment shows neither and
+    // stages on the employee sign-off alone.
+    $needsFuel = $stagedUnit?->requiresFuelCheck() ?? false;
+    $needsKey = $stagedUnit?->requiresKeyCheck() ?? false;
+
     $canSubmit = $assignmentResolved
         && $stagingPerformedBy !== ''
-        && $stagingFuel === 'full'
-        && $stagingKey === 'with_machine';
-
-    $stagedUnit = $stagingMode === 'assign' ? $stagingSelectedUnit : $baselineUnit;
+        && (! $needsFuel || $stagingFuel === 'full')
+        && (! $needsKey || $stagingKey === 'with_machine');
 @endphp
 <div class="fixed inset-0 z-[9999] bg-gray-900/60 flex items-start justify-center overflow-y-auto p-4"
     wire:key="staging-modal-{{ $stagingItem->id }}" data-staging-modal>
@@ -224,35 +231,45 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {{-- Fuel --}}
-                <fieldset class="rounded-lg border border-gray-200 p-3">
-                    <legend class="text-sm font-medium text-gray-700 px-1 required">Fuel</legend>
-                    <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
-                        <input type="radio" wire:model.live="stagingFuel" value="full" class="w-4 h-4" />
-                        Full
-                    </label>
-                    <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
-                        <input type="radio" wire:model.live="stagingFuel" value="not_full" class="w-4 h-4" />
-                        Not Full
-                    </label>
-                </fieldset>
+            @if ($needsFuel || $needsKey)
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Fuel — Diesel/Gas units only --}}
+                    @if ($needsFuel)
+                        <fieldset class="rounded-lg border border-gray-200 p-3" data-staging-fuel-check>
+                            <legend class="text-sm font-medium text-gray-700 px-1 required">Fuel</legend>
+                            <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
+                                <input type="radio" wire:model.live="stagingFuel" value="full" class="w-4 h-4" />
+                                Full
+                            </label>
+                            <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
+                                <input type="radio" wire:model.live="stagingFuel" value="not_full" class="w-4 h-4" />
+                                Not Full
+                            </label>
+                        </fieldset>
+                    @endif
 
-                {{-- Key --}}
-                <fieldset class="rounded-lg border border-gray-200 p-3">
-                    <legend class="text-sm font-medium text-gray-700 px-1 required">Key</legend>
-                    <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
-                        <input type="radio" wire:model.live="stagingKey" value="with_machine" class="w-4 h-4" />
-                        With Machine
-                    </label>
-                    <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
-                        <input type="radio" wire:model.live="stagingKey" value="missing" class="w-4 h-4" />
-                        Missing
-                    </label>
-                </fieldset>
-            </div>
+                    {{-- Key — 1 Key / 2 Keys starting mechanisms only --}}
+                    @if ($needsKey)
+                        <fieldset class="rounded-lg border border-gray-200 p-3" data-staging-key-check>
+                            <legend class="text-sm font-medium text-gray-700 px-1 required">Key</legend>
+                            <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
+                                <input type="radio" wire:model.live="stagingKey" value="with_machine" class="w-4 h-4" />
+                                With Machine
+                            </label>
+                            <label class="flex items-center gap-2 py-1 text-sm text-gray-800">
+                                <input type="radio" wire:model.live="stagingKey" value="missing" class="w-4 h-4" />
+                                Missing
+                            </label>
+                        </fieldset>
+                    @endif
+                </div>
+            @elseif ($stagedUnit)
+                <p class="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-md px-3 py-2" data-staging-no-checks>
+                    No fuel or key check applies to this equipment — staging confirms it is pulled and ready for handoff.
+                </p>
+            @endif
 
-            @if ($stagingFuel === 'not_full' || $stagingKey === 'missing')
+            @if (($needsFuel && $stagingFuel === 'not_full') || ($needsKey && $stagingKey === 'missing'))
                 <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
                     Staging records COMPLETE readiness — resolve the fuel or key issue first, then mark the machine as staged.
                 </p>

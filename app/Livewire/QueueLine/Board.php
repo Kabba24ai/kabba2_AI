@@ -360,7 +360,7 @@ class Board extends Component
 
             \App\Services\QueueLine\QueueLineStagingService::returnToPending($orderProduct, auth()->user());
 
-            $this->actionNotice = 'Returned to Pending — fuel and key must be confirmed again before staging.';
+            $this->actionNotice = 'Returned to Pending — its staging checks must be confirmed again before restaging.';
             $this->closeStagedStatus();
         } catch (\InvalidArgumentException $e) {
             $this->actionError = $e->getMessage();
@@ -789,7 +789,10 @@ class Board extends Component
                     $summary['unknown']++;
                 }
 
-                if (! isset($fuelByAssignment[$item->softAssignment->id])) {
+                // Applicability (2026-07-21): only fuel-burning units can be
+                // "fuel not verified" — attachments/electric never count.
+                if ($item->softAssignment->equipment?->requiresFuelCheck()
+                    && ! isset($fuelByAssignment[$item->softAssignment->id])) {
                     $summary['fuelNotVerified']++;
                 }
 

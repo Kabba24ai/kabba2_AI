@@ -133,6 +133,30 @@ class Equipment extends Model
         });
     }
 
+    // ── Physical staging traits (Queue Line applicability, 2026-07-21) ──
+    // Both derive ONLY from an EXPLICIT Equipment Mgt selection: an unset
+    // field means the trait does not exist (a metal attachment with nothing
+    // selected must never demand a fuel or key sign-off).
+
+    /** Burns fuel a tech can verify: Power Source explicitly Diesel or Gas. */
+    public function requiresFuelCheck(): bool
+    {
+        return in_array($this->power_source_type, [
+            EquipmentPowerSourceType::DIESEL,
+            EquipmentPowerSourceType::GAS,
+        ], true);
+    }
+
+    /** Has a physical key to keep with the machine: Starting Mechanism
+     *  explicitly 1 Key or 2 Keys (None / Key Pad / Pull Cord / unset = no key). */
+    public function requiresKeyCheck(): bool
+    {
+        return in_array($this->key_starting_mechanism, [
+            EquipmentKeyStartingMechanism::ONE_KEY,
+            EquipmentKeyStartingMechanism::TWO_KEYS,
+        ], true);
+    }
+
     // scopes
 
     public function scopeAvailable($query)

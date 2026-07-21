@@ -1,6 +1,14 @@
 @php
     $statusUnit = $statusItem->softAssignment?->equipment;
     $stagedAt = $statusItem->queueLineItem?->staged_at;
+
+    // Applicability (2026-07-21): rows render only for checks the unit
+    // physically has — a non-fuel or keyless unit shows nothing for them.
+    $statusNeedsFuel = $statusUnit?->requiresFuelCheck() ?? false;
+    $statusNeedsKey = $statusUnit?->requiresKeyCheck() ?? false;
+
+    $readyParts = array_filter([$statusNeedsFuel ? 'Fueled' : null, $statusNeedsKey ? 'keyed' : null, 'staged']);
+    $readyLine = ucfirst(implode(', ', $readyParts)) . ' — ready for handoff.';
 @endphp
 {{-- Green thumbs-up — read-only staged status + Return to Pending.
      Everything shown is the CURRENT episode-bound record; history is
@@ -29,7 +37,7 @@
                     {{ $statusUnit?->equipment_name ?? '—' }}
                     <span class="font-normal text-gray-500">· #{{ $statusUnit?->equipment_id }}</span>
                 </p>
-                <p class="text-xs text-green-700 mt-0.5">Fueled, keyed, and staged — ready for handoff.</p>
+                <p class="text-xs text-green-700 mt-0.5">{{ $readyLine }}</p>
             </div>
 
             <dl class="divide-y divide-gray-100">
@@ -45,26 +53,30 @@
                         {{ $statusFuel?->createdBy?->first_name }} {{ $statusFuel?->createdBy?->last_name }}
                     </dd>
                 </div>
-                <div class="flex justify-between py-1.5">
-                    <dt class="text-gray-500">Fuel</dt>
-                    <dd>
-                        @if ($statusFuel)
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-600 text-white">Full — Verified</span>
-                        @else
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-400 text-amber-950">Not Verified</span>
-                        @endif
-                    </dd>
-                </div>
-                <div class="flex justify-between py-1.5">
-                    <dt class="text-gray-500">Key</dt>
-                    <dd>
-                        @if ($statusKey)
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-600 text-white">With Machine</span>
-                        @else
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-400 text-amber-950">Not Confirmed</span>
-                        @endif
-                    </dd>
-                </div>
+                @if ($statusNeedsFuel)
+                    <div class="flex justify-between py-1.5">
+                        <dt class="text-gray-500">Fuel</dt>
+                        <dd>
+                            @if ($statusFuel)
+                                <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-600 text-white">Full — Verified</span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-400 text-amber-950">Not Verified</span>
+                            @endif
+                        </dd>
+                    </div>
+                @endif
+                @if ($statusNeedsKey)
+                    <div class="flex justify-between py-1.5">
+                        <dt class="text-gray-500">Key</dt>
+                        <dd>
+                            @if ($statusKey)
+                                <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-600 text-white">With Machine</span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-400 text-amber-950">Not Confirmed</span>
+                            @endif
+                        </dd>
+                    </div>
+                @endif
                 <div class="flex justify-between py-1.5">
                     <dt class="text-gray-500">Staged</dt>
                     <dd class="font-medium text-gray-900">
@@ -75,7 +87,7 @@
 
             <div class="flex justify-between items-center gap-3 pt-2 border-t border-gray-100">
                 <button type="button" wire:click="returnToPending({{ $statusItem->id }})"
-                    wire:confirm="Return this item to Pending? Fuel and key will need to be confirmed again."
+                    wire:confirm="Return this item to Pending? Its staging checks will need to be confirmed again."
                     wire:loading.attr="disabled"
                     class="px-4 py-2 text-sm font-medium text-amber-800 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
                     Return to Pending

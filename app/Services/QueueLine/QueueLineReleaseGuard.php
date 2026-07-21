@@ -72,7 +72,12 @@ final class QueueLineReleaseGuard
             );
         }
 
-        if (QueueFuelVerificationService::currentVerification($orderProduct) === null) {
+        // Applicability (2026-07-21): fuel enforcement exists only where the
+        // trait exists — a unit that is not explicitly Diesel/Gas (electric,
+        // battery, or a plain attachment) can never have a fuel sign-off, so
+        // it must never be blocked for lacking one.
+        if ($assignment->equipment->requiresFuelCheck()
+            && QueueFuelVerificationService::currentVerification($orderProduct) === null) {
             return self::blocked(
                 self::CODE_FUEL_REQUIRED,
                 sprintf(

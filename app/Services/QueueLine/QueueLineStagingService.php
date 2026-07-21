@@ -79,17 +79,19 @@ final class QueueLineStagingService
         ?string $reason = null,
         string $source = QueueLineFuelVerification::SOURCE_WEB,
     ): array {
-        // Same server-side re-enforcement as markStaged — fail BEFORE any
-        // assignment work so a rejected checklist never moves equipment.
-        if (! $fuelFull) {
+        // Checklist re-enforcement happens inside markStaged against the
+        // TARGET unit's physical traits (fuel only for Diesel/Gas, key only
+        // for keyed starting mechanisms) — a rejected checklist rolls the
+        // whole transaction back, so equipment never moves on a failure.
+        if ($target->requiresFuelCheck() && ! $fuelFull) {
             throw new QueueLineOperationException('Fuel must be Full before the equipment can be marked as staged.', 'QUEUE_FUEL_NOT_FULL');
         }
 
-        if (! $keyWithMachine) {
+        if ($target->requiresKeyCheck() && ! $keyWithMachine) {
             throw new QueueLineOperationException('The key must be with the machine before it can be marked as staged.', 'QUEUE_KEY_MISSING');
         }
 
-        return DB::transaction(function () use ($orderProduct, $baselineAssignmentId, $target, $performedBy, $actor, $source, $reason) {
+        return DB::transaction(function () use ($orderProduct, $baselineAssignmentId, $target, $performedBy, $actor, $source, $reason, $fuelFull, $keyWithMachine) {
             // Serialize competing submissions on the ITEM itself — the
             // unassigned case has no soft-assign row to lock, so two admins
             // assigning simultaneously must queue here, not double-insert.
@@ -144,8 +146,8 @@ final class QueueLineStagingService
                 expected: $target,
                 performedBy: $performedBy,
                 actor: $actor,
-                fuelFull: true,
-                keyWithMachine: true,
+                fuelFull: $fuelFull,
+                keyWithMachine: $keyWithMachine,
                 source: $source,
             );
 
@@ -179,56 +181,79 @@ final class QueueLineStagingService
         string $source = QueueLineFuelVerification::SOURCE_WEB,
         ?string $idempotencyToken = null,
     ): array {
+        // Applicability (2026-07-21): the checks exist only where the
+        // physical trait exists. Fuel applies only to explicitly Diesel/Gas
+        // units; the key only to explicit 1 Key / 2 Keys starting
+        // mechanisms. A trait the unit doesn't have is ignored entirely —
+        // never required, never recorded (a forks attachment stages on the
+        // employee sign-off alone).
+        $needsFuel = $expected->requiresFuelCheck();
+        $needsKey = $expected->requiresKeyCheck();
+
         // Server-side re-enforcement of the modal's enablement rules —
-        // staging is COMPLETE readiness, never a partial note.
-        if (! $fuelFull) {
+        // staging is COMPLETE readiness for every check that APPLIES.
+        if ($needsFuel && ! $fuelFull) {
             throw new QueueLineOperationException('Fuel must be Full before the equipment can be marked as staged.', 'QUEUE_FUEL_NOT_FULL');
         }
 
-        if (! $keyWithMachine) {
+        if ($needsKey && ! $keyWithMachine) {
             throw new QueueLineOperationException('The key must be with the machine before it can be marked as staged.', 'QUEUE_KEY_MISSING');
         }
 
-        return DB::transaction(function () use ($orderProduct, $expected, $performedBy, $actor, $source, $idempotencyToken) {
-            // 1) Canonical fuel verification — carries ALL the guards
-            //    (eligibility, not delivered/completed/suppressed, active
-            //    employee, stale-assignment rejection, episode idempotency)
-            //    and lockForUpdate serialization for concurrent submissions.
-            //    A replayed idempotency token (mobile/scanner retry) returns
-            //    the original event untouched.
-            $fuel = QueueFuelVerificationService::verify(
-                orderProduct: $orderProduct,
-                expected: $expected,
-                performedBy: $performedBy,
-                actor: $actor,
-                source: $source,
-                idempotencyToken: $idempotencyToken,
-            );
+        if (! $performedBy->exists || $performedBy->status !== 'Active') {
+            throw new QueueLineOperationException('Select an active employee before staging.', 'QUEUE_EMPLOYEE_INVALID');
+        }
 
-            $assignment = $orderProduct->softAssignment()->first();
+        return DB::transaction(function () use ($orderProduct, $expected, $performedBy, $actor, $source, $idempotencyToken, $needsFuel, $needsKey) {
+            // The shared guard set for EVERY staging write, applicable
+            // traits or not: Queue Line management preconditions, then the
+            // locked live assignment with the stale-screen rejection.
+            QueueFuelVerificationService::assertVerifiable($orderProduct);
+            $assignment = QueueFuelVerificationService::lockCurrentAssignment($orderProduct, $expected);
 
-            // 2) Canonical key confirmation — same episode, same idempotency
-            $keyReplayed = false;
-            $currentKey = self::currentKeyForAssignment($orderProduct->id, $assignment->id);
+            $alreadyStaged = $orderProduct->queueLineItem?->isStaged() ?? false;
+            $fuelReplayed = null;
+            $keyReplayed = null;
 
-            if ($idempotencyToken !== null && ! $currentKey) {
-                $currentKey = QueueLineKeyConfirmation::where('idempotency_token', $idempotencyToken)->first();
+            // 1) Canonical fuel verification — only for fuel-burning units.
+            //    verify() carries episode idempotency and token replay.
+            if ($needsFuel) {
+                $fuel = QueueFuelVerificationService::verify(
+                    orderProduct: $orderProduct,
+                    expected: $expected,
+                    performedBy: $performedBy,
+                    actor: $actor,
+                    source: $source,
+                    idempotencyToken: $idempotencyToken,
+                );
+                $fuelReplayed = $fuel['replayed'];
             }
 
-            if ($currentKey) {
-                $keyReplayed = true;
-            } else {
-                QueueLineKeyConfirmation::create([
-                    'order_product_id' => $orderProduct->id,
-                    'order_id' => $orderProduct->order_id,
-                    'equipment_id' => $assignment->equipment_id,
-                    'equipment_soft_assign_id' => $assignment->id,
-                    'action' => QueueLineKeyConfirmation::ACTION_CONFIRMED,
-                    'performed_by' => $performedBy->id,
-                    'created_by' => $actor->id,
-                    'source' => $source,
-                    'idempotency_token' => $idempotencyToken,
-                ]);
+            // 2) Canonical key confirmation — only for keyed units; same
+            //    episode binding, same idempotency.
+            if ($needsKey) {
+                $currentKey = self::currentKeyForAssignment($orderProduct->id, $assignment->id);
+
+                if ($idempotencyToken !== null && ! $currentKey) {
+                    $currentKey = QueueLineKeyConfirmation::where('idempotency_token', $idempotencyToken)->first();
+                }
+
+                if ($currentKey) {
+                    $keyReplayed = true;
+                } else {
+                    $keyReplayed = false;
+                    QueueLineKeyConfirmation::create([
+                        'order_product_id' => $orderProduct->id,
+                        'order_id' => $orderProduct->order_id,
+                        'equipment_id' => $assignment->equipment_id,
+                        'equipment_soft_assign_id' => $assignment->id,
+                        'action' => QueueLineKeyConfirmation::ACTION_CONFIRMED,
+                        'performed_by' => $performedBy->id,
+                        'created_by' => $actor->id,
+                        'source' => $source,
+                        'idempotency_token' => $idempotencyToken,
+                    ]);
+                }
             }
 
             // 3) Canonical staged latch (null-latch: first stage wins).
@@ -236,9 +261,16 @@ final class QueueLineStagingService
             //    attribution lives on the fuel/key rows as performed_by.
             QueueLineService::stage($orderProduct->fresh(['softAssignment.equipment', 'queueLineItem']), $actor);
 
+            // Replayed = every part that applies replayed; with no
+            // applicable parts, the staged latch itself is the signal.
+            $replayed = ($fuelReplayed ?? true) && ($keyReplayed ?? true);
+            if ($fuelReplayed === null && $keyReplayed === null) {
+                $replayed = $alreadyStaged;
+            }
+
             return [
                 'staged' => true,
-                'replayed' => $fuel['replayed'] && $keyReplayed,
+                'replayed' => $replayed,
             ];
         });
     }
@@ -306,17 +338,25 @@ final class QueueLineStagingService
     }
 
     /**
-     * Fully staged = the green thumbs-up: staged latch + current fuel +
-     * current key, all on the live assignment episode.
+     * Fully staged = the green thumbs-up: staged latch + every check that
+     * APPLIES to the assigned unit (applicability 2026-07-21): a current
+     * fuel verification only for Diesel/Gas units, a current key
+     * confirmation only for 1 Key / 2 Keys units. A unit with neither trait
+     * is fully staged on the latch alone.
      *
      * @param  QueueLineFuelVerification|null  $fuel  pre-resolved current verification
      * @param  QueueLineKeyConfirmation|null  $key   pre-resolved current confirmation
      */
     public static function isFullyStaged(OrderProduct $orderProduct, ?QueueLineFuelVerification $fuel, ?QueueLineKeyConfirmation $key): bool
     {
-        return ($orderProduct->queueLineItem?->isStaged() ?? false)
-            && $fuel !== null
-            && $key !== null;
+        $equipment = $orderProduct->softAssignment?->equipment;
+
+        if (! $equipment || ! ($orderProduct->queueLineItem?->isStaged() ?? false)) {
+            return false;
+        }
+
+        return (! $equipment->requiresFuelCheck() || $fuel !== null)
+            && (! $equipment->requiresKeyCheck() || $key !== null);
     }
 
     /** Current confirmations for a whole board in ONE query, keyed by episode. */

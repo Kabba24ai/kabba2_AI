@@ -138,8 +138,15 @@ class QueueLineBoardTest extends QueueLineTestCase
 
     public function test_empty_state_renders_when_nothing_is_eligible(): void
     {
+        // Lifecycle pipeline: every segment still renders, each with its
+        // own placeholder — the board always reads as the three stages.
         Livewire::test(Board::class)
-            ->assertSee('The Queue Line is clear.');
+            ->assertSee('No orders waiting')
+            ->assertSee('Nothing staged yet')
+            ->assertSee('Nothing has left the yard yet today')
+            ->assertSee('Queue Line — Pending')
+            ->assertSee('Queue Line — Staged')
+            ->assertSee('Queue Line — Completed');
     }
 
     // ── Actions through the component ────────────────────────────────────

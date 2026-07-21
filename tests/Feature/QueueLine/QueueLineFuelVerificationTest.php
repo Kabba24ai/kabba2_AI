@@ -343,7 +343,8 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
         $html = Livewire::test(Board::class)->html();
         // The replacement's episode has no verification → back to Pending
         $this->assertStringContainsString('data-order-product-id="' . $row->id . '"', $this->sectionBlock($html, 'pending'));
-        $this->assertSame('', $this->sectionBlock($html, 'ready'), 'no card may present as fuel-verified');
+        // The Staged segment always renders (lifecycle pipeline) — it must hold no card
+        $this->assertStringNotContainsString('data-queue-row="card"', $this->sectionBlock($html, 'ready'), 'no card may present as fuel-verified');
     }
 
     public function test_livewire_verify_flow_updates_the_board_and_preserves_the_store_filter(): void

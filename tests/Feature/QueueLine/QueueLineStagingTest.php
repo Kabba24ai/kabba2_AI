@@ -318,8 +318,9 @@ class QueueLineStagingTest extends QueueLineTestCase
         QueueLineService::complete($row->fresh('queueLineItem'), QueueLineService::VIA_DISPATCH_STARTED, $unit->id);
 
         $html = Livewire::test(Board::class)->html();
-        $this->assertSame('', $this->sectionBlock($html, 'ready'));
-        // Present only as the read-only Delivered Today reference card
+        // The Staged segment always renders (lifecycle pipeline) — no card in it
+        $this->assertStringNotContainsString('data-queue-row="card"', $this->sectionBlock($html, 'ready'));
+        // Present only as the read-only Completed reference card
         $this->assertSame(1, substr_count($html, 'data-delivered="1"'));
     }
 }

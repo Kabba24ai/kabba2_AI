@@ -141,7 +141,7 @@
                 {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
             @endif
             @if ($delivered)
-                <span class="px-2 py-0.5 rounded {{ $ui['badge'] }} font-bold uppercase bg-green-600 text-white">Delivered</span>
+                <span class="px-2 py-0.5 rounded {{ $ui['badge'] }} font-bold uppercase bg-green-600 text-white">Completed</span>
             @endif
         </div>
     </div>
@@ -220,7 +220,7 @@
             </span>
             @if ($delivered && $queueItem?->completed_at)
                 <span class="px-1.5 py-0.5 rounded {{ $ui['badge'] }} font-semibold bg-green-100 text-green-800">
-                    Delivered {{ $queueItem->completed_at->format('g:i A') }}
+                    Completed {{ $queueItem->completed_at->format('g:i A') }}
                 </span>
             @endif
         </div>

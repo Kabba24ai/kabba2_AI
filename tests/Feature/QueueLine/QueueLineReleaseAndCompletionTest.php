@@ -275,13 +275,13 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
 
         foreach ([[], ['wallboard' => true]] as $params) {
             $html = Livewire::test(Board::class, $params)->html();
-            // UI Iteration 1: a completed item leaves the ACTIVE sections and
-            // reappears as the read-only Delivered Today reference card — it
-            // never renders as actionable work again.
-            $this->assertStringContainsString('Delivered Today', $html);
+            // A completed item leaves the ACTIVE segments and reappears as
+            // the read-only Completed reference card (lifecycle pipeline
+            // 2026-07-20) — it never renders as actionable work again.
+            $this->assertStringContainsString('Queue Line — Completed', $html);
             $this->assertSame(1, substr_count($html, 'data-delivered="1"'));
             $this->assertStringContainsString('data-order-product-id="' . $releasing->id . '"', $html);
-            $this->assertStringContainsString('Delivered', $html);
+            $this->assertStringContainsString('Completed', $html);
             $this->assertStringContainsString('data-order-product-id="' . $sibling->id . '"', $html);
         }
     }

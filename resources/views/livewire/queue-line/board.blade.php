@@ -199,71 +199,56 @@
             </div>
         @endif
 
-        {{-- UI Iteration 1 — workflow sections: what still needs a technician,
-             what is fully staged, what already left today. Urgency is a
-             badge on each card, not a board section. --}}
+        {{-- Lifecycle pipeline (2026-07-20): three segments the card moves
+             through left → right, then off the active board —
+               ① Pending (left column)  — staging not complete
+               ② Staged (right column)  — thumbs-up done, awaiting handoff
+               ③ Completed (band below) — left the yard today via dispatch
+                  start (delivery) or the customer checklist handoff
+                  (in-store); read-only reference
+             Every segment ALWAYS renders (with an empty placeholder) so the
+             board reads as the same three-stage pipeline no matter the
+             day's volume. Urgency is a badge on each card, not a section. --}}
         @php
             $sectionMeta = [
                 'pending' => [
-                    'label' => 'Queue Line — Pending', 'icon' => 'wrench',
-                    'hint' => 'Still needs a machine pulled or fuel verified',
-                    'band' => 'bg-sky-700 text-white', 'wrapper' => 'border-sky-200', 'bandExtra' => '',
+                    'stage' => '1', 'label' => 'Queue Line — Pending', 'icon' => 'wrench',
+                    'hint' => 'Still needs a machine assigned, fueled, and staged',
+                    'empty' => 'No orders waiting — everything due through tomorrow is staged or already out.',
+                    'band' => 'bg-sky-700 text-white', 'wrapper' => 'border-sky-200',
                 ],
                 // Section key 'ready' is internal only — the user-visible label
                 // is "Staged" (UI Iteration 1.1): Queue Line owns STAGING, not
                 // operational readiness (Rental Ready) or release (Dispatch).
                 'ready' => [
-                    'label' => 'Queue Line — Staged', 'icon' => 'check',
+                    'stage' => '2', 'label' => 'Queue Line — Staged', 'icon' => 'check',
                     'hint' => 'Fueled, keyed, staged — ready for handoff',
-                    'band' => 'bg-green-600 text-white', 'wrapper' => 'border-green-200', 'bandExtra' => '',
+                    'empty' => 'Nothing staged yet. Thumbs-up a Pending card once its machine is assigned, fueled, and keyed.',
+                    'band' => 'bg-green-600 text-white', 'wrapper' => 'border-green-200',
                 ],
                 'delivered' => [
-                    'label' => 'Delivered Today', 'icon' => 'truck',
-                    'hint' => 'Already off the yard — reference only',
-                    'band' => 'bg-gray-200 text-gray-700', 'wrapper' => 'border-gray-200', 'bandExtra' => '',
+                    'stage' => '3', 'label' => 'Queue Line — Completed', 'icon' => 'complete',
+                    'hint' => 'Off the yard today — dispatch start or in-store customer handoff',
+                    'empty' => 'Nothing has left the yard yet today.',
+                    'band' => 'bg-gray-200 text-gray-700', 'wrapper' => 'border-gray-200',
                 ],
             ];
-            $activeEmpty = count($sections['pending'] ?? []) === 0 && count($sections['ready'] ?? []) === 0;
         @endphp
 
-        @if ($activeEmpty)
-            <div class="mb-8 rounded-lg border border-gray-200 bg-white p-12 text-center">
-                <x-heroicon-o-queue-list class="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p class="text-gray-600 font-medium">The Queue Line is clear.</p>
-                <p class="text-sm text-gray-400 mt-1">No outbound rentals are due through tomorrow{{ $store !== 'all' ? ' for this store' : '' }}.</p>
-            </div>
-        @endif
+        {{-- ① → ② side-by-side columns: the active work moves left to right --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-6">
+            @foreach (['pending', 'ready'] as $sectionKey)
+                @include('livewire.queue-line.partials._section', [
+                    'sectionKey' => $sectionKey,
+                    'meta' => $sectionMeta[$sectionKey],
+                ])
+            @endforeach
+        </div>
 
-        @foreach ($sectionMeta as $sectionKey => $meta)
-            @if (count($sections[$sectionKey] ?? []) > 0)
-                <section class="mb-8 rounded-lg border-2 {{ $meta['wrapper'] }} overflow-hidden" aria-label="{{ $meta['label'] }}"
-                    data-queue-section="{{ $sectionKey }}">
-                    <h2 class="flex flex-wrap items-center gap-2 px-4 py-2 font-bold uppercase tracking-wide {{ $ui['sectionHeader'] }} {{ $meta['band'] }} {{ $meta['bandExtra'] }}">
-                        @if ($meta['icon'] === 'wrench')
-                            <x-heroicon-s-wrench-screwdriver class="w-6 h-6" />
-                        @elseif ($meta['icon'] === 'check')
-                            <x-heroicon-s-check-circle class="w-6 h-6" />
-                        @else
-                            <x-heroicon-s-truck class="w-6 h-6" />
-                        @endif
-                        {{ $meta['label'] }}
-                        <span class="ml-1 rounded-full bg-white/25 px-2.5 py-0.5 text-sm font-semibold">{{ count($sections[$sectionKey]) }}</span>
-                        <span class="ml-auto normal-case tracking-normal font-normal {{ $ui['body'] }} opacity-90">{{ $meta['hint'] }}</span>
-                    </h2>
-
-                    <div class="p-4 flex flex-wrap items-start gap-4">
-                        @foreach ($sections[$sectionKey] as $item)
-                            @include('livewire.queue-line.partials._card', [
-                                'item' => $item,
-                                'ui' => $ui,
-                                'fuelByAssignment' => $fuelByAssignment,
-                                'delivered' => $sectionKey === 'delivered',
-                                'stagedReady' => $sectionKey === 'ready',
-                            ])
-                        @endforeach
-                    </div>
-                </section>
-            @endif
-        @endforeach
+        {{-- ③ full-width below: completed and gone — off the active pipeline --}}
+        @include('livewire.queue-line.partials._section', [
+            'sectionKey' => 'delivered',
+            'meta' => $sectionMeta['delivered'],
+        ])
     @endif
 </div>

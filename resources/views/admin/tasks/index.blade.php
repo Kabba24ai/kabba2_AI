@@ -254,6 +254,10 @@
                                 </td>
                                 <td class="px-4 py-3 text-gray-700">
                                     {{ $customerName ?? '—' }}
+                                    @if ($call->order)
+                                        <a href="{{ route('admin.order-management.orders.edit', $call->order->unique_id) }}"
+                                            class="block text-xs text-blue-600 hover:underline">{{ $call->order->order_number }}</a>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-gray-700">
                                     {{ $supplierOther ?? '—' }}
@@ -314,8 +318,16 @@
                                         <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3">
-                                    <span class="text-gray-400">—</span>
+                                <td class="px-4 py-3 text-gray-700">
+                                    @if ($task->customer || $task->order)
+                                        {{ $task->customer?->full_name ?? '—' }}
+                                        @if ($task->order)
+                                            <a href="{{ route('admin.order-management.orders.edit', $task->order->unique_id) }}"
+                                                class="block text-xs text-blue-600 hover:underline">{{ $task->order->order_number }}</a>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3">
                                     <span class="text-gray-400">—</span>

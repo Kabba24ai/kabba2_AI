@@ -30,6 +30,10 @@ class CallNeededStoreRequest extends FormRequest
                 'nullable',
                 'exists:suppliers,id',
             ],
+            'order_id' => [
+                'nullable',
+                \Illuminate\Validation\Rule::exists('orders', 'id')->whereNull('deleted_at'),
+            ],
             'assigned_to' => ['required', 'exists:users,id'],
             'reason' => [
                 'required',

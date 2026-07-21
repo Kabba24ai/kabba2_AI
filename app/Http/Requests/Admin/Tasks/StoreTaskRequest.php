@@ -2,10 +2,14 @@
 
 namespace App\Http\Requests\Admin\Tasks;
 
+use App\Http\Requests\Admin\Tasks\Concerns\ResolvesRelatedOrderCustomer;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreTaskRequest extends FormRequest
 {
+    use ResolvesRelatedOrderCustomer;
+
     public function authorize(): bool
     {
         return true;
@@ -21,7 +25,7 @@ class StoreTaskRequest extends FormRequest
             'status'              => ['required', 'in:open,in_progress,waiting,completed,cancelled'],
             'assigned_to_user_id' => ['nullable', 'exists:users,id'],
             'due_date'            => ['nullable', 'date'],
-            'related_order_id'      => ['nullable', 'integer'],
+            'related_order_id'      => ['nullable', Rule::exists('orders', 'id')->whereNull('deleted_at')],
             'related_customer_id'   => ['nullable', 'exists:customers,id'],
             'related_supplier_id'   => ['nullable', 'exists:suppliers,id'],
             'related_other'         => ['nullable', 'string', 'max:255'],

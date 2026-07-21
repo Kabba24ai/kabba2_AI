@@ -154,6 +154,16 @@
                     </dd>
                 </div>
 
+                @if ($callReminder->order)
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Order</dt>
+                        <dd class="text-right">
+                            <a href="{{ route('admin.order-management.orders.edit', $callReminder->order->unique_id) }}"
+                                class="font-medium text-blue-600 hover:underline">{{ $callReminder->order->order_number }}</a>
+                        </dd>
+                    </div>
+                @endif
+
                 @if ($contactType === 'customer' && $callReminder->customer)
                     <div class="flex justify-between">
                         <dt class="text-gray-500">Name</dt>

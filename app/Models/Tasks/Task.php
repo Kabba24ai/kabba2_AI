@@ -67,6 +67,11 @@ class Task extends Model
         return $this->belongsTo(\App\Models\Customers\Customer::class, 'related_customer_id');
     }
 
+    public function order()
+    {
+        return $this->belongsTo(\App\Models\Orders\Order::class, 'related_order_id');
+    }
+
     public function supplier()
     {
         return $this->belongsTo(\App\Models\MaintenanceManagement\Supplier::class, 'related_supplier_id');

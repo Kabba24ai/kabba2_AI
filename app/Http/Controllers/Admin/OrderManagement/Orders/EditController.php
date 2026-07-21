@@ -85,6 +85,10 @@ class EditController extends Controller
         $customerCreditSummary = CustomerCreditService::summaryForCustomer($order->customer_id);
         $orderAppliedCredit = CustomerCreditService::appliedToOrder($order->id);
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges', 'billingCharges', 'resolutionPresets', 'fuelNotePresets', 'customerCreditSummary', 'orderAppliedCredit'));
+        // Canonical New Task modal (Add Task button) — passed to the shared
+        // partial explicitly; this page's $categories are product categories.
+        $taskModalData = \App\Support\Tasks\UnifiedTaskModalData::make();
+
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges', 'billingCharges', 'resolutionPresets', 'fuelNotePresets', 'customerCreditSummary', 'orderAppliedCredit', 'taskModalData'));
     }
 }

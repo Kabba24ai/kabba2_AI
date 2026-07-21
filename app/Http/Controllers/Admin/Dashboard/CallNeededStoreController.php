@@ -15,11 +15,24 @@ class CallNeededStoreController extends Controller
 
             $customerId  = $request->customer_id;
             $supplierId  = $request->supplier_id;
+            $orderId     = $request->order_id;
+
+            // Order-linked call: the order's customer is authoritative. A
+            // mismatched customer_id from the browser is corrected here; an
+            // order with no customer link keeps whatever was submitted.
+            if ($orderId) {
+                $orderCustomerId = \App\Models\Orders\Order::whereKey($orderId)->value('customer_id');
+                if ($orderCustomerId !== null) {
+                    $customerId = $orderCustomerId;
+                }
+            }
+
             $isManual    = !$customerId && !$supplierId;
 
             $callNeeded = CustomerCallNeeded::create([
                 'customer_id'   => $customerId ?: null,
                 'supplier_id'   => $supplierId  ?: null,
+                'order_id'      => $orderId    ?: null,
 
                 'contact_name'  => $isManual ? $request->contact_name  : null,
                 'contact_email' => $isManual ? $request->contact_email : null,

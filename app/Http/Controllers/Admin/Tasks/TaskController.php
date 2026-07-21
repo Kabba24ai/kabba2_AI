@@ -9,12 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tasks\StoreTaskCommentRequest;
 use App\Http\Requests\Admin\Tasks\StoreTaskRequest;
 use App\Http\Requests\Admin\Tasks\UpdateTaskRequest;
-use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerCallNeeded;
 use App\Models\Iam\Personnel\User;
-use App\Models\MaintenanceManagement\Equipment;
-use App\Models\MaintenanceManagement\Supplier;
-use App\Models\ProductManagement\ProductCategory;
 use App\Models\Tasks\Task;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -23,35 +19,7 @@ class TaskController extends Controller
 {
     private function equipmentData(): array
     {
-        $usedCategoryIds = Equipment::whereNotNull('product_category_id')
-            ->pluck('product_category_id')
-            ->unique();
-
-        $productCategories = ProductCategory::whereNull('parent_id')
-            ->whereIn('id', $usedCategoryIds)
-            ->orderBy('title')
-            ->get(['id', 'title']);
-
-        $statusLabels = [
-            'available'   => 'Available',
-            'rented'      => 'Rented',
-            'maintenance' => 'Maint. Hold',
-            'damaged'     => 'Damaged',
-        ];
-
-        $equipmentList = Equipment::whereNotNull('product_category_id')
-            ->orderBy('equipment_name')
-            ->get(['id', 'equipment_id', 'equipment_name', 'product_category_id', 'current_status', 'serial_number'])
-            ->map(fn($e) => [
-                'id'          => $e->id,
-                'equipment_id' => $e->equipment_id,
-                'name'        => $e->equipment_name,
-                'category_id' => $e->product_category_id,
-                'status'      => $statusLabels[$e->getRawOriginal('current_status')] ?? '',
-                'serial'      => $e->serial_number ?? '',
-            ]);
-
-        return compact('productCategories', 'equipmentList');
+        return \App\Support\Tasks\UnifiedTaskModalData::equipmentData();
     }
 
     public function index(Request $request)
@@ -117,7 +85,7 @@ class TaskController extends Controller
         // Load the relevant model sets (skip a type when its tab is the active filter)
         $taskModels = $includeTasks
             ? $this->baseTaskQuery($request)
-                ->with(['assignedTo', 'createdBy', 'equipment'])
+                ->with(['assignedTo', 'createdBy', 'equipment', 'customer', 'order'])
                 ->when($request->filled('category'),    fn($q) => $q->where('category', $request->category))
                 ->when($request->filled('assigned_to'), fn($q) => $q->where('assigned_to_user_id', $request->assigned_to))
                 ->get()
@@ -125,7 +93,7 @@ class TaskController extends Controller
 
         $callModels = $includeCalls
             ? $this->baseCallQuery($request)
-                ->with(['customer', 'supplier', 'assignee', 'creator'])
+                ->with(['customer', 'supplier', 'assignee', 'creator', 'order'])
                 ->when($request->filled('assigned_to'), fn($q) => $q->where('created_by', $request->assigned_to))
                 ->get()
             : collect();
@@ -185,12 +153,9 @@ class TaskController extends Controller
             ->orderByDesc('completed_at')
             ->get();
 
-        $customers = Customer::whereIn('status', ['Active', 'Archived'])
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
+        $customers = \App\Support\Tasks\UnifiedTaskModalData::customers();
 
-        $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
+        $suppliers = \App\Support\Tasks\UnifiedTaskModalData::suppliers();
 
         return view('admin.tasks.index', compact(
             'tasks', 'users', 'categories', 'priorities', 'statuses',
@@ -256,7 +221,7 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'descriptionMedia', 'comments.user', 'comments.media', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'order', 'descriptionMedia', 'comments.user', 'comments.media', 'activityLogs.user']);
         $users = User::active()->orderBy('first_name')->get();
 
         return view('admin.tasks.show', compact('task', 'users'));
@@ -548,15 +513,12 @@ class TaskController extends Controller
 
     public function showCall(int $id)
     {
-        $callReminder = CustomerCallNeeded::with(['customer', 'supplier', 'assignee', 'creator', 'activities.user'])
+        $callReminder = CustomerCallNeeded::with(['customer', 'supplier', 'assignee', 'creator', 'order', 'activities.user'])
             ->findOrFail($id);
 
-        $customers = Customer::whereIn('status', ['Active', 'Archived'])
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
+        $customers = \App\Support\Tasks\UnifiedTaskModalData::customers();
 
-        $suppliers = Supplier::active()->orderBy('name')->get(['id', 'name', 'phone', 'email', 'primary_contact_name', 'primary_contact_phone']);
+        $suppliers = \App\Support\Tasks\UnifiedTaskModalData::suppliers();
 
         $users = User::active()->orderBy('first_name')->get();
 

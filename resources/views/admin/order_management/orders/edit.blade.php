@@ -249,10 +249,18 @@
 
                 <!-- Row 1 -->
                 <div class="flex flex-wrap justify-end gap-2">
-                    <button id="callNeededBtn" type="button" title="Call Needed"
+                    {{-- Opens the canonical New Task modal with this order and its
+                         customer pre-linked; phone calls are a task type there. --}}
+                    <button id="addTaskBtn" type="button" title="Add Task"
+                        onclick="openNewTaskModal({
+                            orderId: {{ $order->id }},
+                            orderNumber: @json($order->order_number),
+                            customerId: @json($order->customer_id),
+                            customerName: @json($order->customer?->full_name)
+                        })"
                         class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm cursor-pointer">
-                        <x-heroicon-o-phone class="w-4 h-4 mr-1" />
-                        Call Needed
+                        <x-heroicon-o-clipboard-document-list class="w-4 h-4 mr-1" />
+                        Add Task
                     </button>
                     <button id="reorderBtn" type="button"
                         class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none">
@@ -663,97 +671,10 @@
         </div>
     </div>
 
-    {{-- Order Call Reminder Modal --}}
-    <div id="orderCallReminderModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/50 px-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center px-6 pt-4 pb-3 border-b">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900">Add Call Reminder</h2>
-                    <p class="text-sm text-gray-500">Assign customer call reminder</p>
-                </div>
-                <button type="button" onclick="closeOrderCallModal()" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
-            </div>
-            <div class="overflow-y-auto px-6 pt-6 pb-5 space-y-4">
-                {{-- Customer (pre-filled, read-only) --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
-                    <div class="p-3 rounded-md bg-gray-50 border border-gray-200 text-sm text-gray-800">
-                        <div class="font-medium">{{ $order->customer_name }}</div>
-                        @if($order->customer?->phone)
-                            <div class="text-gray-500">{{ \App\Helpers\CustomHelper::formatPhone($order->customer->phone) }}</div>
-                        @endif
-                        @if($order->customer?->email)
-                            <div class="text-gray-500">{{ $order->customer->email }}</div>
-                        @endif
-                    </div>
-                </div>
-
-                {{-- Assign To --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Assign To <span class="text-red-500">*</span></label>
-                    <select id="orderCallAssignedTo" class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                        <option value="">Select Assignee</option>
-                        @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}">{{ $emp->full_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Reason --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-red-500">*</span></label>
-                    <select id="orderCallReason" class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                        <option value="">Select Reason</option>
-                        <option value="contract_renewal">Contract Renewal</option>
-                        <option value="delivery_pickup">Delivery / Pickup</option>
-                        <option value="equipment_availability">Equipment Availability</option>
-                        <option value="equipment_return">Equipment Return</option>
-                        <option value="general_followup">General Follow-up</option>
-                        <option value="maintenance_request">Maintenance Request</option>
-                        <option value="order_review">Order Review</option>
-                        <option value="payment_followup">Payment Follow-up</option>
-                        <option value="rental_inquiry">Rental Inquiry</option>
-                    </select>
-                </div>
-
-                {{-- Mark as Urgent --}}
-                <div class="flex items-center rounded-lg border border-gray-200 p-3 bg-gray-50">
-                    <input type="checkbox" id="orderCallIsUrgent" class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500">
-                    <label for="orderCallIsUrgent" class="ml-3 text-sm font-medium text-gray-700">
-                        <span class="flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-red-600">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.007v.008H12v-.008zM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
-                            </svg>
-                            <span>Mark as Urgent</span>
-                        </span>
-                        <span class="block text-xs text-gray-500 font-normal mt-1">High priority call reminder</span>
-                    </label>
-                </div>
-
-                {{-- Notes --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea id="orderCallNotes" rows="3"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                        placeholder="Enter call notes..."></textarea>
-                </div>
-
-                {{-- Buttons --}}
-                <div class="flex justify-end gap-2 pt-1">
-                    <button type="button" onclick="closeOrderCallModal()"
-                        class="px-6 py-3 text-md rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">Cancel</button>
-                    <button type="button" id="orderCallSaveBtn" onclick="saveOrderCallReminder()"
-                        class="px-6 py-3 text-md rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-2">
-                        <span id="orderCallBtnText">Save</span>
-                        <svg id="orderCallSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- Canonical New Task modal (shared with Task Center and Dashboard).
+         Variables are passed explicitly because this page already uses
+         $categories for product categories. --}}
+    @include('admin.tasks.partials._unified_task_modal', $taskModalData)
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
@@ -7714,77 +7635,6 @@
             };
         })();
 
-
-    function closeOrderCallModal() {
-        const modal = document.getElementById('orderCallReminderModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('#callNeededBtn');
-        if (!btn) return;
-
-        document.getElementById('orderCallAssignedTo').value = '';
-        document.getElementById('orderCallReason').value = '';
-        document.getElementById('orderCallIsUrgent').checked = false;
-        document.getElementById('orderCallNotes').value = '';
-
-        const modal = document.getElementById('orderCallReminderModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    });
-
-    function saveOrderCallReminder() {
-        const assignedTo = document.getElementById('orderCallAssignedTo').value;
-        const reason     = document.getElementById('orderCallReason').value;
-        const isUrgent   = document.getElementById('orderCallIsUrgent').checked;
-        const notes      = document.getElementById('orderCallNotes').value;
-
-        if (!assignedTo) { notyf.error('Please select an assignee.'); return; }
-        if (!reason)     { notyf.error('Please select a reason.'); return; }
-
-        const saveBtn = document.getElementById('orderCallSaveBtn');
-        const btnText = document.getElementById('orderCallBtnText');
-        const spinner = document.getElementById('orderCallSpinner');
-
-        saveBtn.disabled = true;
-        btnText.textContent = 'Saving...';
-        spinner.classList.remove('hidden');
-
-        fetch("{{ route('admin.dashboard.call-needed.store') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-            body: JSON.stringify({
-                customer_id: {{ $order->customer_id }},
-                assigned_to: assignedTo,
-                reason: reason,
-                notes: notes,
-                is_urgent: isUrgent ? 1 : 0,
-            }),
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                notyf.success(data.message || 'Call reminder created');
-                closeOrderCallModal();
-            } else {
-                notyf.error(data.message || 'Something went wrong');
-            }
-        })
-        .catch(err => {
-            console.error('Call reminder error:', err);
-            notyf.error('Failed to create call reminder');
-        })
-        .finally(() => {
-            saveBtn.disabled = false;
-            btnText.textContent = 'Save';
-            spinner.classList.add('hidden');
-        });
-    }
 
     // ── Fuel Charge Alert from Order ─────────────────────────────────────────
     (function () {

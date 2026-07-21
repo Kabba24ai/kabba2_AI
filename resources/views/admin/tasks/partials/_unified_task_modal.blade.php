@@ -96,6 +96,23 @@
 
                     {{-- Entity slot — one control, relabeled by the radio --}}
                     <div id="ut_customer_wrap">
+                        {{-- Order lookup — linking an order makes its customer authoritative --}}
+                        <div class="mb-3">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Search by Order # <span class="font-normal text-gray-400">(optional)</span></label>
+                            <div class="relative">
+                                <input type="text" id="ut_order_search" autocomplete="off" placeholder="e.g. 3151"
+                                    class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                <div id="ut_order_results"
+                                    class="hidden absolute z-[100000] mt-1 w-full max-h-56 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg"></div>
+                            </div>
+                            <div id="ut_order_chip" class="hidden mt-2 items-center justify-between gap-2 rounded border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
+                                <span id="ut_order_chip_text" class="font-medium text-gray-800"></span>
+                                <button type="button" id="ut_order_clear" title="Remove order link"
+                                    class="text-gray-400 hover:text-gray-700 text-base leading-none shrink-0">&times;</button>
+                            </div>
+                            <p id="ut_order_msg" class="hidden mt-1 text-xs"></p>
+                        </div>
+
                         <label class="block text-xs font-medium text-gray-600 mb-1">Customer</label>
                         <select id="ut_customer" class="w-full">
                             <option value="">Select customer…</option>
@@ -241,6 +258,7 @@
 </div>
 
 @push('js')
+@include('admin.dashboard.partials._call_reason_lists')
 <script>
 (function () {
     'use strict';
@@ -248,6 +266,13 @@
     var _utMode      = 'task';
     var _utFlatpickr = null;
     var _utEquipment = @json($equipmentList);
+
+    // Order link state — shared by both save paths. {id, order_number,
+    // customer_id, customer_name} from the charge-modal lookup endpoint.
+    var _utOrder      = null;
+    var _utOrderSeq   = 0;    // stale async lookup guard
+    var _utOrderTimer = null;
+    var UT_ORDER_LOOKUP_URL = "{{ route('admin.dashboard.charge-modal.orders') }}";
 
     // Reason lists per related-type. CALL_REASON_LISTS is defined by the shared
     // call modal partial (also on this page for edit/complete); fall back to a
@@ -364,6 +389,143 @@
         return document.querySelector('input[name="ut_related_type"]:checked').value;
     }
 
+    // ── Order lookup (reuses the shared charge-modal orders endpoint) ───────
+    function utOrderMsg(text, tone) {
+        var el = document.getElementById('ut_order_msg');
+        el.classList.remove('text-red-600', 'text-amber-600', 'text-gray-500');
+        if (!text) { el.classList.add('hidden'); el.textContent = ''; return; }
+        el.textContent = text;
+        el.classList.add(tone === 'error' ? 'text-red-600' : tone === 'warn' ? 'text-amber-600' : 'text-gray-500');
+        el.classList.remove('hidden');
+    }
+
+    function utHideOrderResults() {
+        var box = document.getElementById('ut_order_results');
+        box.classList.add('hidden');
+        box.innerHTML = '';
+    }
+
+    function utSetCustomerLocked(locked) {
+        if (!window.utCustomerChoices) return;
+        if (locked) window.utCustomerChoices.disable();
+        else window.utCustomerChoices.enable();
+    }
+
+    // Select a customer in the Choices dropdown, appending the option first
+    // when the customer isn't in the preloaded Active/Archived list.
+    function utSelectCustomer(id, name) {
+        var sel = document.getElementById('ut_customer');
+        if (!id) {
+            if (window.utCustomerChoices) window.utCustomerChoices.removeActiveItems();
+            sel.value = '';
+            return;
+        }
+        id = String(id);
+        var exists = Array.prototype.some.call(sel.options, function (o) { return o.value === id; });
+        if (!exists && window.utCustomerChoices) {
+            window.utCustomerChoices.setChoices([{ value: id, label: name || ('Customer #' + id) }], 'value', 'label', false);
+        }
+        if (window.utCustomerChoices) window.utCustomerChoices.setChoiceByValue(id);
+        sel.value = id;
+    }
+
+    function utSetOrder(order) {
+        var prevCustomer = document.getElementById('ut_customer').value;
+        _utOrder = order;
+
+        document.getElementById('ut_order_search').value = '';
+        utHideOrderResults();
+
+        var chip = document.getElementById('ut_order_chip');
+        document.getElementById('ut_order_chip_text').textContent =
+            'Order ' + order.order_number + ' — ' + (order.customer_name || 'no linked customer');
+        chip.classList.remove('hidden');
+        chip.classList.add('flex');
+
+        if (order.customer_id) {
+            var changed = prevCustomer && String(prevCustomer) !== String(order.customer_id);
+            utSelectCustomer(order.customer_id, order.customer_name);
+            utSetCustomerLocked(true);
+            utOrderMsg(changed ? 'Customer updated to match ' + order.order_number + '.' : '', 'warn');
+        } else {
+            // Order carries no customer link — keep whatever the employee
+            // selected (or nothing) and say so instead of guessing.
+            utSetCustomerLocked(false);
+            utOrderMsg('No linked customer record was found for ' + order.order_number + '.', 'warn');
+        }
+    }
+
+    // Clearing the order keeps the customer — the employee may still want a
+    // customer-level task.
+    function utClearOrder() {
+        _utOrder = null;
+        var chip = document.getElementById('ut_order_chip');
+        chip.classList.add('hidden');
+        chip.classList.remove('flex');
+        document.getElementById('ut_order_chip_text').textContent = '';
+        document.getElementById('ut_order_search').value = '';
+        utHideOrderResults();
+        utOrderMsg('');
+        utSetCustomerLocked(false);
+    }
+
+    function utRenderOrderResults(results, q) {
+        var box = document.getElementById('ut_order_results');
+        box.innerHTML = '';
+        if (!results.length) {
+            utHideOrderResults();
+            utOrderMsg('No order was found for Order #' + q.replace(/^#/, '') + '.', 'error');
+            return;
+        }
+        utOrderMsg('');
+        results.forEach(function (o) {
+            var row = document.createElement('button');
+            row.type = 'button';
+            row.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-50';
+            var title = document.createElement('span');
+            title.className = 'font-medium text-gray-800';
+            title.textContent = 'Order ' + o.order_number + ' — ' + (o.customer_name || 'no linked customer');
+            row.appendChild(title);
+            var meta = [o.order_date, o.status].filter(Boolean).join(' · ');
+            if (meta) {
+                var sub = document.createElement('span');
+                sub.className = 'block text-xs text-gray-400';
+                sub.textContent = meta;
+                row.appendChild(sub);
+            }
+            row.addEventListener('click', function () { utSetOrder(o); });
+            box.appendChild(row);
+        });
+        box.classList.remove('hidden');
+    }
+
+    document.getElementById('ut_order_search').addEventListener('input', function () {
+        var q = this.value.trim();
+        clearTimeout(_utOrderTimer);
+        if (q.length < 2) { utHideOrderResults(); utOrderMsg(''); return; }
+        _utOrderTimer = setTimeout(function () {
+            var seq = ++_utOrderSeq;
+            fetch(UT_ORDER_LOOKUP_URL + '?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (seq !== _utOrderSeq) return; // stale — a newer search superseded this one
+                    utRenderOrderResults(data.results || [], q);
+                })
+                .catch(function () {
+                    if (seq === _utOrderSeq) utOrderMsg('Order lookup failed. Please try again.', 'error');
+                });
+        }, 300);
+    });
+
+    document.getElementById('ut_order_clear').addEventListener('click', utClearOrder);
+
+    // Close the results dropdown on outside click
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('#ut_order_search') && !e.target.closest('#ut_order_results')) {
+            utHideOrderResults();
+        }
+    });
+
     // ── Mode toggle ─────────────────────────────────────────────────────────
     var TOGGLE_ACTIVE   = ['bg-green-100', 'text-green-700'];
     var TOGGLE_INACTIVE = ['text-gray-600'];
@@ -416,6 +578,9 @@
         document.getElementById('ut_supplier_wrap').classList.toggle('hidden', val !== 'supplier');
         document.getElementById('ut_other_wrap').classList.toggle('hidden', val !== 'other');
 
+        // An order link only exists in customer mode
+        if (val !== 'customer' && _utOrder) utClearOrder();
+
         utSetReasonChoices(val === 'supplier' ? 'supplier' : 'customer');
         if (window.utReasonChoices) window.utReasonChoices.removeActiveItems();
 
@@ -423,7 +588,10 @@
     });
 
     // ── Modal open/close (same global names the Task Center already uses) ──
-    window.openNewTaskModal = function () {
+    // Optional context ({orderId, orderNumber, customerId, customerName})
+    // prefills the order/customer relationship — used by Order Details.
+    // Only the relationship is prefilled; every other field stays untouched.
+    window.openNewTaskModal = function (context) {
         document.getElementById('ut_title').value      = '';
         document.getElementById('ut_category').value   = '';
         document.getElementById('ut_priority').value   = 'normal';
@@ -449,6 +617,16 @@
         setUnifiedTaskMode('task');
         if (_utFlatpickr) _utFlatpickr.clear();
         else document.getElementById('ut_due_date').value = '';
+
+        utClearOrder();
+        if (context && context.orderId) {
+            utSetOrder({
+                id:            context.orderId,
+                order_number:  context.orderNumber,
+                customer_id:   context.customerId || null,
+                customer_name: context.customerName || null,
+            });
+        }
 
         var modal = document.getElementById('UnifiedTaskModal');
         modal.style.display = 'flex';
@@ -479,6 +657,7 @@
         return {
             type:       type,
             customerId: type === 'customer' ? (document.getElementById('ut_customer').value || null) : null,
+            orderId:    type === 'customer' && _utOrder ? _utOrder.id : null,
             supplierId: type === 'supplier' ? (document.getElementById('ut_supplier').value || null) : null,
             otherName:  type === 'other'    ? document.getElementById('ut_other_name').value.trim()  : '',
             otherPhone: type === 'other'    ? document.getElementById('ut_other_phone').value.trim() : '',
@@ -508,6 +687,7 @@
             assigned_to_user_id:  document.getElementById('ut_assigned_to').value,
             related_equipment_id: document.getElementById('ut_equip_unit').value,
             related_customer_id:  related.customerId,
+            related_order_id:     related.orderId,
             related_supplier_id:  related.supplierId,
             related_other:        related.otherName,
             due_date:             document.getElementById('ut_due_date').value,
@@ -565,6 +745,7 @@
             },
             body: JSON.stringify({
                 customer_id:   related.customerId,
+                order_id:      related.orderId,
                 supplier_id:   related.supplierId,
                 contact_name:  related.type === 'other' ? related.otherName  : null,
                 contact_email: null,

@@ -3427,7 +3427,9 @@
                 <div class="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
                     <!-- Header -->
                     <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">Checklist</h3>
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">
+                            <span id="checklistProductTitle"></span> Checklist
+                        </h3>
                         <button type="button" class="text-2xl text-gray-500 leading-none focus:outline-none"
                             onclick="closeChecklistModal()" aria-label="Close">&times;</button>
                     </div>
@@ -3518,7 +3520,7 @@
                                                                 {{-- Case 2: Delivery only --}}
                                                             @elseif($latest->is_delivery_answer == 1 && $latest->is_return_answer == 0)
                                                                 <span
-                                                                    class="inline-block border-b border-gray-300 min-w-10 text-green-600">
+                                                                    class="inline-block border-b border-gray-300 min-w-10 text-gray-600">
                                                                     <!-- ${{ $latest->user_delivery_amount ?? ($latest->delivery_amount ?? 0) }} -->
                                                                     $0
                                                                 </span>
@@ -3569,7 +3571,7 @@
                                                     </td>
 
                                                     <td
-                                                        class="py-2 px-2  {{ $productDamageAdjustment < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                        class="py-2 px-2  {{ $productDamageAdjustment < 0 ? 'text-red-600' : 'text-gray-600' }}">
                                                         Adjust Amount (
                                                         {{ $productDamageAdjustment >= 0 ? '+' : '-' }}
                                                         ${{ number_format(abs($productDamageAdjustment), 2) }} )
@@ -3620,6 +3622,9 @@
                                                         {{ $product->equipment?->power_source_type
                                                             ? $product->equipment->power_source_type->label()
                                                             : 'Select Power Source' }})
+                                                        @if ($product->fuel_initial_reading == 10)
+                                                            <span class="ml-1 inline-block px-1.5 py-0.5 text-[10px] font-semibold rounded bg-green-100 text-green-700">Prepaid</span>
+                                                        @endif
                                                     </td>
 
                                                     <td class="py-2 px-2">
@@ -3627,7 +3632,7 @@
                                                     </td>
 
                                                     <td
-                                                        class="py-2 px-2 {{ $productFuelAdjustment < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                        class="py-2 px-2 {{ $productFuelAdjustment < 0 ? 'text-red-600' : 'text-gray-800' }}">
                                                         {{ $finalFuel }}
                                                     </td>
 
@@ -4186,12 +4191,15 @@
 
     <script>
         const modalEl = document.getElementById('checklistModal');
+        const checklistProductNames = @json($order->products->mapWithKeys(fn($p) => [$p->id => $p->product_name]));
 
         function openChecklistModal(orderProductId) {
             modalEl.classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // scroll-lock
 
             const productId = String(orderProductId);
+            const titleEl = document.getElementById('checklistProductTitle');
+            if (titleEl) titleEl.textContent = checklistProductNames[productId] || checklistProductNames[orderProductId] || '';
             const sum = (selector) => Array.from(modalEl.querySelectorAll(selector))
                 .filter(el => el.dataset.productId === productId)
                 .reduce((total, el) => total + (parseFloat(el.dataset.amount) || 0), 0);

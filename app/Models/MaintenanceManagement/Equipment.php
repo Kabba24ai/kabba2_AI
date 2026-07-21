@@ -95,6 +95,10 @@ class Equipment extends Model
         'equipment_key_comparison_notes',
         'assigned_product_id',
         'capabilities',
+        // Per-unit Reported-Problem template (Equipment problem-templates):
+        // the symptom profile whose items drive service-ticket intake for
+        // this specific unit. Null → "No Template Listed".
+        'service_symptom_profile_id',
     ];
 
     protected $casts = [
@@ -248,6 +252,17 @@ class Equipment extends Model
     public function assignedProduct()
     {
         return $this->belongsTo(\App\Models\ProductManagement\Product::class, 'assigned_product_id', 'id');
+    }
+
+    /**
+     * The Reported-Problem template attached to this unit (Equipment
+     * problem-templates). Drives service-ticket intake; null means "No
+     * Template Listed". Reuses the existing symptom-library profile — no
+     * parallel taxonomy.
+     */
+    public function symptomProfile()
+    {
+        return $this->belongsTo(\App\Models\Service\ServiceSymptomProfile::class, 'service_symptom_profile_id');
     }
 
     public function getCategoryNameAttribute()

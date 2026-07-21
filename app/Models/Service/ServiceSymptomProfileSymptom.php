@@ -12,6 +12,10 @@ class ServiceSymptomProfileSymptom extends Model
         'service_symptom_profile_id',
         'service_symptom_id',
         'mode',
+        // Per-template item order (Equipment problem-templates). The builder
+        // assembles an explicit, ordered list; legacy category-include rows
+        // default to 0 and keep working.
+        'sort_order',
     ];
 
     protected $casts = [

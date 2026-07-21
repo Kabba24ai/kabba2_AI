@@ -20,6 +20,8 @@ class ServiceSymptomProfile extends Model
 {
     protected $fillable = [
         'name',
+        // Optional template description (Equipment problem-templates).
+        'description',
         'product_category_id',
         'product_id',
         'display_order',
@@ -53,6 +55,12 @@ class ServiceSymptomProfile extends Model
     public function profileSymptoms()
     {
         return $this->hasMany(ServiceSymptomProfileSymptom::class, 'service_symptom_profile_id');
+    }
+
+    /** Units this template is attached to (Equipment problem-templates). */
+    public function equipment()
+    {
+        return $this->hasMany(\App\Models\MaintenanceManagement\Equipment::class, 'service_symptom_profile_id');
     }
 
     /**

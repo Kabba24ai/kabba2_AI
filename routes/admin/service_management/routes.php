@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ServiceManagement\LaborEntries;
 use App\Http\Controllers\Admin\ServiceManagement\Media;
 use App\Http\Controllers\Admin\ServiceManagement\OverviewController;
 use App\Http\Controllers\Admin\ServiceManagement\Parts;
+use App\Http\Controllers\Admin\ServiceManagement\ProblemTemplates;
 use App\Http\Controllers\Admin\ServiceManagement\RepairAuthorization;
 use App\Http\Controllers\Admin\ServiceManagement\Settlement;
 use App\Http\Controllers\Admin\ServiceManagement\Tickets;
@@ -19,6 +20,35 @@ Route::prefix('service-management')
     ->name('service-management.')
     ->group(function () {
         Route::get('/', OverviewController::class)->name('overview');
+
+        // Equipment Reported-Problem templates (Equipment problem-templates)
+        // — the taxonomy library, template builder, and per-unit attachment.
+        // Built on the existing symptom library; no parallel problem_* tables.
+        Route::prefix('problem-templates')->name('problem-templates.')->group(function () {
+            // Template list + builder
+            Route::get('/',                    [ProblemTemplates\TemplateController::class, 'index'])->name('index');
+            Route::post('/',                   [ProblemTemplates\TemplateController::class, 'store'])->name('store');
+            Route::get('/{profile}/builder',   [ProblemTemplates\TemplateController::class, 'builder'])->name('builder');
+            Route::put('/{profile}',           [ProblemTemplates\TemplateController::class, 'update'])->name('update');
+            Route::delete('/{profile}',        [ProblemTemplates\TemplateController::class, 'destroy'])->name('destroy');
+            Route::post('/{profile}/items',    [ProblemTemplates\TemplateController::class, 'saveItems'])->name('save-items');
+
+            // Library — Categories + Items taxonomy
+            Route::get('/library',                 [ProblemTemplates\LibraryController::class, 'index'])->name('library');
+            Route::post('/categories',             [ProblemTemplates\LibraryController::class, 'storeCategory'])->name('categories.store');
+            Route::put('/categories/{category}',   [ProblemTemplates\LibraryController::class, 'updateCategory'])->name('categories.update');
+            Route::delete('/categories/{category}',[ProblemTemplates\LibraryController::class, 'destroyCategory'])->name('categories.destroy');
+            Route::post('/categories/reorder',     [ProblemTemplates\LibraryController::class, 'reorderCategories'])->name('categories.reorder');
+            Route::post('/items',                  [ProblemTemplates\LibraryController::class, 'storeItem'])->name('items.store');
+            Route::put('/items/{item}',            [ProblemTemplates\LibraryController::class, 'updateItem'])->name('items.update');
+            Route::delete('/items/{item}',         [ProblemTemplates\LibraryController::class, 'destroyItem'])->name('items.destroy');
+            Route::post('/items/reorder',          [ProblemTemplates\LibraryController::class, 'reorderItems'])->name('items.reorder');
+
+            // Equipment attachment
+            Route::get('/equipment',               [ProblemTemplates\EquipmentTemplateController::class, 'index'])->name('equipment');
+            Route::post('/equipment/attach',       [ProblemTemplates\EquipmentTemplateController::class, 'attach'])->name('equipment.attach');
+            Route::post('/equipment/bulk-apply',   [ProblemTemplates\EquipmentTemplateController::class, 'bulkApply'])->name('equipment.bulk-apply');
+        });
 
         Route::prefix('tickets')->name('tickets.')->group(function () {
             Route::get('/',                 Tickets\IndexController::class)->name('index');

@@ -107,6 +107,7 @@
                     .then(response => {
                         wrapper.innerHTML = response.html;
                         initWorksheetDatepickers(wrapper);
+                        initPowerSourceToggles(wrapper);
                         requestAnimationFrame(fitWorksheetTable);
                     })
                     .finally(() => {
@@ -119,6 +120,8 @@
                 const fields = wrapper.querySelectorAll('input[name^="rows["], select[name^="rows["]');
 
                 fields.forEach(field => {
+                    if (field.disabled) return;
+
                     const matches = field.name.match(/^rows\[([^\]]+)\]\[([^\]]+)\]$/);
                     if (!matches) return;
 
@@ -232,6 +235,57 @@
                         dateFormat: el.dataset.format || window.APP_DATE_FORMAT || 'MM/dd/yyyy',
                         autoClose: true,
                         keyboardNav: true,
+                    });
+                });
+            }
+
+            function updateDefGallonsState(container, uid) {
+                const hasDefCheckbox = container.querySelector(`.has-def-checkbox[data-uid="${uid}"]`);
+                const defGallonsInput = container.querySelector(
+                    `.def-gallons-input[name="rows[${uid}][def_tank_capacity]"]`);
+                if (!defGallonsInput) return;
+
+                const allow = !!hasDefCheckbox && !hasDefCheckbox.disabled && hasDefCheckbox.checked;
+                defGallonsInput.disabled = !allow;
+                defGallonsInput.classList.toggle('bg-gray-100', !allow);
+                if (!allow) defGallonsInput.value = '';
+            }
+
+            function initPowerSourceToggles(container) {
+                container.querySelectorAll('.power-source-select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const uid = this.dataset.uid;
+
+                        const gallonsInput = container.querySelector(
+                            `.gallons-input[name^="rows[${uid}]["]`);
+                        if (gallonsInput) {
+                            const field = this.value === 'gas' ? 'gas_tank_capacity' : 'diesel_tank_capacity';
+                            gallonsInput.name = `rows[${uid}][${field}]`;
+
+                            const disableGallons = this.value === 'batteries' || this.value === 'electric';
+                            gallonsInput.disabled = disableGallons;
+                            gallonsInput.classList.toggle('bg-gray-100', disableGallons);
+                            if (disableGallons) gallonsInput.value = '';
+                        }
+
+                        const isDiesel = this.value === 'diesel';
+                        const hasDefCheckbox = container.querySelector(
+                            `.has-def-checkbox[data-uid="${uid}"]`);
+                        const hasDefHidden = hasDefCheckbox?.previousElementSibling;
+
+                        if (hasDefCheckbox) {
+                            hasDefCheckbox.disabled = !isDiesel;
+                            if (hasDefHidden) hasDefHidden.disabled = !isDiesel;
+                            if (!isDiesel) hasDefCheckbox.checked = false;
+                        }
+
+                        updateDefGallonsState(container, uid);
+                    });
+                });
+
+                container.querySelectorAll('.has-def-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        updateDefGallonsState(container, this.dataset.uid);
                     });
                 });
             }

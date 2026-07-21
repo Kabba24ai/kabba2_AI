@@ -14,13 +14,17 @@
                 <th class="px-3 py-3">Brand</th>
                 <th class="px-3 py-3">Model</th>
                 <th class="px-3 py-3">Equipment ID</th>
+                <th class="px-3 py-3">Starting Mechanism</th>
+                <th class="px-3 py-3">Power Source</th>
+                <th class="px-3 py-3">Gallons</th>
+                <th class="px-3 py-3">Has DEF</th>
+                <th class="px-3 py-3">DEF Gallons</th>
                 <th class="px-3 py-3">Hours</th>
                 <th class="px-3 py-3">Overage Rate</th>
                 <th class="px-3 py-3">Category</th>
                 <th class="px-3 py-3">Store</th>
                 <th class="px-3 py-3">Model Year</th>
                 <th class="px-3 py-3">Date Acquired</th>
-                <th class="px-3 py-3">Starting Mechanism</th>
                 <th class="px-3 py-3">Value</th>
                 <th class="px-3 py-3">Purchase Cost</th>
                 <th class="px-3 py-3">Freight / Shipping</th>
@@ -88,6 +92,67 @@
                     </td>
 
                     <td class="px-3 py-2">
+                        <select name="rows[{{ $item->unique_id }}][key_starting_mechanism]"
+                            class="w-32 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.key_starting_mechanism') ? 'border-red-500' : 'border-gray-300' }}">
+                            <option value="">Select</option>
+                            @foreach (['none' => 'None', '1_key' => '1 Key', '2_keys' => '2 Keys', 'key_pad' => 'Key Pad', 'pull_cord' => 'Pull Cord'] as $value => $label)
+                                <option value="{{ $value }}" @selected((string) data_get($row, 'key_starting_mechanism', $item->key_starting_mechanism?->value ?? $item->key_starting_mechanism) === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
+
+                    @php
+                        $currentPowerSource = data_get($row, 'power_source_type', $item->power_source_type?->value ?? $item->power_source_type);
+                        $gallonsField = $currentPowerSource === 'gas' ? 'gas_tank_capacity' : 'diesel_tank_capacity';
+                        $gallonsDisabled = in_array($currentPowerSource, ['batteries', 'electric'], true);
+                        $isDiesel = $currentPowerSource === 'diesel';
+                        $hasDef = (string) data_get($row, 'has_def', $item->has_def) === 'Yes';
+                    @endphp
+
+                    <td class="px-3 py-2">
+                        <select name="rows[{{ $item->unique_id }}][power_source_type]"
+                            class="power-source-select w-28 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.power_source_type') ? 'border-red-500' : 'border-gray-300' }}"
+                            data-uid="{{ $item->unique_id }}">
+                            <option value="">Select</option>
+                            @foreach ([\App\Enums\Equipments\EquipmentPowerSourceType::DIESEL, \App\Enums\Equipments\EquipmentPowerSourceType::GAS] as $powerSourceType)
+                                <option value="{{ $powerSourceType->value }}" @selected($currentPowerSource === $powerSourceType->value)>
+                                    {{ $powerSourceType->label() }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
+
+                    <td class="px-3 py-2">
+                        <input type="number" min="0" step="0.01"
+                            name="rows[{{ $item->unique_id }}][{{ $gallonsField }}]"
+                            value="{{ data_get($row, $gallonsField, $item->{$gallonsField}) }}"
+                            {{ $gallonsDisabled ? 'disabled' : '' }}
+                            class="gallons-input w-20 rounded border px-2 py-1.5 {{ $gallonsDisabled ? 'bg-gray-100' : '' }} {{ $errors->has('rows.' . $item->unique_id . '.' . $gallonsField) ? 'border-red-500' : 'border-gray-300' }}" />
+                    </td>
+
+                    <td class="px-3 py-2">
+                        <input type="hidden" name="rows[{{ $item->unique_id }}][has_def]" value="No"
+                            class="has-def-hidden" {{ !$isDiesel ? 'disabled' : '' }} />
+                        <input type="checkbox" name="rows[{{ $item->unique_id }}][has_def]" value="Yes"
+                            {{ $hasDef ? 'checked' : '' }} {{ !$isDiesel ? 'disabled' : '' }}
+                            class="has-def-checkbox h-4 w-4 rounded border-gray-300 text-blue-600" data-uid="{{ $item->unique_id }}" />
+                    </td>
+
+                    @php
+                        $defGallonsDisabled = !($isDiesel && $hasDef);
+                    @endphp
+
+                    <td class="px-3 py-2">
+                        <input type="number" min="0" step="0.01"
+                            name="rows[{{ $item->unique_id }}][def_tank_capacity]"
+                            value="{{ data_get($row, 'def_tank_capacity', $item->def_tank_capacity) }}"
+                            {{ $defGallonsDisabled ? 'disabled' : '' }}
+                            class="def-gallons-input w-20 rounded border px-2 py-1.5 {{ $defGallonsDisabled ? 'bg-gray-100' : '' }} {{ $errors->has('rows.' . $item->unique_id . '.def_tank_capacity') ? 'border-red-500' : 'border-gray-300' }}" />
+                    </td>
+
+                    <td class="px-3 py-2">
                         <input type="number" min="0" step="0.01"
                             name="rows[{{ $item->unique_id }}][equipment_hours]"
                             value="{{ data_get($row, 'equipment_hours', $item->equipment_hours) }}"
@@ -137,18 +202,6 @@
                             value="{{ data_get($row, 'date_acquired', $item->date_acquired ? \App\Helpers\CustomHelper::formatDate($item->date_acquired) : '') }}"
                             data-format="{{ config('app.date.js_date_format') }}" placeholder="mm/dd/yyyy"
                             class="datepicker w-28 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.date_acquired') ? 'border-red-500' : 'border-gray-300' }}" />
-                    </td>
-
-                    <td class="px-3 py-2">
-                        <select name="rows[{{ $item->unique_id }}][key_starting_mechanism]"
-                            class="w-32 rounded border px-2 py-1.5 {{ $errors->has('rows.' . $item->unique_id . '.key_starting_mechanism') ? 'border-red-500' : 'border-gray-300' }}">
-                            <option value="">Select</option>
-                            @foreach (['none' => 'None', '1_key' => '1 Key', '2_keys' => '2 Keys', 'key_pad' => 'Key Pad', 'pull_cord' => 'Pull Cord'] as $value => $label)
-                                <option value="{{ $value }}" @selected((string) data_get($row, 'key_starting_mechanism', $item->key_starting_mechanism?->value ?? $item->key_starting_mechanism) === $value)>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
                     </td>
 
                     <td class="px-3 py-2">
@@ -308,7 +361,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="33" class="px-4 py-8 text-center text-sm text-gray-500">No equipment found for
+                    <td colspan="37" class="px-4 py-8 text-center text-sm text-gray-500">No equipment found for
                         current filters.</td>
                 </tr>
             @endforelse

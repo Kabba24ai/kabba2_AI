@@ -55,10 +55,12 @@
         @csrf
         <input type="hidden" name="intake" value="1">
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {{-- Containerized single-column intake: the summary/next-steps
+             sidebar was removed (no operational value) — the form itself is
+             the whole page, centered at a readable width. --}}
+        <div class="max-w-4xl mx-auto">
 
-            {{-- ═══════════ MAIN COLUMN: intake cards ═══════════ --}}
-            <div class="lg:col-span-2 space-y-6">
+            <div class="space-y-6">
 
                 {{-- ===== Card 1: Rental Order Source ===== --}}
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -76,47 +78,54 @@
                         </span>
                     </div>
                     <p class="text-xs text-gray-400 mb-4">
-                        Search by order # or customer name. Only a reference is stored — the Order remains the source of truth for
+                        Find the rental order by order # or by customer name — category, product, and rental date all come
+                        from the order itself. Only a reference is stored; the Order remains the source of truth for
                         agreements, checklists, photos, and payments.
                     </p>
-                    {{-- One four-column row: order search, its two search aids (no name
-                         attributes — never submitted), and the view-only rental date --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+                    {{-- Two search windows (same pattern as Orders): either one
+                         resolves to the ONE canonical order selection below. --}}
+                    <div id="st-order-pickers" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="{{ $labelClass }} required">Rental Orders (<span id="st-order-count">{{ count($orderOptions) }}</span>)</label>
-                            <select name="order_id" id="st-order" required class="{{ $inputClass }}">
-                                <option value="">Search by order # or customer…</option>
-                                @foreach ($orderOptions as $order)
-                                    <option value="{{ $order['id'] }}" @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
-                                @endforeach
-                            </select>
-                            @error('order_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                            <label class="{{ $labelClass }}" for="st-search-order">Search by Order #</label>
+                            <div class="relative">
+                                <input type="text" id="st-search-order" autocomplete="off" placeholder="e.g. 3151"
+                                       class="{{ $inputClass }}">
+                                <div id="st-search-order-results"
+                                     class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
+                            </div>
                         </div>
                         <div>
-                            <label class="{{ $labelClass }}" for="st-filter-category">Filter Category</label>
-                            <select id="st-filter-category" class="{{ $inputClass }}">
-                                <option value="">All categories</option>
-                                @foreach ($filterCategories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->title }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="{{ $labelClass }}" for="st-filter-product">Filter Product</label>
-                            <select id="st-filter-product" class="{{ $inputClass }}">
-                                <option value="">All products</option>
-                                @foreach ($filterProducts as $product)
-                                    <option value="{{ $product['id'] }}">{{ $product['name'] }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="{{ $labelClass }}">Rental Date</label>
-                            <div id="st-rental-date" class="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-500">
-                                Select an order first
+                            <label class="{{ $labelClass }}" for="st-search-customer">Search by Customer</label>
+                            <div class="relative">
+                                <input type="text" id="st-search-customer" autocomplete="off" placeholder="Customer name…"
+                                       class="{{ $inputClass }}">
+                                <div id="st-search-customer-results"
+                                     class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
                             </div>
                         </div>
                     </div>
+
+                    {{-- Selected order chip --}}
+                    <div id="st-order-selected" class="hidden items-center justify-between gap-3 border border-blue-200 bg-blue-50/60 rounded-md px-3 py-2.5 text-sm">
+                        <div class="min-w-0">
+                            <span id="st-order-selected-label" class="font-medium text-gray-800"></span>
+                            <p id="st-order-selected-date" class="text-xs text-gray-500 mt-0.5"></p>
+                        </div>
+                        <button type="button" id="st-order-change" class="text-xs text-blue-600 hover:underline shrink-0">Change</button>
+                    </div>
+
+                    {{-- The ONE canonical order control — posts order_id and drives
+                         equipment/complaints exactly as before; the two search
+                         windows above are its only UI. --}}
+                    <select name="order_id" id="st-order" class="hidden" aria-hidden="true" tabindex="-1">
+                        <option value="">Search by order # or customer…</option>
+                        @foreach ($orderOptions as $order)
+                            <option value="{{ $order['id'] }}" @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <p id="st-order-required" class="hidden text-sm text-red-600 mt-2">Select the rental order first.</p>
+                    @error('order_id')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
                 </div>
 
                 {{-- ===== Card 2: Equipment & Service Location ===== --}}
@@ -331,61 +340,6 @@
                     </button>
                 </div>
             </div>
-
-            {{-- ═══════════ RIGHT SIDEBAR: intake summary ═══════════ --}}
-            <div class="space-y-6 lg:sticky lg:top-6">
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                    <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-1.5 mb-3">
-                        <x-heroicon-o-clipboard-document-check class="w-4 h-4 text-gray-400" />
-                        Intake Summary
-                    </h2>
-                    <dl class="space-y-2.5 text-sm">
-                        <div class="flex items-start justify-between gap-3">
-                            <dt class="text-xs text-gray-400 pt-0.5">Rental Order</dt>
-                            <dd id="st-sum-order" class="text-xs font-medium text-gray-400 text-right">Not selected</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-3">
-                            <dt class="text-xs text-gray-400 pt-0.5">Equipment</dt>
-                            <dd id="st-sum-equipment" class="text-xs font-medium text-gray-400 text-right">Not selected</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-3">
-                            <dt class="text-xs text-gray-400 pt-0.5">Service Store</dt>
-                            <dd id="st-sum-store" class="text-xs font-medium text-gray-400 text-right">Not selected</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-3">
-                            <dt class="text-xs text-gray-400 pt-0.5">Priority</dt>
-                            <dd id="st-sum-priority" class="text-xs font-medium text-gray-700 text-right">Normal</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-3">
-                            <dt class="text-xs text-gray-400 pt-0.5">Personnel</dt>
-                            <dd id="st-sum-crew" class="text-xs font-medium text-gray-400 text-right">No one assigned</dd>
-                        </div>
-                    </dl>
-                </div>
-
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                    <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-1.5 mb-3">
-                        <x-heroicon-o-arrow-trending-up class="w-4 h-4 text-gray-400" />
-                        What happens next
-                    </h2>
-                    <ol class="space-y-3">
-                        @foreach ([
-                            'Ticket opens in Workbench',
-                            'Diagnosis is recorded',
-                            'Responsibility and approval are determined',
-                            'Repair is completed and closed',
-                        ] as $step)
-                            <li class="flex items-start gap-2.5">
-                                <span class="w-5 h-5 rounded-full bg-blue-50 border border-blue-200 text-blue-600 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{{ $loop->iteration }}</span>
-                                <span class="text-xs text-gray-600 leading-5">{{ $step }}</span>
-                            </li>
-                        @endforeach
-                    </ol>
-                    <p class="text-[11px] text-gray-400 mt-4 pt-3 border-t border-gray-100">
-                        Intake captures just enough to open the ticket — everything else happens on the workbench.
-                    </p>
-                </div>
-            </div>
         </div>
     </form>
 
@@ -400,7 +354,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const orderSelect     = document.getElementById('st-order');
     const equipmentSelect = document.getElementById('st-equipment');
     const equipmentLocked = document.getElementById('st-equipment-locked');
-    const rentalDateBox   = document.getElementById('st-rental-date');
 
     function syncOrder(preserveOld) {
         const order = ORDERS.find(o => String(o.id) === String(orderSelect.value));
@@ -417,7 +370,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!order) {
             equipmentSelect.disabled = true;
-            rentalDateBox.textContent = 'Select an order first';
             return;
         }
 
@@ -439,28 +391,107 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             equipmentSelect.disabled = false;
         }
-
-        rentalDateBox.textContent = order.rental_date || 'No delivery date on order';
     }
 
     orderSelect.addEventListener('change', function () { syncOrder(false); });
     syncOrder(true); // restore state after a validation round-trip
 
-    // Precise matching: each whole word typed must appear somewhere in the
-    // label (threshold 0 = exact substring, space = AND). "gary" finds
-    // Gary Smith and McGary Equipment — never Grayson or Bryson.
-    const preciseSearch = { threshold: 0, ignoreLocation: true, useExtendedSearch: true };
+    // ── Two order-search windows (same pattern as Orders) ──────────────
+    // Either window resolves to the ONE canonical hidden order select —
+    // everything downstream (equipment, complaints) is driven by it exactly
+    // as before. Category/product/date filters are gone: all of that comes
+    // from the order once found.
+    const pickers      = document.getElementById('st-order-pickers');
+    const selectedChip = document.getElementById('st-order-selected');
+    const requiredNote = document.getElementById('st-order-required');
 
-    const orderChoices = new Choices(orderSelect, {
-        searchEnabled: true,
-        shouldSort: false,
-        itemSelectText: '',
-        searchResultLimit: 1000,
-        renderChoiceLimit: -1,
-        searchPlaceholderValue: 'Type an order # or customer name…',
-        fuseOptions: preciseSearch,
+    function esc(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function showSelectedOrder(order) {
+        document.getElementById('st-order-selected-label').textContent = order.label;
+        document.getElementById('st-order-selected-date').textContent =
+            order.rental_date ? 'Rental date: ' + order.rental_date : 'No delivery date on order';
+        selectedChip.classList.remove('hidden');
+        selectedChip.classList.add('flex');
+        pickers.classList.add('hidden');
+        requiredNote.classList.add('hidden');
+    }
+
+    function selectOrder(order) {
+        orderSelect.value = String(order.id);
+        orderSelect.dispatchEvent(new Event('change'));
+        showSelectedOrder(order);
+    }
+
+    document.getElementById('st-order-change').addEventListener('click', function () {
+        orderSelect.value = '';
+        orderSelect.dispatchEvent(new Event('change'));
+        selectedChip.classList.add('hidden');
+        selectedChip.classList.remove('flex');
+        pickers.classList.remove('hidden');
+        ['st-search-order', 'st-search-customer'].forEach(id => document.getElementById(id).value = '');
     });
-    orderSelect.choicesInstance = orderChoices;
+
+    function bindOrderSearch(inputId, resultsId) {
+        const input   = document.getElementById(inputId);
+        const results = document.getElementById(resultsId);
+
+        input.addEventListener('input', function () {
+            const q = input.value.trim().toLowerCase().replace(/^#/, '');
+            if (q.length < 2) { results.classList.add('hidden'); return; }
+
+            const matches = ORDERS
+                .filter(o => String(o.label).toLowerCase().includes(q))
+                .slice(0, 12);
+
+            results.innerHTML = matches.map(o =>
+                `<div data-id="${o.id}" class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
+                    <span class="font-medium">${esc(o.label)}</span>
+                    ${o.rental_date ? `<span class="text-gray-400"> · ${esc(o.rental_date)}</span>` : ''}
+                 </div>`).join('')
+                || '<div class="px-3 py-2 text-sm text-gray-400">No matching orders</div>';
+            results.classList.remove('hidden');
+
+            results.querySelectorAll('[data-id]').forEach(function (row) {
+                row.addEventListener('click', function () {
+                    const order = ORDERS.find(o => String(o.id) === row.dataset.id);
+                    results.classList.add('hidden');
+                    input.value = '';
+                    if (order) selectOrder(order);
+                });
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!results.contains(e.target) && e.target !== input) results.classList.add('hidden');
+        });
+    }
+    bindOrderSearch('st-search-order', 'st-search-order-results');
+    bindOrderSearch('st-search-customer', 'st-search-customer-results');
+
+    // Validation round-trip: restore the chip when order_id survived.
+    (function () {
+        const existing = ORDERS.find(o => String(o.id) === String(orderSelect.value));
+        if (existing) showSelectedOrder(existing);
+    })();
+
+    // The hidden select can't carry a native `required` (not focusable) —
+    // guard the submit client-side; the server re-validates regardless.
+    document.querySelector('form[action*="tickets"]').addEventListener('submit', function (e) {
+        if (!orderSelect.value) {
+            e.preventDefault();
+            requiredNote.classList.remove('hidden');
+            pickers.classList.remove('hidden');
+            selectedChip.classList.add('hidden');
+            document.getElementById('st-search-order').focus();
+        }
+    });
+
+    // Precise matching for the override search (each typed word must appear
+    // as an exact substring — "gary" never matches Grayson).
+    const preciseSearch = { threshold: 0, ignoreLocation: true, useExtendedSearch: true };
 
     // ── Equipment ID Override: search aid + reason reveal ─────────────
     const overrideSelect     = document.getElementById('st-override');
@@ -481,107 +512,12 @@ document.addEventListener('DOMContentLoaded', function () {
         overrideReasonWrap.classList.toggle('hidden', !overrideSelect.value);
     });
 
-    // ── Category / Product search aids (never submitted — no name attrs) ──
+    // Product → category map: still needed by the complaint symptom-profile
+    // resolution below (the category/product ORDER FILTERS themselves are
+    // gone — that context now comes from the selected order).
     const FILTER_PRODUCTS = @json($filterProducts);
-    const OVERRIDE_UNITS  = @json($overrideEquipment);
-
-    // product id → category ids, for narrowing override units by category
     const PRODUCT_CATEGORIES = {};
     FILTER_PRODUCTS.forEach(function (p) { PRODUCT_CATEGORIES[p.id] = p.category_ids || []; });
-
-    const categoryFilter = document.getElementById('st-filter-category');
-    const productFilter  = document.getElementById('st-filter-product');
-    const orderCount     = document.getElementById('st-order-count');
-
-    function syncProductFilter() {
-        const categoryId = categoryFilter.value;
-        productFilter.innerHTML = '';
-
-        const blank = document.createElement('option');
-        blank.value = '';
-        blank.textContent = 'All products';
-        productFilter.appendChild(blank);
-
-        FILTER_PRODUCTS
-            .filter(p => !categoryId || (p.category_ids || []).some(id => String(id) === categoryId))
-            .forEach(function (p) {
-                const option = document.createElement('option');
-                option.value = p.id;
-                option.textContent = p.name;
-                productFilter.appendChild(option);
-            });
-    }
-
-    function applyOrderFilters() {
-        const categoryId = categoryFilter.value;
-        const productId  = productFilter.value;
-
-        const matches = ORDERS.filter(function (order) {
-            if (categoryId && !(order.category_ids || []).some(id => String(id) === categoryId)) return false;
-            if (productId && !(order.product_ids || []).some(id => String(id) === productId)) return false;
-            return true;
-        });
-
-        orderCount.textContent = matches.length;
-
-        const selectedId = orderSelect.value;
-        const choiceList = matches.map(o => ({
-            value: String(o.id), label: o.label, selected: String(o.id) === selectedId,
-        }));
-
-        // An already-selected order always stays available — filters are
-        // search aids, not ticket data, so they never undo a selection.
-        if (selectedId && !matches.some(o => String(o.id) === selectedId)) {
-            const selected = ORDERS.find(o => String(o.id) === selectedId);
-            if (selected) choiceList.unshift({ value: String(selected.id), label: selected.label, selected: true });
-        }
-
-        choiceList.unshift({
-            value: '', label: 'Search by order # or customer…', placeholder: true, selected: !selectedId,
-        });
-
-        // replaceItems (6th arg): drop the retained selected item too — our
-        // choiceList re-selects it, avoiding a duplicate entry in the list
-        orderChoices.setChoices(choiceList, 'value', 'label', true, true, true);
-    }
-
-    function applyOverrideFilter() {
-        const categoryId = categoryFilter.value;
-        const productId  = productFilter.value;
-
-        const matches = OVERRIDE_UNITS.filter(function (unit) {
-            if (productId && String(unit.product_id) !== productId) return false;
-            if (categoryId && !(PRODUCT_CATEGORIES[unit.product_id] || []).some(id => String(id) === categoryId)) return false;
-            return true;
-        });
-
-        const selectedId    = overrideSelect.value;
-        const stillMatches  = selectedId && matches.some(u => String(u.id) === selectedId);
-
-        const choiceList = matches.map(u => ({
-            value: String(u.id), label: u.label, selected: String(u.id) === selectedId,
-        }));
-        choiceList.unshift({ value: '', label: 'No override', placeholder: true, selected: !stillMatches });
-
-        overrideChoices.setChoices(choiceList, 'value', 'label', true, true, true);
-
-        // A filtered-out override must never ride along invisibly: clear the
-        // selection and the reason so nothing invalid is submitted.
-        if (selectedId && !stillMatches) {
-            overrideReasonWrap.classList.add('hidden');
-            overrideReasonWrap.querySelector('input[name="equipment_override_reason"]').value = '';
-        }
-    }
-
-    categoryFilter.addEventListener('change', function () {
-        syncProductFilter();   // clears Filter Product and reloads it for this category
-        applyOrderFilters();
-        applyOverrideFilter();
-    });
-    productFilter.addEventListener('change', function () {
-        applyOrderFilters();
-        applyOverrideFilter();
-    });
 
     // ── Structured complaint intake (categorized symptom library) ──────
     const SYMPTOM_CATEGORIES = @json($symptomCategories);
@@ -902,47 +838,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Keep the panel open if a crew was already selected (validation round-trip)
     if (document.querySelector('.st-crew-check:checked')) panel.classList.remove('hidden');
-
-    // ── Intake Summary sidebar (display only — reads existing inputs) ──
-    const storeSelect    = document.querySelector('select[name="service_store_id"]');
-    const prioritySelect = document.querySelector('select[name="priority"]');
-    const sum = {
-        order:     document.getElementById('st-sum-order'),
-        equipment: document.getElementById('st-sum-equipment'),
-        store:     document.getElementById('st-sum-store'),
-        priority:  document.getElementById('st-sum-priority'),
-        crew:      document.getElementById('st-sum-crew'),
-    };
-
-    function summaryValue(el, selectedText, emptyText) {
-        el.textContent = selectedText || emptyText;
-        el.classList.toggle('text-gray-400', !selectedText);
-        el.classList.toggle('text-gray-700', !!selectedText);
-    }
-
-    function syncSummary() {
-        const orderOption = orderSelect.options[orderSelect.selectedIndex];
-        summaryValue(sum.order, orderSelect.value ? orderOption.textContent.trim() : '', 'Not selected');
-
-        const equipmentOption = equipmentSelect.options[equipmentSelect.selectedIndex];
-        summaryValue(sum.equipment, equipmentSelect.value ? equipmentOption.textContent.trim() : '', 'Not selected');
-
-        const storeOption = storeSelect.options[storeSelect.selectedIndex];
-        summaryValue(sum.store, storeSelect.value ? storeOption.textContent.trim() : '', 'Not selected');
-
-        summaryValue(sum.priority, prioritySelect.options[prioritySelect.selectedIndex].textContent.trim(), '');
-
-        const crewCount = document.querySelectorAll('.st-crew-check:checked').length;
-        summaryValue(sum.crew, crewCount ? summary.textContent : '', 'No one assigned');
-    }
-
-    [orderSelect, equipmentSelect, storeSelect, prioritySelect].forEach(function (el) {
-        el.addEventListener('change', syncSummary);
-    });
-    document.querySelectorAll('.st-crew-check, .st-leader-radio').forEach(function (el) {
-        el.addEventListener('change', syncSummary);
-    });
-    syncSummary();
 });
 </script>
 @endpush

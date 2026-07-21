@@ -75,20 +75,20 @@ class SendDeliverySameDayRentalReminderJobTest extends TestCase
         }
 
         foreach ([
-            'rental_delivery_same_day_store_message' => 'STANDARD_STORE_MSG for {{customer_name}}',
+            'rental_delivery_same_day_store_message' => 'STANDARD_STORE_MSG for {{customer_name}} at {{delivery_time}}',
             'rental_delivery_same_day_store_message_enabled' => '1',
-            'rental_delivery_same_day_truck_message' => 'STANDARD_TRUCK_MSG for {{customer_name}}',
+            'rental_delivery_same_day_truck_message' => 'STANDARD_TRUCK_MSG for {{customer_name}} at {{delivery_time}}',
             'rental_delivery_same_day_truck_message_enabled' => '1',
-            'store_delivery_same_day_cod_order_message' => 'COD_STORE_MSG for {{customer_name}}',
+            'store_delivery_same_day_cod_order_message' => 'COD_STORE_MSG for {{customer_name}} at {{delivery_time}}',
             'store_delivery_same_day_cod_message_enabled' => '1',
-            'truck_delivery_same_day_cod_order_message' => 'COD_TRUCK_MSG for {{customer_name}}',
+            'truck_delivery_same_day_cod_order_message' => 'COD_TRUCK_MSG for {{customer_name}} at {{delivery_time}}',
             'truck_delivery_same_day_cod_message_enabled' => '1',
         ] as $name => $value) {
             Setting::create(['setting_name' => $name, 'setting_type' => 'Default Sales Funnel Settings', 'setting_value' => $value]);
         }
     }
 
-    private function makeRecord(string $orderNumber): array
+    private function makeRecord(string $orderNumber, ?string $deliveryTime = '09:00:00'): array
     {
         $order = Order::create([
             'order_number'  => $orderNumber,
@@ -114,6 +114,7 @@ class SendDeliverySameDayRentalReminderJobTest extends TestCase
             'delivery_date'          => Carbon::now('America/Chicago')->toDateString(),
             'delivery_status'        => 'Pending',
             'delivery_transport_mode' => 'Store',
+            'delivery_time'          => $deliveryTime,
         ]);
 
         return [$order, $orderProduct];
@@ -344,5 +345,84 @@ class SendDeliverySameDayRentalReminderJobTest extends TestCase
         $this->runJob();
 
         $this->assertSame(0, SMSLog::where('order_id', $order->id)->count(), 'delivery_status must still gate eligibility regardless of the new dedup guard');
+    }
+
+    // ── {{delivery_time}} merge field (SMS_AUTOMATION_AUDIT.md — Weekend Special pickup-time correction) ──
+
+    public function test_weekend_special_order_receives_its_own_delivery_time_standard_bucket(): void
+    {
+        [$order] = $this->makeRecord('SDR-DELTIME-WEEKEND', deliveryTime: '14:00:00');
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertNotNull($log);
+        $this->assertStringContainsString('2:00 PM', $log->message);
+        $this->assertStringNotContainsString('9:00 AM', $log->message);
+    }
+
+    public function test_weekend_special_order_receives_its_own_delivery_time_cod_bucket(): void
+    {
+        [$order] = $this->makeRecord('SDR-DELTIME-WEEKEND-COD', deliveryTime: '14:00:00');
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::COD->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Pending->value,
+        ]);
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertNotNull($log);
+        $this->assertStringContainsString('2:00 PM', $log->message);
+        $this->assertStringNotContainsString('9:00 AM', $log->message);
+    }
+
+    public function test_standard_order_continues_receiving_its_normal_delivery_time(): void
+    {
+        [$order] = $this->makeRecord('SDR-DELTIME-STANDARD', deliveryTime: '09:00:00');
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertStringContainsString('9:00 AM', $log->message);
+    }
+
+    public function test_does_not_fall_back_to_the_previous_hardcoded_0900_delivery_time_when_an_actual_schedule_exists(): void
+    {
+        [$order] = $this->makeRecord('SDR-DELTIME-NOFALLBACK', deliveryTime: '11:15:00');
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertStringContainsString('11:15 AM', $log->message);
+        $this->assertStringNotContainsString('9:00 AM', $log->message);
+    }
+
+    public function test_missing_delivery_time_is_handled_safely(): void
+    {
+        [$order] = $this->makeRecord('SDR-DELTIME-MISSING', deliveryTime: null);
+        $order->payments()->create([
+            'payment_method' => OrderPaymentMethod::Card->value, 'payment_datetime' => now(),
+            'amount' => 500, 'status' => OrderPaymentStatus::Paid->value,
+        ]);
+
+        $this->runJob();
+
+        $log = SMSLog::where('order_id', $order->id)->first();
+        $this->assertNotNull($log, 'the job must still send when delivery_time is unset');
+        $this->assertStringNotContainsString('{{delivery_time}}', $log->message, 'the raw merge token must never leak into the sent message');
+        $this->assertStringNotContainsString('9:00 AM', $log->message, 'a missing delivery_time must not fall back to the old hardcoded value');
     }
 }

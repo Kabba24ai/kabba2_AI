@@ -66,6 +66,7 @@
                                 Available merge codes:
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;customer_name&#125;&#125;</code>
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;delivery_date&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;delivery_time&#125;&#125;</code>
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;payment_link&#125;&#125;</code>
                             </p>
                             <div
@@ -587,6 +588,7 @@
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;customer_name&#125;&#125;</code>
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;store_name&#125;&#125;</code>
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;delivery_date&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;delivery_time&#125;&#125;</code>
                             </p>
 
                             <div>
@@ -796,7 +798,7 @@
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;customer_name&#125;&#125;</code>
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;store_name&#125;&#125;</code>
                                 <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;return_date&#125;&#125;</code>
-                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;pickup_time&#125;&#125;</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">&#123;&#123;return_time&#125;&#125;</code>
                             </p>
 
                             <div>

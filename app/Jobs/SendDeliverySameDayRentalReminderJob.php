@@ -163,9 +163,14 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
             $customerName = trim(data_get($record, 'order.customer.first_name', '') . ' ' . data_get($record, 'order.customer.last_name', ''));
             $storeName    = $record->deliveryStore?->store_name ?? '';
             $deliveryDate = $record->delivery_date ? Carbon::parse($record->delivery_date)->format('M d, Y') : '';
+            // Actual scheduled delivery time for this order product — not a
+            // hardcoded standard time, so a Weekend Special (or any other
+            // non-standard) delivery schedule renders correctly. Empty
+            // string when unset, same fallback convention as $deliveryDate.
+            $deliveryTime = $record->delivery_time ? Carbon::parse($record->delivery_time)->format('g:i A') : '';
             $message = str_replace(
-                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}'],
-                [$customerName, $storeName, $deliveryDate],
+                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}', '{{delivery_time}}'],
+                [$customerName, $storeName, $deliveryDate, $deliveryTime],
                 $message
             );
 
@@ -245,9 +250,14 @@ class SendDeliverySameDayRentalReminderJob implements ShouldQueue
             $customerName = trim(data_get($record, 'order.customer.first_name', '') . ' ' . data_get($record, 'order.customer.last_name', ''));
             $storeName    = $record->deliveryStore?->store_name ?? '';
             $deliveryDate = $record->delivery_date ? Carbon::parse($record->delivery_date)->format('M d, Y') : '';
+            // Actual scheduled delivery time for this order product — not a
+            // hardcoded standard time, so a Weekend Special (or any other
+            // non-standard) delivery schedule renders correctly. Empty
+            // string when unset, same fallback convention as $deliveryDate.
+            $deliveryTime = $record->delivery_time ? Carbon::parse($record->delivery_time)->format('g:i A') : '';
             $message = str_replace(
-                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}'],
-                [$customerName, $storeName, $deliveryDate],
+                ['{{customer_name}}', '{{store_name}}', '{{delivery_date}}', '{{delivery_time}}'],
+                [$customerName, $storeName, $deliveryDate, $deliveryTime],
                 $message
             );
 

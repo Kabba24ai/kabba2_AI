@@ -59,9 +59,9 @@ class SendReturnDayBeforeRentalReminderJobTest extends TestCase
         }
 
         foreach ([
-            'rental_return_day_before_store_message' => 'RETURN_DAY_BEFORE_STORE_MSG for {{customer_name}} by {{pickup_time}}',
+            'rental_return_day_before_store_message' => 'RETURN_DAY_BEFORE_STORE_MSG for {{customer_name}} by {{return_time}}',
             'rental_return_day_before_store_message_enabled' => '1',
-            'rental_return_day_before_truck_message' => 'RETURN_DAY_BEFORE_TRUCK_MSG for {{customer_name}} by {{pickup_time}}',
+            'rental_return_day_before_truck_message' => 'RETURN_DAY_BEFORE_TRUCK_MSG for {{customer_name}} by {{return_time}}',
             'rental_return_day_before_truck_message_enabled' => '1',
         ] as $name => $value) {
             Setting::create(['setting_name' => $name, 'setting_type' => 'Default Sales Funnel Settings', 'setting_value' => $value]);
@@ -165,7 +165,7 @@ class SendReturnDayBeforeRentalReminderJobTest extends TestCase
         $this->assertSame(0, SMSLog::where('order_id', $order->id)->count(), 'pickup_date must still gate eligibility regardless of the new dedup guard');
     }
 
-    // ── {{pickup_time}} merge field (SMS_AUTOMATION_AUDIT.md — Weekend Special pickup-time correction) ──
+    // ── {{return_time}} merge field (SMS_AUTOMATION_AUDIT.md — Weekend Special pickup-time correction) ──
 
     public function test_weekend_special_order_receives_its_own_pickup_time(): void
     {
@@ -219,7 +219,7 @@ class SendReturnDayBeforeRentalReminderJobTest extends TestCase
 
         $log = SMSLog::where('order_id', $order->id)->first();
         $this->assertNotNull($log, 'the job must still send when pickup_time is unset');
-        $this->assertStringNotContainsString('{{pickup_time}}', $log->message, 'the raw merge token must never leak into the sent message');
+        $this->assertStringNotContainsString('{{return_time}}', $log->message, 'the raw merge token must never leak into the sent message');
         $this->assertStringNotContainsString('9:00 AM', $log->message, 'a missing pickup_time must not fall back to the old hardcoded value');
     }
 }

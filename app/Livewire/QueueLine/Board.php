@@ -196,9 +196,38 @@ class Board extends Component
         }
     }
 
-    // ── Mark as Staged (admin readiness modal, 2026-07-20) ──────────────
+    // ── Mark as Staged (admin readiness modal, 2026-07-20; assignment
+    //    integration same day) — the modal works for assigned AND unassigned
+    //    cards. Queue Line is a primary place the physical unit is confirmed
+    //    or changed, so the modal may invoke the CANONICAL assignment
+    //    operation (EquipmentReassignmentService via
+    //    QueueLineStagingService::assignAndStage); it owns no assignment
+    //    state of its own. ─────────────────────────────────────────────────
 
     public ?int $stagingItemId = null;
+
+    /** 'current' (accept the displayed assignment) | 'assign' (select a
+     *  different/first unit through the canonical Category → Equipment
+     *  dependency). Forced to 'assign' while the item has no assignment. */
+    public string $stagingMode = 'current';
+
+    /** Category → Equipment selection for the 'assign' path — same
+     *  canonical dependency the Order Details Assign Equipment modal uses
+     *  (equipment.product_category_id). */
+    public string $stagingCategory = '';
+
+    public string $stagingEquipmentId = '';
+
+    /** Required by the canonical switch rule when the selected unit is not
+     *  a direct match for the ordered product. */
+    public string $stagingReason = '';
+
+    /** The soft-assign episode + unit the modal is DISPLAYING — recomputed
+     *  every render so the screen and the stale-protection baseline always
+     *  agree; the service rejects a submission whose baseline moved on. */
+    public ?int $stagingBaselineAssignmentId = null;
+
+    public ?int $stagingBaselineEquipmentId = null;
 
     /** Deliberately NOT reset between items — shared-terminal employees
      *  stage several machines in a row (the fuel-modal convention). */
@@ -219,10 +248,20 @@ class Board extends Component
     public function openStaging(int $orderProductId): void
     {
         $this->stagingItemId = $orderProductId;
+        $this->stagingMode = 'current'; // render() forces 'assign' when unassigned
+        $this->stagingCategory = '';
+        $this->stagingEquipmentId = '';
+        $this->stagingReason = '';
         $this->stagingFuel = '';
         $this->stagingKey = '';
         $this->stagingError = null;
         $this->actionNotice = null;
+    }
+
+    /** Category change resets the dependent Equipment selection. */
+    public function updatedStagingCategory(): void
+    {
+        $this->stagingEquipmentId = '';
     }
 
     public function closeStaging(): void
@@ -231,19 +270,13 @@ class Board extends Component
         $this->stagingError = null;
     }
 
-    /**
-     * @param  int  $expectedEquipmentId  the unit shown on the modal — the
-     *                                    service rejects it if the assignment
-     *                                    moved on (stale-screen protection)
-     */
-    public function confirmStaging(int $expectedEquipmentId): void
+    public function confirmStaging(): void
     {
         $this->stagingError = null;
 
         try {
             $orderProduct = OrderProduct::with('softAssignment.equipment', 'order', 'queueLineItem')
                 ->findOrFail($this->stagingItemId);
-            $expected = Equipment::findOrFail($expectedEquipmentId);
 
             $performedBy = User::active()->find((int) $this->stagingPerformedBy);
             if (! $performedBy) {
@@ -252,19 +285,46 @@ class Board extends Component
                 return;
             }
 
-            \App\Services\QueueLine\QueueLineStagingService::markStaged(
+            // The unit being confirmed: the displayed current assignment, or
+            // the replacement selected through the Category → Equipment path.
+            $targetId = $this->stagingMode === 'assign'
+                ? (int) $this->stagingEquipmentId
+                : (int) $this->stagingBaselineEquipmentId;
+
+            $target = Equipment::find($targetId);
+            if (! $target) {
+                $this->stagingError = 'Select the equipment being staged before confirming.';
+
+                return;
+            }
+
+            $result = \App\Services\QueueLine\QueueLineStagingService::assignAndStage(
                 orderProduct: $orderProduct,
-                expected: $expected,
+                baselineAssignmentId: $this->stagingBaselineAssignmentId,
+                target: $target,
                 performedBy: $performedBy,
                 actor: auth()->user(),
                 fuelFull: $this->stagingFuel === 'full',
                 keyWithMachine: $this->stagingKey === 'with_machine',
+                reason: trim($this->stagingReason) ?: null,
                 source: $this->wallboard ? QueueLineFuelVerification::SOURCE_WALL : QueueLineFuelVerification::SOURCE_WEB,
             );
 
-            $this->actionNotice = "{$expected->equipment_name} marked as staged by {$performedBy->full_name} — ready for handoff.";
+            $notice = $result['changed']
+                ? "{$target->equipment_name} assigned and marked as staged by {$performedBy->full_name} — ready for handoff."
+                : "{$target->equipment_name} marked as staged by {$performedBy->full_name} — ready for handoff.";
+
+            if ($result['conflicts']->isNotEmpty()) {
+                $notice .= ' Note: this creates ' . $result['conflicts']->count()
+                    . ' scheduling conflict(s) — flagged on Schedule Conflicts for admin review.';
+            }
+
+            $this->actionNotice = $notice;
             $this->closeStaging();
         } catch (\InvalidArgumentException $e) {
+            // QUEUE_ASSIGNMENT_CHANGED included: the next render recomputes
+            // the baseline from the live assignment, so the modal refreshes
+            // its current-assignment display alongside this message.
             $this->stagingError = $e->getMessage();
         } catch (\Throwable $e) {
             report($e);
@@ -526,18 +586,49 @@ class Board extends Component
             }
         }
 
-        // Mark as Staged modal (gray thumbs-up)
+        // Mark as Staged modal (gray thumbs-up) — opens for assigned AND
+        // unassigned cards; the assignment area inside handles both.
         $stagingItem = null;
+        $stagingCategories = collect();
+        $stagingEquipmentOptions = collect();
+        $stagingSelectedUnit = null;
 
         if ($this->stagingItemId) {
-            $stagingItem = OrderProduct::with('softAssignment.equipment', 'product:id,product_name', 'order')
+            $stagingItem = OrderProduct::with('softAssignment.equipment.store', 'product:id,product_name', 'order')
                 ->find($this->stagingItemId);
 
-            if ($stagingItem && $stagingItem->softAssignment?->equipment) {
+            if ($stagingItem) {
+                // Baseline = what this render DISPLAYS. Recomputed every
+                // render so screen and stale-protection always agree; the
+                // service rejects a submission whose baseline moved on.
+                $live = $stagingItem->softAssignment;
+                $this->stagingBaselineAssignmentId = $live?->id;
+                $this->stagingBaselineEquipmentId = $live?->equipment_id;
+
+                if (! $live) {
+                    $this->stagingMode = 'assign';
+                }
+
                 $activeEmployees = User::active()->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+
+                // Canonical Category → Equipment dependency — the same
+                // source the Order Details Assign Equipment modal renders
+                // (ProductCategory + equipment.product_category_id), loaded
+                // lazily per selection instead of as one page-wide JSON blob.
+                $stagingCategories = \App\Models\ProductManagement\ProductCategory::orderBy('title')->get(['id', 'title']);
+
+                if ($this->stagingMode === 'assign' && $this->stagingCategory !== '') {
+                    $stagingEquipmentOptions = Equipment::with('store:id,store_name')
+                        ->where('product_category_id', (int) $this->stagingCategory)
+                        ->orderBy('equipment_name')
+                        ->get();
+                }
+
+                if ($this->stagingMode === 'assign' && $this->stagingEquipmentId !== '') {
+                    $stagingSelectedUnit = Equipment::with('store:id,store_name')->find((int) $this->stagingEquipmentId);
+                }
             } else {
                 $this->stagingItemId = null;
-                $stagingItem = null;
             }
         }
 
@@ -622,6 +713,9 @@ class Board extends Component
             'fuelCurrent' => $fuelCurrent,
             'fuelHistory' => $fuelHistory,
             'stagingItem' => $stagingItem,
+            'stagingCategories' => $stagingCategories,
+            'stagingEquipmentOptions' => $stagingEquipmentOptions,
+            'stagingSelectedUnit' => $stagingSelectedUnit,
             'statusItem' => $statusItem,
             'statusFuel' => $statusFuel,
             'statusKey' => $statusKey,

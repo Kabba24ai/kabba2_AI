@@ -46,15 +46,15 @@ class QueueLineStagingTest extends QueueLineTestCase
         return $end === false ? substr($html, $start) : substr($html, $start, $end - $start);
     }
 
-    /** Drive the full modal flow through the component. */
-    private function stageViaModal(OrderProduct $row, int $expectedEquipmentId)
+    /** Drive the full modal flow through the component (use-current path). */
+    private function stageViaModal(OrderProduct $row)
     {
         return Livewire::test(Board::class)
             ->call('openStaging', $row->id)
             ->set('stagingPerformedBy', (string) $this->employee->id)
             ->set('stagingFuel', 'full')
             ->set('stagingKey', 'with_machine')
-            ->call('confirmStaging', $expectedEquipmentId);
+            ->call('confirmStaging');
     }
 
     // ── Thumb states + modal opening ─────────────────────────────────────
@@ -73,16 +73,23 @@ class QueueLineStagingTest extends QueueLineTestCase
             ->assertSee('Equipment being staged');
     }
 
-    public function test_unassigned_card_shows_a_disabled_thumb_and_cannot_open_the_modal(): void
+    public function test_unassigned_card_has_an_active_gray_thumb_that_opens_the_assignment_modal(): void
     {
+        // Corrective mission 2026-07-20: Queue Line is a primary place the
+        // unit is selected — the thumb must work for unassigned cards too.
         $row = $this->makeRow(); // no equipment
 
         $component = Livewire::test(Board::class);
-        $this->assertSame(1, substr_count($component->html(), 'data-thumb="unavailable"'));
+        $this->assertSame(1, substr_count($component->html(), 'data-thumb="pending"'));
+        $this->assertStringNotContainsString('data-thumb="unavailable"', $component->html());
 
-        // Even a forced call refuses without an assigned unit
-        $component->call('openStaging', $row->id);
-        $this->assertStringNotContainsString('data-staging-modal', $component->html());
+        // Opens directly into the assignment path (Category → Equipment)
+        $component->call('openStaging', $row->id)
+            ->assertSee('Mark as Staged')
+            ->assertSee('No equipment is assigned to this order yet')
+            ->assertSee('Select Category')
+            ->assertSet('stagingMode', 'assign');
+        $this->assertStringContainsString('data-staging-modal', $component->html());
     }
 
     // ── Modal validation ─────────────────────────────────────────────────
@@ -96,7 +103,7 @@ class QueueLineStagingTest extends QueueLineTestCase
             ->call('openStaging', $row->id)
             ->set('stagingFuel', 'full')
             ->set('stagingKey', 'with_machine')
-            ->call('confirmStaging', $unit->id)
+            ->call('confirmStaging')
             ->assertSee('Select the employee');
 
         $this->assertDatabaseCount('queue_line_fuel_verifications', 0);
@@ -114,7 +121,7 @@ class QueueLineStagingTest extends QueueLineTestCase
             ->set('stagingPerformedBy', (string) $this->employee->id)
             ->set('stagingFuel', 'not_full')
             ->set('stagingKey', 'with_machine')
-            ->call('confirmStaging', $unit->id)
+            ->call('confirmStaging')
             ->assertSee('Fuel must be Full');
 
         // Key missing → rejected, nothing recorded
@@ -123,7 +130,7 @@ class QueueLineStagingTest extends QueueLineTestCase
             ->set('stagingPerformedBy', (string) $this->employee->id)
             ->set('stagingFuel', 'full')
             ->set('stagingKey', 'missing')
-            ->call('confirmStaging', $unit->id)
+            ->call('confirmStaging')
             ->assertSee('key must be with the machine');
 
         $this->assertDatabaseCount('queue_line_fuel_verifications', 0);
@@ -151,7 +158,7 @@ class QueueLineStagingTest extends QueueLineTestCase
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
 
-        $component = $this->stageViaModal($row, $unit->id);
+        $component = $this->stageViaModal($row);
         $component->assertSet('stagingItemId', null)
             ->assertSee('marked as staged');
 
@@ -182,7 +189,7 @@ class QueueLineStagingTest extends QueueLineTestCase
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
-        $this->stageViaModal($row, $unit->id);
+        $this->stageViaModal($row);
 
         // The mobile presenter reads the exact record the modal wrote
         $mobile = QueueLineMobilePresenter::item($row->fresh(['softAssignment.equipment', 'order', 'queueLineItem']));
@@ -196,11 +203,11 @@ class QueueLineStagingTest extends QueueLineTestCase
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
 
-        $this->stageViaModal($row, $unit->id);
+        $this->stageViaModal($row);
         $stagedAt = $row->fresh('queueLineItem')->queueLineItem->staged_at;
 
         // Double-click / repeat submission
-        $this->stageViaModal($row, $unit->id);
+        $this->stageViaModal($row);
 
         $this->assertSame(1, QueueLineFuelVerification::count());
         $this->assertSame(1, QueueLineKeyConfirmation::count());
@@ -210,19 +217,32 @@ class QueueLineStagingTest extends QueueLineTestCase
     public function test_a_stale_assignment_is_rejected_and_nothing_partial_is_recorded(): void
     {
         $row = $this->makeRow();
-        $original = $this->softAssign($row);
+        $this->softAssign($row);
 
-        // The assignment moves on after the modal loaded
-        $replacement = $this->makeEquipment(['assigned_product_id' => $row->product_id]);
+        // Modal opens showing the ORIGINAL unit…
+        $component = Livewire::test(Board::class)
+            ->call('openStaging', $row->id)
+            ->set('stagingPerformedBy', (string) $this->employee->id)
+            ->set('stagingFuel', 'full')
+            ->set('stagingKey', 'with_machine');
+
+        // …then the assignment moves on behind the open screen
+        $replacement = $this->makeEquipment([
+            'assigned_product_id' => $row->product_id,
+            'equipment_name' => 'Newer Assignment Unit',
+        ]);
         EquipmentReassignmentService::switch($row->fresh(['softAssignment.equipment', 'order']), $replacement, $this->employee, $this->admin);
 
-        $this->stageViaModal($row->fresh(), $original->id)
+        $component->call('confirmStaging')
             ->assertSee('assignment changed');
 
         // All-or-nothing: no fuel row, no key row, no staged latch
         $this->assertSame(0, QueueLineFuelVerification::where('action', 'verified')->count());
         $this->assertSame(0, QueueLineKeyConfirmation::count());
         $this->assertNull($row->fresh('queueLineItem')->queueLineItem?->staged_at);
+
+        // …and the rejected modal refreshed to show the live assignment
+        $this->assertStringContainsString('Newer Assignment Unit', $component->html());
     }
 
     public function test_staging_after_the_item_left_queue_line_is_rejected(): void
@@ -231,7 +251,7 @@ class QueueLineStagingTest extends QueueLineTestCase
         $unit = $this->softAssign($row);
         QueueLineService::complete($row, QueueLineService::VIA_DISPATCH_STARTED, $unit->id);
 
-        $this->stageViaModal($row->fresh(['softAssignment.equipment', 'queueLineItem']), $unit->id)
+        $this->stageViaModal($row->fresh(['softAssignment.equipment', 'queueLineItem']))
             ->assertSee('already left');
 
         $this->assertSame(0, QueueLineKeyConfirmation::count());
@@ -243,7 +263,7 @@ class QueueLineStagingTest extends QueueLineTestCase
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
-        $this->stageViaModal($row, $unit->id);
+        $this->stageViaModal($row);
 
         Livewire::test(Board::class)
             ->call('openStagedStatus', $row->id)
@@ -259,7 +279,7 @@ class QueueLineStagingTest extends QueueLineTestCase
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
-        $this->stageViaModal($row, $unit->id);
+        $this->stageViaModal($row);
 
         $component = Livewire::test(Board::class)
             ->call('openStagedStatus', $row->id)
@@ -281,7 +301,7 @@ class QueueLineStagingTest extends QueueLineTestCase
             ->where('reason', QueueLineStagingService::RETURN_REASON)->count());
 
         // And the item can be fully staged again afterwards
-        $this->stageViaModal($row->fresh(['softAssignment.equipment', 'queueLineItem']), $unit->id);
+        $this->stageViaModal($row->fresh(['softAssignment.equipment', 'queueLineItem']));
         $this->assertNotNull($row->fresh('queueLineItem')->queueLineItem->staged_at);
         $this->assertSame(3, QueueLineFuelVerification::count());   // + fresh verification
     }
@@ -292,7 +312,7 @@ class QueueLineStagingTest extends QueueLineTestCase
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
-        $this->stageViaModal($row, $unit->id);
+        $this->stageViaModal($row);
 
         // "Start Delivery" — the dispatch_started completion latch
         QueueLineService::complete($row->fresh('queueLineItem'), QueueLineService::VIA_DISPATCH_STARTED, $unit->id);

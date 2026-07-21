@@ -149,6 +149,9 @@
         @include('livewire.queue-line.partials._staging_modal', [
             'stagingItem' => $stagingItem,
             'activeEmployees' => $activeEmployees,
+            'stagingCategories' => $stagingCategories,
+            'stagingEquipmentOptions' => $stagingEquipmentOptions,
+            'stagingSelectedUnit' => $stagingSelectedUnit,
         ])
     @endif
 

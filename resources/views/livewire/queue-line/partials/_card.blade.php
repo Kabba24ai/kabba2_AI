@@ -96,17 +96,16 @@
                             class="flex items-center justify-center w-8 h-8 rounded-md text-green-600 hover:bg-green-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500">
                             <x-heroicon-s-hand-thumb-up class="w-5 h-5" aria-hidden="true" />
                         </button>
-                    @elseif ($equipment)
+                    @else
+                        {{-- Active for assigned AND unassigned cards — the
+                             modal carries the canonical assignment path, so
+                             the yard never has to leave Queue Line to pick
+                             the machine (assignment integration 2026-07-20). --}}
                         <button type="button" wire:click="openStaging({{ $item->id }})" data-thumb="pending"
-                            title="Not staged — click to mark as staged"
+                            title="{{ $equipment ? 'Not staged — click to mark as staged' : 'No equipment selected — click to assign and stage' }}"
                             class="flex items-center justify-center w-8 h-8 rounded-md text-gray-300 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
                             <x-heroicon-s-hand-thumb-up class="w-5 h-5" aria-hidden="true" />
                         </button>
-                    @else
-                        <span data-thumb="unavailable" title="Assign equipment before staging"
-                            class="flex items-center justify-center w-8 h-8 rounded-md text-gray-200 cursor-not-allowed">
-                            <x-heroicon-s-hand-thumb-up class="w-5 h-5" aria-hidden="true" />
-                        </span>
                     @endif
                 </span>
             @endif

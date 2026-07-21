@@ -7,6 +7,7 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\QueueLineFuelVerification;
 use App\Models\Orders\QueueLineKeyConfirmation;
+use App\Services\Equipment\EquipmentReassignmentService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -38,6 +39,124 @@ use Illuminate\Support\Facades\DB;
 final class QueueLineStagingService
 {
     public const RETURN_REASON = 'Returned to Pending from the Queue Line staging dialog';
+
+    /**
+     * Assign (or reassign) equipment AND mark it staged as ONE atomic
+     * business operation — the Mark as Staged modal's assignment-capable
+     * submission (corrective mission 2026-07-20). Queue Line is a primary
+     * place the physical unit is confirmed or changed, so the modal may
+     * INVOKE assignment; the assignment itself is the canonical operation
+     * every entry point shares (EquipmentReassignmentService — the same
+     * delete-then-create soft assignment Schedule Assignment, Order Details,
+     * auto-assign, and mobile write, and every surface reads live). No
+     * Queue-Line-only assignment state exists.
+     *
+     * @param  ?int  $baselineAssignmentId  the soft-assign episode id the modal
+     *                                      DISPLAYED (null = shown unassigned).
+     *                                      A physical change is only accepted
+     *                                      from a current screen: if the live
+     *                                      episode differs, the submission is
+     *                                      rejected — a stale modal can never
+     *                                      overwrite newer assignment work.
+     * @param  Equipment  $target           the unit the user confirmed —
+     *                                      either the displayed current unit
+     *                                      or a replacement they selected
+     * @param  ?string  $reason             required by the canonical switch
+     *                                      rule when the replacement is not a
+     *                                      direct match for the ordered product
+     * @return array{staged: bool, replayed: bool, changed: bool, conflicts: Collection}
+     *
+     * @throws QueueLineOperationException
+     */
+    public static function assignAndStage(
+        OrderProduct $orderProduct,
+        ?int $baselineAssignmentId,
+        Equipment $target,
+        User $performedBy,
+        User $actor,
+        bool $fuelFull,
+        bool $keyWithMachine,
+        ?string $reason = null,
+        string $source = QueueLineFuelVerification::SOURCE_WEB,
+    ): array {
+        // Same server-side re-enforcement as markStaged — fail BEFORE any
+        // assignment work so a rejected checklist never moves equipment.
+        if (! $fuelFull) {
+            throw new QueueLineOperationException('Fuel must be Full before the equipment can be marked as staged.', 'QUEUE_FUEL_NOT_FULL');
+        }
+
+        if (! $keyWithMachine) {
+            throw new QueueLineOperationException('The key must be with the machine before it can be marked as staged.', 'QUEUE_KEY_MISSING');
+        }
+
+        return DB::transaction(function () use ($orderProduct, $baselineAssignmentId, $target, $performedBy, $actor, $source, $reason) {
+            // Serialize competing submissions on the ITEM itself — the
+            // unassigned case has no soft-assign row to lock, so two admins
+            // assigning simultaneously must queue here, not double-insert.
+            OrderProduct::whereKey($orderProduct->id)->lockForUpdate()->value('id');
+
+            $live = $orderProduct->softAssignment()->first();
+            $changed = false;
+            $conflicts = collect();
+
+            if ((int) ($live?->equipment_id) !== (int) $target->id) {
+                // A physical change is being requested. Only a screen showing
+                // the CURRENT assignment may make it — reject stale modals.
+                if (($live?->id) !== $baselineAssignmentId) {
+                    throw new QueueLineOperationException(
+                        'The equipment assignment changed while this screen was open. Review the current assignment shown below and try again.',
+                        'QUEUE_ASSIGNMENT_CHANGED',
+                    );
+                }
+
+                // Pin the relation to the row read under the lock so the
+                // canonical switch audits the true previous unit.
+                $orderProduct->setRelation('softAssignment', $live);
+
+                // The canonical assign/reassign operation — same guards,
+                // audit trail, substitution logging, and report-only conflict
+                // detection as every other assignment entry point. Throws
+                // (rolling this transaction back) on rented/inactive units or
+                // a missing reason for non-direct replacements.
+                $result = EquipmentReassignmentService::switch(
+                    orderProduct: $orderProduct,
+                    replacement: $target,
+                    performedBy: $performedBy,
+                    actor: $actor,
+                    source: EquipmentReassignmentService::SOURCE_WEB,
+                    reason: $reason,
+                );
+
+                $changed = $result['changed'];
+                $conflicts = $result['conflicts'];
+
+                $orderProduct->unsetRelation('softAssignment');
+            }
+            // else: the live unit already IS the target (use-current, or a
+            // repeated submission after a completed reassignment) — nothing
+            // to overwrite, so no baseline check; staging idempotency below.
+
+            // The existing all-or-nothing readiness core (fuel + key +
+            // staged latch). Runs inside THIS transaction: if any readiness
+            // step fails, the assignment change above rolls back with it.
+            $staged = self::markStaged(
+                orderProduct: $orderProduct,
+                expected: $target,
+                performedBy: $performedBy,
+                actor: $actor,
+                fuelFull: true,
+                keyWithMachine: true,
+                source: $source,
+            );
+
+            return [
+                'staged' => true,
+                'replayed' => $staged['replayed'],
+                'changed' => $changed,
+                'conflicts' => $conflicts,
+            ];
+        });
+    }
 
     /**
      * @param  Equipment  $expected  the unit shown on the modal — a stale

@@ -4,35 +4,35 @@ namespace App\Http\Controllers\Api\Admin\V1\QueueLine;
 
 use App\Http\Controllers\Api\Admin\V1\QueueLine\Concerns\RespondsWithQueueLineEnvelope;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Admin\V1\QueueLine\QueueLineVerifyFuelRequest;
-use App\Models\Iam\Personnel\User;
+use App\Http\Requests\Api\Admin\V1\QueueLine\QueueLineMarkStagedRequest;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\QueueLineFuelVerification;
-use App\Services\QueueLine\QueueFuelVerificationService;
 use App\Services\QueueLine\QueueLineOperationException;
+use App\Services\QueueLine\QueueLineStagingService;
 use Illuminate\Http\JsonResponse;
 
 /**
- * POST queue-line/{order_product_unique_id}/verify-fuel
+ * POST queue-line/{order_product_unique_id}/mark-staged
  *
- * "Verify Fuel Full" — thin adapter over the SAME canonical
- * QueueFuelVerificationService the web board uses. Source is ALWAYS
- * queue_line_mobile. The sign-off binds to the exact assignment EPISODE: a
- * stale screen gets QUEUE_ASSIGNMENT_CHANGED with the currently assigned
- * unit; the idempotency token replays the original event safely, even after
- * the assignment changed.
+ * The ONE staging action — identical to the web thumbs-up modal: one
+ * atomic QueueLineStagingService::markStaged() call records the canonical
+ * fuel verification, the key confirmation, and the staged latch together.
+ * Staging is deliberately all-or-nothing: there is no fuel-only or
+ * key-only step. fuel_full and key_with_machine must both be true or the
+ * whole request is rejected (QUEUE_FUEL_NOT_FULL / QUEUE_KEY_MISSING) and
+ * nothing is recorded.
  *
- * Reversal is deliberately NOT exposed to mobile (approved policy):
- * corrections are supervised web actions with reason + append-only history.
+ * Stale screens get QUEUE_ASSIGNMENT_CHANGED with the currently assigned
+ * unit; the idempotency token replays the original event safely.
  *
  * @group Admin App
  * @authenticated
  */
-class QueueLineVerifyFuelController extends Controller
+class QueueLineMarkStagedController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
-    public function __invoke(QueueLineVerifyFuelRequest $request, string $orderProductUniqueId): JsonResponse
+    public function __invoke(QueueLineMarkStagedRequest $request, string $orderProductUniqueId): JsonResponse
     {
         $validated = $request->validated();
 
@@ -55,11 +55,13 @@ class QueueLineVerifyFuelController extends Controller
         }
 
         try {
-            $result = QueueFuelVerificationService::verify(
+            $result = QueueLineStagingService::markStaged(
                 orderProduct: $orderProduct,
                 expected: $equipment,
                 performedBy: $performedBy,
                 actor: auth('api_user')->user(),
+                fuelFull: (bool) $validated['fuel_full'],
+                keyWithMachine: (bool) $validated['key_with_machine'],
                 source: QueueLineFuelVerification::SOURCE_MOBILE,
                 idempotencyToken: $validated['idempotency_token'] ?? null,
             );
@@ -72,25 +74,21 @@ class QueueLineVerifyFuelController extends Controller
             );
         }
 
-        $verification = $result['verification'];
-
         return $this->ok(
             [
                 'order_product_unique_id' => $orderProduct->unique_id,
                 'current_equipment' => [
-                    'unique_id' => $verification->equipment?->unique_id ?? $equipment->unique_id,
+                    'unique_id' => $equipment->unique_id,
                     'display_id' => $equipment->equipment_id,
                     'name' => $equipment->equipment_name,
                 ],
-                'fuel_state' => 'verified',
-                'verified_at' => $verification->created_at->toIso8601String(),
-                'verified_by' => $verification->performedBy?->full_name
-                    ?? User::find($verification->performed_by)?->full_name,
+                'fully_staged' => true,
+                'staged_by' => $performedBy->full_name,
                 'replayed' => $result['replayed'],
             ],
             message: $result['replayed']
-                ? 'Fuel verification already recorded for this machine.'
-                : "Fuel Full verified for {$equipment->equipment_name}.",
+                ? 'This machine is already staged.'
+                : "{$equipment->equipment_name} marked as staged — ready for handoff.",
         );
     }
 }

@@ -434,65 +434,114 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
             ->assertJsonPath('data.replayed', false);
     }
 
-    // ── Mobile fuel verification ─────────────────────────────────────────
+    // ── Mobile staging (all-or-nothing — replaces the fuel-only endpoint) ──
 
-    private function apiVerifyFuel($row, $equipment, array $overrides = []): \Illuminate\Testing\TestResponse
+    private function apiMarkStaged($row, $equipment, array $overrides = []): \Illuminate\Testing\TestResponse
     {
-        return $this->actingAs($this->admin, 'api_user')->postJson($this->api('queue-line/' . $row->unique_id . '/verify-fuel'), array_merge([
+        return $this->actingAs($this->admin, 'api_user')->postJson($this->api('queue-line/' . $row->unique_id . '/mark-staged'), array_merge([
             'equipment_unique_id' => $equipment->unique_id,
             'performed_by' => $this->employee->unique_id,
+            'fuel_full' => true,
+            'key_with_machine' => true,
         ], $overrides));
     }
 
-    public function test_mobile_fuel_verification_records_mobile_source_and_replays_tokens(): void
+    public function test_mobile_mark_staged_records_the_full_set_with_mobile_source_and_replays_tokens(): void
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
 
-        $this->apiVerifyFuel($row, $unit, ['idempotency_token' => 'mob-9'])
+        $this->apiMarkStaged($row, $unit, ['idempotency_token' => 'mob-9'])
             ->assertOk()
-            ->assertJsonPath('data.fuel_state', 'verified')
+            ->assertJsonPath('data.fully_staged', true)
             ->assertJsonPath('data.replayed', false)
-            ->assertJsonPath('data.verified_by', 'Release Tech');
+            ->assertJsonPath('data.staged_by', 'Release Tech');
 
+        // The SAME canonical records the web modal writes — fuel + key + latch
         $v = QueueLineFuelVerification::firstOrFail();
         $this->assertSame('queue_line_mobile', $v->source);
         $this->assertEquals($this->employee->id, $v->performed_by);
         $this->assertEquals($this->admin->id, $v->created_by);
+        $key = \App\Models\Orders\QueueLineKeyConfirmation::firstOrFail();
+        $this->assertSame('queue_line_mobile', $key->source);
+        $this->assertEquals($this->employee->id, $key->performed_by);
+        $this->assertNotNull($row->fresh('queueLineItem')->queueLineItem->staged_at);
 
-        // Token replay
-        $this->apiVerifyFuel($row, $unit, ['idempotency_token' => 'mob-9'])
+        // Token replay — nothing duplicated
+        $this->apiMarkStaged($row, $unit, ['idempotency_token' => 'mob-9'])
             ->assertOk()->assertJsonPath('data.replayed', true);
         $this->assertSame(1, QueueLineFuelVerification::count());
+        $this->assertSame(1, \App\Models\Orders\QueueLineKeyConfirmation::count());
 
         // Release now passes
         $this->readyToGo($row)->assertOk();
     }
 
-    public function test_mobile_fuel_rejects_stale_unassigned_and_ineligible_items(): void
+    public function test_mobile_mark_staged_is_all_or_nothing(): void
+    {
+        $row = $this->makeRow();
+        $unit = $this->softAssign($row);
+
+        // Fuel not full → whole request rejected, nothing recorded
+        $this->apiMarkStaged($row, $unit, ['fuel_full' => false])
+            ->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_FUEL_NOT_FULL');
+
+        // Key missing → same
+        $this->apiMarkStaged($row, $unit, ['key_with_machine' => false])
+            ->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_KEY_MISSING');
+
+        $this->assertSame(0, QueueLineFuelVerification::count());
+        $this->assertSame(0, \App\Models\Orders\QueueLineKeyConfirmation::count());
+        $this->assertNull($row->fresh('queueLineItem')->queueLineItem?->staged_at);
+    }
+
+    public function test_mobile_return_to_pending_reverses_the_full_set(): void
+    {
+        $row = $this->makeRow();
+        $unit = $this->softAssign($row);
+        $this->apiMarkStaged($row, $unit)->assertOk();
+
+        $this->actingAs($this->admin, 'api_user')
+            ->postJson($this->api('queue-line/' . $row->unique_id . '/return-to-pending'), [
+                'performed_by' => $this->employee->unique_id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.fully_staged', false);
+
+        // Latch cleared; append-only reversals recorded; history preserved
+        $this->assertNull($row->fresh('queueLineItem')->queueLineItem->staged_at);
+        $this->assertSame(2, QueueLineFuelVerification::count());
+        $this->assertSame(2, \App\Models\Orders\QueueLineKeyConfirmation::count());
+    }
+
+    public function test_mobile_mark_staged_rejects_stale_unassigned_and_ineligible_items(): void
     {
         // Stale equipment
         $row = $this->makeRow();
         $old = $this->softAssign($row);
         $new = $this->makeEquipment(['assigned_product_id' => $row->product_id]);
         EquipmentReassignmentService::switch($row->fresh(['softAssignment.equipment', 'order']), $new, $this->employee, $this->admin);
-        $this->apiVerifyFuel($row, $old)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_ASSIGNMENT_CHANGED');
+        $this->apiMarkStaged($row, $old)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_ASSIGNMENT_CHANGED');
 
         // Needs Equipment
         $bare = $this->makeRow();
-        $this->apiVerifyFuel($bare, $this->makeEquipment())->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_EQUIPMENT_REQUIRED');
+        $this->apiMarkStaged($bare, $this->makeEquipment())->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_EQUIPMENT_REQUIRED');
 
         // Ineligible (outside window)
         $far = $this->makeRow(null, ['delivery_date' => now()->addDays(9)->format('Y-m-d')]);
         $farUnit = $this->softAssign($far);
-        $this->apiVerifyFuel($far, $farUnit)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_ITEM_NOT_ELIGIBLE');
+        $this->apiMarkStaged($far, $farUnit)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_ITEM_NOT_ELIGIBLE');
+
+        // Partial state never leaks from a rejection
+        $this->assertSame(0, \App\Models\Orders\QueueLineKeyConfirmation::count());
     }
 
     public function test_guest_api_requests_are_rejected(): void
     {
         auth()->logout();
 
-        $this->postJson($this->api('queue-line/ANY-ID/verify-fuel'), [])->assertUnauthorized();
+        $this->postJson($this->api('queue-line/ANY-ID/mark-staged'), [])->assertUnauthorized();
+        $this->postJson($this->api('queue-line/ANY-ID/return-to-pending'), [])->assertUnauthorized();
         $this->postJson($this->api('queue-line/ANY-ID/switch-equipment'), [])->assertUnauthorized();
         $this->getJson($this->api('queue-line'))->assertUnauthorized();
         $this->postJson($this->api('orders/schedules/driver-checklist'), [])->assertUnauthorized();

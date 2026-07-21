@@ -23,9 +23,13 @@ use Illuminate\Support\Collection;
 final class QueueLineMobilePresenter
 {
     // §14 readiness — Queue Line PREPARES; Dispatch/Customer Checklist release.
+    // Staging is ALL-OR-NOTHING (2026-07-20): ready_* now requires the
+    // COMPLETE staging set (fuel + key + staged latch) — the same rule as
+    // the web board's Staged section. Changed in place before any app build
+    // consumed the contract.
     public const READINESS_EQUIPMENT_REQUIRED = 'equipment_assignment_required';
 
-    public const READINESS_FUEL_REQUIRED = 'fuel_verification_required';
+    public const READINESS_STAGING_REQUIRED = 'staging_required';
 
     public const READINESS_DISPATCH = 'ready_for_dispatch';
 
@@ -46,13 +50,18 @@ final class QueueLineMobilePresenter
         );
 
         $fuelByAssignment = self::fuelMap($rows);
+        $keyByAssignment = QueueLineStagingService::keyMap($rows);
 
         $items = $rows
-            ->map(fn (OrderProduct $row) => self::serialize($row, self::currentFuelFor($row, $fuelByAssignment)))
+            ->map(fn (OrderProduct $row) => self::serialize(
+                $row,
+                self::currentFuelFor($row, $fuelByAssignment),
+                self::currentKeyFor($row, $keyByAssignment),
+            ))
             ->values()
             ->all();
 
-        return ['items' => $items, 'meta' => self::meta($rows, $fuelByAssignment)];
+        return ['items' => $items, 'meta' => self::meta($rows, $fuelByAssignment, $keyByAssignment)];
     }
 
     /** Lightweight counts for the home-page badge (§15) — no item payloads. */
@@ -62,15 +71,17 @@ final class QueueLineMobilePresenter
             QueueLineEligibility::boardQuery($storeId)->get()
         );
         $fuelByAssignment = self::fuelMap($rows);
+        $keyByAssignment = QueueLineStagingService::keyMap($rows);
 
-        return self::meta($rows, $fuelByAssignment)['counts'];
+        return self::meta($rows, $fuelByAssignment, $keyByAssignment)['counts'];
     }
 
     /** One item, detail depth (adds suppression + completion state). */
     public static function item(OrderProduct $row): array
     {
         $fuel = QueueFuelVerificationService::currentVerification($row);
-        $data = self::serialize($row, $fuel);
+        $key = QueueLineStagingService::currentKey($row);
+        $data = self::serialize($row, $fuel, $key);
 
         $queueItem = $row->queueLineItem;
         $data['suppression'] = [
@@ -84,8 +95,9 @@ final class QueueLineMobilePresenter
 
     /**
      * @param  QueueLineFuelVerification|null  $fuel  the CURRENT-episode verification (pre-resolved)
+     * @param  \App\Models\Orders\QueueLineKeyConfirmation|null  $key  the CURRENT-episode key confirmation (pre-resolved)
      */
-    public static function serialize(OrderProduct $row, ?QueueLineFuelVerification $fuel): array
+    public static function serialize(OrderProduct $row, ?QueueLineFuelVerification $fuel, $key = null): array
     {
         $classification = QueueLineEligibility::classifyAssignment($row);
         $equipment = $row->softAssignment?->equipment;
@@ -137,23 +149,29 @@ final class QueueLineMobilePresenter
                 'verified_by' => $fuel?->performedBy?->full_name,
                 'verified_at' => $fuel?->created_at?->toIso8601String(),
             ],
+            'key' => [
+                'state' => $key ? 'confirmed' : 'not_confirmed',
+                'confirmed_by' => $key?->performedBy?->full_name,
+                'confirmed_at' => $key?->created_at?->toIso8601String(),
+            ],
             'payment_label' => $order->last_payment_status === null
                 ? 'No Payment Recorded' // approved Phase 2 wording — never guessed
                 : (string) $order->last_payment_status,
             'staged' => (bool) $row->queueLineItem?->isStaged(),
-            'readiness' => self::readiness($assignmentState, $fuel !== null, $row),
-            'available_actions' => self::availableActions($assignmentState, $fuel !== null),
+            'fully_staged' => QueueLineStagingService::isFullyStaged($row, $fuel, $key),
+            'readiness' => self::readiness($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key), $row),
+            'available_actions' => self::availableActions($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key)),
         ];
     }
 
-    private static function readiness(string $assignmentState, bool $fuelVerified, OrderProduct $row): string
+    private static function readiness(string $assignmentState, bool $fullyStaged, OrderProduct $row): string
     {
         if ($assignmentState === 'needs_equipment') {
             return self::READINESS_EQUIPMENT_REQUIRED;
         }
 
-        if (! $fuelVerified) {
-            return self::READINESS_FUEL_REQUIRED;
+        if (! $fullyStaged) {
+            return self::READINESS_STAGING_REQUIRED;
         }
 
         return $row->delivery_transport_mode === 'Truck'
@@ -164,17 +182,20 @@ final class QueueLineMobilePresenter
     /**
      * The server decides what the app may offer — the app never infers.
      * Explicit boolean map (§8): every action is present with its current
-     * availability; fuel REVERSAL is deliberately absent (web-only policy)
-     * and release actions never appear (Driver/Customer Checklist own them).
+     * availability. Staging is ALL-OR-NOTHING: mark_staged records fuel +
+     * key + staged atomically, return_to_pending reverses the whole set —
+     * there is no fuel-only step. Release actions never appear
+     * (Driver/Customer Checklist own them).
      */
-    private static function availableActions(string $assignmentState, bool $fuelVerified): array
+    private static function availableActions(string $assignmentState, bool $fullyStaged): array
     {
         $needsEquipment = $assignmentState === 'needs_equipment';
 
         return [
             'assign_equipment' => $needsEquipment,
             'switch_equipment' => ! $needsEquipment,
-            'verify_fuel' => ! $needsEquipment && ! $fuelVerified,
+            'mark_staged' => ! $needsEquipment && ! $fullyStaged,
+            'return_to_pending' => $fullyStaged,
             'view_history' => true,
         ];
     }
@@ -198,13 +219,20 @@ final class QueueLineMobilePresenter
             : null;
     }
 
-    private static function meta(Collection $rows, Collection $fuelByAssignment): array
+    private static function currentKeyFor(OrderProduct $row, Collection $keyByAssignment)
+    {
+        return $row->softAssignment
+            ? ($keyByAssignment[$row->softAssignment->id] ?? null)
+            : null;
+    }
+
+    private static function meta(Collection $rows, Collection $fuelByAssignment, Collection $keyByAssignment): array
     {
         $counts = [
             'total' => $rows->count(),
             'rush' => 0, 'overdue' => 0, 'today' => 0, 'tomorrow' => 0,
             'needs_equipment' => 0,
-            'fuel_not_verified' => 0,
+            'staging_required' => 0, // assigned but not yet fully staged
         ];
 
         foreach ($rows as $row) {
@@ -212,8 +240,12 @@ final class QueueLineMobilePresenter
 
             if (! $row->softAssignment?->equipment) {
                 $counts['needs_equipment']++;
-            } elseif (self::currentFuelFor($row, $fuelByAssignment) === null) {
-                $counts['fuel_not_verified']++;
+            } elseif (! QueueLineStagingService::isFullyStaged(
+                $row,
+                self::currentFuelFor($row, $fuelByAssignment),
+                self::currentKeyFor($row, $keyByAssignment),
+            )) {
+                $counts['staging_required']++;
             }
         }
 

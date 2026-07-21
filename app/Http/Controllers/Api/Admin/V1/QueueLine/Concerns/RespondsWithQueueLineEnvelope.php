@@ -109,6 +109,8 @@ trait RespondsWithQueueLineEnvelope
             'QUEUE_ITEM_DELIVERED' => 'This equipment has already been delivered — no Queue Line action applies.',
             'QUEUE_ITEM_ALREADY_COMPLETED' => 'This item already left the Queue Line — refresh the board.',
             'QUEUE_FUEL_VERIFICATION_REQUIRED' => 'Verify Fuel Full for the assigned machine on the Queue Line.',
+            'QUEUE_FUEL_NOT_FULL' => 'Fill the machine, then mark it as staged — staging records complete readiness only.',
+            'QUEUE_KEY_MISSING' => 'Locate the key and leave it with the machine, then mark it as staged.',
             'QUEUE_ITEM_SUPPRESSED' => 'This item was removed from Queue Line management.',
             default => 'Refresh the Queue Line board and try again.',
         };

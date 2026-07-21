@@ -296,26 +296,37 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
         return $end === false ? substr($html, $start) : substr($html, $start, $end - $start);
     }
 
-    public function test_fuel_state_places_cards_in_the_correct_workflow_section(): void
+    public function test_fuel_alone_no_longer_stages_a_card_only_the_full_staging_action_does(): void
     {
-        $verified = $this->makeRow();
-        $unit = $this->softAssign($verified);
-        $this->verify($verified, $unit);
+        // Admin readiness workflow (2026-07-20): the Staged section requires
+        // the COMPLETE staging action (fuel + key + staged latch). A fuel
+        // verification by itself — e.g. from mobile — keeps the card Pending.
+        $verifiedOnly = $this->makeRow();
+        $unit = $this->softAssign($verifiedOnly);
+        $this->verify($verifiedOnly, $unit);
 
-        $notVerified = $this->makeRow();
-        $this->softAssign($notVerified);
+        $fullyStaged = $this->makeRow();
+        $stagedUnit = $this->softAssign($fullyStaged);
+        \App\Services\QueueLine\QueueLineStagingService::markStaged(
+            orderProduct: $fullyStaged->fresh(['softAssignment.equipment', 'order', 'queueLineItem']),
+            expected: $stagedUnit,
+            performedBy: $this->employee,
+            actor: $this->admin,
+            fuelFull: true,
+            keyWithMachine: true,
+        );
 
         foreach ([[], ['wallboard' => true]] as $params) {
             $html = Livewire::test(Board::class, $params)->html();
             $this->assertStringContainsString(
-                'data-order-product-id="' . $verified->id . '"',
-                $this->sectionBlock($html, 'ready'),
-                'the fuel-verified card must render in the Staged section',
+                'data-order-product-id="' . $verifiedOnly->id . '"',
+                $this->sectionBlock($html, 'pending'),
+                'fuel-only cards stay Pending',
             );
             $this->assertStringContainsString(
-                'data-order-product-id="' . $notVerified->id . '"',
-                $this->sectionBlock($html, 'pending'),
-                'the unverified card must render in the Pending section',
+                'data-order-product-id="' . $fullyStaged->id . '"',
+                $this->sectionBlock($html, 'ready'),
+                'fully staged cards render in the Staged section',
             );
         }
     }
@@ -354,10 +365,11 @@ class QueueLineFuelVerificationTest extends QueueLineTestCase
             ->assertSee('Fuel Full verified for')
             ->assertSet('store', (string) $this->storeNorth->id);
 
-        // Verified → the card now lives in the Staged section
+        // Fuel alone never stages a card (2026-07-20 workflow): the record
+        // is written, the card stays Pending until the full staging action
         $this->assertStringContainsString(
             'data-order-product-id="' . $row->id . '"',
-            $this->sectionBlock($component->html(), 'ready'),
+            $this->sectionBlock($component->html(), 'pending'),
         );
         $this->assertSame(1, QueueLineFuelVerification::count());
     }

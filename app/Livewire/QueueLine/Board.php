@@ -196,6 +196,111 @@ class Board extends Component
         }
     }
 
+    // ── Mark as Staged (admin readiness modal, 2026-07-20) ──────────────
+
+    public ?int $stagingItemId = null;
+
+    /** Deliberately NOT reset between items — shared-terminal employees
+     *  stage several machines in a row (the fuel-modal convention). */
+    public string $stagingPerformedBy = '';
+
+    /** '' | 'full' | 'not_full' — no preselection: readiness is confirmed
+     *  explicitly, matching the existing fuel workflow. */
+    public string $stagingFuel = '';
+
+    /** '' | 'with_machine' | 'missing' */
+    public string $stagingKey = '';
+
+    public ?string $stagingError = null;
+
+    /** Green thumbs-up read-only status dialog. */
+    public ?int $statusItemId = null;
+
+    public function openStaging(int $orderProductId): void
+    {
+        $this->stagingItemId = $orderProductId;
+        $this->stagingFuel = '';
+        $this->stagingKey = '';
+        $this->stagingError = null;
+        $this->actionNotice = null;
+    }
+
+    public function closeStaging(): void
+    {
+        $this->stagingItemId = null;
+        $this->stagingError = null;
+    }
+
+    /**
+     * @param  int  $expectedEquipmentId  the unit shown on the modal — the
+     *                                    service rejects it if the assignment
+     *                                    moved on (stale-screen protection)
+     */
+    public function confirmStaging(int $expectedEquipmentId): void
+    {
+        $this->stagingError = null;
+
+        try {
+            $orderProduct = OrderProduct::with('softAssignment.equipment', 'order', 'queueLineItem')
+                ->findOrFail($this->stagingItemId);
+            $expected = Equipment::findOrFail($expectedEquipmentId);
+
+            $performedBy = User::active()->find((int) $this->stagingPerformedBy);
+            if (! $performedBy) {
+                $this->stagingError = 'Select the employee who staged this machine before confirming.';
+
+                return;
+            }
+
+            \App\Services\QueueLine\QueueLineStagingService::markStaged(
+                orderProduct: $orderProduct,
+                expected: $expected,
+                performedBy: $performedBy,
+                actor: auth()->user(),
+                fuelFull: $this->stagingFuel === 'full',
+                keyWithMachine: $this->stagingKey === 'with_machine',
+                source: $this->wallboard ? QueueLineFuelVerification::SOURCE_WALL : QueueLineFuelVerification::SOURCE_WEB,
+            );
+
+            $this->actionNotice = "{$expected->equipment_name} marked as staged by {$performedBy->full_name} — ready for handoff.";
+            $this->closeStaging();
+        } catch (\InvalidArgumentException $e) {
+            $this->stagingError = $e->getMessage();
+        } catch (\Throwable $e) {
+            report($e);
+            $this->stagingError = 'The staging could not be saved. Please refresh and try again.';
+        }
+    }
+
+    public function openStagedStatus(int $orderProductId): void
+    {
+        $this->statusItemId = $orderProductId;
+        $this->actionNotice = null;
+    }
+
+    public function closeStagedStatus(): void
+    {
+        $this->statusItemId = null;
+    }
+
+    public function returnToPending(int $orderProductId): void
+    {
+        try {
+            $orderProduct = OrderProduct::with('softAssignment.equipment', 'order', 'queueLineItem')
+                ->findOrFail($orderProductId);
+
+            \App\Services\QueueLine\QueueLineStagingService::returnToPending($orderProduct, auth()->user());
+
+            $this->actionNotice = 'Returned to Pending — fuel and key must be confirmed again before staging.';
+            $this->closeStagedStatus();
+        } catch (\InvalidArgumentException $e) {
+            $this->actionError = $e->getMessage();
+        } catch (\Throwable $e) {
+            report($e);
+            $this->actionError = 'The item could not be returned to Pending. Please refresh and try again.';
+        }
+    }
+
     // ── Operational history drawer (Phase 4 §5) ─────────────────────────
 
     public ?int $historyItemId = null;
@@ -390,7 +495,9 @@ class Board extends Component
                 ->get()
                 ->keyBy('equipment_soft_assign_id');
 
-            $sections = $this->buildSections($rows, $fuelByAssignment);
+            $keyByAssignment = \App\Services\QueueLine\QueueLineStagingService::keyMap($rows);
+
+            $sections = $this->buildSections($rows, $fuelByAssignment, $keyByAssignment);
             $sections['delivered'] = $this->deliveredToday($storeId, $categoryId, $productId)->all();
             $suppressed = $this->suppressedItems();
         } catch (\Throwable $e) {
@@ -416,6 +523,40 @@ class Board extends Component
                 $activeEmployees = User::active()->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
             } else {
                 $this->fuelItemId = null;
+            }
+        }
+
+        // Mark as Staged modal (gray thumbs-up)
+        $stagingItem = null;
+
+        if ($this->stagingItemId) {
+            $stagingItem = OrderProduct::with('softAssignment.equipment', 'product:id,product_name', 'order')
+                ->find($this->stagingItemId);
+
+            if ($stagingItem && $stagingItem->softAssignment?->equipment) {
+                $activeEmployees = User::active()->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+            } else {
+                $this->stagingItemId = null;
+                $stagingItem = null;
+            }
+        }
+
+        // Staged status dialog (green thumbs-up)
+        $statusItem = null;
+        $statusFuel = null;
+        $statusKey = null;
+
+        if ($this->statusItemId) {
+            $statusItem = OrderProduct::with('softAssignment.equipment', 'product:id,product_name', 'order', 'queueLineItem')
+                ->find($this->statusItemId);
+
+            if ($statusItem) {
+                $statusFuel = QueueFuelVerificationService::currentVerification($statusItem);
+                $statusKey = \App\Services\QueueLine\QueueLineStagingService::currentKey($statusItem);
+                $statusFuel?->load('performedBy:id,first_name,last_name', 'createdBy:id,first_name,last_name');
+                $statusKey?->load('performedBy:id,first_name,last_name', 'createdBy:id,first_name,last_name');
+            } else {
+                $this->statusItemId = null;
             }
         }
 
@@ -480,6 +621,10 @@ class Board extends Component
             'fuelItem' => $fuelItem,
             'fuelCurrent' => $fuelCurrent,
             'fuelHistory' => $fuelHistory,
+            'stagingItem' => $stagingItem,
+            'statusItem' => $statusItem,
+            'statusFuel' => $statusFuel,
+            'statusKey' => $statusKey,
             'historyItem' => $historyItem,
             'historyEvents' => $historyEvents,
             'summary' => $this->summarize($sections, $fuelByAssignment),
@@ -557,28 +702,34 @@ class Board extends Component
     }
 
     /**
-     * UI Iteration 1 — workflow sections replace the date-bucket sections:
-     *   Pending = something still needs a technician (no machine selected,
-     *             or fuel not yet verified for the live episode)
-     *   Ready   = machine selected AND fuel verified — mirrors the mobile
-     *             readiness rule (QueueLineMobilePresenter::readiness), so
-     *             web and mobile always agree on what "ready" means.
+     * Workflow sections (admin readiness modal, 2026-07-20):
+     *   Pending = staging not complete — no machine, or the thumbs-up
+     *             staging (fuel + key + staged latch) hasn't happened for
+     *             the live assignment episode.
+     *   Staged  = the Mark as Staged action completed: staged latch set AND
+     *             current fuel verification AND current key confirmation —
+     *             ready to hand to the driver or in-store customer.
+     * Derived, never stored: switching equipment starts a new episode, so a
+     * staged card automatically falls back to Pending.
      * Urgency (RUSH/Overdue/Today/Tomorrow) stays visible as card badges and
      * still drives ordering INSIDE each section (sortItems runs first).
-     * Cards are flat — every card is standalone; order context lives on the
-     * card header, not on a wrapping group.
      *
      * @return array{pending: array<int, OrderProduct>, ready: array<int, OrderProduct>}
      */
-    private function buildSections(Collection $rows, Collection $fuelByAssignment): array
+    private function buildSections(Collection $rows, Collection $fuelByAssignment, Collection $keyByAssignment): array
     {
         $sections = ['pending' => [], 'ready' => []];
 
         foreach ($rows as $row) {
-            $assigned = $row->softAssignment?->equipment !== null;
-            $fuelVerified = $assigned && isset($fuelByAssignment[$row->softAssignment->id]);
+            $assignmentId = $row->softAssignment?->id;
 
-            $sections[$assigned && $fuelVerified ? 'ready' : 'pending'][] = $row;
+            $fullyStaged = \App\Services\QueueLine\QueueLineStagingService::isFullyStaged(
+                $row,
+                $assignmentId ? ($fuelByAssignment[$assignmentId] ?? null) : null,
+                $assignmentId ? ($keyByAssignment[$assignmentId] ?? null) : null,
+            );
+
+            $sections[$fullyStaged ? 'ready' : 'pending'][] = $row;
         }
 
         return $sections;

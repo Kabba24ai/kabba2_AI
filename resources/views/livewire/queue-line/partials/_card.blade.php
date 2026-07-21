@@ -86,6 +86,32 @@
             </span>
 
             @if (! $delivered)
+                {{-- The ONE readiness control (admin staging workflow):
+                     gray = not staged (opens Mark as Staged), green = fully
+                     staged (opens the read-only status dialog). --}}
+                <span class="shrink-0" onclick="event.stopPropagation()">
+                    @if ($stagedReady ?? false)
+                        <button type="button" wire:click="openStagedStatus({{ $item->id }})" data-thumb="staged"
+                            title="Staged — fueled, keyed, and ready for handoff. Click for details."
+                            class="flex items-center justify-center w-8 h-8 rounded-md text-green-600 hover:bg-green-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500">
+                            <x-heroicon-s-hand-thumb-up class="w-5 h-5" aria-hidden="true" />
+                        </button>
+                    @elseif ($equipment)
+                        <button type="button" wire:click="openStaging({{ $item->id }})" data-thumb="pending"
+                            title="Not staged — click to mark as staged"
+                            class="flex items-center justify-center w-8 h-8 rounded-md text-gray-300 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
+                            <x-heroicon-s-hand-thumb-up class="w-5 h-5" aria-hidden="true" />
+                        </button>
+                    @else
+                        <span data-thumb="unavailable" title="Assign equipment before staging"
+                            class="flex items-center justify-center w-8 h-8 rounded-md text-gray-200 cursor-not-allowed">
+                            <x-heroicon-s-hand-thumb-up class="w-5 h-5" aria-hidden="true" />
+                        </span>
+                    @endif
+                </span>
+            @endif
+
+            @if (! $delivered)
                 {{-- ⋮ Queue — the ONLY Queue Line management actions --}}
                 <div class="relative shrink-0" onclick="event.stopPropagation()" x-data="{ open: false }" @click.outside="open = false">
                     <button type="button" @click="open = !open" data-manage-menu

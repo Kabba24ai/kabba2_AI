@@ -40,6 +40,19 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         );
     }
 
+    /** Full all-or-nothing staging — the same service both surfaces execute. */
+    private function stage(OrderProduct $row, Equipment $unit): void
+    {
+        \App\Services\QueueLine\QueueLineStagingService::markStaged(
+            orderProduct: $row->fresh(['softAssignment.equipment', 'order', 'queueLineItem']),
+            expected: $unit,
+            performedBy: $this->admin,
+            actor: $this->admin,
+            fuelFull: true,
+            keyWithMachine: true,
+        );
+    }
+
     // ── Board ────────────────────────────────────────────────────────────
 
     public function test_guest_is_rejected_from_every_queue_line_endpoint(): void
@@ -63,7 +76,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('meta.counts.total', 2)
             ->assertJsonPath('meta.counts.needs_equipment', 1)
-            ->assertJsonPath('meta.counts.fuel_not_verified', 1);
+            ->assertJsonPath('meta.counts.staging_required', 1);
 
         $this->assertNotNull($response->json('meta.generated_at'));
     }
@@ -129,36 +142,49 @@ class QueueLineMobileApiTest extends QueueLineTestCase
     public function test_available_actions_and_readiness_are_server_decided(): void
     {
         $needs = $this->makeRow();
-        $unfueled = $this->makeRow();
-        $this->softAssign($unfueled);
+        $unstaged = $this->makeRow();
+        $this->softAssign($unstaged);
         $ready = $this->makeRow(null, ['delivery_transport_mode' => 'Store']);
         $unit = $this->softAssign($ready);
-        $this->verifyFuel($ready, $unit);
+        $this->stage($ready, $unit);
 
         $byId = collect($this->board()->json('data.items'))->keyBy('order_product_unique_id');
 
         $this->assertSame(
-            ['assign_equipment' => true, 'switch_equipment' => false, 'verify_fuel' => false, 'view_history' => true],
+            ['assign_equipment' => true, 'switch_equipment' => false, 'mark_staged' => false, 'return_to_pending' => false, 'view_history' => true],
             $byId[$needs->unique_id]['available_actions'],
         );
         $this->assertSame('equipment_assignment_required', $byId[$needs->unique_id]['readiness']);
 
         $this->assertSame(
-            ['assign_equipment' => false, 'switch_equipment' => true, 'verify_fuel' => true, 'view_history' => true],
-            $byId[$unfueled->unique_id]['available_actions'],
+            ['assign_equipment' => false, 'switch_equipment' => true, 'mark_staged' => true, 'return_to_pending' => false, 'view_history' => true],
+            $byId[$unstaged->unique_id]['available_actions'],
         );
-        $this->assertSame('fuel_verification_required', $byId[$unfueled->unique_id]['readiness']);
+        $this->assertSame('staging_required', $byId[$unstaged->unique_id]['readiness']);
 
-        $verifiedActions = $byId[$ready->unique_id]['available_actions'];
-        $this->assertFalse($verifiedActions['verify_fuel'], 'already verified — no re-verify offer');
-        $this->assertTrue($verifiedActions['switch_equipment']);
-        $this->assertArrayNotHasKey('reverse_fuel', $verifiedActions, 'reversal is never offered to mobile');
-        $this->assertArrayNotHasKey('release', $verifiedActions, 'release belongs to Driver/Customer Checklist');
+        $stagedActions = $byId[$ready->unique_id]['available_actions'];
+        $this->assertFalse($stagedActions['mark_staged'], 'already staged — no re-stage offer');
+        $this->assertTrue($stagedActions['return_to_pending']);
+        $this->assertTrue($stagedActions['switch_equipment']);
+        $this->assertArrayNotHasKey('verify_fuel', $stagedActions, 'staging is all-or-nothing — no fuel-only step');
+        $this->assertArrayNotHasKey('reverse_fuel', $stagedActions, 'reversal is never offered piecemeal to mobile');
+        $this->assertArrayNotHasKey('release', $stagedActions, 'release belongs to Driver/Customer Checklist');
         $this->assertSame('ready_for_customer_handoff', $byId[$ready->unique_id]['readiness']);
+        $this->assertTrue($byId[$ready->unique_id]['fully_staged']);
+
+        // Fuel alone is NEVER ready — the whole point of all-or-nothing
+        $fuelOnly = $this->makeRow();
+        $unitF = $this->softAssign($fuelOnly);
+        $this->verifyFuel($fuelOnly, $unitF);
+        $item = collect($this->board()->json('data.items'))->firstWhere('order_product_unique_id', $fuelOnly->unique_id);
+        $this->assertSame('staging_required', $item['readiness']);
+        $this->assertFalse($item['fully_staged']);
+        $this->assertSame('verified', $item['fuel']['state']);
+        $this->assertSame('not_confirmed', $item['key']['state']);
 
         $readyTruck = $this->makeRow();
         $unitT = $this->softAssign($readyTruck);
-        $this->verifyFuel($readyTruck, $unitT);
+        $this->stage($readyTruck, $unitT);
         $item = collect($this->board()->json('data.items'))->firstWhere('order_product_unique_id', $readyTruck->unique_id);
         $this->assertSame('ready_for_dispatch', $item['readiness']);
     }
@@ -223,7 +249,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
             ->assertJsonPath('data.counts.total', 2)
             ->assertJsonPath('data.counts.rush', 1)
             ->assertJsonPath('data.counts.needs_equipment', 1)
-            ->assertJsonPath('data.counts.fuel_not_verified', 1);
+            ->assertJsonPath('data.counts.staging_required', 1);
 
         $this->assertNull($response->json('data.items'));
     }
@@ -236,8 +262,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
             ['unique_id' => 'o1', 'name' => 'Auger', 'price' => 75, 'charged' => '1 Time Max', 'comment' => null],
         ]);
         $unit = $this->softAssign($row);
-        $this->verifyFuel($row, $unit);
-        QueueLineService::stage($row->fresh(['softAssignment.equipment']), $this->admin);
+        $this->stage($row, $unit);
 
         $this->actingAs($this->admin, 'api_user')
             ->getJson($this->api('queue-line/' . $row->unique_id))
@@ -246,8 +271,10 @@ class QueueLineMobileApiTest extends QueueLineTestCase
             ->assertJsonPath('data.assignment_state', 'direct')
             ->assertJsonPath('data.equipment.display_id', $unit->equipment_id)
             ->assertJsonPath('data.fuel.state', 'verified')
+            ->assertJsonPath('data.key.state', 'confirmed')
             ->assertJsonPath('data.options_count', 1)
             ->assertJsonPath('data.staged', true)
+            ->assertJsonPath('data.fully_staged', true)
             ->assertJsonPath('data.readiness', 'ready_for_dispatch')
             ->assertJsonPath('data.suppression.removed_forever', false)
             ->assertJsonPath('data.completed', false);

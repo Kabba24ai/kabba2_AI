@@ -145,6 +145,21 @@
         ])
     @endif
 
+    @if ($stagingItem)
+        @include('livewire.queue-line.partials._staging_modal', [
+            'stagingItem' => $stagingItem,
+            'activeEmployees' => $activeEmployees,
+        ])
+    @endif
+
+    @if ($statusItem)
+        @include('livewire.queue-line.partials._staged_status_modal', [
+            'statusItem' => $statusItem,
+            'statusFuel' => $statusFuel,
+            'statusKey' => $statusKey,
+        ])
+    @endif
+
     @if ($historyItem)
         @include('livewire.queue-line.partials._history_modal', [
             'historyItem' => $historyItem,
@@ -196,7 +211,7 @@
                 // operational readiness (Rental Ready) or release (Dispatch).
                 'ready' => [
                     'label' => 'Queue Line — Staged', 'icon' => 'check',
-                    'hint' => 'Machine confirmed · fuel verified — Queue Line work complete',
+                    'hint' => 'Fueled, keyed, staged — ready for handoff',
                     'band' => 'bg-green-600 text-white', 'wrapper' => 'border-green-200', 'bandExtra' => '',
                 ],
                 'delivered' => [
@@ -240,6 +255,7 @@
                                 'ui' => $ui,
                                 'fuelByAssignment' => $fuelByAssignment,
                                 'delivered' => $sectionKey === 'delivered',
+                                'stagedReady' => $sectionKey === 'ready',
                             ])
                         @endforeach
                     </div>

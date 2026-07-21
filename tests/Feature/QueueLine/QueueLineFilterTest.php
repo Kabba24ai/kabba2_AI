@@ -39,8 +39,57 @@ class QueueLineFilterTest extends QueueLineTestCase
         Livewire::test(Board::class)
             ->assertSet('time', 'all')
             ->assertSet('method', 'all')
+            ->assertSet('payment', 'all')
             ->assertSet('category', '')
             ->assertSet('product', '');
+    }
+
+    // ── Payment filter ───────────────────────────────────────────────────
+
+    public function test_paid_and_pending_partition_on_the_same_field_the_badge_renders(): void
+    {
+        $paid = $this->makeRow();
+        $paid->order->payments()->create(['payment_method' => 'Cash', 'payment_datetime' => now(), 'amount' => 100, 'status' => 'Paid']);
+        $pendingPayment = $this->makeRow();
+        $pendingPayment->order->payments()->create(['payment_method' => 'Cash', 'payment_datetime' => now(), 'amount' => 100, 'status' => 'Pending']);
+        $noPayment = $this->makeRow(); // "No Payment Recorded" badge
+
+        // Paid = only the "Paid in Full" badge card
+        $html = Livewire::test(Board::class)->set('payment', 'paid')->html();
+        $this->assertStringContainsString('data-order-product-id="' . $paid->id . '"', $html);
+        $this->assertStringNotContainsString('data-order-product-id="' . $pendingPayment->id . '"', $html);
+        $this->assertStringNotContainsString('data-order-product-id="' . $noPayment->id . '"', $html);
+        $this->assertSame(1, $this->cardCount($html));
+
+        // Pending = everything else, including no payment recorded —
+        // Paid + Pending is a clean partition of All
+        $html = Livewire::test(Board::class)->set('payment', 'pending')->html();
+        $this->assertStringNotContainsString('data-order-product-id="' . $paid->id . '"', $html);
+        $this->assertStringContainsString('data-order-product-id="' . $pendingPayment->id . '"', $html);
+        $this->assertStringContainsString('data-order-product-id="' . $noPayment->id . '"', $html);
+        $this->assertSame(2, $this->cardCount($html));
+
+        // All restores everything
+        $this->assertSame(3, $this->cardCount(Livewire::test(Board::class)->set('payment', 'all')->html()));
+    }
+
+    public function test_the_completed_segment_obeys_the_payment_filter(): void
+    {
+        $paid = $this->makeRow();
+        $paid->order->payments()->create(['payment_method' => 'Cash', 'payment_datetime' => now(), 'amount' => 100, 'status' => 'Paid']);
+        $unpaid = $this->makeRow();
+        $paidUnit = $this->softAssign($paid);
+        $unpaidUnit = $this->softAssign($unpaid);
+        \App\Services\QueueLine\QueueLineService::complete($paid, \App\Services\QueueLine\QueueLineService::VIA_DISPATCH_STARTED, $paidUnit->id);
+        \App\Services\QueueLine\QueueLineService::complete($unpaid, \App\Services\QueueLine\QueueLineService::VIA_CUSTOMER_CHECKLIST_COMPLETED, $unpaidUnit->id);
+
+        $html = Livewire::test(Board::class)->set('payment', 'paid')->html();
+        $this->assertStringContainsString('data-order-product-id="' . $paid->id . '"', $html);
+        $this->assertStringNotContainsString('data-order-product-id="' . $unpaid->id . '"', $html);
+
+        $html = Livewire::test(Board::class)->set('payment', 'pending')->html();
+        $this->assertStringNotContainsString('data-order-product-id="' . $paid->id . '"', $html);
+        $this->assertStringContainsString('data-order-product-id="' . $unpaid->id . '"', $html);
     }
 
     // ── Time filter ──────────────────────────────────────────────────────
@@ -182,6 +231,7 @@ class QueueLineFilterTest extends QueueLineTestCase
 
         // The one row matching every condition
         $match = $this->makeRow(null, ['product_id' => $boom->id, 'product_name' => $boom->product_name]);
+        $match->order->payments()->create(['payment_method' => 'Cash', 'payment_datetime' => now(), 'amount' => 100, 'status' => 'Paid']);
 
         // Near-misses, each failing exactly one condition
         $this->makeRow(null, ['product_id' => $boom->id, 'product_name' => $boom->product_name,
@@ -190,12 +240,14 @@ class QueueLineFilterTest extends QueueLineTestCase
             'delivery_store_id' => $this->storeSouth->id]);                                // wrong store
         $this->makeRow(null, ['product_id' => $boom->id, 'product_name' => $boom->product_name,
             'delivery_transport_mode' => 'Store']);                                        // in-store (method)
+        $this->makeRow(null, ['product_id' => $boom->id, 'product_name' => $boom->product_name]); // unpaid (payment)
         $this->makeRow();                                                                  // other product
 
         $component = Livewire::test(Board::class)
             ->set('time', 'today')
             ->set('store', (string) $this->storeNorth->id)
             ->set('method', 'Truck')
+            ->set('payment', 'paid')
             ->set('category', (string) $cat->id)
             ->set('product', (string) $boom->id);
 
@@ -211,9 +263,11 @@ class QueueLineFilterTest extends QueueLineTestCase
         Livewire::test(Board::class)
             ->set('time', 'today')
             ->set('method', 'Truck')
+            ->set('payment', 'paid')
             ->set('store', (string) $this->storeNorth->id)
             ->set('time', 'all')
             ->assertSet('method', 'Truck')
+            ->assertSet('payment', 'paid')
             ->assertSet('store', (string) $this->storeNorth->id);
     }
 

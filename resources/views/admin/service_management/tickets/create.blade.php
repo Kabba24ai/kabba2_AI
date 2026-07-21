@@ -279,6 +279,13 @@
                     <div id="st-complaint-empty" class="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
                         <p class="text-sm text-gray-400">Select a rental order and equipment to see the applicable complaints.</p>
                     </div>
+                    {{-- Shown when the selected unit has no Reported-Problem
+                         template (and no legacy profile match). The full
+                         library still renders below as a working fallback so
+                         intake is never blocked before templates are attached. --}}
+                    <div id="st-complaint-no-template" class="hidden mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
+                        <p class="text-sm text-amber-800"><span class="font-semibold">No Template Listed</span> for this unit — showing all symptoms. Attach a template on the equipment record for a focused list.</p>
+                    </div>
                     <div id="st-complaint-list" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                     @error('complaints')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
                     @error('complaints.*')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
@@ -543,7 +550,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // assignment wins over a broader product-category assignment. Equipment
     // with no matching profile yet shows the full library (same "hide
     // nothing until scoped" default the checklist has always used).
+    // Resolution precedence (Equipment problem-templates):
+    //   1. the template attached to THIS unit (service_symptom_profile_id)
+    //   2. legacy fallback — a profile targeting the unit's product, then
+    //      one targeting its product category
+    //   3. none → No Template Listed (full library shown as fallback)
     function resolveSymptomProfile(unit) {
+        if (unit.symptom_profile_id) {
+            const attached = SYMPTOM_PROFILES.find(p => String(p.id) === String(unit.symptom_profile_id));
+            if (attached) return attached;
+        }
+
         let profile = SYMPTOM_PROFILES.find(p => p.product_id && String(p.product_id) === String(unit.product_id));
         if (profile) return profile;
 
@@ -552,21 +569,33 @@ document.addEventListener('DOMContentLoaded', function () {
             && categories.some(id => String(id) === String(p.product_category_id))) || null;
     }
 
-    // Included Categories + Individual Additions - Individual Exclusions.
+    // The applicable symptoms, each tagged with an `_order` for rendering:
+    //   - explicit template (builder-assembled item list, no categories) →
+    //     exactly its items, in template order
+    //   - legacy profile → included categories + additions − exclusions
+    //   - no profile → the full library (fallback), in display order
     function applicableSymptoms(unit) {
         const profile = resolveSymptomProfile(unit);
-        if (!profile) return SYMPTOMS;
+        if (!profile) return SYMPTOMS.map(s => ({ ...s, _order: s.display_order }));
 
-        const categoryIds = profile.category_ids.map(String);
-        const additions    = profile.additions.map(String);
-        const exclusions   = profile.exclusions.map(String);
+        const hasCategories = profile.category_ids && profile.category_ids.length;
+        if (!hasCategories && profile.items && profile.items.length) {
+            const order = new Map(profile.items.map((id, i) => [String(id), i]));
+            return SYMPTOMS
+                .filter(s => order.has(String(s.id)))
+                .map(s => ({ ...s, _order: order.get(String(s.id)) }));
+        }
+
+        const categoryIds = (profile.category_ids || []).map(String);
+        const additions   = (profile.additions || []).map(String);
+        const exclusions  = (profile.exclusions || []).map(String);
 
         return SYMPTOMS.filter(function (symptom) {
             const id = String(symptom.id);
             if (exclusions.includes(id)) return false;
             if (additions.includes(id)) return true;
             return categoryIds.includes(String(symptom.category_id));
-        });
+        }).map(s => ({ ...s, _order: s.display_order }));
     }
 
     function syncComplaintChips() {
@@ -594,6 +623,8 @@ document.addEventListener('DOMContentLoaded', function () {
         complaintChipsWrap.classList.toggle('hidden', checkedComplaints.size === 0);
     }
 
+    const complaintNoTemplate = document.getElementById('st-complaint-no-template');
+
     function syncComplaintList() {
         const unit = selectedUnit();
         complaintEmpty.classList.toggle('hidden', !!unit);
@@ -603,8 +634,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!unit) {
             checkedComplaints.clear();
             syncComplaintChips();
+            complaintNoTemplate.classList.add('hidden');
             return;
         }
+
+        // No Template Listed (spec decision 5): shown when the unit has no
+        // attached template and no legacy profile match.
+        complaintNoTemplate.classList.toggle('hidden', !!resolveSymptomProfile(unit));
 
         const applicable = applicableSymptoms(unit);
 
@@ -636,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             group.symptoms
                 .slice()
-                .sort((a, b) => a.display_order - b.display_order)
+                .sort((a, b) => a._order - b._order)
                 .forEach(function (symptom) {
                     const row = document.createElement('label');
                     row.className = 'flex items-center gap-2 py-0.5 cursor-pointer';

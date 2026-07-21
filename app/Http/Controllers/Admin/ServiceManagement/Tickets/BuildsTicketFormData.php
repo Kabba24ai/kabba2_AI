@@ -48,6 +48,9 @@ trait BuildsTicketFormData
                     // machine is equipped with (null = unknown, hide nothing)
                     'product_id'   => $product->product_id ?? $product->equipment->assigned_product_id,
                     'capabilities' => $product->equipment->capabilities,
+                    // Per-unit Reported-Problem template (highest resolution
+                    // precedence — see the intake JS). Null → No Template Listed.
+                    'symptom_profile_id' => $product->equipment->service_symptom_profile_id,
                 ])->unique('id')->values(),
             // Search-aid keys for the intake filters — never stored on the ticket
             'product_ids'  => $order->products->pluck('product_id')->filter()->unique()->values(),
@@ -112,6 +115,7 @@ trait BuildsTicketFormData
             ->get()
             ->map(fn (ServiceSymptomProfile $profile) => [
                 'id'                   => $profile->id,
+                'name'                 => $profile->name,
                 'product_id'           => $profile->product_id,
                 'product_category_id'  => $profile->product_category_id,
                 'category_ids'         => $profile->profileCategories->pluck('service_symptom_category_id')->values(),
@@ -120,6 +124,14 @@ trait BuildsTicketFormData
                     ->pluck('service_symptom_id')->values(),
                 'exclusions'           => $profile->profileSymptoms
                     ->where('mode', ServiceSymptomProfileSymptomMode::Exclude)
+                    ->pluck('service_symptom_id')->values(),
+                // Explicit ordered item list (Equipment problem-templates
+                // builder). Non-empty + no category_ids → the intake renders
+                // exactly these items in this order. Legacy category-include
+                // profiles leave this empty and use category_ids above.
+                'items'                => $profile->profileSymptoms
+                    ->where('mode', ServiceSymptomProfileSymptomMode::Include)
+                    ->sortBy('sort_order')
                     ->pluck('service_symptom_id')->values(),
             ])->values();
 

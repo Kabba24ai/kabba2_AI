@@ -521,7 +521,6 @@
                             'admin.maintenance-management.equipment.*',
                             'admin.maintenance-management.equipment-worksheet*',
                             'admin.maintenance-management.equipment-service.*',
-                            'admin.maintenance-management.service-master.*',
                             'admin.maintenance-management.parts.*',
                             'admin.maintenance-management.suppliers.*',
                             'admin.maintenance-management.equipment-ai.*',
@@ -596,14 +595,6 @@
                                 </li>
 
                                 <li>
-                                    <a href="{{ route('admin.maintenance-management.service-master.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.maintenance-management.service-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-
-                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Service Master Admin
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('admin.maintenance-management.parts.index') }}"
                                         class="menu-dropdown-item group
                                 {{ Route::is('admin.maintenance-management.parts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
@@ -623,7 +614,7 @@
                     </li>
 
                     <!-- Service -->
-                    @php $serviceActive = Route::is('admin.service-management.*') || Route::is('admin.field-service.*') || Route::is('admin.warranty.*'); @endphp
+                    @php $serviceActive = Route::is('admin.service-management.*') || Route::is('admin.field-service.*') || Route::is('admin.warranty.*') || Route::is('admin.maintenance-management.service-master.*'); @endphp
                     <li x-data="{ open: {{ $serviceActive ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open"
                             class="menu-item group flex items-center gap-3 {{ $serviceActive ? 'menu-item-active' : 'menu-item-inactive' }}">
@@ -681,6 +672,21 @@
                                         </a>
                                     </li>
                                 @endif
+                                <li>
+                                    <a href="{{ route('admin.service-management.problem-templates.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.service-management.problem-templates.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-clipboard-document-list class="h-5 w-5" /> Problem Templates
+                                    </a>
+                                </li>
+                                {{-- Moved from Maintenance — logically part of Service. --}}
+                                <li>
+                                    <a href="{{ route('admin.maintenance-management.service-master.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.maintenance-management.service-master.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Service Master Admin
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

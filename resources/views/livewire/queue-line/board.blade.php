@@ -78,7 +78,16 @@
                     <button type="button" wire:click="$set('method', 'Store')" class="{{ $segBase }} {{ $method === 'Store' ? $segOn : $segOff }}">In-Store</button>
                 </div>
 
-                {{-- 4 + 5. Dependent Category → Product (ordered product) --}}
+                {{-- 4. Payment — same field as the card's payment badge:
+                     Paid = "Paid in Full"; Pending = everything still owing
+                     (pending, partial, invoice/account, no payment yet) --}}
+                <div class="inline-flex rounded-md border border-gray-300 overflow-hidden divide-x divide-gray-300" role="group" aria-label="Payment">
+                    <button type="button" wire:click="$set('payment', 'all')" class="{{ $segBase }} {{ $payment === 'all' ? $segOn : $segOff }}">All</button>
+                    <button type="button" wire:click="$set('payment', 'paid')" class="{{ $segBase }} {{ $payment === 'paid' ? $segOn : $segOff }}">Paid</button>
+                    <button type="button" wire:click="$set('payment', 'pending')" class="{{ $segBase }} {{ $payment === 'pending' ? $segOn : $segOff }}">Pending</button>
+                </div>
+
+                {{-- 5 + 6. Dependent Category → Product (ordered product) --}}
                 <select id="queue-category-filter" wire:model.live="category" aria-label="Category" class="{{ $selectBase }}">
                     <option value="">All Categories</option>
                     @foreach ($categoryOptions as $categoryId => $categoryTitle)

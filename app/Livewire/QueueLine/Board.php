@@ -52,6 +52,15 @@ class Board extends Component
      *  delivery_transport_mode values Schedule and Dispatch filter on. */
     public string $method = 'all';
 
+    /** Payment: 'all' | 'paid' | 'pending'. Filters on the SAME
+     *  order.last_payment_status the card's payment badge renders, so the
+     *  filter can never disagree with what the card shows: 'paid' = the
+     *  latest payment row is Paid (the "Paid in Full" badge); 'pending' =
+     *  everything else — Pending, Partial Payment, invoice/account rows,
+     *  and orders with no payment recorded. A clean binary partition:
+     *  Paid + Pending always equals All. */
+    public string $payment = 'all';
+
     /** Dependent Category → Product pair — validated server-side through
      *  ProductFilterHelper exactly like the Orders and Schedule pages.
      *  Product always filters the ORDERED product (product_id), never the
@@ -543,6 +552,13 @@ class Board extends Component
                     ->values();
             }
 
+            // Payment narrowing — reads the eager-loaded order.lastPayment
+            // relation (zero extra queries), the exact field the card badge
+            // renders.
+            if ($this->payment !== 'all') {
+                $rows = $rows->filter(fn (OrderProduct $row) => $this->matchesPaymentFilter($row))->values();
+            }
+
             // Current fuel state for every visible card in ONE query — a row
             // is current only when keyed to the item's LIVE soft-assign
             // episode (matched in the card partial against softAssignment->id).
@@ -829,6 +845,14 @@ class Board extends Component
         return $sections;
     }
 
+    /** 'paid' keeps the "Paid in Full" badge cards; 'pending' keeps the rest. */
+    private function matchesPaymentFilter(OrderProduct $row): bool
+    {
+        $isPaid = $row->order?->last_payment_status === \App\Enums\Orders\OrderPaymentStatus::Paid->value;
+
+        return $isPaid === ($this->payment === 'paid');
+    }
+
     /**
      * Delivered Today — items whose equipment physically left the yard today
      * (QueueLineService::complete latch). Read-only reference cards: the
@@ -867,6 +891,11 @@ class Board extends Component
                     ->setRelation('queueLineItem', $item)
                     ->setRelation('order', $item->order);
             })
+            // The Completed segment obeys the payment toggle like the
+            // active segments (same badge field, same partition)
+            ->when($this->payment !== 'all', fn ($items) => $items->filter(
+                fn (OrderProduct $row) => $this->matchesPaymentFilter($row)
+            ))
             ->values();
     }
 

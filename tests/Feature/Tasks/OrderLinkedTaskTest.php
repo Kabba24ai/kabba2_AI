@@ -262,13 +262,17 @@ class OrderLinkedTaskTest extends TestCase
         $html = $this->get(route('admin.order-management.orders.edit', $order->unique_id))
             ->assertOk()->getContent();
 
-        // Add Task opens the canonical modal with this order's context
+        // Add Task opens the canonical modal with this order's context.
+        // Context rides on data attributes — inline onclick JSON breaks the
+        // attribute on quoted values like order numbers ("#3331") and names.
         $this->assertStringContainsString('Add Task', $html);
-        $this->assertStringContainsString('openNewTaskModal({', $html);
-        $this->assertStringContainsString('orderId: ' . $order->id, $html);
-        $this->assertStringContainsString($order->order_number, $html);
+        $this->assertStringContainsString('data-open-task-modal', $html);
+        $this->assertStringContainsString('data-order-id="' . $order->id . '"', $html);
+        $this->assertStringContainsString('data-order-number="' . $order->order_number . '"', $html);
+        $this->assertStringContainsString('data-customer-id="' . $this->customer->id . '"', $html);
         $this->assertStringContainsString('UnifiedTaskModal', $html);
         $this->assertStringContainsString('ut_order_search', $html);
+        $this->assertStringNotContainsString('onclick="openNewTaskModal({', $html);
 
         // The old Call Needed workflow is gone from this page
         $this->assertStringNotContainsString('callNeededBtn', $html);

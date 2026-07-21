@@ -640,6 +640,21 @@
         modal.classList.add('hidden');
     };
 
+    // Declarative trigger: any [data-open-task-modal] element opens the modal
+    // with its data-* order/customer context (inline JSON in onclick breaks on
+    // quoted values like order numbers and names). Delegated, so it also works
+    // for buttons injected after page load.
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-open-task-modal]');
+        if (!btn) return;
+        openNewTaskModal({
+            orderId:      parseInt(btn.dataset.orderId, 10) || null,
+            orderNumber:  btn.dataset.orderNumber || null,
+            customerId:   parseInt(btn.dataset.customerId, 10) || null,
+            customerName: btn.dataset.customerName || null,
+        });
+    });
+
     // ── Save: the toggle picks the payload + endpoint; both paths unchanged ─
     window.saveUnifiedTask = function () {
         if (_utMode === 'task') saveOperationalTask();

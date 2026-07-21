@@ -252,12 +252,11 @@
                     {{-- Opens the canonical New Task modal with this order and its
                          customer pre-linked; phone calls are a task type there. --}}
                     <button id="addTaskBtn" type="button" title="Add Task"
-                        onclick="openNewTaskModal({
-                            orderId: {{ $order->id }},
-                            orderNumber: @json($order->order_number),
-                            customerId: @json($order->customer_id),
-                            customerName: @json($order->customer?->full_name)
-                        })"
+                        data-open-task-modal
+                        data-order-id="{{ $order->id }}"
+                        data-order-number="{{ $order->order_number }}"
+                        data-customer-id="{{ $order->customer_id }}"
+                        data-customer-name="{{ $order->customer?->full_name }}"
                         class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm cursor-pointer">
                         <x-heroicon-o-clipboard-document-list class="w-4 h-4 mr-1" />
                         Add Task

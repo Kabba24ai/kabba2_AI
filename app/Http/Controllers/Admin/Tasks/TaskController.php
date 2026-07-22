@@ -127,16 +127,10 @@ class TaskController extends Controller
             })
             ->values();
 
-        // PHP-level pagination over the merged sorted collection
-        $perPage   = 30;
-        $page      = max(1, (int) $request->input('page', 1));
-        $total     = $unified->count();
-        $pageItems = $unified->slice(($page - 1) * $perPage, $perPage)->values();
-
-        $tasks = new \Illuminate\Pagination\LengthAwarePaginator(
-            $pageItems, $total, $perPage, $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        // Group the already-sorted stream into per-person lanes: person is the
+        // first-level sort so each teammate sees only their own work; due-date
+        // then priority ordering is preserved within every lane.
+        $lanes = $this->buildPersonLanes($unified);
 
         $users = User::active()->orderBy('first_name')->get();
 
@@ -158,11 +152,81 @@ class TaskController extends Controller
         $suppliers = \App\Support\Tasks\UnifiedTaskModalData::suppliers();
 
         return view('admin.tasks.index', compact(
-            'tasks', 'users', 'categories', 'priorities', 'statuses',
+            'lanes', 'users', 'categories', 'priorities', 'statuses',
             'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers',
             'completedToday', 'callsCompletedToday', 'customers', 'suppliers',
             'taskCount', 'callCount', 'productCategories', 'equipmentList'
         ));
+    }
+
+    /**
+     * Group the merged (already due/priority-sorted) task+call stream into
+     * one lane per assignee. Tasks use assigned_to_user_id; calls use their
+     * created_by assignee. Unassigned work collects in a trailing lane. Each
+     * lane carries a cycling colour and a role line derived from the distinct
+     * categories present, mirroring the Task Center "grouped by person" design.
+     */
+    private function buildPersonLanes(\Illuminate\Support\Collection $unified): array
+    {
+        $palette = [
+            ['color' => '#0d9488', 'bg' => '#e6faf6'], // teal
+            ['color' => '#7c3aed', 'bg' => '#f3e8ff'], // purple
+            ['color' => '#b45309', 'bg' => '#fef3c7'], // amber
+            ['color' => '#0369a1', 'bg' => '#e0f2fe'], // blue
+            ['color' => '#be185d', 'bg' => '#fce7f3'], // rose
+            ['color' => '#047857', 'bg' => '#d1fae5'], // emerald
+            ['color' => '#4338ca', 'bg' => '#e0e7ff'], // indigo
+        ];
+        $unassignedTheme = ['color' => '#475569', 'bg' => '#eef2f7'];
+
+        $groups = [];
+        foreach ($unified as $item) {
+            $user = $item->type === 'call' ? $item->model->assignee : $item->model->assignedTo;
+            $key  = $user?->id ?? 'unassigned';
+
+            if (!isset($groups[$key])) {
+                $groups[$key] = ['user' => $user, 'items' => []];
+            }
+            $groups[$key]['items'][] = $item;
+        }
+
+        // Assigned lanes first (by name), unassigned always trailing.
+        uasort($groups, function ($a, $b) {
+            if (($a['user'] === null) !== ($b['user'] === null)) {
+                return $a['user'] === null ? 1 : -1;
+            }
+            return strcasecmp((string) $a['user']?->full_name, (string) $b['user']?->full_name);
+        });
+
+        $lanes = [];
+        $i = 0;
+        foreach ($groups as $key => $group) {
+            $user  = $group['user'];
+            $theme = $user ? $palette[$i++ % count($palette)] : $unassignedTheme;
+
+            $categoryLabels = collect($group['items'])
+                ->map(fn ($it) => $it->model->category?->label())
+                ->filter()->unique()->values()->all();
+
+            $name     = $user?->full_name ?: 'Unassigned';
+            $initials = $user
+                ? strtoupper(mb_substr((string) $user->first_name, 0, 1) . mb_substr((string) $user->last_name, 0, 1))
+                : '—';
+
+            $lanes[] = [
+                'key'      => (string) $key,
+                'user_id'  => $user?->id,
+                'name'     => $name,
+                'initials' => $initials !== '' ? $initials : '—',
+                'role'     => implode(' · ', $categoryLabels),
+                'color'    => $theme['color'],
+                'bg'       => $theme['bg'],
+                'items'    => $group['items'],
+                'count'    => count($group['items']),
+            ];
+        }
+
+        return $lanes;
     }
 
     private function baseTaskQuery(Request $request): Builder

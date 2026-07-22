@@ -191,189 +191,130 @@
 {{-- Main layout: task table (75%) + Completed Today widget (25%) --}}
 <div style="display:flex; gap:1.5rem; align-items:flex-start;">
 
-    {{-- Task / Call table --}}
+    {{-- Task Center board — one lane per person (grouped by assignee), cards
+         within each lane keep the due-date → priority sort. --}}
     <div id="task-list-zone" style="flex:7.5; min-width:0;">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-3 py-3 w-8"></th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-24">Category</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Title / Reason</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-36">Assigned To</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Equipment</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Customer</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Supplier / Other</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-28 whitespace-nowrap">Due Date</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-36 whitespace-nowrap">Created By</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600 w-24">Priority</th>
-                        <th class="px-4 py-3 w-16"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
 
-                    {{-- Unified task + call list sorted by due date then priority --}}
-                    @forelse ($tasks as $item)
-                        @if ($item->type === 'call')
-                            @php
-                                $call = $item->model;
-                                $contactType   = $call->customer_id ? 'customer' : ($call->supplier_id ? 'supplier' : 'other');
-                                $customerName  = $contactType === 'customer' ? $call->customer?->full_name : null;
-                                $supplierOther = match($contactType) {
-                                    'supplier' => $call->supplier?->name,
-                                    'other'    => $call->contact_name,
-                                    default    => null,
-                                };
-                                $callIsOverdue = $call->isOverdue();
-                            @endphp
-                            <tr class="{{ $callIsOverdue ? 'bg-red-50/40 hover:bg-red-50/50' : 'hover:bg-red-50/20 bg-red-50/10' }}">
-                                <td class="px-3 py-3 text-center">
-                                    <span title="Call Reminder">
-                                        <x-heroicon-o-phone class="w-4 h-4 text-red-500 mx-auto" />
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    @if ($call->category)
-                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->category->color() }}">
-                                            {{ $call->category->label() }}
-                                        </span>
-                                    @else
-                                        <span class="text-xs text-gray-400 italic">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 max-w-xs">
-                                    <a href="{{ route('admin.tasks.call.show', $call->id) }}"
-                                       class="font-medium text-gray-900 hover:text-brand-600 truncate block">
-                                        {{ ucwords(str_replace('_', ' ', $call->reason)) }}
-                                    </a>
-                                </td>
-                                <td class="px-4 py-3 text-gray-700">
-                                    {{ $call->assignee?->full_name ?? '—' }}
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="text-gray-400">—</span>
-                                </td>
-                                <td class="px-4 py-3 text-gray-700">
-                                    {{ $customerName ?? '—' }}
-                                    @if ($call->order)
-                                        <a href="{{ route('admin.order-management.orders.edit', $call->order->unique_id) }}"
-                                            class="block text-xs text-blue-600 hover:underline">{{ $call->order->order_number }}</a>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-gray-700">
-                                    {{ $supplierOther ?? '—' }}
-                                </td>
-                                <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                                    @if ($call->due_date)
-                                        <span class="{{ $callIsOverdue ? 'text-red-600 font-medium' : '' }}">
-                                            {{ $call->due_date->format('M j, Y') }}
-                                        </span>
-                                        <span class="block italic {{ $callIsOverdue ? 'text-red-600' : 'text-gray-500' }}" style="font-size:0.7em">
-                                            {{ $call->due_date->format('g:i A') }}
-                                        </span>
-                                        @if ($callIsOverdue)
-                                            <span class="block text-red-600 font-medium">Overdue</span>
-                                        @endif
-                                    @else
-                                        <span class="text-gray-400">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-gray-700">
-                                    {{ $call->creator?->full_name ?? '—' }}
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->priority->color() }}">
-                                        {{ $call->priority->label() }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-right whitespace-nowrap">
-                                    <a href="{{ route('admin.tasks.call.show', $call->id) }}" class="text-blue-600 hover:underline text-xs">View</a>
-                                </td>
-                            </tr>
-                        @else
-                            @php $task = $item->model; @endphp
-                            <tr class="hover:bg-gray-50 {{ $task->isOverdue() ? 'bg-red-50/40' : '' }}">
-                                <td class="px-3 py-3 text-center">
-                                    <span title="Task">
-                                        <x-heroicon-o-clipboard-document-list class="w-4 h-4 text-gray-400 mx-auto" />
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">
-                                        {{ $task->category->label() }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 max-w-xs">
-                                    <a href="{{ route('admin.tasks.show', $task) }}" class="font-medium text-gray-900 hover:text-brand-600 truncate block">
-                                        {{ $task->title }}
-                                    </a>
-                                </td>
-                                <td class="px-4 py-3 text-gray-700">
-                                    {{ $task->assignedTo?->full_name ?? '—' }}
-                                </td>
-                                <td class="px-4 py-3">
-                                    @if ($task->equipment)
-                                        <div class="text-sm text-gray-800 truncate max-w-[120px]">{{ $task->equipment->equipment_name }}</div>
-                                        <div class="text-xs text-gray-400">{{ $task->equipment->equipment_id }}</div>
-                                    @else
-                                        <span class="text-gray-400">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-gray-700">
-                                    @if ($task->customer || $task->order)
-                                        {{ $task->customer?->full_name ?? '—' }}
-                                        @if ($task->order)
-                                            <a href="{{ route('admin.order-management.orders.edit', $task->order->unique_id) }}"
-                                                class="block text-xs text-blue-600 hover:underline">{{ $task->order->order_number }}</a>
-                                        @endif
-                                    @else
-                                        <span class="text-gray-400">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="text-gray-400">—</span>
-                                </td>
-                                <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                                    @if ($task->due_date)
-                                        <span class="{{ $task->isOverdue() ? 'text-red-600 font-medium' : '' }}">
-                                            {{ $task->due_date->format('M j, Y') }}
-                                        </span>
-                                        @if ($task->isOverdue())
-                                            <span class="block text-red-600 font-medium">Overdue</span>
-                                        @endif
-                                    @else
-                                        <span class="text-gray-400">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-gray-600">
-                                    {{ $task->createdBy?->full_name ?? '—' }}
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">
-                                        {{ $task->priority->label() }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-right whitespace-nowrap">
-                                    <a href="{{ route('admin.tasks.show', $task) }}" class="text-blue-600 hover:underline text-xs">View</a>
-                                </td>
-                            </tr>
-                        @endif
-                    @empty
-                        <tr>
-                            <td colspan="11" class="px-4 py-10 text-center text-gray-400">No tasks found.</td>
-                        </tr>
-                    @endforelse
-
-                </tbody>
-            </table>
-        </div>
-
-        {{-- Pagination --}}
-        @if ($tasks->hasPages())
-            <div class="mt-4">
-                {{ $tasks->links() }}
+        @if (request('assigned_to') && $lanes)
+            <div class="mb-4">
+                <a href="{{ $taskUrl(['assigned_to' => null, 'page' => null]) }}"
+                   class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <x-heroicon-o-arrow-left class="w-4 h-4" /> All people
+                </a>
             </div>
         @endif
+
+        <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start;">
+            @forelse ($lanes as $lane)
+                <div style="flex:1 1 340px; min-width:320px; max-width:100%; background:#f8fafc; border:1px solid #eef2f6; border-radius:16px; padding:6px; display:flex; flex-direction:column;">
+
+                    {{-- Lane header — click to focus this person (reuses the assigned_to filter) --}}
+                    @php
+                        $laneFocusable = $lane['user_id'] && !request('assigned_to');
+                        $laneHeadStyle = "display:flex; align-items:center; gap:11px; padding:15px 15px 13px; border-bottom:3px solid {$lane['color']}; background:{$lane['bg']}; border-radius:12px 12px 0 0;";
+                    @endphp
+                    @if ($laneFocusable)
+                        <a href="{{ $taskUrl(['assigned_to' => $lane['user_id'], 'page' => null]) }}"
+                           style="{{ $laneHeadStyle }} cursor:pointer; text-decoration:none;">
+                    @else
+                        <div style="{{ $laneHeadStyle }}">
+                    @endif
+                        <span style="width:38px; height:38px; flex:0 0 auto; border-radius:50%; background:#fff; color:{{ $lane['color'] }}; border:1px solid {{ $lane['color'] }}; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">{{ $lane['initials'] }}</span>
+                        <div style="min-width:0;">
+                            <div style="font-size:15px; font-weight:700; color:#0f172a;">{{ $lane['name'] }}</div>
+                            @if ($lane['role'])
+                                <div style="font-size:12px; color:#64748b; margin-top:1px;">{{ $lane['role'] }}</div>
+                            @endif
+                        </div>
+                        <span style="margin-left:auto; font-size:12px; font-weight:600; color:{{ $lane['color'] }}; background:#fff; border:1px solid {{ $lane['color'] }}; border-radius:999px; padding:4px 11px; white-space:nowrap;">
+                            {{ $lane['count'] }} {{ \Illuminate\Support\Str::plural('task', $lane['count']) }}
+                        </span>
+                        @if ($laneFocusable)
+                            <span style="margin-left:6px; color:{{ $lane['color'] }}; font-size:20px; font-weight:700; line-height:1;">&rsaquo;</span>
+                        @endif
+                    @if ($laneFocusable)
+                        </a>
+                    @else
+                        </div>
+                    @endif
+
+                    {{-- Cards --}}
+                    <div style="display:flex; flex-direction:column; gap:10px; padding:12px;">
+                        @foreach ($lane['items'] as $item)
+                            @if ($item->type === 'call')
+                                @php $call = $item->model; $callOverdue = $call->isOverdue(); @endphp
+                                <a href="{{ route('admin.tasks.call.show', $call->id) }}"
+                                   style="display:block; text-decoration:none; background:#fff; border:1px solid #e9edf2; border-left:4px solid {{ $call->priority->stripeColor() }}; border-radius:11px; padding:14px 16px; box-shadow:0 1px 2px rgba(15,23,42,.04);">
+                                    <div class="flex items-center gap-1.5 mb-2.5 flex-wrap">
+                                        @if ($call->category)
+                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->category->color() }}">{{ $call->category->label() }}</span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-sky-100 text-sky-700">Call</span>
+                                        @endif
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $call->priority->color() }}">{{ $call->priority->label() }}</span>
+                                    </div>
+                                    <div style="font-size:15px; font-weight:600; color:#0f172a; margin-bottom:10px;">{{ \App\Helpers\CustomHelper::formatCallReason($call->reason) }}</div>
+                                    @if ($call->customer)
+                                        <div class="flex items-center gap-1.5 mb-1.5" style="font-size:12.5px; color:#64748b;">
+                                            <span style="color:#94a3b8;">Customer</span>
+                                            <span style="font-weight:600; color:#334155;">{{ $call->customer->full_name }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="flex items-center justify-between" style="margin-top:12px; padding-top:11px; border-top:1px solid #f1f5f9;">
+                                        <span style="font-size:12.5px; font-weight:600; color:{{ $callOverdue ? '#dc2626' : '#64748b' }};">
+                                            {{ $call->due_date ? $call->due_date->format('M j, Y') : 'No due date' }}{{ $callOverdue ? ' · Overdue' : '' }}
+                                        </span>
+                                        <span style="font-size:12.5px; font-weight:600; color:#0d9488; margin-left:auto;">View task &rarr;</span>
+                                    </div>
+                                </a>
+                            @else
+                                @php $task = $item->model; $taskOverdue = $task->isOverdue(); @endphp
+                                <a href="{{ route('admin.tasks.show', $task) }}"
+                                   style="display:block; text-decoration:none; background:#fff; border:1px solid #e9edf2; border-left:4px solid {{ $task->priority->stripeColor() }}; border-radius:11px; padding:14px 16px; box-shadow:0 1px 2px rgba(15,23,42,.04);">
+                                    <div class="flex items-center gap-1.5 mb-2.5 flex-wrap">
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->category->color() }}">{{ $task->category->label() }}</span>
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->priority->color() }}">{{ $task->priority->label() }}</span>
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->status->color() }}">{{ $task->status->label() }}</span>
+                                    </div>
+                                    <div style="font-size:15px; font-weight:600; color:#0f172a; margin-bottom:10px;">{{ $task->title }}</div>
+                                    @if ($task->customer || $task->order)
+                                        <div class="flex items-center gap-1.5 mb-1.5" style="font-size:12.5px; color:#64748b;">
+                                            <span style="color:#94a3b8;">Customer</span>
+                                            <span style="font-weight:600; color:#334155;">{{ $task->customer?->full_name ?? '—' }}</span>
+                                            @if ($task->order)
+                                                <span style="color:#0d9488; font-weight:600;">{{ $task->order->order_number }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    @if ($task->equipment)
+                                        <div class="flex items-center gap-1.5 mb-1.5" style="font-size:12.5px; color:#64748b;">
+                                            <span style="color:#94a3b8;">Equipment</span>
+                                            <span style="font-weight:600; color:#334155;">{{ $task->equipment->equipment_name }}</span>
+                                            <span style="color:#94a3b8;">{{ $task->equipment->equipment_id }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="flex items-center justify-between" style="margin-top:12px; padding-top:11px; border-top:1px solid #f1f5f9;">
+                                        <span style="font-size:12.5px; font-weight:600; color:{{ $taskOverdue ? '#dc2626' : '#64748b' }};">
+                                            {{ $task->due_date ? $task->due_date->format('M j, Y') : 'No due date' }}{{ $taskOverdue ? ' · Overdue' : '' }}
+                                        </span>
+                                        <span style="font-size:12.5px; font-weight:600; color:#0d9488; margin-left:auto;">View task &rarr;</span>
+                                    </div>
+                                </a>
+                            @endif
+                        @endforeach
+
+                        <button type="button" onclick="openNewTaskModal()"
+                            style="border:1px dashed #cbd5e1; background:transparent; border-radius:11px; padding:11px; font-family:inherit; font-size:13px; font-weight:600; color:#94a3b8; cursor:pointer;">
+                            + Add task
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="w-full rounded-lg border border-gray-200 bg-white shadow-sm px-4 py-16 text-center text-gray-400">
+                    No tasks match these filters.
+                </div>
+            @endforelse
+        </div>
     </div>
 
     {{-- Completed Today Widget --}}

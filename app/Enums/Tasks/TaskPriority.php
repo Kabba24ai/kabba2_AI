@@ -29,6 +29,17 @@ enum TaskPriority: string
         };
     }
 
+    /** Solid hex for the card's left-edge priority stripe (Task Center board). */
+    public function stripeColor(): string
+    {
+        return match ($this) {
+            self::Low    => '#cbd5e1',
+            self::Normal => '#94a3b8',
+            self::High   => '#d97706',
+            self::Urgent => '#dc2626',
+        };
+    }
+
     public function sortOrder(): int
     {
         return match ($this) {

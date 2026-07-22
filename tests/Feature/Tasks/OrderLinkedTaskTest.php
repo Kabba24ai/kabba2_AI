@@ -315,10 +315,10 @@ class OrderLinkedTaskTest extends TestCase
         );
     }
 
-    public function test_task_table_shows_the_order_indicator(): void
+    public function test_task_board_shows_the_order_indicator_and_links_to_the_task(): void
     {
         $order = $this->makeOrder();
-        Task::create($this->taskPayload([
+        $task  = Task::create($this->taskPayload([
             'related_order_id'    => $order->id,
             'related_customer_id' => $this->customer->id,
             'created_by_user_id'  => $this->admin->id,
@@ -326,11 +326,10 @@ class OrderLinkedTaskTest extends TestCase
 
         $html = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
 
+        // The person-grouped board shows the order number as card context; the
+        // whole card links to the task detail (where the order link is live).
         $this->assertStringContainsString($order->order_number, $html);
-        $this->assertStringContainsString(
-            route('admin.order-management.orders.edit', $order->unique_id),
-            $html,
-        );
+        $this->assertStringContainsString(route('admin.tasks.show', $task), $html);
     }
 
     public function test_call_show_page_displays_the_order_link(): void

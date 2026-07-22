@@ -221,10 +221,79 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'order', 'descriptionMedia', 'comments.user', 'comments.media', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'order', 'parentTask', 'subTasks.assignedTo', 'descriptionMedia', 'comments.user', 'comments.media', 'activityLogs.user']);
         $users = User::active()->orderBy('first_name')->get();
 
         return view('admin.tasks.show', compact('task', 'users'));
+    }
+
+    /**
+     * Clickable status control on the task detail page. The four working
+     * statuses move freely in any direction — this is a current-state
+     * selector, not a progress bar. Waiting requires a reason; Help Needed
+     * additionally spins up a linked sub-task for the chosen teammate.
+     * Completed/Cancelled stay on their existing flows and are never set here.
+     */
+    public function updateStatus(Request $request, Task $task)
+    {
+        $request->validate([
+            'status'           => 'required|in:open,in_progress,waiting,help_needed',
+            'waiting_reason'   => 'required_if:status,waiting|nullable|string|max:500',
+            'help_assigned_to' => 'required_if:status,help_needed|nullable|exists:users,id',
+            'help_description' => 'required_if:status,help_needed|nullable|string|max:2000',
+            'help_due_date'    => 'nullable|date',
+        ]);
+
+        if ($task->status->isTerminal()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This task is ' . strtolower($task->status->label()) . ' — its status can no longer change.',
+            ], 422);
+        }
+
+        $oldLabel = $task->status->label();
+
+        $task->update([
+            'status'         => $request->status,
+            'waiting_reason' => $request->status === 'waiting' ? $request->waiting_reason : null,
+        ]);
+        $task->refresh();
+
+        $newDetail = $task->status->label()
+            . ($request->status === 'waiting' ? ' — ' . $request->waiting_reason : '');
+        $task->logActivity('status_changed', $oldLabel, $newDetail);
+
+        if ($request->status === 'help_needed') {
+            $helpTask = Task::create([
+                'category'             => $task->category->value,
+                'title'                => 'Help needed: ' . $task->title,
+                'description'          => $request->help_description,
+                'priority'             => $task->priority->value,
+                'status'               => 'open',
+                'assigned_to_user_id'  => $request->help_assigned_to,
+                'created_by_user_id'   => auth()->id(),
+                'due_date'             => $request->help_due_date,
+                'parent_task_id'       => $task->id,
+                // The helper inherits the full relationship context
+                'related_customer_id'  => $task->related_customer_id,
+                'related_order_id'     => $task->related_order_id,
+                'related_supplier_id'  => $task->related_supplier_id,
+                'related_other'        => $task->related_other,
+                'related_equipment_id' => $task->related_equipment_id,
+            ]);
+            $helpTask->logActivity('task_created', null, $helpTask->title);
+            $task->logActivity(
+                'help_requested',
+                null,
+                'Linked task created for ' . ($helpTask->assignedTo?->full_name ?? 'Unassigned') . ': ' . $request->help_description
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated to ' . $task->status->label() . '.',
+            'status'  => $task->status->value,
+        ]);
     }
 
     public function reassign(Request $request, Task $task)

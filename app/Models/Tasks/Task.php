@@ -20,6 +20,8 @@ class Task extends Model
         'description',
         'priority',
         'status',
+        'waiting_reason',
+        'parent_task_id',
         'assigned_to_user_id',
         'created_by_user_id',
         'due_date',
@@ -70,6 +72,17 @@ class Task extends Model
     public function order()
     {
         return $this->belongsTo(\App\Models\Orders\Order::class, 'related_order_id');
+    }
+
+    /** The task this one was spun up to assist (Help Needed). */
+    public function parentTask()
+    {
+        return $this->belongsTo(self::class, 'parent_task_id');
+    }
+
+    public function subTasks()
+    {
+        return $this->hasMany(self::class, 'parent_task_id');
     }
 
     public function supplier()

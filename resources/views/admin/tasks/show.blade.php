@@ -80,6 +80,85 @@
                     </div>
                 </div>
             @endif
+
+            {{-- Status control — segmented bar, free movement between the four
+                 working states (Task Status Bar design). Completed/cancelled
+                 tasks keep their badge; the control is hidden for them. --}}
+            @unless ($task->status->isTerminal())
+            <div class="mt-5 pt-5 border-t border-gray-100">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase text-gray-400" style="letter-spacing:.1em;">Status — tap to update</span>
+                    <span id="ts_pill" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"></span>
+                </div>
+                <div id="ts_bar" class="flex border border-gray-200 rounded-xl overflow-hidden bg-white"></div>
+                <p id="ts_desc" class="text-sm text-gray-500 mt-3 mb-0"></p>
+
+                {{-- Waiting: a reason is required before the hold commits --}}
+                <div id="ts_waiting_panel" class="hidden mt-4 rounded-xl p-5" style="border:1px solid #fde68a; background:#fffbeb;">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="flex items-center justify-center rounded-lg font-bold" style="width:30px;height:30px;background:#fef3c7;color:#b45309;">&#9208;</span>
+                        <div>
+                            <div class="text-sm font-semibold" style="color:#92400e;">Why is this on hold?</div>
+                            <div class="text-xs" style="color:#b45309;">A reason is required before the task can be set to Waiting.</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        @foreach (['Blocked by another task', 'Awaiting a reply', 'Missing information', 'Vendor / third party'] as $reason)
+                            <button type="button" data-ts-wait-chip
+                                class="text-xs font-semibold rounded-full px-3 py-1.5 cursor-pointer"
+                                style="color:#92400e;background:#fef3c7;border:1px solid #fde68a;">{{ $reason }}</button>
+                        @endforeach
+                    </div>
+                    <label class="block text-xs font-semibold mb-1" style="color:#92400e;">Reason for waiting</label>
+                    <textarea id="ts_waiting_reason" rows="2"
+                        placeholder="e.g. Waiting on Ashley to confirm the mailbox addresses before I can finish setup."
+                        class="w-full rounded-lg px-3 py-2 text-sm text-gray-900 bg-white"
+                        style="border:1px solid #fde68a;">{{ $task->status->value === 'waiting' ? $task->waiting_reason : '' }}</textarea>
+                    <div class="flex justify-end mt-3">
+                        <button type="button" id="ts_waiting_save"
+                            class="rounded-lg px-5 py-2.5 text-sm font-semibold text-white cursor-pointer"
+                            style="background:#b45309;border:none;">Set to Waiting</button>
+                    </div>
+                </div>
+
+                {{-- Help Needed: creates a linked task for a teammate --}}
+                <div id="ts_help_panel" class="hidden mt-4 rounded-xl p-5" style="border:1px solid #e9d5ff; background:#faf7ff;">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="flex items-center justify-center rounded-lg font-bold" style="width:30px;height:30px;background:#ede9fe;color:#7c3aed;">&#8644;</span>
+                        <div>
+                            <div class="text-sm font-semibold" style="color:#4c1d95;">Request help — creates a linked task</div>
+                            <div class="text-xs" style="color:#8b5cf6;">The person you pick gets a task with your request.</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1" style="color:#6b21a8;">Assign to</label>
+                            <select id="ts_help_assignee"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 bg-white">
+                                <option value="">Choose teammate…</option>
+                                @foreach ($users as $helpUser)
+                                    <option value="{{ $helpUser->id }}">{{ $helpUser->full_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1" style="color:#6b21a8;">Needed by</label>
+                            <input type="date" id="ts_help_due" min="{{ now()->format('Y-m-d') }}"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 bg-white">
+                        </div>
+                    </div>
+                    <label class="block text-xs font-semibold mb-1" style="color:#6b21a8;">What do you need from them?</label>
+                    <textarea id="ts_help_description" rows="2"
+                        placeholder="e.g. Please send me the logins for Ashley & Amber's mailboxes so I can finish the setup."
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 bg-white"></textarea>
+                    <div class="flex justify-end mt-3">
+                        <button type="button" id="ts_help_save"
+                            class="rounded-lg px-5 py-2.5 text-sm font-semibold text-white cursor-pointer"
+                            style="background:#7c3aed;border:none;">Create linked task</button>
+                    </div>
+                </div>
+            </div>
+            @endunless
         </div>
 
         {{-- Comments --}}
@@ -315,6 +394,38 @@
             </dl>
         </div>
 
+        {{-- Linked Tasks (Help Needed sub-tasks / parent) --}}
+        @if ($task->parentTask || $task->subTasks->isNotEmpty())
+        <div class="bg-white rounded-lg border border-purple-200 shadow-sm p-5">
+            <h4 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <x-heroicon-o-link class="w-4 h-4" style="color:#7c3aed;" />
+                Linked Tasks
+            </h4>
+            <div class="space-y-3 text-sm">
+                @if ($task->parentTask)
+                    <div>
+                        <div class="text-xs text-gray-400 mb-0.5">Assists</div>
+                        <a href="{{ route('admin.tasks.show', $task->parentTask) }}"
+                            class="font-medium text-blue-600 hover:underline">{{ $task->parentTask->title }}</a>
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ml-1 {{ $task->parentTask->status->color() }}">
+                            {{ $task->parentTask->status->label() }}
+                        </span>
+                    </div>
+                @endif
+                @foreach ($task->subTasks as $subTask)
+                    <div>
+                        <div class="text-xs text-gray-400 mb-0.5">Help request — {{ $subTask->assignedTo?->full_name ?? 'Unassigned' }}</div>
+                        <a href="{{ route('admin.tasks.show', $subTask) }}"
+                            class="font-medium text-blue-600 hover:underline">{{ $subTask->title }}</a>
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ml-1 {{ $subTask->status->color() }}">
+                            {{ $subTask->status->label() }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         {{-- Activity Log --}}
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
             <h4 class="text-sm font-semibold text-gray-700 mb-4">Activity</h4>
@@ -369,6 +480,148 @@
 </div>
 
 @push('js')
+@unless ($task->status->isTerminal())
+<script>
+(function () {
+    'use strict';
+
+    // Task Status Bar design — four working states, freely switchable in any
+    // direction. Colors mirror the approved design (1a segmented control).
+    var STATUSES = [
+        { key: 'open',        label: 'Open',        desc: 'Created — no one has acted on it yet.',             color: '#64748b', bg: '#f1f5f9' },
+        { key: 'in_progress', label: 'In Progress', desc: 'Someone is actively working on this task.',         color: '#0d9488', bg: '#ccfbf1' },
+        { key: 'waiting',     label: 'Waiting',     desc: 'On hold — blocked or awaiting something external.', color: '#b45309', bg: '#fef3c7' },
+        { key: 'help_needed', label: 'Help Needed', desc: 'Spins up a linked task so a teammate can assist.',  color: '#7c3aed', bg: '#ede9fe' },
+    ];
+
+    var STATUS_URL     = "{{ route('admin.tasks.status', $task) }}";
+    var saved          = @json($task->status->value);   // committed status on the server
+    var selected       = saved;                          // visual selection (may be pending a panel commit)
+    var WAITING_REASON = @json($task->waiting_reason);
+
+    function cfg(key) {
+        return STATUSES.find(function (s) { return s.key === key; }) || STATUSES[0];
+    }
+
+    function render() {
+        var bar = document.getElementById('ts_bar');
+        bar.innerHTML = '';
+        STATUSES.forEach(function (s, i) {
+            var on  = s.key === selected;
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;gap:7px;'
+                + 'padding:13px 6px;cursor:pointer;font-size:13.5px;font-family:inherit;border:none;'
+                + 'transition:background .18s ease,color .18s ease;'
+                + 'border-right:' + (i < STATUSES.length - 1 ? '1px solid #e2e8f0' : 'none') + ';'
+                + 'background:' + (on ? s.color : '#fff') + ';'
+                + 'color:' + (on ? '#fff' : '#64748b') + ';'
+                + 'font-weight:' + (on ? '600' : '500') + ';';
+            var dot = document.createElement('span');
+            dot.style.cssText = 'width:8px;height:8px;border-radius:50%;'
+                + 'background:' + (on ? '#fff' : s.color) + ';opacity:' + (on ? '1' : '.55') + ';';
+            btn.appendChild(dot);
+            btn.appendChild(document.createTextNode(s.label));
+            if (!on) {
+                btn.addEventListener('mouseenter', function () { btn.style.background = '#f8fafc'; btn.style.color = '#334155'; });
+                btn.addEventListener('mouseleave', function () { btn.style.background = '#fff';    btn.style.color = '#64748b'; });
+            }
+            btn.addEventListener('click', function () { pick(s.key); });
+            bar.appendChild(btn);
+        });
+
+        var current = cfg(selected);
+        var pill = document.getElementById('ts_pill');
+        pill.textContent = current.label;
+        pill.style.background = current.bg;
+        pill.style.color = current.color;
+
+        var desc = document.getElementById('ts_desc');
+        desc.textContent = (selected === 'waiting' && selected === saved && WAITING_REASON)
+            ? 'On hold — ' + WAITING_REASON
+            : current.desc;
+
+        document.getElementById('ts_waiting_panel').classList.toggle('hidden', selected !== 'waiting' || selected === saved);
+        document.getElementById('ts_help_panel').classList.toggle('hidden', selected !== 'help_needed' || selected === saved);
+    }
+
+    function pick(key) {
+        selected = key;
+        // Open / In Progress commit immediately; Waiting and Help Needed
+        // stay pending until their panel is completed.
+        if (key === 'open' || key === 'in_progress') {
+            if (key === saved) { render(); return; }
+            commit({ status: key });
+            return;
+        }
+        render();
+    }
+
+    function commit(payload, btn) {
+        if (btn) { btn.disabled = true; }
+        fetch(STATUS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept':       'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: JSON.stringify(payload),
+        })
+        .then(function (res) {
+            if (res.status === 422) {
+                return res.json().then(function (data) {
+                    var first = data.errors ? Object.values(data.errors)[0][0] : (data.message || 'Validation error.');
+                    throw new Error(first);
+                });
+            }
+            if (!res.ok) throw new Error('Server error (' + res.status + ').');
+            return res.json();
+        })
+        .then(function (data) {
+            if (!data.success) throw new Error(data.message || 'Could not update status.');
+            notyf.success(data.message);
+            window.location.reload();
+        })
+        .catch(function (err) {
+            notyf.error(err.message);
+            selected = saved;
+            render();
+        })
+        .finally(function () { if (btn) { btn.disabled = false; } });
+    }
+
+    document.getElementById('ts_waiting_save').addEventListener('click', function () {
+        var reason = document.getElementById('ts_waiting_reason').value.trim();
+        if (!reason) { notyf.error('Please enter a reason for waiting.'); return; }
+        commit({ status: 'waiting', waiting_reason: reason }, this);
+    });
+
+    document.getElementById('ts_help_save').addEventListener('click', function () {
+        var assignee    = document.getElementById('ts_help_assignee').value;
+        var description = document.getElementById('ts_help_description').value.trim();
+        if (!assignee)    { notyf.error('Please choose a teammate to help.'); return; }
+        if (!description) { notyf.error('Please describe what you need from them.'); return; }
+        commit({
+            status:           'help_needed',
+            help_assigned_to: assignee,
+            help_description: description,
+            help_due_date:    document.getElementById('ts_help_due').value || null,
+        }, this);
+    });
+
+    // Quick-pick reason chips fill the waiting textarea
+    document.querySelectorAll('[data-ts-wait-chip]').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            document.getElementById('ts_waiting_reason').value = chip.textContent.trim();
+            document.getElementById('ts_waiting_reason').focus();
+        });
+    });
+
+    render();
+}());
+</script>
+@endunless
 <script>
 function openTaskReassignModal() {
     var m = document.getElementById('TaskReassignModal');

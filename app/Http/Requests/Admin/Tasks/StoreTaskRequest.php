@@ -22,7 +22,7 @@ class StoreTaskRequest extends FormRequest
             'title'               => ['required', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
             'priority'            => ['required', 'in:low,normal,high,urgent'],
-            'status'              => ['required', 'in:open,in_progress,waiting,completed,cancelled'],
+            'status'              => ['required', 'in:open,in_progress,waiting,help_needed,completed,cancelled'],
             'assigned_to_user_id' => ['nullable', 'exists:users,id'],
             'due_date'            => ['nullable', 'date'],
             'related_order_id'      => ['nullable', Rule::exists('orders', 'id')->whereNull('deleted_at')],

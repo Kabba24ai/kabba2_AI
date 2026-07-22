@@ -161,6 +161,55 @@ class ModuleSeeder extends Seeder
                 ],
             ],
             // Queue Line [End]
+
+            // Service Management [Start] — permissions named now for
+            // forward-compat (ST-3); the global Gate::before bypass makes
+            // them inert until granular enforcement is switched back on.
+            // Routes are already annotated with these permission: names.
+            [
+                'module_category_name' => 'Service Management',
+                'modules' => [
+                    [
+                        'module_name' => 'service_tickets',
+                        'module_title' => 'Service Tickets',
+                        'model_name' => 'ServiceTicket',
+                        'permission_names' => [
+                            'view'      => 'View Service Tickets',
+                            'manage'    => 'Manage Service Tickets',      // create / edit / diagnose / parts / labor / notes / status
+                            'authorize' => 'Approve & Authorize Repairs', // estimate approval, repair authorization, overrides, deposit
+                            'bill'      => 'Create Service Charges',        // settlement handoff to the Billing Engine
+                        ],
+                    ],
+                    [
+                        'module_name' => 'problem_templates',
+                        'module_title' => 'Problem Templates',
+                        'model_name' => 'ServiceSymptomProfile',
+                        'permission_names' => [
+                            'view'   => 'View Problem Templates',
+                            'manage' => 'Manage Problem Templates',
+                        ],
+                    ],
+                    [
+                        'module_name' => 'field_service',
+                        'module_title' => 'Field Service',
+                        'model_name' => 'FieldServiceTicket',
+                        'permission_names' => [
+                            'view'   => 'View Field Service',
+                            'manage' => 'Manage Field Service',
+                        ],
+                    ],
+                    [
+                        'module_name' => 'warranty',
+                        'module_title' => 'Warranty Claims',
+                        'model_name' => 'WarrantyCase',
+                        'permission_names' => [
+                            'view'   => 'View Warranty Claims',
+                            'manage' => 'Manage Warranty Claims',
+                        ],
+                    ],
+                ],
+            ],
+            // Service Management [End]
         ];
     }
 

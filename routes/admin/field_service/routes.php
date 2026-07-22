@@ -12,16 +12,21 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('field-service')
     ->name('field-service.')
     ->group(function () {
-        Route::prefix('tickets')->name('tickets.')->group(function () {
+        // ST-3: view = read; manage = create/dispatch/decision/notes/media.
+        // Inert until the global Gate::before bypass is lifted (see
+        // Iam\ModuleSeeder + AppServiceProvider).
+        Route::prefix('tickets')->name('tickets.')
+            ->middleware('permission:field_service.view')
+            ->group(function () {
             Route::get('/',                 Tickets\IndexController::class)->name('index');
             Route::get('/create',           Tickets\CreateController::class)->name('create');
-            Route::post('/',                Tickets\StoreController::class)->name('store');
+            Route::post('/',                Tickets\StoreController::class)->name('store')->middleware('permission:field_service.manage');
             Route::get('/{ticket}',         Tickets\ShowController::class)->name('show');
-            Route::post('/{ticket}/status',   Tickets\StatusController::class)->name('status');
-            Route::post('/{ticket}/decision', Decision\StoreController::class)->name('decision.store');
+            Route::post('/{ticket}/status',   Tickets\StatusController::class)->name('status')->middleware('permission:field_service.manage');
+            Route::post('/{ticket}/decision', Decision\StoreController::class)->name('decision.store')->middleware('permission:field_service.manage');
 
-            Route::put('/{ticket}/dispatch', Dispatch\UpdateController::class)->name('dispatch.update');
-            Route::put('/{ticket}/media',    Media\UpdateController::class)->name('media.update');
-            Route::post('/{ticket}/notes',   Notes\StoreController::class)->name('notes.store');
+            Route::put('/{ticket}/dispatch', Dispatch\UpdateController::class)->name('dispatch.update')->middleware('permission:field_service.manage');
+            Route::put('/{ticket}/media',    Media\UpdateController::class)->name('media.update')->middleware('permission:field_service.manage');
+            Route::post('/{ticket}/notes',   Notes\StoreController::class)->name('notes.store')->middleware('permission:field_service.manage');
         });
     });

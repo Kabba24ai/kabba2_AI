@@ -536,12 +536,25 @@ private function getTeamWorkloadSummary(): Collection
         ->with('assignee')
         ->get();
 
+    // Tasks completed today, grouped by the employee who completed them, in a
+    // single aggregated query (no per-employee query). Attribution is the
+    // acting completer (completed_by_user_id, set by completeWithComment), not
+    // the assignee. Business day = today() in the app timezone; reopened tasks
+    // clear completed_at so they naturally drop out, matching completedToday().
+    $completedTodayByUser = Task::query()
+        ->where('status', 'completed')
+        ->whereNotNull('completed_by_user_id')
+        ->whereDate('completed_at', today())
+        ->selectRaw('completed_by_user_id, COUNT(*) as cnt')
+        ->groupBy('completed_by_user_id')
+        ->pluck('cnt', 'completed_by_user_id');
+
     $summary = [];
 
     foreach ($openTasks as $task) {
         $uid = $task->assigned_to_user_id;
         if (!isset($summary[$uid])) {
-            $summary[$uid] = ['user' => $task->assignedTo, 'task_count' => 0, 'call_count' => 0, 'urgent_count' => 0, 'overdue_count' => 0];
+            $summary[$uid] = ['user' => $task->assignedTo, 'task_count' => 0, 'call_count' => 0, 'urgent_count' => 0, 'overdue_count' => 0, 'completed_count' => 0];
         }
         $summary[$uid]['task_count']++;
         if ($task->priority?->value === 'urgent') $summary[$uid]['urgent_count']++;
@@ -551,11 +564,18 @@ private function getTeamWorkloadSummary(): Collection
     foreach ($openCalls as $call) {
         $uid = $call->created_by;
         if (!isset($summary[$uid])) {
-            $summary[$uid] = ['user' => $call->assignee, 'task_count' => 0, 'call_count' => 0, 'urgent_count' => 0, 'overdue_count' => 0];
+            $summary[$uid] = ['user' => $call->assignee, 'task_count' => 0, 'call_count' => 0, 'urgent_count' => 0, 'overdue_count' => 0, 'completed_count' => 0];
         }
         $summary[$uid]['call_count']++;
         if (($call->priority?->value === 'urgent') || $call->is_urgent) $summary[$uid]['urgent_count']++;
         if ($call->due_date && $call->due_date->isPast()) $summary[$uid]['overdue_count']++;
+    }
+
+    // Fold each employee's completed-today total onto their existing card.
+    // Employees who only completed work (no open task/call) are not surfaced
+    // here — the panel lists team members with pending work by design.
+    foreach ($summary as $uid => $entry) {
+        $summary[$uid]['completed_count'] = (int) $completedTodayByUser->get($uid, 0);
     }
 
     return collect(array_values($summary))->sort(function ($a, $b) {

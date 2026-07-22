@@ -1,14 +1,10 @@
-@extends('admin.layouts.app')
+@extends('admin.layouts.app', ['contentClass' => 'max-w-(--breakpoint-2xl)'])
 
 @section('title', 'Task Detail')
 
 @section('content')
 
 @include('flash::message')
-
-{{-- Constrained container — the detail layout is designed for ~1180px
-     (card ≈ 780, sidebar ≈ 380); full-viewport stretch breaks the design. --}}
-<div class="mx-auto" style="max-width:1180px;">
 
 <div class="flex items-center gap-3 mb-6">
     <a href="{{ route('admin.tasks.index') }}" class="text-gray-500 hover:text-gray-700">
@@ -17,10 +13,13 @@
     <h3 class="text-xl font-semibold text-gray-800">Task Detail</h3>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+{{-- Fluid two-column: main takes remaining width, sidebar a fixed 320px,
+     stacking beneath the main content below the xl breakpoint. Width and
+     centering come from the layout's canonical container (contentClass). --}}
+<div class="flex flex-col xl:flex-row gap-6">
 
     {{-- Main --}}
-    <div class="lg:col-span-2 space-y-5">
+    <div class="flex-1 min-w-0 space-y-5">
 
         {{-- Task Card --}}
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
@@ -257,7 +256,7 @@
     </div>
 
     {{-- Sidebar --}}
-    <div class="space-y-5">
+    <div class="w-full xl:w-80 shrink-0 space-y-5">
 
         {{-- Related To Panel --}}
         @if ($task->customer || $task->supplier || $task->related_other || $task->order)
@@ -455,9 +454,6 @@
 
     </div>
 </div>
-
-</div>
-{{-- /constrained container --}}
 
 {{-- Task Reassign Modal --}}
 <div id="TaskReassignModal" style="display:none;"

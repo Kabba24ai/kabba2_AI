@@ -208,9 +208,8 @@
                         <p class="text-sm text-gray-600">
                             The shop is diagnosing on
                             <a href="{{ route('admin.service-management.tickets.show', $case->serviceTicket) }}" class="text-blue-600 font-semibold hover:text-blue-700">{{ $case->serviceTicket?->ticket_number }}</a>.
-                            When the diagnosis is complete, this case advances to <span class="font-semibold">Ready to Submit</span>.
+                            When the diagnosis is complete, this case advances automatically to <span class="font-semibold">Ready to Submit</span>.
                         </p>
-                        <p class="text-xs text-gray-400 mt-3">Automatic queue advance on diagnosis completion arrives in Phase 2 — along with the submission, decision, and reimbursement panels.</p>
 
                     @elseif ($queue === WarrantyQueue::Closed)
                         <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 flex items-center gap-3">
@@ -218,11 +217,139 @@
                             <p class="text-sm text-slate-700">Case closed {{ $case->closed_at?->format('M j, Y g:i A') }}.</p>
                         </div>
 
-                    @else
-                        <p class="text-sm text-gray-600">
-                            This case is in <span class="font-semibold">{{ $queue->label() }}</span>.
-                            The {{ $queue->label() }} work panel arrives in Phase 2/3 of the Warranty Module.
-                        </p>
+                    @elseif ($queue === WarrantyQueue::ReadyToSubmit)
+                        {{-- Submit to Manufacturer --}}
+                        <form method="POST" action="{{ route('admin.warranty.claims.submit', $case) }}" class="space-y-4">
+                            @csrf
+                            <p class="text-sm text-gray-600">Submit this claim to <span class="font-semibold">{{ $case->manufacturer }}</span> and record the claim/submission reference.</p>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Claim / Submission Reference <span class="text-red-500">*</span></label>
+                                <input type="text" name="oem_submission_reference" required maxlength="255"
+                                       class="w-full max-w-md border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Manufacturer claim #">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea name="notes" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Optional"></textarea>
+                            </div>
+                            <button type="submit" class="px-6 py-3 rounded-lg font-medium text-sm bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition">
+                                Submit to Manufacturer → Waiting on Manufacturer
+                            </button>
+                        </form>
+
+                    @elseif ($queue === WarrantyQueue::WaitingOnManufacturer)
+                        {{-- Record OEM Decision --}}
+                        <form method="POST" action="{{ route('admin.warranty.claims.oem-decision', $case) }}" class="space-y-4" x-data="{ decision: '' }">
+                            @csrf
+                            <p class="text-sm text-gray-600">
+                                Submitted{{ $case->oem_submission_reference ? ' as ' : '' }}<span class="font-semibold">{{ $case->oem_submission_reference }}</span>. Record the manufacturer's decision.
+                            </p>
+                            <div class="flex flex-wrap gap-3">
+                                @foreach (\App\Enums\Warranty\WarrantyOemDecision::cases() as $d)
+                                    <label class="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-lg px-3 py-2">
+                                        <input type="radio" name="oem_decision" value="{{ $d->value }}" x-model="decision" required class="text-purple-600">
+                                        <span class="text-sm text-gray-700">{{ $d->label() }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <div x-show="decision === 'approved' || decision === 'partial'" x-cloak>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Approved Amount <span class="text-red-500">*</span></label>
+                                <input type="number" step="0.01" min="0" name="oem_approved_amount" x-bind:required="decision === 'approved' || decision === 'partial'"
+                                       class="w-full sm:w-64 border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="0.00">
+                                <p class="text-xs text-gray-400 mt-1">The amount the manufacturer will cover (becomes the expected reimbursement).</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea name="notes" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Optional"></textarea>
+                            </div>
+                            <button type="submit" class="px-6 py-3 rounded-lg font-medium text-sm bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition">
+                                Record OEM Decision
+                            </button>
+                            <p class="text-xs text-gray-400">Approved goes straight to repair; Partial and Denied ask the customer how to proceed.</p>
+                        </form>
+
+                    @elseif ($queue === WarrantyQueue::AwaitingCustomerDecision)
+                        {{-- Record Customer Decision --}}
+                        <form method="POST" action="{{ route('admin.warranty.claims.customer-decision', $case) }}" class="space-y-4">
+                            @csrf
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
+                                Manufacturer outcome:
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $case->oem_decision?->color() }}">{{ $case->oem_decision?->label() }}</span>
+                                @if ($case->oem_approved_amount !== null)
+                                    · covers <span class="font-semibold">${{ number_format((float) $case->oem_approved_amount, 2) }}</span>
+                                @endif
+                            </div>
+                            <p class="text-sm text-gray-600">Does the customer want to proceed with the repair (paying any balance), or decline?</p>
+                            <div class="flex flex-wrap gap-3">
+                                @foreach (\App\Enums\Warranty\WarrantyCustomerDecision::cases() as $d)
+                                    <label class="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-lg px-3 py-2">
+                                        <input type="radio" name="customer_decision" value="{{ $d->value }}" required class="text-purple-600">
+                                        <span class="text-sm text-gray-700">{{ $d->label() }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea name="notes" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Optional"></textarea>
+                            </div>
+                            <button type="submit" class="px-6 py-3 rounded-lg font-medium text-sm bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition">
+                                Record Customer Decision
+                            </button>
+                        </form>
+
+                    @elseif ($queue === WarrantyQueue::ApprovedForRepair)
+                        {{-- Repair happens on the linked Service Ticket --}}
+                        <form method="POST" action="{{ route('admin.warranty.claims.repair-complete', $case) }}" class="space-y-4">
+                            @csrf
+                            <p class="text-sm text-gray-600">
+                                The repair is performed on
+                                <a href="{{ route('admin.service-management.tickets.show', $case->serviceTicket) }}" class="text-blue-600 font-semibold hover:text-blue-700">{{ $case->serviceTicket?->ticket_number }}</a>.
+                                Mark it complete when the shop finishes.
+                            </p>
+                            @if (($case->reimbursement_expected_amount ?? 0) > 0)
+                                <p class="text-xs text-gray-500">Expected OEM reimbursement: <span class="font-semibold">${{ number_format((float) $case->reimbursement_expected_amount, 2) }}</span> — the case will move to Awaiting Reimbursement.</p>
+                            @else
+                                <p class="text-xs text-gray-500">No OEM reimbursement expected — completing the repair will close the case.</p>
+                            @endif
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea name="notes" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Optional"></textarea>
+                            </div>
+                            <button type="submit" class="px-6 py-3 rounded-lg font-medium text-sm bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition">
+                                Repair Complete
+                            </button>
+                        </form>
+
+                    @elseif ($queue === WarrantyQueue::AwaitingReimbursement)
+                        {{-- Track Reimbursement (state-only) --}}
+                        <form method="POST" action="{{ route('admin.warranty.claims.reimbursement', $case) }}" class="space-y-4">
+                            @csrf
+                            <p class="text-sm text-gray-600">
+                                Awaiting reimbursement from <span class="font-semibold">{{ $case->manufacturer }}</span>
+                                @if ($case->reimbursement_expected_amount !== null)
+                                    — expected <span class="font-semibold">${{ number_format((float) $case->reimbursement_expected_amount, 2) }}</span>
+                                @endif. Record it when received to close the case.
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount Received <span class="text-red-500">*</span></label>
+                                    <input type="number" step="0.01" min="0" name="reimbursement_received_amount" required
+                                           value="{{ $case->reimbursement_expected_amount }}"
+                                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date Received <span class="text-red-500">*</span></label>
+                                    <input type="date" name="reimbursement_received_at" required value="{{ now()->toDateString() }}"
+                                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea name="notes" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Optional"></textarea>
+                            </div>
+                            <button type="submit" class="px-6 py-3 rounded-lg font-medium text-sm bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition">
+                                Record Reimbursement → Close Case
+                            </button>
+                        </form>
                     @endif
                 </div>
             </div>

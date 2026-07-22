@@ -47,6 +47,14 @@ class WarrantyCase extends Model
         'diagnostic_fee_taxable',
         'service_ticket_id',
         'created_by',
+        // ST-4 (Phase 2) workflow data
+        'oem_submission_reference',
+        'oem_decision',
+        'oem_approved_amount',
+        'customer_decision',
+        'reimbursement_expected_amount',
+        'reimbursement_received_amount',
+        'reimbursement_received_at',
     ];
 
     protected $casts = [
@@ -65,6 +73,13 @@ class WarrantyCase extends Model
         'awaiting_reimbursement_at'   => 'datetime',
         'closed_at'                   => 'datetime',
         'queue_entered_at'            => 'datetime',
+        // ST-4 (Phase 2)
+        'oem_decision'                  => \App\Enums\Warranty\WarrantyOemDecision::class,
+        'oem_approved_amount'           => 'decimal:2',
+        'customer_decision'             => \App\Enums\Warranty\WarrantyCustomerDecision::class,
+        'reimbursement_expected_amount' => 'decimal:2',
+        'reimbursement_received_amount' => 'decimal:2',
+        'reimbursement_received_at'     => 'date',
     ];
 
     protected static function booted(): void
@@ -215,6 +230,24 @@ class WarrantyCase extends Model
         );
 
         return true;
+    }
+
+    /**
+     * ST-4 auto-advance: when a linked Service Ticket completes diagnosis,
+     * move its warranty case from Awaiting Diagnosis to Ready to Submit.
+     * Called from the Service diagnostic-complete flow — a no-op when no
+     * case is linked or the case has already moved on, so the Service
+     * module stays decoupled (one explicit call, Warranty owns the rule).
+     */
+    public static function advanceOnDiagnosisComplete(int $serviceTicketId): void
+    {
+        static::where('service_ticket_id', $serviceTicketId)
+            ->where('queue', WarrantyQueue::AwaitingDiagnosis->value)
+            ->get()
+            ->each(fn (self $case) => $case->transitionTo(
+                WarrantyQueue::ReadyToSubmit,
+                'Diagnosis completed on the linked Service Ticket.',
+            ));
     }
 
     /** The next required action for the case's current queue. */

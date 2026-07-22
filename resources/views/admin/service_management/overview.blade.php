@@ -30,12 +30,13 @@
                     <x-heroicon-o-plus class="w-4 h-4" />
                     New Service Ticket
                 </a>
-                {{-- Field service workflow arrives in Phase 3 --}}
-                <button type="button" disabled title="Coming in Phase 3"
-                    class="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm opacity-50 cursor-not-allowed">
+                {{-- ST-5: Field Service shipped — the "Coming in Phase 3"
+                     stub is now a live link to the Field Service intake. --}}
+                <a href="{{ route('admin.field-service.tickets.create') }}"
+                    class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition">
                     <x-heroicon-o-truck class="w-4 h-4" />
                     Field Service Call
-                </button>
+                </a>
                 <a href="{{ route('admin.service-management.tickets.index') }}"
                     class="inline-flex items-center gap-2 border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 px-4 py-2.5 rounded-lg font-medium text-sm transition">
                     <x-heroicon-o-magnifying-glass class="w-4 h-4" />
@@ -47,16 +48,20 @@
 
     {{-- ===== KPI cards ===== --}}
     @php
+        // ST-5: each tile deep-links into the ticket list using filters the
+        // index already supports, so the destination matches the count.
+        $ticketsIndex = route('admin.service-management.tickets.index');
         $kpiCards = [
-            ['label' => 'Open Tickets',  'count' => $kpis['open'],          'icon' => 'ticket',               'iconColor' => 'text-blue-600',  'iconBg' => 'bg-blue-100',  'hint' => 'All unfinished tickets'],
-            ['label' => 'Emergency',     'count' => $kpis['emergency'],     'icon' => 'exclamation-triangle', 'iconColor' => 'text-red-600',   'iconBg' => 'bg-red-100',   'hint' => 'Open emergency priority'],
-            ['label' => 'Blocked',       'count' => $kpis['blocked'],       'icon' => 'pause-circle',         'iconColor' => 'text-amber-600', 'iconBg' => 'bg-amber-100', 'hint' => 'Waiting on parts / approvals'],
-            ['label' => 'Ready to Bill', 'count' => $kpis['ready_to_bill'], 'icon' => 'banknotes',            'iconColor' => 'text-green-600', 'iconBg' => 'bg-green-100', 'hint' => 'Completed, awaiting charges'],
+            ['label' => 'Open Tickets',  'count' => $kpis['open'],          'icon' => 'ticket',               'iconColor' => 'text-blue-600',  'iconBg' => 'bg-blue-100',  'hint' => 'All unfinished tickets',        'href' => $ticketsIndex],
+            ['label' => 'Emergency',     'count' => $kpis['emergency'],     'icon' => 'exclamation-triangle', 'iconColor' => 'text-red-600',   'iconBg' => 'bg-red-100',   'hint' => 'Open emergency priority',       'href' => $ticketsIndex . '?priority=emergency'],
+            ['label' => 'Blocked',       'count' => $kpis['blocked'],       'icon' => 'pause-circle',         'iconColor' => 'text-amber-600', 'iconBg' => 'bg-amber-100', 'hint' => 'Waiting on parts / approvals',  'href' => $ticketsIndex . '?state=blocked'],
+            ['label' => 'Ready to Bill', 'count' => $kpis['ready_to_bill'], 'icon' => 'banknotes',            'iconColor' => 'text-green-600', 'iconBg' => 'bg-green-100', 'hint' => 'Completed, awaiting charges',    'href' => $ticketsIndex . '?financial_status=ready_to_bill'],
         ];
     @endphp
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         @foreach ($kpiCards as $card)
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex items-center gap-4">
+            <a href="{{ $card['href'] }}"
+                class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex items-center gap-4 hover:border-blue-300 hover:shadow-md transition">
                 <span class="w-12 h-12 rounded-full {{ $card['iconBg'] }} flex items-center justify-center shrink-0">
                     @svg('heroicon-o-' . $card['icon'], 'w-6 h-6 ' . $card['iconColor'])
                 </span>
@@ -65,7 +70,7 @@
                     <div class="text-sm font-medium text-gray-700">{{ $card['label'] }}</div>
                     <div class="text-xs text-gray-400 mt-0.5">{{ $card['hint'] }}</div>
                 </div>
-            </div>
+            </a>
         @endforeach
     </div>
 

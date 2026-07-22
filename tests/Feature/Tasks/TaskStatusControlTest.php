@@ -116,9 +116,11 @@ class TaskStatusControlTest extends TestCase
         $this->assertEquals('waiting', $task->status->value);
         $this->assertEquals('Vendor / third party', $task->waiting_reason);
 
-        // The reason rides along in the activity log
+        // The transition is audited, but the reason is NOT duplicated there —
+        // it lives in the conversational comment (see TaskContextualCommentTest).
         $log = $task->activityLogs()->where('action', 'status_changed')->first();
-        $this->assertStringContainsString('Vendor / third party', $log->new_value);
+        $this->assertEquals('Waiting', $log->new_value);
+        $this->assertStringNotContainsString('Vendor / third party', (string) $log->new_value);
 
         $this->postJson(route('admin.tasks.status', $task), ['status' => 'in_progress'])->assertOk();
         $this->assertNull($task->fresh()->waiting_reason);

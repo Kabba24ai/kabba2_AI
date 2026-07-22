@@ -177,6 +177,11 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="text-sm font-medium text-gray-800">{{ $comment->user?->full_name ?? 'Unknown' }}</span>
+                                @if ($comment->comment_type?->isContextual())
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $comment->comment_type->badgeClasses() }}">
+                                        {{ $comment->comment_type->label() }}
+                                    </span>
+                                @endif
                                 <span class="text-xs text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
                             </div>
                             <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $comment->comment }}</p>

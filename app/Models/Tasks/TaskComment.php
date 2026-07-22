@@ -13,6 +13,11 @@ class TaskComment extends Model
         'task_id',
         'user_id',
         'comment',
+        'comment_type',
+    ];
+
+    protected $casts = [
+        'comment_type' => \App\Enums\Tasks\TaskCommentType::class,
     ];
 
     public function task()

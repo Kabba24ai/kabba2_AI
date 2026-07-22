@@ -253,41 +253,64 @@ class TaskController extends Controller
 
         $oldLabel = $task->status->label();
 
-        $task->update([
-            'status'         => $request->status,
-            'waiting_reason' => $request->status === 'waiting' ? $request->waiting_reason : null,
-        ]);
-        $task->refresh();
-
-        $newDetail = $task->status->label()
-            . ($request->status === 'waiting' ? ' — ' . $request->waiting_reason : '');
-        $task->logActivity('status_changed', $oldLabel, $newDetail);
-
-        if ($request->status === 'help_needed') {
-            $helpTask = Task::create([
-                'category'             => $task->category->value,
-                'title'                => 'Help needed: ' . $task->title,
-                'description'          => $request->help_description,
-                'priority'             => $task->priority->value,
-                'status'               => 'open',
-                'assigned_to_user_id'  => $request->help_assigned_to,
-                'created_by_user_id'   => auth()->id(),
-                'due_date'             => $request->help_due_date,
-                'parent_task_id'       => $task->id,
-                // The helper inherits the full relationship context
-                'related_customer_id'  => $task->related_customer_id,
-                'related_order_id'     => $task->related_order_id,
-                'related_supplier_id'  => $task->related_supplier_id,
-                'related_other'        => $task->related_other,
-                'related_equipment_id' => $task->related_equipment_id,
+        // The status change, its contextual comment, and any linked task must
+        // succeed or fail together — a status must never move while its
+        // required comment or sub-task is lost.
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $task, $oldLabel) {
+            $task->update([
+                'status'         => $request->status,
+                'waiting_reason' => $request->status === 'waiting' ? $request->waiting_reason : null,
             ]);
-            $helpTask->logActivity('task_created', null, $helpTask->title);
-            $task->logActivity(
-                'help_requested',
-                null,
-                'Linked task created for ' . ($helpTask->assignedTo?->full_name ?? 'Unassigned') . ': ' . $request->help_description
-            );
-        }
+            $task->refresh();
+
+            // Audit trail records only the transition — the human explanation
+            // now lives in Comments, so it is not duplicated here.
+            $task->logActivity('status_changed', $oldLabel, $task->status->label());
+
+            // Waiting reason → a conversational comment (canonical create path).
+            if ($request->status === 'waiting') {
+                $task->comments()->create([
+                    'user_id'      => auth()->id(),
+                    'comment'      => $request->waiting_reason,
+                    'comment_type' => \App\Enums\Tasks\TaskCommentType::Waiting,
+                ]);
+            }
+
+            // Help Needed → linked sub-task (audit) + help request (comment).
+            if ($request->status === 'help_needed') {
+                $helpTask = Task::create([
+                    'category'             => $task->category->value,
+                    'title'                => 'Help needed: ' . $task->title,
+                    'description'          => $request->help_description,
+                    'priority'             => $task->priority->value,
+                    'status'               => 'open',
+                    'assigned_to_user_id'  => $request->help_assigned_to,
+                    'created_by_user_id'   => auth()->id(),
+                    'due_date'             => $request->help_due_date,
+                    'parent_task_id'       => $task->id,
+                    // The helper inherits the full relationship context
+                    'related_customer_id'  => $task->related_customer_id,
+                    'related_order_id'     => $task->related_order_id,
+                    'related_supplier_id'  => $task->related_supplier_id,
+                    'related_other'        => $task->related_other,
+                    'related_equipment_id' => $task->related_equipment_id,
+                ]);
+                $helpTask->logActivity('task_created', null, $helpTask->title);
+
+                // Audit fact only — the request text lives in the comment below.
+                $task->logActivity(
+                    'help_requested',
+                    null,
+                    'Linked task created for ' . ($helpTask->assignedTo?->full_name ?? 'Unassigned')
+                );
+
+                $task->comments()->create([
+                    'user_id'      => auth()->id(),
+                    'comment'      => $request->help_description,
+                    'comment_type' => \App\Enums\Tasks\TaskCommentType::HelpNeeded,
+                ]);
+            }
+        });
 
         return response()->json([
             'success' => true,

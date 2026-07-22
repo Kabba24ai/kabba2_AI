@@ -200,7 +200,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
                 </svg>
-                Auto Assign All Orders
+                Auto-Assign
             </button>
 
         </div>
@@ -365,6 +365,63 @@
                 <p class="text-sm text-gray-500">Loading...</p>
             </div>
         </div>
+
+    {{-- Auto-Assign — enable confirmation (no password) --}}
+    <div id="autoAssignEnableModal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-gray-500/75" onclick="closeAutoAssignEnableModal()"></div>
+        <div class="relative bg-white rounded-lg w-full max-w-md shadow-lg">
+            <div class="px-6 pt-6 pb-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Enable Auto-Assign</h2>
+            </div>
+            <div class="px-6 py-5">
+                <p class="text-sm text-gray-700">All future orders will be assigned to equipment automatically and without admin intervention.</p>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button" onclick="closeAutoAssignEnableModal()"
+                    class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="button" id="autoAssignEnableConfirmBtn" onclick="confirmAutoAssignEnable()"
+                    class="px-5 py-2.5 rounded-lg font-medium text-sm bg-green-600 text-white hover:bg-green-700 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed">
+                    Enable Auto-Assign
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Auto-Assign — disable confirmation (Master Password protected) --}}
+    <div id="autoAssignDisableModal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-gray-500/75" onclick="closeAutoAssignDisableModal()"></div>
+        <div class="relative bg-white rounded-lg w-full max-w-md shadow-lg">
+            <div class="px-6 pt-6 pb-4 border-b flex items-start justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Disable Auto-Assign</h2>
+                <button type="button" onclick="closeAutoAssignDisableModal()"
+                    class="text-2xl leading-none text-gray-400 hover:text-gray-700 focus:outline-none">&times;</button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <p class="text-sm text-gray-700">Disabling Auto-Assign will prevent future orders from being assigned to equipment automatically. Enter the Master Password to continue.</p>
+                <div>
+                    <label for="autoAssignMasterPassword" class="block text-sm font-medium text-gray-700 mb-1">Master Password</label>
+                    <input type="password" id="autoAssignMasterPassword" autocomplete="off"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring focus:border-red-500"
+                        placeholder="Enter Master Password"
+                        onkeydown="if(event.key==='Enter'){event.preventDefault();confirmAutoAssignDisable();}">
+                    <p id="autoAssignDisableError" class="hidden text-sm text-red-600 mt-1"></p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                <button type="button" onclick="closeAutoAssignDisableModal()"
+                    class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button type="button" id="autoAssignDisableConfirmBtn" onclick="confirmAutoAssignDisable()"
+                    class="px-5 py-2.5 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed">
+                    Disable Auto-Assign
+                </button>
+            </div>
+        </div>
+    </div>
+
     <x-admin.equipment-store-modal :stores="$storesForModal" />
     </div>
 @endsection
@@ -592,44 +649,159 @@
         document.getElementById('scheduleAssistantModal').classList.add('hidden');
     }
 
-    function toggleAutoAssign() {
+    // ── Auto-Assign protected toggle ──────────────────────────────────────────
+    // The checkbox NEVER changes until the server confirms. A click only opens
+    // the confirmation modal for the intended transition; the persisted state
+    // is repainted from the server response after success.
+    const AUTO_ASSIGN_URL = '{{ route('admin.order-management.schedule-assignment.toggle-auto-assign') }}';
+
+    function autoAssignIsEnabled() {
+        return document.getElementById('autoAssignCheckbox').checked;
+    }
+
+    function paintAutoAssign(enabled) {
         const btn      = document.getElementById('autoAssignToggleBtn');
         const checkbox = document.getElementById('autoAssignCheckbox');
         const icon     = btn.querySelector('svg');
 
-        btn.disabled = true;
+        checkbox.checked = enabled;
 
-        apiFetch('{{ route('admin.order-management.schedule-assignment.toggle-auto-assign') }}', {
+        if (enabled) {
+            btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
+            btn.classList.add('bg-green-50', 'border-green-400', 'text-green-700');
+            icon.classList.remove('text-gray-400');
+            icon.classList.add('text-green-600');
+        } else {
+            btn.classList.remove('bg-green-50', 'border-green-400', 'text-green-700');
+            btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
+            icon.classList.remove('text-green-600');
+            icon.classList.add('text-gray-400');
+        }
+    }
+
+    function autoAssignRequest(payload) {
+        return fetch(AUTO_ASSIGN_URL, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
-        })
-        .then(data => {
-            checkbox.checked = data.enabled;
-
-            if (data.enabled) {
-                btn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
-                btn.classList.add('bg-green-50', 'border-green-400', 'text-green-700');
-                icon.classList.remove('text-gray-400');
-                icon.classList.add('text-green-600');
-                notyf.success('Auto Assign enabled — new rentals will be automatically assigned.');
-            } else {
-                btn.classList.remove('bg-green-50', 'border-green-400', 'text-green-700');
-                btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
-                icon.classList.remove('text-green-600');
-                icon.classList.add('text-gray-400');
-                notyf.success('Auto Assign disabled.');
-            }
-        })
-        .catch(error => {
-            console.error('toggleAutoAssign error:', error);
-        })
-        .finally(() => {
-            btn.disabled = false;
+            body: JSON.stringify(payload),
         });
     }
+
+    function toggleAutoAssign() {
+        if (autoAssignIsEnabled()) {
+            openAutoAssignDisableModal();
+        } else {
+            openAutoAssignEnableModal();
+        }
+    }
+
+    // ── Enable flow (confirmation only) ───────────────────────────────────────
+    function openAutoAssignEnableModal() {
+        document.getElementById('autoAssignEnableModal').classList.remove('hidden');
+    }
+    function closeAutoAssignEnableModal() {
+        document.getElementById('autoAssignEnableModal').classList.add('hidden');
+    }
+
+    async function confirmAutoAssignEnable() {
+        const confirmBtn = document.getElementById('autoAssignEnableConfirmBtn');
+        if (confirmBtn.dataset.busy === '1') return;   // block double submit
+        confirmBtn.dataset.busy = '1';
+        confirmBtn.disabled = true;
+
+        try {
+            const res  = await autoAssignRequest({ enabled: true });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.success) {
+                paintAutoAssign(true);
+                closeAutoAssignEnableModal();
+                notyf.success('Auto-Assign enabled — new rentals will be automatically assigned.');
+            } else {
+                notyf.error(data.message || 'Could not enable Auto-Assign. Please try again.');
+            }
+        } catch (e) {
+            notyf.error('A network error occurred. Please try again.');
+        } finally {
+            confirmBtn.dataset.busy = '0';
+            confirmBtn.disabled = false;
+        }
+    }
+
+    // ── Disable flow (Master Password protected) ─────────────────────────────
+    function openAutoAssignDisableModal() {
+        document.getElementById('autoAssignDisableModal').classList.remove('hidden');
+        resetAutoAssignDisableModal();
+        setTimeout(() => document.getElementById('autoAssignMasterPassword').focus(), 50);
+    }
+    function closeAutoAssignDisableModal() {
+        document.getElementById('autoAssignDisableModal').classList.add('hidden');
+        resetAutoAssignDisableModal();
+    }
+    function resetAutoAssignDisableModal() {
+        const input = document.getElementById('autoAssignMasterPassword');
+        const err   = document.getElementById('autoAssignDisableError');
+        input.value = '';
+        err.classList.add('hidden');
+        err.textContent = '';
+        input.classList.remove('border-red-500');
+    }
+
+    async function confirmAutoAssignDisable() {
+        const submitBtn = document.getElementById('autoAssignDisableConfirmBtn');
+        const input     = document.getElementById('autoAssignMasterPassword');
+        const err       = document.getElementById('autoAssignDisableError');
+
+        if (submitBtn.dataset.busy === '1') return;   // block double submit
+        submitBtn.dataset.busy = '1';
+        submitBtn.disabled = true;
+        err.classList.add('hidden');
+        err.textContent = '';
+        input.classList.remove('border-red-500');
+
+        try {
+            const res  = await autoAssignRequest({ enabled: false, master_password: input.value });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.success) {
+                paintAutoAssign(false);
+                closeAutoAssignDisableModal();
+                notyf.success('Auto-Assign disabled.');
+            } else if (res.status === 422) {
+                // Validation error stays INSIDE the modal — do not close.
+                const msg = data.errors?.master_password?.[0] || data.message || 'The Master Password is incorrect.';
+                err.textContent = msg;
+                err.classList.remove('hidden');
+                input.classList.add('border-red-500');
+                input.focus();
+                input.select();
+            } else {
+                err.textContent = data.message || 'Could not disable Auto-Assign. Please try again.';
+                err.classList.remove('hidden');
+            }
+        } catch (e) {
+            err.textContent = 'A network error occurred. Please try again.';
+            err.classList.remove('hidden');
+        } finally {
+            submitBtn.dataset.busy = '0';
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Escape closes either modal, leaving the persisted state untouched.
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (!document.getElementById('autoAssignEnableModal').classList.contains('hidden')) {
+            closeAutoAssignEnableModal();
+        }
+        if (!document.getElementById('autoAssignDisableModal').classList.contains('hidden')) {
+            closeAutoAssignDisableModal();
+        }
+    });
 </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

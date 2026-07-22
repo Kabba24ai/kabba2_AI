@@ -104,25 +104,13 @@ class TaskController extends Controller
 
         ['productCategories' => $productCategories, 'equipmentList' => $equipmentList] = $this->equipmentData();
 
-        $completedToday = Task::completedToday()
-            ->with(['assignedTo'])
-            ->orderByDesc('completed_at')
-            ->get();
-
-        $callsCompletedToday = CustomerCallNeeded::where('status', 'clear')
-            ->whereDate('completed_at', today())
-            ->with(['assignee'])
-            ->orderByDesc('completed_at')
-            ->get();
-
         $customers = \App\Support\Tasks\UnifiedTaskModalData::customers();
 
         $suppliers = \App\Support\Tasks\UnifiedTaskModalData::suppliers();
 
         return view('admin.tasks.index', compact(
             'lanes', 'users', 'categories', 'priorities', 'statuses',
-            'categoryCounts',
-            'completedToday', 'callsCompletedToday', 'customers', 'suppliers',
+            'categoryCounts', 'customers', 'suppliers',
             'taskCount', 'callCount', 'productCategories', 'equipmentList'
         ));
     }

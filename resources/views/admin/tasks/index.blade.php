@@ -51,10 +51,8 @@
     $focused = (bool) request('assigned_to');
 @endphp
 
-{{-- Filter bar + widget title: flex row, stretch-aligned so title sits at badge-row level --}}
-<div class="mb-5" style="display:flex; gap:1.5rem; align-items:stretch;">
-<div style="flex:7.5; min-width:0;">
-<form id="task-filter-zone" method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-4">
+{{-- Filter bar — full width (the Tasks Completed panel moved to the Dashboard). --}}
+<form id="task-filter-zone" method="GET" action="{{ route('admin.tasks.index') }}" class="space-y-4 mb-5">
 
     {{-- Hidden: preserve badge-selected filters when form dropdowns submit --}}
     @if(request('category'))
@@ -165,18 +163,11 @@
     </div>
 
 </form>
-</div>{{-- /filter left col --}}
-<div style="flex:2.5; min-width:0; display:flex; flex-direction:column; justify-content:flex-end;">
-    <p class="text-sm font-semibold text-gray-700 text-center">Tasks Completed - {{ now()->format('F j, Y') }}</p>
-</div>{{-- /title right col --}}
-</div>{{-- /filter+title row --}}
 
-{{-- Main layout: task table (75%) + Completed Today widget (25%) --}}
-<div style="display:flex; gap:1.5rem; align-items:flex-start;">
-
-    {{-- Task Center board — one lane per person (grouped by assignee), cards
-         within each lane keep the due-date → priority sort. --}}
-    <div id="task-list-zone" style="flex:7.5; min-width:0;">
+{{-- Task Center board — one lane per person (grouped by assignee), cards
+     within each lane keep the due-date → priority sort. Full width now that
+     the Completed Today panel lives on the Dashboard. --}}
+<div id="task-list-zone">
 
         @if (request('assigned_to') && $lanes)
             <div class="mb-4">
@@ -187,9 +178,12 @@
             </div>
         @endif
 
-        <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start;">
+        {{-- Multi-employee overview: responsive grid, columns capped at 400px so
+             they never stretch on wide monitors — the grid fits more columns
+             instead. Focused mode keeps its single full-width lane. --}}
+        <div style="display:grid; gap:18px; align-items:start; grid-template-columns:{{ $focused ? 'minmax(0,1fr)' : 'repeat(auto-fit, minmax(320px, 400px))' }};">
             @forelse ($lanes as $lane)
-                <div style="flex:1 1 340px; min-width:320px; max-width:100%; background:#f8fafc; border:1px solid #eef2f6; border-radius:16px; padding:6px; display:flex; flex-direction:column;">
+                <div style="min-width:0; background:#f8fafc; border:1px solid #eef2f6; border-radius:16px; padding:6px; display:flex; flex-direction:column;">
 
                     {{-- Lane header — click to focus this person (reuses the assigned_to filter) --}}
                     @php
@@ -303,79 +297,6 @@
         </div>
     </div>
 
-    {{-- Completed Today Widget --}}
-    <div style="flex:2.5; min-width:0;">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Category</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Title</th>
-                        <th class="px-4 py-3 text-left font-medium text-gray-600">Assigned To</th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse ($completedToday as $ct)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $ct->category->color() }}">
-                                    {{ $ct->category->label() }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="text-sm font-medium text-gray-800 truncate block">{{ $ct->title }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
-                                {{ $ct->assignedTo?->full_name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <a href="{{ route('admin.tasks.show', $ct) }}"
-                                    class="text-xs text-blue-600 hover:underline">View</a>
-                            </td>
-                        </tr>
-                    @empty
-                    @endforelse
-
-                    @foreach ($callsCompletedToday as $cc)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                @if ($cc->category)
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $cc->category->color() }}">
-                                        {{ $cc->category->label() }}
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-sky-100 text-sky-700">
-                                        Call
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="text-sm font-medium text-gray-800 truncate block">
-                                    {{ \App\Helpers\CustomHelper::formatCallReason($cc->reason) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
-                                {{ $cc->assignee?->full_name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <a href="{{ route('admin.tasks.call.show', $cc->id) }}"
-                                    class="text-xs text-blue-600 hover:underline">View</a>
-                            </td>
-                        </tr>
-                    @endforeach
-
-                    @if ($completedToday->isEmpty() && $callsCompletedToday->isEmpty())
-                        <tr>
-                            <td colspan="4" class="px-4 py-10 text-center text-gray-400">No tasks completed today.</td>
-                        </tr>
-                    @endif
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-</div>
 
 {{-- Task manager mode flag + unified New Task modal.
      The call modal partial stays included for the Edit / Complete /

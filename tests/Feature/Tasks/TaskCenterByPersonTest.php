@@ -208,6 +208,39 @@ class TaskCenterByPersonTest extends TestCase
         $this->assertStringNotContainsString('All people', $summary);
     }
 
+    // ─────────────────────── Layout: panel removal + capped grid ───────────────────────
+
+    public function test_tasks_completed_side_panel_is_removed(): void
+    {
+        $this->task($this->amber, ['title' => 'Amber task']);
+
+        $html = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('Tasks Completed -', $html);
+        $this->assertStringNotContainsString('No tasks completed today.', $html);
+    }
+
+    public function test_overview_uses_a_width_capped_responsive_grid(): void
+    {
+        $this->task($this->amber, ['title' => 'Amber task']);
+
+        $html = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
+
+        // Columns cap at 400px and the grid fits as many as the width allows.
+        $this->assertStringContainsString('repeat(auto-fit, minmax(320px, 400px))', $html);
+    }
+
+    public function test_focused_mode_stays_full_width_single_column(): void
+    {
+        $this->task($this->amber, ['title' => 'Amber task']);
+
+        $html = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))->assertOk()->getContent();
+
+        // Focused view is one full-width lane, not the capped multi-column grid.
+        $this->assertStringContainsString('minmax(0,1fr)', $html);
+        $this->assertStringNotContainsString('repeat(auto-fit, minmax(320px, 400px))', $html);
+    }
+
     public function test_filters_still_work_in_focused_mode(): void
     {
         $this->task($this->amber, ['title' => 'AMBER-ADMIN', 'category' => 'admin']);

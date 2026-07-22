@@ -653,7 +653,12 @@
     // The checkbox NEVER changes until the server confirms. A click only opens
     // the confirmation modal for the intended transition; the persisted state
     // is repainted from the server response after success.
-    const AUTO_ASSIGN_URL = '{{ route('admin.order-management.schedule-assignment.toggle-auto-assign') }}';
+    //
+    // IMPORTANT: no top-level const/let/class in this block. This inline script
+    // is re-executed in the SAME JS realm on every Livewire wire:navigate visit;
+    // a top-level const re-declaration throws and aborts the whole block (which
+    // would leave toggleAutoAssign undefined). Function declarations re-run
+    // safely, so everything below is a function or a guarded assignment.
 
     function autoAssignIsEnabled() {
         return document.getElementById('autoAssignCheckbox').checked;
@@ -680,7 +685,8 @@
     }
 
     function autoAssignRequest(payload) {
-        return fetch(AUTO_ASSIGN_URL, {
+        const url = '{{ route('admin.order-management.schedule-assignment.toggle-auto-assign') }}';
+        return fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
@@ -793,15 +799,17 @@
     }
 
     // Escape closes either modal, leaving the persisted state untouched.
-    document.addEventListener('keydown', (e) => {
-        if (e.key !== 'Escape') return;
-        if (!document.getElementById('autoAssignEnableModal').classList.contains('hidden')) {
-            closeAutoAssignEnableModal();
-        }
-        if (!document.getElementById('autoAssignDisableModal').classList.contains('hidden')) {
-            closeAutoAssignDisableModal();
-        }
-    });
+    // Guarded so wire:navigate re-execution doesn't stack duplicate listeners.
+    if (!window.__autoAssignKeydownBound) {
+        window.__autoAssignKeydownBound = true;
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const enable  = document.getElementById('autoAssignEnableModal');
+            const disable = document.getElementById('autoAssignDisableModal');
+            if (enable  && !enable.classList.contains('hidden'))  closeAutoAssignEnableModal();
+            if (disable && !disable.classList.contains('hidden')) closeAutoAssignDisableModal();
+        });
+    }
 </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

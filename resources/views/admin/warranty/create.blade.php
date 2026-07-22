@@ -51,6 +51,8 @@
 
     <form method="POST" action="{{ route('admin.warranty.claims.store') }}">
         @csrf
+        {{-- ST-1 idempotency: dedupes a double-submit of the case+ticket. --}}
+        <input type="hidden" name="idempotency_token" value="{{ old('idempotency_token', (string) Str::uuid()) }}">
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 

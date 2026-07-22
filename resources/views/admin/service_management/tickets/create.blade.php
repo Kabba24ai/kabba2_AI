@@ -54,6 +54,10 @@
     <form method="POST" action="{{ route('admin.service-management.tickets.store') }}" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="intake" value="1">
+        {{-- ST-1 idempotency: one token per form render, preserved across a
+             validation round-trip via old() so a double-submit (or a
+             resubmit after a validation error) dedupes to the first ticket. --}}
+        <input type="hidden" name="idempotency_token" value="{{ old('idempotency_token', (string) Str::uuid()) }}">
 
         {{-- Containerized single-column intake: the summary/next-steps
              sidebar was removed (no operational value) — the form itself is

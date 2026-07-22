@@ -35,6 +35,8 @@ class ServiceTicket extends Model
 
     protected $fillable = [
         'ticket_number',
+        // ST-1 canonical intake dedupe key (ServiceTicketIntakeService).
+        'idempotency_key',
         'service_type',
         'service_location',
         'service_store_id',

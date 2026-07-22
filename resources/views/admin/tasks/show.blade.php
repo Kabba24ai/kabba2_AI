@@ -6,6 +6,10 @@
 
 @include('flash::message')
 
+{{-- Constrained container — the detail layout is designed for ~1180px
+     (card ≈ 780, sidebar ≈ 380); full-viewport stretch breaks the design. --}}
+<div class="mx-auto" style="max-width:1180px;">
+
 <div class="flex items-center gap-3 mb-6">
     <a href="{{ route('admin.tasks.index') }}" class="text-gray-500 hover:text-gray-700">
         <x-heroicon-o-arrow-left class="w-5 h-5" />
@@ -451,6 +455,9 @@
 
     </div>
 </div>
+
+</div>
+{{-- /constrained container --}}
 
 {{-- Task Reassign Modal --}}
 <div id="TaskReassignModal" style="display:none;"

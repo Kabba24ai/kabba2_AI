@@ -551,6 +551,10 @@ class PaymentStoreController extends Controller
                 $bc = BillingCharge::where('unique_id', $validated['billing_charge_unique_id'])->first();
                 if ($bc && $bc->status?->isOpen()) {
                     BillingEngine::markPaid($bc);
+                    // ST-2b: reflect payment onto the service ticket when this
+                    // is a settlement charge (no-op otherwise — keeps this
+                    // controller decoupled from the Service module).
+                    \App\Services\ServiceManagement\ServiceTicketBillingSync::syncPaidCharge($bc);
                 }
             }
 

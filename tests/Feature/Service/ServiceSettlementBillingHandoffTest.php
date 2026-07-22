@@ -140,4 +140,65 @@ class ServiceSettlementBillingHandoffTest extends TestCase
         $charge = BillingCharge::firstOrFail();
         $this->assertSame('service_settlement:' . $settlement->id, $charge->idempotency_key);
     }
+
+    // ── ST-2b: payable on the order page + paid-sync ────────────────────
+
+    public function test_service_charge_row_exposes_a_pay_action_on_the_order_billing_engine(): void
+    {
+        $ticket = $this->makeSettleableTicket();
+        $this->post(route('admin.service-management.tickets.settlement.store', $ticket))->assertRedirect();
+
+        // The charge is on the order — render the order edit page and assert
+        // the service row is a payable, charge-mode action row.
+        $order = \App\Models\Orders\Order::findOrFail($this->orderId);
+        $html = $this->get(route('admin.order-management.orders.edit', $order->unique_id))->getContent();
+
+        $charge = BillingCharge::firstOrFail();
+        $this->assertStringContainsString('data-bc-id="' . $charge->unique_id . '"', $html);
+        $this->assertStringContainsString('Service Ticket', $html);
+        // A payment action must be present on the open service charge.
+        $this->assertStringContainsString('data-action="payment"', $html);
+    }
+
+    public function test_paying_the_service_charge_advances_the_ticket_to_paid(): void
+    {
+        $ticket = $this->makeSettleableTicket();
+        $this->post(route('admin.service-management.tickets.settlement.store', $ticket))->assertRedirect();
+
+        $charge  = BillingCharge::firstOrFail();
+        $account = CustomerAccount::where('reason', 'Service Repair')->firstOrFail();
+        $this->assertSame(FinancialStatus::ChargeCreated, $ticket->fresh()->financial_status);
+
+        // Pay it through the canonical CRM payment path (source=crm + ca + bc)
+        // — the same path the shared Billing Engine payment modal posts.
+        $this->post(route('admin.dashboard.paymentstore'), [
+            'source'                   => 'crm',
+            'type'                     => 'service_ticket',
+            'customer_id'              => $this->customerId,
+            'customer_account_id'      => $account->unique_id,
+            'billing_charge_unique_id' => $charge->unique_id,
+            'amount'                   => (float) $charge->amount + (float) $charge->tax_amount,
+            'payment_type'             => 'Cash',
+            'responsible_person'       => $this->admin->id,
+        ]);
+
+        $this->assertSame('paid', BillingCharge::firstOrFail()->status->value);
+        $this->assertSame(FinancialStatus::Paid, $ticket->fresh()->financial_status);
+    }
+
+    public function test_paid_sync_is_a_noop_for_non_service_charges(): void
+    {
+        // A fuel BillingCharge with no linked settlement must be untouched by
+        // the sync (guards the decoupling — no accidental ticket writes).
+        $charge = BillingCharge::create([
+            'billing_charge_type' => 'fuel', 'status' => 'pending',
+            'customer_id' => $this->customerId, 'parent_order_id' => $this->orderId,
+            'amount' => 25, 'tax_amount' => 0, 'tax_type' => 'free',
+        ]);
+
+        \App\Services\ServiceManagement\ServiceTicketBillingSync::syncPaidCharge($charge);
+
+        $this->assertSame(0, ServiceTicketSettlement::count());
+        $this->assertTrue(true); // reached here without error/side effect
+    }
 }

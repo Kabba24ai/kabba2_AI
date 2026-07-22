@@ -88,8 +88,9 @@
                     @php
                         // 'fuel' uses the gas pump SVG (same as Additional Charges and Dashboard alerts)
                         $typeIconClasses = [
-                            'damage'    => ['heroicon' => 'heroicon-o-exclamation-triangle', 'bg' => 'bg-red-100',  'color' => 'text-red-600'],
-                            'extension' => ['heroicon' => 'heroicon-o-calendar',             'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
+                            'damage'        => ['heroicon' => 'heroicon-o-exclamation-triangle',   'bg' => 'bg-red-100',    'color' => 'text-red-600'],
+                            'extension'     => ['heroicon' => 'heroicon-o-calendar',               'bg' => 'bg-blue-100',   'color' => 'text-blue-600'],
+                            'service_ticket'=> ['heroicon' => 'heroicon-o-wrench-screwdriver',      'bg' => 'bg-purple-100', 'color' => 'text-purple-600'],
                         ];
 
                         $typeEnum   = $charge->billing_charge_type;
@@ -119,6 +120,7 @@
                         $isFuel          = $typeValue === 'fuel';
                         $isDamage        = $typeValue === 'damage';
                         $isExtension     = $typeValue === 'extension';
+                        $isService       = $typeValue === 'service_ticket';
                         $addedBy         = $charge->createdBy?->full_name ?? $charge->responsiblePerson?->full_name ?? '—';
 
                         // Payment needs the legacy CA unique_id (null for extension charges)
@@ -160,6 +162,13 @@
                             $rowActions = $isOpen
                                 ? ['notes', 'adjust', 'payment', 'delete']
                                 : ['notes', 'delete'];
+                        } elseif ($isService) {
+                            // Service settlement charge (ST-2b): payable + noteable
+                            // through the shared surfaces, exactly like other
+                            // charges. NOT adjustable (the settlement is the
+                            // source of truth) and NOT refundable via the
+                            // fuel/damage linked-refund path (unsupported type).
+                            $rowActions = $isOpen ? ['payment', 'notes'] : ['notes'];
                         }
                     @endphp
 

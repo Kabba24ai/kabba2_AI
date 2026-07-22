@@ -129,4 +129,96 @@ class TaskCenterByPersonTest extends TestCase
 
         $this->assertStringContainsString('No tasks match these filters.', $html);
     }
+
+    // ─────────────────────── Focused-view refinements ───────────────────────
+
+    public function test_focused_view_shows_task_description_but_summary_does_not(): void
+    {
+        $this->task($this->amber, ['title' => 'Rent n King Emails', 'description' => 'Need to set up email accounts for Ashley & Amber.']);
+
+        // Summary (all people) stays compact — no description.
+        $summary = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
+        $this->assertStringNotContainsString('Need to set up email accounts', $summary);
+
+        // Focused on Amber — description appears beneath the title.
+        $focused = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))->assertOk()->getContent();
+        $this->assertStringContainsString('Need to set up email accounts for Ashley &amp; Amber.', $focused);
+        // Uses the app's compiled line-clamp convention to cap height.
+        $this->assertStringContainsString('line-clamp-2', $focused);
+    }
+
+    public function test_focused_task_without_description_renders_no_description_row(): void
+    {
+        $this->task($this->amber, ['title' => 'No desc task', 'description' => null]);
+
+        $focused = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))->assertOk()->getContent();
+
+        $this->assertStringContainsString('No desc task', $focused);
+        $this->assertStringNotContainsString('line-clamp-2', $focused); // no empty description block
+    }
+
+    public function test_summary_and_focused_resolve_the_same_employee_theme(): void
+    {
+        $amberTheme = \App\Support\Tasks\EmployeeTheme::for($this->amber->id);
+
+        $this->task($this->amber, ['title' => 'Amber task']);
+        $this->task($this->gary,  ['title' => 'Gary task']); // ensures Amber isn't the only/first lane
+
+        $summary = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
+        $focused = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))->assertOk()->getContent();
+
+        // Amber's canonical accent colour appears in both views (not a
+        // loop-position default that would differ when focused).
+        $this->assertStringContainsString($amberTheme['color'], $summary);
+        $this->assertStringContainsString($amberTheme['color'], $focused);
+    }
+
+    public function test_employee_theme_is_stable_regardless_of_filtering_or_order(): void
+    {
+        // The theme is keyed on the user id, so it never depends on how many
+        // lanes render or their order.
+        $this->assertEquals(
+            \App\Support\Tasks\EmployeeTheme::for($this->gary->id),
+            \App\Support\Tasks\EmployeeTheme::for($this->gary->id),
+        );
+        $this->assertEquals('#475569', \App\Support\Tasks\EmployeeTheme::for(null)['color']); // unassigned = slate
+
+        // A focused single-lane view resolves Gary's own colour, never palette[0].
+        $garyTheme = \App\Support\Tasks\EmployeeTheme::for($this->gary->id);
+        $this->task($this->gary, ['title' => 'Solo']);
+        $html = $this->get(route('admin.tasks.index', ['assigned_to' => $this->gary->id]))->assertOk()->getContent();
+        $this->assertStringContainsString($garyTheme['color'], $html);
+    }
+
+    public function test_assigned_to_filter_pills_are_gone_from_both_views(): void
+    {
+        $this->task($this->amber, ['title' => 'Amber task']);
+
+        $summary = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
+        $focused = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))->assertOk()->getContent();
+
+        foreach ([$summary, $focused] as $html) {
+            // The filter pill-row label is gone (the Completed Today table still
+            // has an "Assigned To" column, so match the pill label markup).
+            $this->assertStringNotContainsString('tracking-wide shrink-0">Assigned To', $html);
+            $this->assertStringNotContainsString('Assigned To badge', $html);
+        }
+        // Focused mode keeps the "All people" return control.
+        $this->assertStringContainsString('All people', $focused);
+        $this->assertStringNotContainsString('All people', $summary);
+    }
+
+    public function test_filters_still_work_in_focused_mode(): void
+    {
+        $this->task($this->amber, ['title' => 'AMBER-ADMIN', 'category' => 'admin']);
+        $this->task($this->amber, ['title' => 'AMBER-SALES', 'category' => 'sales']);
+
+        // Focus on Amber + category filter both apply together.
+        $html = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id, 'category' => 'sales']))
+            ->assertOk()->getContent();
+
+        $this->assertStringContainsString('AMBER-SALES', $html);
+        $this->assertStringNotContainsString('AMBER-ADMIN', $html);
+        $this->assertStringContainsString('All people', $html); // still focused
+    }
 }

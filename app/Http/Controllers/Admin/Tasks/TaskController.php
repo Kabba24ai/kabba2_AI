@@ -35,38 +35,6 @@ class TaskController extends Controller
             ->groupBy('category')
             ->pluck('cnt', 'category');
 
-        // Task user counts: base filters + category (cross-filter: excludes assigned_to)
-        $taskUserCounts = $this->baseTaskQuery($request)
-            ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
-            ->whereNotNull('assigned_to_user_id')
-            ->selectRaw('assigned_to_user_id, count(*) as cnt')
-            ->groupBy('assigned_to_user_id')
-            ->pluck('cnt', 'assigned_to_user_id');
-
-        // Call reminder counts by assignee (cross-filter: excludes assigned_to)
-        $callUserCounts = $this->baseCallQuery($request)
-            ->whereNotNull('created_by')
-            ->selectRaw('created_by, count(*) as cnt')
-            ->groupBy('created_by')
-            ->pluck('cnt', 'created_by');
-
-        // Merge task + call counts per user for Assigned To badges
-        $allBadgeUserIds = $taskUserCounts->keys()->merge($callUserCounts->keys())->unique();
-        $userCountsRaw   = $allBadgeUserIds->mapWithKeys(fn($id) => [
-            $id => $taskUserCounts->get($id, 0) + $callUserCounts->get($id, 0),
-        ]);
-
-        // Total for "All" user badge: tasks + calls (both applying their base filters)
-        $userAllCount = $this->baseTaskQuery($request)
-            ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
-            ->count()
-            + $this->baseCallQuery($request)->count();
-
-        // User names for badge labels (includes call reminder assignees)
-        $badgeUsers = User::whereIn('id', $userCountsRaw->keys())
-            ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
-
         // Type filter — determines which item types to include in the unified list
         $typeParam    = $request->input('type', 'all');
         $includeTasks = $typeParam !== 'calls';
@@ -153,7 +121,7 @@ class TaskController extends Controller
 
         return view('admin.tasks.index', compact(
             'lanes', 'users', 'categories', 'priorities', 'statuses',
-            'categoryCounts', 'userCountsRaw', 'userAllCount', 'badgeUsers',
+            'categoryCounts',
             'completedToday', 'callsCompletedToday', 'customers', 'suppliers',
             'taskCount', 'callCount', 'productCategories', 'equipmentList'
         ));
@@ -168,17 +136,6 @@ class TaskController extends Controller
      */
     private function buildPersonLanes(\Illuminate\Support\Collection $unified): array
     {
-        $palette = [
-            ['color' => '#0d9488', 'bg' => '#e6faf6'], // teal
-            ['color' => '#7c3aed', 'bg' => '#f3e8ff'], // purple
-            ['color' => '#b45309', 'bg' => '#fef3c7'], // amber
-            ['color' => '#0369a1', 'bg' => '#e0f2fe'], // blue
-            ['color' => '#be185d', 'bg' => '#fce7f3'], // rose
-            ['color' => '#047857', 'bg' => '#d1fae5'], // emerald
-            ['color' => '#4338ca', 'bg' => '#e0e7ff'], // indigo
-        ];
-        $unassignedTheme = ['color' => '#475569', 'bg' => '#eef2f7'];
-
         $groups = [];
         foreach ($unified as $item) {
             $user = $item->type === 'call' ? $item->model->assignee : $item->model->assignedTo;
@@ -199,10 +156,11 @@ class TaskController extends Controller
         });
 
         $lanes = [];
-        $i = 0;
         foreach ($groups as $key => $group) {
-            $user  = $group['user'];
-            $theme = $user ? $palette[$i++ % count($palette)] : $unassignedTheme;
+            $user = $group['user'];
+            // Canonical, id-keyed theme — identical in summary and focused views,
+            // stable across filtering/ordering (never loop-position based).
+            $theme = \App\Support\Tasks\EmployeeTheme::for($user?->id);
 
             $categoryLabels = collect($group['items'])
                 ->map(fn ($it) => $it->model->category?->label())

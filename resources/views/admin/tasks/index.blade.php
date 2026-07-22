@@ -45,6 +45,10 @@
     $typeParam  = request('type') ?: 'all';
     $showTasks  = $typeParam !== 'calls';
     $showCalls  = $typeParam !== 'tasks';
+
+    // Focused single-employee view (an employee lane was selected). In this
+    // mode task cards show the description so work can be understood in place.
+    $focused = (bool) request('assigned_to');
 @endphp
 
 {{-- Filter bar + widget title: flex row, stretch-aligned so title sits at badge-row level --}}
@@ -133,7 +137,9 @@
 
     </div>
 
-    {{-- Row 2: Task Categories + Assigned To badge groups --}}
+    {{-- Row 2: Task Categories. Per-person navigation lives in the employee
+         lanes below (and "All people" in focused mode), so a separate
+         Assigned To pill row would be redundant — it was removed. --}}
     <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
 
         {{-- Task Categories --}}
@@ -155,29 +161,6 @@
                 @endif
             @endforeach
         </div>
-
-        {{-- Assigned To badge group --}}
-        @if ($badgeUsers->isNotEmpty())
-            <span class="self-center h-5 w-px bg-gray-200 mx-1 shrink-0"></span>
-
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Assigned To</span>
-
-                <a href="{{ $taskUrl(['assigned_to' => null, 'page' => null]) }}"
-                   class="{{ !request('assigned_to') ? $badgeBase . ' bg-emerald-600 text-white border-emerald-600' : $badgeInactive }}">
-                    All ({{ $userAllCount }})
-                </a>
-
-                @foreach ($badgeUsers as $bUser)
-                    @php $isActiveUser = request('assigned_to') == $bUser->id; @endphp
-                    <a href="{{ $taskUrl(['assigned_to' => $bUser->id, 'page' => null]) }}"
-                       class="{{ $badgeBase }} {{ $isActiveUser ? 'border-emerald-300' : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200' }}"
-                       style="{{ $isActiveUser ? 'background-color:#d1fae5; color:#065f46;' : '' }}">
-                        {{ $bUser->full_name }} ({{ $userCountsRaw->get($bUser->id, 0) }})
-                    </a>
-                @endforeach
-            </div>
-        @endif
 
     </div>
 
@@ -277,6 +260,9 @@
                                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $task->status->color() }}">{{ $task->status->label() }}</span>
                                     </div>
                                     <div style="font-size:15px; font-weight:600; color:#0f172a; margin-bottom:10px;">{{ $task->title }}</div>
+                                    @if ($focused && filled($task->description))
+                                        <p class="line-clamp-2 whitespace-pre-line" style="font-size:13.5px; color:#475569; line-height:1.5; margin-bottom:10px; overflow-wrap:anywhere;">{{ $task->description }}</p>
+                                    @endif
                                     @if ($task->customer || $task->order)
                                         <div class="flex items-center gap-1.5 mb-1.5" style="font-size:12.5px; color:#64748b;">
                                             <span style="color:#94a3b8;">Customer</span>

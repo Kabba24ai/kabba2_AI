@@ -162,6 +162,39 @@ class TeamWorkloadCompletedTodayTest extends TestCase
         $this->assertStringContainsString('Gary Jezorski', $html);
     }
 
+    public function test_completed_today_badge_renders_after_urgent_and_overdue(): void
+    {
+        // One overdue urgent open task (Urgent + Overdue) plus a completed one.
+        $this->openTaskFor($this->gary, ['priority' => 'urgent', 'due_date' => now()->subDays(2)]);
+        $this->completedTaskBy($this->gary);
+
+        // Scope to the Task Manager Alerts section so unrelated dashboard uses
+        // of these words (e.g. overdue-order alerts) don't skew positions.
+        $html    = $this->dashboardHtml();
+        $section = substr($html, strpos($html, 'Task Manager Alerts'));
+
+        $urgentPos    = strpos($section, '1 Urgent');
+        $overduePos   = strpos($section, '1 Overdue');
+        $completedPos = strpos($section, '1 Completed Today');
+
+        // Action-required first, completion result last.
+        $this->assertLessThan($overduePos, $urgentPos, 'Urgent must precede Overdue');
+        $this->assertLessThan($completedPos, $overduePos, 'Overdue must precede Completed Today');
+    }
+
+    public function test_completed_today_shows_alone_when_only_nonzero_badge(): void
+    {
+        // No urgent, not overdue — only a completed task.
+        $this->openTaskFor($this->gary, ['priority' => 'normal', 'due_date' => now()->addWeek()]);
+        $this->completedTaskBy($this->gary);
+
+        $html = $this->dashboardHtml();
+
+        $this->assertStringContainsString('1 Completed Today', $html);
+        $this->assertDoesNotMatchRegularExpression('/\\d+ Urgent/', $html);
+        $this->assertDoesNotMatchRegularExpression('/\\d+ Overdue/', $html);
+    }
+
     public function test_completed_count_query_is_not_n_plus_one(): void
     {
         // Several employees, several completions each.

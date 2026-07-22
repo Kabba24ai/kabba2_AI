@@ -89,14 +89,9 @@
                         </span>
                     </div>
 
-                    {{-- Completed Today — this employee's own count; hidden at zero --}}
-                    @if (($entry['completed_count'] ?? 0) > 0)
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                            {{ $entry['completed_count'] }} Completed Today
-                        </span>
-                    @endif
-
-                    {{-- Priority badges --}}
+                    {{-- Alert badges: action-required first (Urgent, then Overdue),
+                         with the Completed Today result last. Zero values render
+                         nothing. --}}
                     @if ($entry['urgent_count'] > 0 || $entry['overdue_count'] > 0)
                         <div class="flex flex-wrap justify-center gap-1">
                             @if ($entry['urgent_count'] > 0)
@@ -110,6 +105,13 @@
                                 </span>
                             @endif
                         </div>
+                    @endif
+
+                    {{-- Completed Today — the result, shown last; hidden at zero --}}
+                    @if (($entry['completed_count'] ?? 0) > 0)
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                            {{ $entry['completed_count'] }} Completed Today
+                        </span>
                     @endif
 
                 </a>

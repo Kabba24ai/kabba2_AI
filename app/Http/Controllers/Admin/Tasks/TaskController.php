@@ -285,7 +285,7 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'order', 'parentTask', 'subTasks.assignedTo', 'descriptionMedia', 'comments.user', 'comments.media', 'activityLogs.user']);
+        $task->load(['assignedTo', 'createdBy', 'completedBy', 'equipment.productCategory', 'customer', 'supplier', 'order', 'parentTask', 'subTasks.assignedTo', 'descriptionMedia', 'comments.user', 'comments.sourceUser', 'comments.sourceTask', 'comments.sourceComment.media', 'comments.media', 'activityLogs.user']);
         $users = User::active()->orderBy('first_name')->get();
 
         return view('admin.tasks.show', compact('task', 'users'));
@@ -507,9 +507,13 @@ class TaskController extends Controller
     {
         $comment = $request->validated('comment');
 
+        // Typed Completed so a child task's completion note mirrors up to the
+        // parent as a "Completed" event (see TaskComment sync). Non-child tasks
+        // simply get a completion-labelled note on their own timeline.
         $commentModel = $task->comments()->create([
-            'user_id' => auth()->id(),
-            'comment' => $comment,
+            'user_id'      => auth()->id(),
+            'comment'      => $comment,
+            'comment_type' => \App\Enums\Tasks\TaskCommentType::Completed,
         ]);
 
         $this->storeTaskMediaFiles($task, $commentModel->id, $request->file('media', []));
@@ -527,6 +531,33 @@ class TaskController extends Controller
         );
 
         return redirect()->route('admin.tasks.index')->with('success', 'Task marked as completed.');
+    }
+
+    /**
+     * Reply to Linked Task — the preferred way the parent's owner answers a
+     * synchronized Help Needed comment. The reply is posted as a NATIVE comment
+     * on the child (canonical) task; the TaskComment sync then mirrors it back
+     * to this parent exactly once. We never write a parent comment directly, so
+     * there is only ever one conversation of record.
+     */
+    public function replyToLinkedComment(StoreTaskCommentRequest $request, Task $task, \App\Models\Tasks\TaskComment $comment)
+    {
+        abort_unless($comment->task_id === $task->id && $comment->source_task_id !== null, 404);
+
+        $childTask = Task::find($comment->source_task_id);
+        abort_unless($childTask !== null, 404);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $childTask) {
+            $reply = $childTask->comments()->create([
+                'user_id' => auth()->id(),
+                'comment' => $request->validated('comment'),
+            ]);
+            // Native child comment → the created hook mirrors it up to the parent.
+            $this->storeTaskMediaFiles($childTask, $reply->id, $request->file('media', []));
+            $childTask->logActivity('comment_added');
+        });
+
+        return redirect()->route('admin.tasks.show', $task)->with('success', 'Reply sent to the linked task.');
     }
 
     /**

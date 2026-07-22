@@ -10,18 +10,22 @@ namespace App\Enums\Tasks;
  */
 enum TaskCommentType: string
 {
-    case Standard   = 'standard';
-    case Waiting    = 'waiting';
-    case HelpNeeded = 'help_needed';
-    case Status     = 'status';
+    case Standard         = 'standard';
+    case Waiting          = 'waiting';
+    case HelpNeeded       = 'help_needed';
+    case HelpNeededUpdate = 'help_needed_update';
+    case Completed        = 'completed';
+    case Status           = 'status';
 
     public function label(): string
     {
         return match ($this) {
-            self::Standard   => 'Comment',
-            self::Waiting    => 'Waiting',
-            self::HelpNeeded => 'Help Needed',
-            self::Status     => 'Status',
+            self::Standard         => 'Comment',
+            self::Waiting          => 'Waiting',
+            self::HelpNeeded       => 'Help Needed',
+            self::HelpNeededUpdate => 'Help Needed Update',
+            self::Completed        => 'Completed',
+            self::Status           => 'Status',
         };
     }
 
@@ -29,9 +33,11 @@ enum TaskCommentType: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Waiting    => 'bg-orange-100 text-orange-700',
-            self::HelpNeeded => 'bg-purple-100 text-purple-700',
-            default          => 'bg-gray-100 text-gray-600',
+            self::Waiting          => 'bg-orange-100 text-orange-700',
+            self::HelpNeeded,
+            self::HelpNeededUpdate => 'bg-purple-100 text-purple-700',
+            self::Completed        => 'bg-green-100 text-green-700',
+            default                => 'bg-gray-100 text-gray-600',
         };
     }
 

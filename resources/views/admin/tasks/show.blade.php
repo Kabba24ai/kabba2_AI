@@ -146,8 +146,8 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold mb-1" style="color:#6b21a8;">Needed by</label>
-                            <input type="date" id="ts_help_due" min="{{ now()->format('Y-m-d') }}"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 bg-white">
+                            <input type="text" id="ts_help_due" readonly placeholder="Select date &amp; time"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 bg-white cursor-pointer">
                         </div>
                     </div>
                     <label class="block text-xs font-semibold mb-1" style="color:#6b21a8;">What do you need from them?</label>
@@ -170,24 +170,53 @@
 
             <div class="space-y-4 mb-5">
                 @forelse ($task->comments as $comment)
+                    @php
+                        $author   = $comment->displayAuthor();
+                        $isSynced = $comment->isSynchronized();
+                        // Attachments render from the canonical source (child) comment on a
+                        // projection; files are never copied. Falls back gracefully to nothing
+                        // if the source comment/media was removed.
+                        $shownMedia = $isSynced ? optional($comment->sourceComment)->media : $comment->media;
+                        // Operational label + linked-task reference for a synchronized projection.
+                        $syncTaskId = $comment->sourceTask?->id ?? $comment->source_task_id;
+                        $syncPrefix = match ($comment->comment_type) {
+                            \App\Enums\Tasks\TaskCommentType::Completed => 'Help Request Completed · ',
+                            \App\Enums\Tasks\TaskCommentType::Waiting   => 'Waiting · ',
+                            default                                     => 'Help Needed ',
+                        };
+                    @endphp
                     <div class="flex gap-3">
-                        <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-xs font-bold shrink-0">
-                            {{ strtoupper(substr($comment->user?->first_name ?? '?', 0, 1)) }}
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {{ $isSynced ? 'bg-purple-100 text-purple-700' : 'bg-brand-100 text-brand-700' }}">
+                            {{ strtoupper(substr($author?->first_name ?? '?', 0, 1)) }}
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1 {{ $isSynced ? 'rounded-lg border border-purple-100 bg-purple-50/40 p-3' : '' }}">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-sm font-medium text-gray-800">{{ $comment->user?->full_name ?? 'Unknown' }}</span>
-                                @if ($comment->comment_type?->isContextual())
+                                <span class="text-sm font-medium text-gray-800">{{ $author?->full_name ?? 'Unknown' }}</span>
+                                @if (!$isSynced && $comment->comment_type?->isContextual())
                                     <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $comment->comment_type->badgeClasses() }}">
                                         {{ $comment->comment_type->label() }}
                                     </span>
                                 @endif
                                 <span class="text-xs text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
                             </div>
-                            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $comment->comment }}</p>
-                            @if ($comment->media->isNotEmpty())
+
+                            {{-- Synchronized projection: who sent it, which delegated task,
+                                 and a link to open that task. --}}
+                            @if ($isSynced)
+                                <div class="text-xs font-semibold mb-1.5" style="color:#7c3aed;">
+                                    {{ $syncPrefix }}@if ($comment->sourceTask)<a href="{{ route('admin.tasks.show', $comment->sourceTask) }}" class="underline hover:no-underline">Task #{{ $syncTaskId }}</a>@else<span>Task #{{ $syncTaskId }}</span>@endif
+                                </div>
+                            @endif
+
+                            @if ($isSynced && trim((string) $comment->comment) === '' && $comment->comment_type === \App\Enums\Tasks\TaskCommentType::Completed)
+                                <p class="text-sm text-gray-700">{{ $author?->full_name ?? 'The assignee' }} completed Help Needed Task #{{ $syncTaskId }}.</p>
+                            @else
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $comment->comment }}</p>
+                            @endif
+
+                            @if ($shownMedia && $shownMedia->isNotEmpty())
                                 <div class="flex flex-wrap gap-2 mt-2">
-                                    @foreach ($comment->media as $media)
+                                    @foreach ($shownMedia as $media)
                                         @if ($media->isImage())
                                             <a href="{{ $media->url }}" target="_blank" title="{{ $media->original_filename }}">
                                                 <img src="{{ $media->url }}" alt="{{ $media->original_filename }}"
@@ -201,6 +230,32 @@
                                         @endif
                                     @endforeach
                                 </div>
+                            @endif
+
+                            {{-- Reply to Linked Task — posts into the child task; the sync
+                                 process mirrors it back so the thread stays canonical. --}}
+                            @if ($isSynced)
+                                <button type="button" onclick="toggleLinkedReply({{ $comment->id }})"
+                                    class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold" style="color:#7c3aed;">
+                                    <x-heroicon-o-arrow-uturn-left class="w-3.5 h-3.5" />
+                                    Reply to Linked Task
+                                </button>
+                                <form id="linked-reply-{{ $comment->id }}" class="hidden mt-2"
+                                    method="POST" action="{{ route('admin.tasks.comments.reply', [$task, $comment]) }}"
+                                    enctype="multipart/form-data">
+                                    @csrf
+                                    <textarea name="comment" rows="2" required placeholder="Reply to {{ $author?->first_name ?? 'the assignee' }}…"
+                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"></textarea>
+                                    <input type="file" name="media[]" multiple
+                                        accept="image/*,video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                                        class="mt-2 block w-full text-xs text-gray-700 border border-gray-300 rounded-md cursor-pointer bg-white file:mr-3 file:py-1.5 file:px-3 file:border-0 file:rounded-l-md file:bg-gray-100 file:text-xs file:font-medium file:text-gray-700 hover:file:bg-gray-200">
+                                    <div class="flex justify-end gap-2 mt-2">
+                                        <button type="button" onclick="toggleLinkedReply({{ $comment->id }})"
+                                            class="px-3 py-1.5 text-xs rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Cancel</button>
+                                        <button type="submit"
+                                            class="px-3 py-1.5 text-xs rounded-md text-white" style="background:#7c3aed;">Send reply</button>
+                                    </div>
+                                </form>
                             @endif
                         </div>
                     </div>
@@ -626,10 +681,57 @@
         });
     });
 
+    // ── Needed By: canonical Flatpickr (same lazy-load + options as the New
+    //    Task modal). Init once and reuse — reopening the Help panel never
+    //    creates a second instance; the value survives a validation error
+    //    because that path shows an inline error without reloading. ──────────
+    var _tsHelpPicker = null;
+    function initHelpDuePicker() {
+        if (_tsHelpPicker || !window.flatpickr) return;
+        _tsHelpPicker = flatpickr('#ts_help_due', {
+            enableTime:    true,
+            dateFormat:    'Y-m-d H:i:S',
+            altInput:      true,
+            altFormat:     'F j, Y h:i K',
+            minDate:       'today',
+            time_24hr:     false,
+            disableMobile: true,
+            onReady: function (sel, str, instance) {
+                instance.calendarContainer.style.zIndex = '200000';
+            },
+        });
+    }
+    if (window.flatpickr) {
+        initHelpDuePicker();
+    } else {
+        if (!document.getElementById('flatpickr-css')) {
+            var fpCss = document.createElement('link');
+            fpCss.id = 'flatpickr-css'; fpCss.rel = 'stylesheet';
+            fpCss.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+            document.head.appendChild(fpCss);
+        }
+        var fpJs = document.createElement('script');
+        fpJs.src = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js';
+        fpJs.onload = initHelpDuePicker;
+        document.head.appendChild(fpJs);
+    }
+
     render();
 }());
 </script>
 @endunless
+<script>
+// Reply to Linked Task — reveal the inline reply editor under a synced comment
+function toggleLinkedReply(id) {
+    var f = document.getElementById('linked-reply-' + id);
+    if (!f) return;
+    f.classList.toggle('hidden');
+    if (!f.classList.contains('hidden')) {
+        var ta = f.querySelector('textarea');
+        if (ta) ta.focus();
+    }
+}
+</script>
 <script>
 function openTaskReassignModal() {
     var m = document.getElementById('TaskReassignModal');

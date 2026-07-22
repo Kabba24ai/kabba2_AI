@@ -14,6 +14,7 @@ Route::prefix('tasks')->name('tasks.')->group(function () {
     Route::patch('/{task}',                      [TaskController::class, 'update'])->name('update');
     Route::delete('/{task}',                     [TaskController::class, 'destroy'])->name('destroy');
     Route::post('/{task}/comments',              [TaskController::class, 'storeComment'])->name('comments.store');
+    Route::post('/{task}/comments/{comment}/reply', [TaskController::class, 'replyToLinkedComment'])->name('comments.reply');
     Route::post('/{task}/complete',              [TaskController::class, 'completeWithComment'])->name('complete');
     Route::post('/{task}/reassign',              [TaskController::class, 'reassign'])->name('reassign');
     Route::post('/{task}/status',                [TaskController::class, 'updateStatus'])->name('status');

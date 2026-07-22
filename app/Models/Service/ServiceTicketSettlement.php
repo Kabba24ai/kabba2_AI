@@ -26,6 +26,7 @@ class ServiceTicketSettlement extends Model
         'customer_id',
         'equipment_id',
         'order_extra_charge_id',
+        'billing_charge_id',
         'status',
         'labor_total',
         'parts_total',
@@ -55,6 +56,12 @@ class ServiceTicketSettlement extends Model
     public function extraCharge()
     {
         return $this->belongsTo(OrderExtraCharges::class, 'order_extra_charge_id');
+    }
+
+    /** ST-2a: the canonical Billing Engine charge for this settlement. */
+    public function billingCharge()
+    {
+        return $this->belongsTo(\App\Models\Orders\BillingCharge::class, 'billing_charge_id');
     }
 
     public function createdBy()

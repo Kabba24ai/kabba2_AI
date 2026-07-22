@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Admin\ServiceManagement\Settlement;
 use App\Enums\Service\FinancialStatus;
 use App\Enums\Service\ServiceTicketEventType;
 use App\Http\Controllers\Controller;
-use App\Models\Orders\OrderExtraCharges;
 use App\Models\Service\ServiceTicket;
 use App\Models\Service\ServiceTicketEvent;
 use App\Models\Service\ServiceTicketSettlement;
+use App\Services\ChargeService;
 use App\Services\ServiceManagement\SettlementPackage;
 use Illuminate\Support\Facades\DB;
 
@@ -16,10 +16,11 @@ class StoreController extends Controller
 {
     /**
      * Create Customer Charge: persist the Settlement Package and hand it to
-     * the Financial Engine as an Order Extra Charge. The Service Module's
-     * responsibility ends here — no payment is processed, no payment records
-     * are created. Totals come exclusively from SettlementPackage; any
-     * amounts in the request are ignored.
+     * the canonical Billing Engine (ST-2a) as a real ServiceTicket
+     * BillingCharge + CustomerAccount ledger row — idempotent, refundable,
+     * payable through the shared payment surfaces. No payment is processed
+     * here. Totals come exclusively from SettlementPackage; any amounts in
+     * the request are ignored. Tax-free per the approved decision.
      */
     public function __invoke(ServiceTicket $ticket)
     {
@@ -54,25 +55,22 @@ class StoreController extends Controller
                 'created_by'        => auth()->id(),
             ]);
 
-            // Handoff to the Financial Engine via Order Extra Payments.
-            // payment_type stays null — payment collection is not our job.
-            $charge = OrderExtraCharges::create([
-                'order_id'    => $ticket->order_id,
-                'customer_id' => $ticket->customer_id,
-                'type'        => 'service',
-                'amount'      => $package->finalAmount(),
-                'notes'       => 'Service repair settlement — ' . $ticket->ticket_number,
-            ]);
+            // Canonical Billing Engine handoff (ST-2a): a real ServiceTicket
+            // BillingCharge + CustomerAccount ledger row, tax-free,
+            // idempotency-keyed on the settlement. Runs inside this
+            // transaction — a bridge failure rolls the whole settlement back.
+            $charge = ChargeService::createServiceCharge(
+                customerId: (int) $ticket->customer_id,
+                amount: $package->finalAmount(),
+                orderId: $ticket->order_id,
+                responsibleUserId: (int) auth()->id(),
+                notes: 'Service repair settlement — ' . $ticket->ticket_number,
+                idempotencyKey: 'service_settlement:' . $settlement->id,
+                sourceReferenceType: 'ServiceTicketSettlement',
+                sourceReferenceId: $settlement->id,
+            );
 
-            // source_type/source_id are new columns not in the OEP model's
-            // fillable list (we don't modify Billing Engine code) — set them
-            // directly for drill-down and duplicate protection.
-            $charge->forceFill([
-                'source_type' => 'service_ticket_settlement',
-                'source_id'   => $settlement->id,
-            ])->save();
-
-            $settlement->update(['order_extra_charge_id' => $charge->id]);
+            $settlement->update(['billing_charge_id' => $charge->id]);
 
             // Stamp the consumed lines so they can never be billed twice.
             $ticket->chargeLines()->where('billable', true)->whereNull('source_type')->update([
@@ -98,11 +96,11 @@ class StoreController extends Controller
                 $ticket->id,
                 ServiceTicketEventType::CustomerChargeCreated,
                 notes: sprintf(
-                    'Customer charge of $%s created on order (extra charge %s)',
+                    'Customer charge of $%s created on order (billing charge %s)',
                     number_format($package->finalAmount(), 2),
                     $charge->unique_id,
                 ),
-                metadata: ['settlement_id' => $settlement->id, 'order_extra_charge_id' => $charge->id],
+                metadata: ['settlement_id' => $settlement->id, 'billing_charge_id' => $charge->id],
             );
         });
 

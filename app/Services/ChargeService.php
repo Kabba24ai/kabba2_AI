@@ -155,6 +155,97 @@ class ChargeService
     }
 
     /**
+     * ST-2a — canonical creation for a SERVICE TICKET settlement charge.
+     * Replaces the settlement's former raw order_extra_charges write with
+     * the real Billing Engine path: a CustomerAccount ledger row + a
+     * BillingChargeType::ServiceTicket charge, so the charge is a first-
+     * class billing object (idempotent, refundable, payable through the
+     * shared payment surfaces via its CustomerAccount).
+     *
+     * Differs from createManualCharge deliberately:
+     *   - reason 'Service Repair'; sets NO fuel/damage alert flag (a service
+     *     charge is not an operational alert and must never enter those
+     *     queues);
+     *   - TAX-FREE (approved decision — service charges are untaxed today;
+     *     per-line taxable is a separate future decision);
+     *   - the bridge exception is NOT swallowed — the caller (Settlement
+     *     StoreController) runs this inside its own transaction and requires
+     *     the BillingCharge, so a bridge failure must roll the settlement
+     *     back rather than leave a charge-less settlement behind.
+     *
+     * Returns the BillingCharge (the settlement links it directly). Runs
+     * inside the caller's transaction — no inner transaction here.
+     *
+     * @param  string  $idempotencyKey       e.g. "service_settlement:{id}"
+     * @param  string  $sourceReferenceType  e.g. 'ServiceTicketSettlement'
+     */
+    public static function createServiceCharge(
+        int $customerId,
+        float $amount,
+        ?int $orderId,
+        int $responsibleUserId,
+        string $notes,
+        string $idempotencyKey,
+        string $sourceReferenceType,
+        int $sourceReferenceId,
+    ): BillingCharge {
+        $user = User::findOrFail($responsibleUserId);
+
+        $record                          = new CustomerAccount();
+        $record->customer_id             = $customerId;
+        $record->order_id                = $orderId;
+        $record->amount                  = $amount;
+        $record->reason                  = 'Service Repair';
+        $record->responsible_person_id   = $user->id;
+        $record->responsible_person_name = $user->full_name;
+        $record->notes                   = $notes;
+        $record->date                    = now();
+        $record->sales_tax_type          = 'free';
+        $record->sales_tax               = 0;
+        $record->type                    = 'charge';
+        // Deliberately NO fuel_alert_status / damage_alert_status — a service
+        // charge is not an operational alert.
+        $record->save();
+
+        CustomHelper::updateCreditBalance($record);
+
+        if ($record->customer) {
+            $description = 'Service Repair charge added. Amount: $' . number_format((float) $record->amount, 2) . '.';
+            $description .= " Responsible person: {$record->responsible_person_name}.";
+            if (filled($notes)) {
+                $description .= " Notes: {$notes}";
+            }
+            $record->customer->notes()->create([
+                'customer_account_id' => $record->id,
+                'description'         => $description,
+                'created_by'          => auth()->id(),
+            ]);
+        }
+
+        // Tax-free: base = amount, tax = 0. Bridge failure propagates.
+        return BillingEngine::charge(new \App\Http\DataObjects\BillingChargeRequest(
+            type:                \App\Enums\Billing\BillingChargeType::ServiceTicket->value,
+            orderId:             $orderId,
+            customerId:          (int) $record->customer_id,
+            amount:              $amount,
+            taxType:             'free',
+            responsiblePersonId: $user->id,
+            notes:               $notes,
+            sourceModule:        \App\Enums\Billing\BillingSourceModule::ServiceModule->value,
+            sourceEvent:         \App\Enums\Billing\BillingSourceEvent::ServiceTicketChargeCreated->value,
+            sourceReferenceType: $sourceReferenceType,
+            sourceReferenceId:   $sourceReferenceId,
+            metadata:            [
+                'creation_path'              => 'ChargeService::createServiceCharge',
+                'legacy_customer_account_id' => $record->id,
+            ],
+            idempotencyKey:      $idempotencyKey,
+            customerAccountId:   $record->id,
+            taxAmount:           0.0,
+        ));
+    }
+
+    /**
      * Create a CustomerAccount charge record from a checklist-originated OrderProduct charge.
      * Idempotent — will not create a duplicate if one already exists for the same OP + type
      * within the same rental cycle (see $cycleStartedAt).

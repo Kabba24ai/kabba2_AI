@@ -18,7 +18,7 @@ class UpdateTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category'            => ['sometimes', 'required', 'in:sales,yard,shop,admin'],
+            'category'            => ['sometimes', 'required', 'in:sales,admin,billing,yard,shop'],
             'title'               => ['sometimes', 'required', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
             'priority'            => ['sometimes', 'required', 'in:low,normal,high,urgent'],

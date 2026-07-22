@@ -53,7 +53,7 @@ class CallNeededStoreRequest extends FormRequest
             'category' => [
                 'nullable',
                 'string',
-                'in:sales,yard,shop,admin',
+                'in:sales,admin,billing,yard,shop',
             ],
             'due_date' => [
                 'nullable',

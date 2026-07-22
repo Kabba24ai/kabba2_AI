@@ -18,7 +18,7 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category'            => ['required', 'in:sales,yard,shop,admin'],
+            'category'            => ['required', 'in:sales,admin,billing,yard,shop'],
             'title'               => ['required', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
             'priority'            => ['required', 'in:low,normal,high,urgent'],

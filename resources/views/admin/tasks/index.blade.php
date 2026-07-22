@@ -33,10 +33,11 @@
     );
 
     $catActiveColor = [
-        'sales' => 'bg-blue-600 text-white border-blue-600',
-        'yard'  => 'bg-green-600 text-white border-green-600',
-        'shop'  => 'bg-orange-500 text-white border-orange-500',
-        'admin' => 'bg-purple-600 text-white border-purple-600',
+        'sales'   => 'bg-blue-600 text-white border-blue-600',
+        'admin'   => 'bg-purple-600 text-white border-purple-600',
+        'billing' => 'bg-teal-600 text-white border-teal-500',
+        'yard'    => 'bg-green-600 text-white border-green-600',
+        'shop'    => 'bg-orange-500 text-white border-orange-500',
     ];
     $badgeBase     = 'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium border transition-colors cursor-pointer';
     $badgeInactive = $badgeBase . ' bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';

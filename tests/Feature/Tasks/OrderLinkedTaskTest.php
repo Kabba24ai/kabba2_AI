@@ -58,11 +58,11 @@ class OrderLinkedTaskTest extends TestCase
 
     private function taskPayload(array $overrides = []): array
     {
+        // No 'status' — creation forces Open server-side.
         return array_merge([
             'category' => 'sales',
             'title'    => 'Follow up on rental',
             'priority' => 'normal',
-            'status'   => 'open',
         ], $overrides);
     }
 

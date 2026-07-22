@@ -204,16 +204,9 @@
                     </div>
                 </div>
 
-                {{-- Status — operational only --}}
-                <div id="ut_status_row">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status <span class="text-red-500">*</span></label>
-                    <select id="ut_status"
-                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                        @foreach ($statuses as $st)
-                            <option value="{{ $st->value }}" {{ $st->value === 'open' ? 'selected' : '' }}>{{ $st->label() }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- New tasks always start Open (enforced server-side); there is
+                     no Status field at creation. Move through statuses on the
+                     Task Detail page as work progresses. --}}
 
                 {{-- Description / Notes --}}
                 <div>
@@ -546,7 +539,6 @@
 
         document.getElementById('ut_subject_task').classList.toggle('hidden', !isTask);
         document.getElementById('ut_subject_call').classList.toggle('hidden', isTask);
-        document.getElementById('ut_status_row').classList.toggle('hidden', !isTask);
         document.getElementById('ut_equipment_block').classList.toggle('hidden', !isTask);
         document.getElementById('ut_media_block').classList.toggle('hidden', !isTask);
 
@@ -595,7 +587,6 @@
         document.getElementById('ut_title').value      = '';
         document.getElementById('ut_category').value   = '';
         document.getElementById('ut_priority').value   = 'normal';
-        document.getElementById('ut_status').value     = 'open';
         document.getElementById('ut_notes').value      = '';
         document.getElementById('ut_media').value      = '';
         document.getElementById('ut_other_name').value = '';
@@ -695,7 +686,7 @@
         fd.append('category', category);
         fd.append('title', title);
         fd.append('priority', document.getElementById('ut_priority').value);
-        fd.append('status', document.getElementById('ut_status').value);
+        // Status is not sent — new tasks always start Open (enforced server-side).
 
         var fields = {
             description:          document.getElementById('ut_notes').value.trim(),

@@ -42,7 +42,6 @@ class TaskCategoryTest extends TestCase
             'category' => 'billing',
             'title'    => 'Reconcile July card batch',
             'priority' => 'normal',
-            'status'   => 'open',
         ])->assertOk()->assertJson(['success' => true]);
 
         $task = Task::latest('id')->first();
@@ -56,7 +55,6 @@ class TaskCategoryTest extends TestCase
             'category' => 'accounting',
             'title'    => 'Bad category',
             'priority' => 'normal',
-            'status'   => 'open',
         ])->assertStatus(422)->assertJsonValidationErrors('category');
     }
 

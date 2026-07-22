@@ -58,6 +58,9 @@ class UnifiedTaskModalTest extends TestCase
         $this->assertStringContainsString('ut_subject_call', $html);
         $this->assertStringContainsString('ut_related_type', $html);
 
+        // No Status field at creation — new tasks always start Open.
+        $this->assertStringNotContainsString('ut_status', $html);
+
         // The old operational-only modal is no longer rendered here
         $this->assertStringNotContainsString('NewTaskModal"', $html);
 
@@ -77,6 +80,9 @@ class UnifiedTaskModalTest extends TestCase
         $this->assertStringContainsString('ut_subject_task', $html);
         $this->assertStringContainsString('ut_subject_call', $html);
 
+        // No Status field at creation on the dashboard modal either.
+        $this->assertStringNotContainsString('ut_status', $html);
+
         // The retired operational-only modal never comes back
         $this->assertStringNotContainsString('NewTaskModal"', $html);
 
@@ -91,11 +97,11 @@ class UnifiedTaskModalTest extends TestCase
 
     private function taskPayload(array $overrides = []): array
     {
+        // No 'status' — creation no longer accepts it; the server forces Open.
         return array_merge([
             'category' => 'yard',
             'title'    => 'Restack pallet racks',
             'priority' => 'normal',
-            'status'   => 'open',
         ], $overrides);
     }
 
@@ -150,6 +156,26 @@ class UnifiedTaskModalTest extends TestCase
         $this->assertNull($task->related_other);
     }
 
+    public function test_new_task_starts_open_when_no_status_is_submitted(): void
+    {
+        $this->postJson(route('admin.tasks.store'), $this->taskPayload())
+            ->assertOk()->assertJson(['success' => true]);
+
+        $this->assertEquals('open', Task::latest('id')->first()->status->value);
+    }
+
+    public function test_crafted_status_cannot_set_a_non_open_starting_status(): void
+    {
+        foreach (['in_progress', 'waiting', 'help_needed', 'completed', 'cancelled'] as $crafted) {
+            $this->postJson(route('admin.tasks.store'), $this->taskPayload(['status' => $crafted]))
+                ->assertOk()->assertJson(['success' => true]);
+
+            $task = Task::latest('id')->first();
+            $this->assertEquals('open', $task->status->value, "submitted status={$crafted} must be ignored");
+            $this->assertNull($task->completed_at, 'a crafted completed status must not set completed_at');
+        }
+    }
+
     public function test_invalid_related_ids_are_rejected(): void
     {
         $this->postJson(route('admin.tasks.store'), $this->taskPayload([
@@ -165,10 +191,13 @@ class UnifiedTaskModalTest extends TestCase
 
     public function test_operational_required_fields_unchanged(): void
     {
-        $this->postJson(route('admin.tasks.store'), [
+        $response = $this->postJson(route('admin.tasks.store'), [
             'title' => 'Missing everything else',
         ])->assertStatus(422)
-            ->assertJsonValidationErrors(['category', 'priority', 'status']);
+            ->assertJsonValidationErrors(['category', 'priority']);
+
+        // Status is no longer a creation field, so it is never a required error.
+        $response->assertJsonMissingValidationErrors('status');
     }
 
     // ─────────────────────────────────────────────────────────

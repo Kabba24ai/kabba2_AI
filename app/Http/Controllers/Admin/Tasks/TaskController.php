@@ -212,10 +212,8 @@ class TaskController extends Controller
     {
         $data = $request->validated();
         $data['created_by_user_id'] = auth()->id();
-
-        if (($data['status'] ?? null) === 'completed' && empty($data['completed_at'])) {
-            $data['completed_at'] = now();
-        }
+        // Business rule: every new task starts Open. Never derived from input.
+        $data['status'] = TaskStatus::Open->value;
 
         $task = Task::create($data);
         $task->logActivity('task_created', null, $task->title);

@@ -22,7 +22,9 @@ class StoreTaskRequest extends FormRequest
             'title'               => ['required', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
             'priority'            => ['required', 'in:low,normal,high,urgent'],
-            'status'              => ['required', 'in:open,in_progress,waiting,help_needed,completed,cancelled'],
+            // No 'status' rule: new tasks always begin Open, set server-side in
+            // the controller. Any submitted status is ignored (stripped by
+            // validated()), so no caller can pick a non-Open starting status.
             'assigned_to_user_id' => ['nullable', 'exists:users,id'],
             'due_date'            => ['nullable', 'date'],
             'related_order_id'      => ['nullable', Rule::exists('orders', 'id')->whereNull('deleted_at')],

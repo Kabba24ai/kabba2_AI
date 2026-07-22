@@ -1,4 +1,8 @@
-@extends('admin.layouts.app')
+{{-- Focused single-employee mode uses the same canonical contained width as
+     Task Detail; the all-employees overview stays wide for the column grid. --}}
+@extends('admin.layouts.app', [
+    'contentClass' => request()->filled('assigned_to') ? 'max-w-(--breakpoint-2xl)' : '',
+])
 
 @section('title', 'Task Center')
 
@@ -338,6 +342,13 @@
             if (newList)   document.getElementById('task-list-zone').replaceWith(newList);
 
             history.pushState(null, '', url.toString());
+
+            // Match the container to the new mode. The layout wrapper isn't part
+            // of the AJAX-swapped zones, so focusing/unfocusing an employee must
+            // toggle its canonical max-width here (full load handles it via
+            // contentClass). Contained in focused mode; full width otherwise.
+            var container = document.querySelector('main > div.mx-auto');
+            if (container) container.classList.toggle('max-w-(--breakpoint-2xl)', url.searchParams.has('assigned_to'));
 
         } catch (err) {
             console.error('Task filter error:', err);

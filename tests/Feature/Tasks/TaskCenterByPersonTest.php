@@ -208,6 +208,66 @@ class TaskCenterByPersonTest extends TestCase
         $this->assertStringNotContainsString('All people', $summary);
     }
 
+    // ─────────────────────── Layout: focused-mode contained container ───────────────────────
+
+    public function test_focused_mode_gets_the_canonical_max_width_container(): void
+    {
+        $this->task($this->amber, ['title' => 'Amber task']);
+
+        $focused = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))
+            ->assertOk()->getContent();
+
+        // Same canonical container the Task Detail page uses — match the layout
+        // wrapper's class signature (not the JS token that toggles it on AJAX).
+        $this->assertStringContainsString('max-w-(--breakpoint-2xl) mx-auto', $focused);
+    }
+
+    public function test_all_employees_mode_is_not_width_constrained(): void
+    {
+        $this->task($this->amber, ['title' => 'Amber task']);
+
+        $overview = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
+
+        // The layout wrapper carries no max-width in the overview.
+        $this->assertStringNotContainsString('max-w-(--breakpoint-2xl) mx-auto', $overview);
+    }
+
+    public function test_task_center_focused_and_task_detail_share_the_container_convention(): void
+    {
+        $task = $this->task($this->amber, ['title' => 'Amber task']);
+
+        $detail   = $this->get(route('admin.tasks.show', $task))->assertOk()->getContent();
+        $focused  = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))->assertOk()->getContent();
+
+        // Both rely on the layout's contentClass with the same canonical value —
+        // no bespoke pixel width and no second nested wrapper.
+        $this->assertStringContainsString('max-w-(--breakpoint-2xl) mx-auto', $detail);
+        $this->assertStringContainsString('max-w-(--breakpoint-2xl) mx-auto', $focused);
+        // Exactly one container element carries the class (no nested wrapper).
+        $this->assertEquals(1, substr_count($focused, 'max-w-(--breakpoint-2xl) mx-auto'));
+    }
+
+    public function test_focused_container_wraps_filters_and_list_together(): void
+    {
+        $this->task($this->amber, ['title' => 'Amber task', 'category' => 'admin']);
+
+        $focused = $this->get(route('admin.tasks.index', ['assigned_to' => $this->amber->id]))
+            ->assertOk()->getContent();
+
+        // The single container precedes both the heading/filters and the list —
+        // page controls and cards share one aligned boundary, not a wrapper
+        // around only the cards.
+        $containerPos = strpos($focused, 'max-w-(--breakpoint-2xl) mx-auto');
+        $filtersPos   = strpos($focused, 'task-filter-zone');
+        $listPos      = strpos($focused, 'task-list-zone');
+        $this->assertNotFalse($containerPos);
+        $this->assertLessThan($filtersPos, $containerPos);
+        $this->assertLessThan($listPos, $containerPos);
+        // Filters and All People still work inside the contained view.
+        $this->assertStringContainsString('All people', $focused);
+        $this->assertStringContainsString('Task Categories', $focused);
+    }
+
     // ─────────────────────── Layout: panel removal + capped grid ───────────────────────
 
     public function test_tasks_completed_side_panel_is_removed(): void

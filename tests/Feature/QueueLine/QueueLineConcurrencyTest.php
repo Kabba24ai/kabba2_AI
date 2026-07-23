@@ -81,8 +81,12 @@ class QueueLineConcurrencyTest extends QueueLineTestCase
         $this->assertSame(0, QueueLineFuelVerification::where('order_product_id', $row->id)->count());
     }
 
-    public function test_release_arriving_after_a_concurrent_reversal_is_blocked(): void
+    public function test_release_arriving_after_a_concurrent_reversal_still_completes_informationally(): void
     {
+        // Staging is informational (2026-07-23): a fuel reversal landing while
+        // the dispatch screen still showed verified no longer BLOCKS the
+        // release — it proceeds and completes (the invalidated verification is
+        // recorded, not enforced).
         $this->actingAs($this->admin, 'api_user');
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
@@ -95,7 +99,6 @@ class QueueLineConcurrencyTest extends QueueLineTestCase
             source: QueueLineFuelVerification::SOURCE_WEB,
         );
 
-        // Supervisor reverses while the dispatch screen still shows verified.
         QueueFuelVerificationService::reverse(
             verification: $result['verification'],
             performedBy: $this->admin,
@@ -108,8 +111,10 @@ class QueueLineConcurrencyTest extends QueueLineTestCase
             'order_product_unique_id' => $row->unique_id,
             'schedule_type' => 'Delivery',
             'schedule_status' => 'Completed',
-        ])->assertStatus(422)
-            ->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED');
+        ])->assertOk();
+
+        $this->assertSame('Completed', $row->fresh()->delivery_status);
+        $this->assertNotNull($row->fresh('queueLineItem')->queueLineItem?->completed_at);
     }
 
     public function test_double_completion_keeps_the_first_latch_untouched(): void

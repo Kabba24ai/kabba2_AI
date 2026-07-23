@@ -236,8 +236,8 @@
                     'band' => 'bg-green-600 text-white', 'wrapper' => 'border-green-200',
                 ],
                 'delivered' => [
-                    'stage' => '3', 'label' => 'Queue Line — Completed', 'icon' => 'complete',
-                    'hint' => 'Off the yard today — dispatch start or in-store customer handoff',
+                    'stage' => '3', 'label' => 'Equipment Delivered', 'icon' => 'complete',
+                    'hint' => 'Everything that left the yard today — staged, Fast Track, driver delivery, in-store handoff, or admin completion',
                     'empty' => 'Nothing has left the yard yet today.',
                     'band' => 'bg-gray-200 text-gray-700', 'wrapper' => 'border-gray-200',
                 ],

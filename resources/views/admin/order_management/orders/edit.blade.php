@@ -342,6 +342,16 @@
                         </svg>
                     </a>
 
+                    {{-- Operations History — read-only tabbed operational audit
+                         (Staging / Driver Dispatch / Customer Checklist /
+                         Equipment Assignment). Body is fetched on open. --}}
+                    <button id="operationsHistoryBtn" type="button" title="Operations History"
+                        data-ops-history-open
+                        data-url="{{ route('admin.order-management.orders.operations-history', $order->unique_id) }}"
+                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-slate-700 text-white hover:bg-slate-800 transition-colors shadow-sm cursor-pointer">
+                        <x-heroicon-o-clock class="w-4 h-4 mr-1" /> Operations History
+                    </button>
+
                     {{-- Resend POD Payment Link (only for COD Pending orders) --}}
                     @php
                         $hasCodPending = $order->payments
@@ -4046,6 +4056,25 @@
                     class="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition">
                 Close
             </button>
+        </div>
+    </div>
+</div>
+
+{{-- Operations History modal (Enhancement 6/7). Placed at content root so no
+     hidden ancestor can suppress it. Body is fetched on open into #opsHistoryBody. --}}
+<div id="operationsHistoryModal"
+    class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-start py-10">
+    <div class="bg-white rounded-lg w-full max-w-3xl shadow-lg flex flex-col mx-4 max-h-[85vh]">
+        <div class="flex justify-between items-center p-4 border-b">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Operations History</h2>
+                <p class="text-xs text-gray-500">Order {{ $order->order_number }} — read-only operational audit trail</p>
+            </div>
+            <button type="button" data-ops-history-close
+                class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none" aria-label="Close">&times;</button>
+        </div>
+        <div id="opsHistoryBody" class="flex-1 overflow-y-auto p-4">
+            <div class="py-10 text-center text-sm text-gray-400">Loading…</div>
         </div>
     </div>
 </div>
@@ -8049,6 +8078,85 @@
         updateExtSummary();
     })();
 
+    </script>
+
+    {{-- Operations History modal wiring (Enhancement 6/7). CSP-safe: delegated
+         listeners only, no inline handlers; guarded so re-executed scripts
+         (SPA navigation) never double-bind. --}}
+    <script>
+    (function () {
+        if (window.__opsHistoryBound) { return; }
+        window.__opsHistoryBound = true;
+
+        function modal() { return document.getElementById('operationsHistoryModal'); }
+
+        function openModal(url) {
+            var m = modal();
+            if (!m) { return; }
+            m.classList.remove('hidden');
+            var body = document.getElementById('opsHistoryBody');
+            body.innerHTML = '<div class="py-10 text-center text-sm text-gray-400">Loading…</div>';
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                .then(function (r) {
+                    if (!r.ok) { throw new Error('HTTP ' + r.status); }
+                    return r.text();
+                })
+                .then(function (html) { body.innerHTML = html; })
+                .catch(function (e) {
+                    body.innerHTML = '<div class="py-10 text-center text-sm text-red-600">Could not load operations history (' + e.message + ').</div>';
+                });
+        }
+
+        function closeModal() {
+            var m = modal();
+            if (m) { m.classList.add('hidden'); }
+        }
+
+        document.addEventListener('click', function (e) {
+            var opener = e.target.closest('[data-ops-history-open]');
+            if (opener) {
+                e.preventDefault();
+                openModal(opener.getAttribute('data-url'));
+                return;
+            }
+
+            if (e.target.closest('[data-ops-history-close]')) {
+                e.preventDefault();
+                closeModal();
+                return;
+            }
+
+            // Backdrop click (outside the dialog card) closes.
+            var m = modal();
+            if (m && !m.classList.contains('hidden') && e.target === m) {
+                closeModal();
+                return;
+            }
+
+            // Tab switching inside the fetched body.
+            var tab = e.target.closest('[data-ops-tab]');
+            if (tab) {
+                var key = tab.getAttribute('data-ops-tab');
+                var root = tab.closest('[data-ops-history-body]');
+                if (!root) { return; }
+                root.querySelectorAll('[data-ops-tab]').forEach(function (b) {
+                    var active = b === tab;
+                    b.setAttribute('aria-selected', active ? 'true' : 'false');
+                    b.classList.toggle('border-sky-600', active);
+                    b.classList.toggle('text-sky-700', active);
+                    b.classList.toggle('border-transparent', !active);
+                    b.classList.toggle('text-gray-500', !active);
+                });
+                root.querySelectorAll('[data-ops-panel]').forEach(function (p) {
+                    p.classList.toggle('hidden', p.getAttribute('data-ops-panel') !== key);
+                });
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { closeModal(); }
+        });
+    })();
     </script>
 
 @endpush

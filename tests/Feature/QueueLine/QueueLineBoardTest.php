@@ -146,7 +146,7 @@ class QueueLineBoardTest extends QueueLineTestCase
             ->assertSee('Nothing has left the yard yet today')
             ->assertSee('Queue Line — Pending')
             ->assertSee('Queue Line — Staged')
-            ->assertSee('Queue Line — Completed');
+            ->assertSee('Equipment Delivered');
     }
 
     // ── Actions through the component ────────────────────────────────────

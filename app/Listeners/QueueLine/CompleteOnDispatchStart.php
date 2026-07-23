@@ -7,13 +7,16 @@ use App\Models\Orders\OrderProduct;
 use App\Services\QueueLine\QueueLineService;
 
 /**
- * Truck-path Queue Line completion: the driver's "Ready to Go" action on
- * the DELIVERY leg is the approved moment the equipment leaves the yard.
- * The event fires inside the driver-checklist transaction, so a listener
- * failure rolls the whole action back — completion and release stay atomic.
+ * Truck-path Queue Line completion: the driver's "On My Way" action
+ * ("Load Map & Go") on the DELIVERY leg is the approved moment the equipment
+ * actually leaves the yard (2026-07-23). "Ready to Go" is only prep (fuel,
+ * keys, attachments) and no longer completes the item — drivers routinely
+ * press it before departure. The event fires inside the driver-checklist
+ * transaction, so a listener failure rolls the whole action back.
  *
- * Idempotent by the completion null-latch: a repeated Ready to Go replays
- * without moving the original completion.
+ * Idempotent by the completion null-latch: a repeated departure — or a later
+ * "Arrived" for a driver who skipped straight past On My Way — replays without
+ * moving the original completion.
  */
 class CompleteOnDispatchStart
 {
@@ -21,12 +24,16 @@ class CompleteOnDispatchStart
     {
         $requested = $event->data['requested_data'] ?? [];
 
-        // Delivery leg reaching Ready to Go — the release signal. (The
-        // status string is authoritative; ready_to_go_at rides along.)
-        $isDeliveryReadyToGo = ($requested['delivery_equipment_driver_status'] ?? null) === 'Ready to Go'
-            || array_key_exists('delivery_ready_to_go_at', $requested);
+        // Delivery leg departing the yard — the release signal. "On My Way"
+        // is the primary trigger; "Arrived" is a safety net for a flow that
+        // skipped it. (The status string is authoritative; the *_at
+        // timestamps ride along.)
+        $deliveryStatus = $requested['delivery_equipment_driver_status'] ?? null;
+        $isDeliveryDeparted = in_array($deliveryStatus, ['On My Way', 'Arrived'], true)
+            || array_key_exists('delivery_on_my_way_at', $requested)
+            || array_key_exists('delivery_arrived_at', $requested);
 
-        if (! $isDeliveryReadyToGo) {
+        if (! $isDeliveryDeparted) {
             return;
         }
 

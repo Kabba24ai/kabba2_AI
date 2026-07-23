@@ -212,6 +212,7 @@ class QueueLineGuardCoverageTest extends QueueLineTestCase
         ])->assertOk();
 
         $this->assertSame('Completed', $row->fresh()->delivery_status);
+        $this->assertFastTracked($row);
     }
 
     public function test_delivery_inputs_replay_after_a_completion_flows_freely(): void
@@ -229,5 +230,7 @@ class QueueLineGuardCoverageTest extends QueueLineTestCase
         ])->assertOk();
 
         $this->assertSame('Completed', $row->fresh()->delivery_status);
+        $item = $row->fresh('queueLineItem')->queueLineItem;
+        $this->assertSame(QueueLineService::VIA_DISPATCH_STARTED, $item->completed_via, 'replay must never move the original completion');
     }
 }

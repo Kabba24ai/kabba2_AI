@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Admin\V1\Orders\Schedules;
 
+use App\Events\Admin\Orders\OrderProductScheduleUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Admin\V1\Orders\Schedules\UpdateDeliveryPickupInputsRequest;
 use App\Models\Orders\OrderProduct;
@@ -27,7 +28,9 @@ class UpdateDeliveryPickupInputsController extends Controller
                 // updated hook (FunnelLifecycleService) when this request is
                 // the one that flips delivery_status to Completed — without
                 // them the partial select made that edge throw a TypeError.
-                ->select(['id', 'order_id', 'unique_id', 'product_id', 'delivery_date', 'delivery_time', 'delivery_by', 'pickup_by', 'is_delivered', 'is_returned'])
+                // product_name is included so the OrderProductScheduleUpdatedListener's
+                // history message (fired off the same event below) isn't blank.
+                ->select(['id', 'order_id', 'unique_id', 'product_id', 'product_name', 'delivery_date', 'delivery_time', 'delivery_by', 'pickup_by', 'is_delivered', 'is_returned'])
                 ->firstOrFail();
 
             $prefix = $validated['type'];
@@ -48,6 +51,8 @@ class UpdateDeliveryPickupInputsController extends Controller
             // sets pickup_by. A null FK means the real workflow hasn't happened yet —
             // updating T&C/license/video/checklist status strings is still allowed, but
             // claiming completion is not.
+            $deliveryCompleted = false;
+
             if ($prefix === 'delivery') {
                 if ($schedule->delivery_by !== null) {
                     // Queue Line staging is informational, not restrictive
@@ -57,6 +62,7 @@ class UpdateDeliveryPickupInputsController extends Controller
                     $fields['is_delivered']          = 1;
                     $fields['delivery_is_delivered'] = true;
                     $fields['delivery_status']       = 'Completed';
+                    $deliveryCompleted = true;
                 } else {
                     Log::channel('api_errors')->warning('UpdateDeliveryPickupInputs: delivery completion blocked — delivery_by is null', [
                         'order_product_id'        => $schedule->id,
@@ -84,6 +90,24 @@ class UpdateDeliveryPickupInputsController extends Controller
 
             $schedule->fill($fields);
             $schedule->save();
+
+            // Fire the SAME canonical schedule-update event
+            // UpdateProductScheduleController dispatches — SyncOnScheduleUpdate
+            // (Queue Line) listens for delivery_status flipping to Completed
+            // here exactly like it does there. Without this, a delivery
+            // completed through this endpoint set delivery_status='Completed'
+            // but never reached Equipment Delivered (queue_line_items.completed_at
+            // stayed null — no listener ever ran). Scoped to the delivery branch
+            // ONLY, and only when completion actually happened this call — the
+            // pickup/return branch and the completion-blocked path (delivery_by
+            // still null) never fire this, so a plain checklist-field edit that
+            // isn't reasserting completion never spams order history.
+            if ($deliveryCompleted) {
+                event(new OrderProductScheduleUpdated($schedule->order, auth('api_user')->user(), [
+                    'requested_data' => $fields,
+                    'order_product' => $schedule->toArray(),
+                ]));
+            }
         } catch (\Throwable $th) {
             return response()->json([
                 'status'  => false,

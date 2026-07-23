@@ -194,6 +194,11 @@ final class QueueLineMobilePresenter
             'staged' => (bool) $row->queueLineItem?->isStaged(),
             'fully_staged' => QueueLineStagingService::isFullyStaged($row, $fuel, $key),
             'completed' => $isCompleted = $row->queueLineItem?->completed_at !== null,
+            // Fast Track (web parity — _card.blade.php): completed but NEVER
+            // staged (staged_at stayed null the whole episode) — left the yard
+            // without going through Mark Staged. Informational only, never
+            // gates anything; only meaningful once completed.
+            'is_fast_track' => $isCompleted && $row->queueLineItem?->staged_at === null,
             'readiness' => self::readiness($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key), $row),
             'available_actions' => self::availableActions($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key), $isCompleted),
         ];

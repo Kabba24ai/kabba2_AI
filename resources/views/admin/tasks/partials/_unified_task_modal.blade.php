@@ -398,8 +398,10 @@
 
     // ── One coordinated Order field ─────────────────────────────────────────
     // Label is id + first product + optional "+X more" ONLY — no date/status/etc.
+    // Normalize the order number so a stored leading "#" doesn't double up.
     function utOrderLabel(o) {
-        var label = '#' + o.order_number + ' — ' + (o.first_product || 'No product listed');
+        var num = String(o.order_number == null ? '' : o.order_number).replace(/^#+/, '');
+        var label = '#' + num + ' — ' + (o.first_product || 'No product listed');
         if (o.extra_count > 0) label += ' +' + o.extra_count + ' more';
         return label;
     }
@@ -414,11 +416,12 @@
         return opts;
     }
 
-    // Push a choice set programmatically (guarded so it doesn't fire the change handler).
+    // Push a choice set programmatically (guarded so it doesn't fire the change
+    // handler). Uses setChoices(replace=true) ALONE — the same pattern the Reason
+    // dropdown uses. (A preceding clearStore() leaves the rendered list empty.)
     function utApplyOrderChoices(orders, selectId) {
         if (!window.utOrderChoices) return;
         _utSyncing = true;
-        window.utOrderChoices.clearStore();
         window.utOrderChoices.setChoices(utOrderChoiceOptions(orders, selectId), 'value', 'label', true);
         window.utOrderChoices.enable();
         _utSyncing = false;
@@ -431,7 +434,6 @@
         _utOrderById = {};
         if (!window.utOrderChoices) return;
         _utSyncing = true;
-        window.utOrderChoices.clearStore();
         window.utOrderChoices.setChoices(
             [{ value: '', label: 'Search or select an order', placeholder: true, selected: true }],
             'value', 'label', true
@@ -466,7 +468,6 @@
         var seq = ++_utOrderSeq;
         if (window.utOrderChoices) {
             _utSyncing = true;
-            window.utOrderChoices.clearStore();
             window.utOrderChoices.setChoices([{ value: '', label: 'Loading orders…', placeholder: true, selected: true }], 'value', 'label', true);
             _utSyncing = false;
         }

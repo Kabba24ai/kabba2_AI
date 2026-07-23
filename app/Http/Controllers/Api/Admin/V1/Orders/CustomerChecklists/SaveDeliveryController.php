@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 // Services
 use App\Services\Equipment\EquipmentStatusService;
 use App\Events\Admin\Orders\OrderCustomerChecklistEvent;
+use App\Events\Admin\Orders\OrderProductScheduleUpdated;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Orders\CustomerChecklists\SaveDeliveryRequest;
@@ -283,6 +284,19 @@ class SaveDeliveryController extends BaseController
             $user = auth('api_user')->user();
             $type = 'checklist_delivery';
             event(new OrderCustomerChecklistEvent($orderProduct->order, $user, $type));
+
+            // Also fire the canonical schedule-update event (same one
+            // UpdateProductScheduleController / UpdateDeliveryPickupInputsController
+            // dispatch) so OrderProductScheduleUpdatedListener logs this delivery
+            // into order history the same way those endpoints do. Fired AFTER the
+            // customer-checklist event above so the Queue Line completion
+            // null-latch has ALREADY locked in VIA_CUSTOMER_CHECKLIST_COMPLETED —
+            // SyncOnScheduleUpdate's own complete() call here is a safe no-op
+            // replay, never overwriting that attribution.
+            event(new OrderProductScheduleUpdated($orderProduct->order, $user, [
+                'requested_data' => $orderProductData,
+                'order_product' => $orderProduct->toArray(),
+            ]));
 
             return response()->json([
                 'success' => true,

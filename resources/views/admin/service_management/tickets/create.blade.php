@@ -79,8 +79,7 @@
                         </span>
                         Ticket Source
                     </h2>
-                    <p class="text-xs text-gray-400 mb-4">What is this service ticket for?</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                         <label class="st-source-card relative flex flex-col gap-1 rounded-lg border p-4 cursor-pointer transition"
                                data-source="customer">
                             <span class="flex items-center gap-2">
@@ -111,16 +110,10 @@
                             </span>
                             Rental Order Source
                         </h2>
-                        <span class="inline-flex items-center gap-2 text-xs text-gray-400">
-                            Related to Rental Order:
-                            <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold">Yes</span>
-                            <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-400" title="Non-order intake (internal, warranty, customer-owned) is a later phase.">No</span>
-                        </span>
                     </div>
                     <p class="text-xs text-gray-400 mb-4">
                         Find the rental order by order # or by customer name — category, product, and rental date all come
-                        from the order itself. Only a reference is stored; the Order remains the source of truth for
-                        agreements, checklists, photos, and payments.
+                        from the order itself.
                     </p>
 
                     {{-- Two search windows (same pattern as Orders): either one
@@ -176,9 +169,7 @@
                         </span>
                         Equipment &amp; Service Location
                     </h2>
-                    <p class="text-xs text-gray-400 mb-4">
-                        Where the repair will be managed and how urgent it is.
-                    </p>
+                    <div class="mb-4"></div>
 
                     {{-- Customer path: equipment comes from the selected order,
                          with an optional override for the wrong-unit case. --}}
@@ -205,7 +196,7 @@
                                     <option value="{{ $unit['id'] }}" @selected((int) old('equipment_override_id') === $unit['id'])>{{ $unit['label'] }}</option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-gray-400 mt-1">Only when the unit being repaired differs from the order. The order itself stays unchanged.</p>
+                            <p class="text-xs text-gray-400 mt-1">Only when the unit being repaired differs from the order.</p>
                         </div>
                     </div>
 

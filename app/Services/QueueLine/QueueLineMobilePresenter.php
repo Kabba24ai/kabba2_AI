@@ -161,6 +161,8 @@ final class QueueLineMobilePresenter
                 'assigned_product_name' => $equipment->assignedProduct?->product_name,
                 'status' => $equipment->current_status?->value,
                 'status_label' => $equipment->status_label,
+                'power_source_type' => $equipment->power_source_type,
+                'key_starting_mechanism'=> $equipment->key_starting_mechanism,
                 'rental_ready' => QueueLineEligibility::rentalReadyLabel($row),
             ] : null,
             'options_count' => QueueLineEligibility::optionsCount($row),

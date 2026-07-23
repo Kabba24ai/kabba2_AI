@@ -185,9 +185,8 @@
                 </label>
             </div>
 
-            {{-- Auto Assign All Orders toggle --}}
+            {{-- Auto-Assign toggle (click bound via delegated addEventListener — see @push('js')) --}}
             <button type="button" id="autoAssignToggleBtn"
-                onclick="toggleAutoAssign()"
                 class="inline-flex items-center h-10 gap-2 rounded-md border px-3 text-sm font-medium shadow-sm whitespace-nowrap transition-colors
                     {{ $autoAssignEnabled
                         ? 'bg-green-50 border-green-400 text-green-700'
@@ -366,9 +365,16 @@
             </div>
         </div>
 
-    {{-- Auto-Assign — enable confirmation (no password) --}}
+    <x-admin.equipment-store-modal :stores="$storesForModal" />
+    </div>
+
+    {{-- Auto-Assign modals — rendered at content-root, OUTSIDE the hidden
+         #scheduleAssistantModal wrapper above. That wrapper is display:none, so
+         while these modals lived inside it they could never show even after their
+         own `hidden` class was removed (a child can't render under a display:none
+         ancestor). IDs / handlers / server validation / behavior are unchanged. --}}
     <div id="autoAssignEnableModal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-gray-500/75" onclick="closeAutoAssignEnableModal()"></div>
+        <div class="absolute inset-0 bg-gray-500/75" data-aa-close="enable"></div>
         <div class="relative bg-white rounded-lg w-full max-w-md shadow-lg">
             <div class="px-6 pt-6 pb-4 border-b">
                 <h2 class="text-lg font-semibold text-gray-900">Enable Auto-Assign</h2>
@@ -377,11 +383,11 @@
                 <p class="text-sm text-gray-700">All future orders will be assigned to equipment automatically and without admin intervention.</p>
             </div>
             <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-lg">
-                <button type="button" onclick="closeAutoAssignEnableModal()"
+                <button type="button" data-aa-close="enable"
                     class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                     Cancel
                 </button>
-                <button type="button" id="autoAssignEnableConfirmBtn" onclick="confirmAutoAssignEnable()"
+                <button type="button" id="autoAssignEnableConfirmBtn" data-aa-confirm="enable"
                     class="px-5 py-2.5 rounded-lg font-medium text-sm bg-green-600 text-white hover:bg-green-700 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed">
                     Enable Auto-Assign
                 </button>
@@ -391,11 +397,11 @@
 
     {{-- Auto-Assign — disable confirmation (Master Password protected) --}}
     <div id="autoAssignDisableModal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-gray-500/75" onclick="closeAutoAssignDisableModal()"></div>
+        <div class="absolute inset-0 bg-gray-500/75" data-aa-close="disable"></div>
         <div class="relative bg-white rounded-lg w-full max-w-md shadow-lg">
             <div class="px-6 pt-6 pb-4 border-b flex items-start justify-between">
                 <h2 class="text-lg font-semibold text-gray-900">Disable Auto-Assign</h2>
-                <button type="button" onclick="closeAutoAssignDisableModal()"
+                <button type="button" data-aa-close="disable"
                     class="text-2xl leading-none text-gray-400 hover:text-gray-700 focus:outline-none">&times;</button>
             </div>
             <div class="px-6 py-5 space-y-4">
@@ -404,25 +410,21 @@
                     <label for="autoAssignMasterPassword" class="block text-sm font-medium text-gray-700 mb-1">Master Password</label>
                     <input type="password" id="autoAssignMasterPassword" autocomplete="off"
                         class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring focus:border-red-500"
-                        placeholder="Enter Master Password"
-                        onkeydown="if(event.key==='Enter'){event.preventDefault();confirmAutoAssignDisable();}">
+                        placeholder="Enter Master Password">
                     <p id="autoAssignDisableError" class="hidden text-sm text-red-600 mt-1"></p>
                 </div>
             </div>
             <div class="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-lg">
-                <button type="button" onclick="closeAutoAssignDisableModal()"
+                <button type="button" data-aa-close="disable"
                     class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                     Cancel
                 </button>
-                <button type="button" id="autoAssignDisableConfirmBtn" onclick="confirmAutoAssignDisable()"
+                <button type="button" id="autoAssignDisableConfirmBtn" data-aa-confirm="disable"
                     class="px-5 py-2.5 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed">
                     Disable Auto-Assign
                 </button>
             </div>
         </div>
-    </div>
-
-    <x-admin.equipment-store-modal :stores="$storesForModal" />
     </div>
 @endsection
 
@@ -798,16 +800,36 @@
         }
     }
 
-    // Escape closes either modal, leaving the persisted state untouched.
-    // Guarded so wire:navigate re-execution doesn't stack duplicate listeners.
-    if (!window.__autoAssignKeydownBound) {
-        window.__autoAssignKeydownBound = true;
+    // All Auto-Assign events are bound by DELEGATION on `document` — never via
+    // inline onclick/onkeydown — because the production Content-Security-Policy
+    // blocks inline event-handler attributes (they silently never fire).
+    // Delegation also survives Livewire wire:navigate. Guarded so repeated script
+    // execution never stacks duplicate listeners.
+    if (!window.__autoAssignEventsBound) {
+        window.__autoAssignEventsBound = true;
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#autoAssignToggleBtn'))        { toggleAutoAssign();           return; }
+            if (e.target.closest('[data-aa-confirm="enable"]'))  { confirmAutoAssignEnable();    return; }
+            if (e.target.closest('[data-aa-close="enable"]'))    { closeAutoAssignEnableModal(); return; }
+            if (e.target.closest('[data-aa-confirm="disable"]')) { confirmAutoAssignDisable();   return; }
+            if (e.target.closest('[data-aa-close="disable"]'))   { closeAutoAssignDisableModal(); return; }
+        });
+
         document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Escape') return;
-            const enable  = document.getElementById('autoAssignEnableModal');
-            const disable = document.getElementById('autoAssignDisableModal');
-            if (enable  && !enable.classList.contains('hidden'))  closeAutoAssignEnableModal();
-            if (disable && !disable.classList.contains('hidden')) closeAutoAssignDisableModal();
+            // Enter in the Master Password field submits the disable request.
+            if (e.key === 'Enter' && e.target && e.target.id === 'autoAssignMasterPassword') {
+                e.preventDefault();
+                confirmAutoAssignDisable();
+                return;
+            }
+            // Escape closes either modal, leaving the persisted state untouched.
+            if (e.key === 'Escape') {
+                const enable  = document.getElementById('autoAssignEnableModal');
+                const disable = document.getElementById('autoAssignDisableModal');
+                if (enable  && !enable.classList.contains('hidden'))  closeAutoAssignEnableModal();
+                if (disable && !disable.classList.contains('hidden')) closeAutoAssignDisableModal();
+            }
         });
     }
 </script>

@@ -406,9 +406,12 @@
         return label;
     }
 
+    // Plain choice objects only (NO `placeholder: true` flag — that flag makes
+    // Choices render an empty list). A plain empty-value option is the "no order"
+    // row, matching the working Reason dropdown's setChoices pattern.
     function utOrderChoiceOptions(orders, selectId) {
         _utOrderById = {};
-        var opts = [{ value: '', label: 'Search or select an order', placeholder: true, selected: selectId == null }];
+        var opts = [{ value: '', label: 'Search or select an order', selected: selectId == null }];
         orders.forEach(function (o) {
             _utOrderById[String(o.id)] = o;
             opts.push({ value: String(o.id), label: utOrderLabel(o), selected: selectId != null && String(o.id) === String(selectId) });
@@ -435,7 +438,7 @@
         if (!window.utOrderChoices) return;
         _utSyncing = true;
         window.utOrderChoices.setChoices(
-            [{ value: '', label: 'Search or select an order', placeholder: true, selected: true }],
+            [{ value: '', label: 'Search or select an order', selected: true }],
             'value', 'label', true
         );
         window.utOrderChoices.enable();
@@ -468,7 +471,7 @@
         var seq = ++_utOrderSeq;
         if (window.utOrderChoices) {
             _utSyncing = true;
-            window.utOrderChoices.setChoices([{ value: '', label: 'Loading orders…', placeholder: true, selected: true }], 'value', 'label', true);
+            window.utOrderChoices.setChoices([{ value: '', label: 'Loading orders…', selected: true }], 'value', 'label', true);
             _utSyncing = false;
         }
 

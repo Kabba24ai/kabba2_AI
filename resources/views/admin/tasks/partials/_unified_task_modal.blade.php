@@ -96,7 +96,8 @@
 
                     {{-- Entity slot — one control, relabeled by the radio --}}
                     <div id="ut_customer_wrap">
-                        {{-- Order lookup — linking an order makes its customer authoritative --}}
+                        {{-- Start-by-order: global order search. Selecting an order fills
+                             the customer and the dependent Customer Order dropdown below. --}}
                         <div class="mb-3">
                             <label class="block text-xs font-medium text-gray-600 mb-1">Search by Order # <span class="font-normal text-gray-400">(optional)</span></label>
                             <div class="relative">
@@ -105,27 +106,34 @@
                                 <div id="ut_order_results"
                                     class="hidden absolute z-[100000] mt-1 w-full max-h-56 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg"></div>
                             </div>
-                            <div id="ut_order_chip" class="hidden mt-2 items-center justify-between gap-2 rounded border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
-                                <span id="ut_order_chip_text" class="font-medium text-gray-800"></span>
-                                <button type="button" id="ut_order_clear" title="Remove order link"
-                                    class="text-gray-400 hover:text-gray-700 text-base leading-none shrink-0">&times;</button>
-                            </div>
                             <p id="ut_order_msg" class="hidden mt-1 text-xs"></p>
                         </div>
 
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Customer</label>
-                        <select id="ut_customer" class="w-full">
-                            <option value="">Select customer…</option>
-                            @foreach ($customers as $customer)
-                                @php
-                                    $fullName = trim((string) $customer->full_name);
-                                    $phone    = trim((string) $customer->phone);
-                                @endphp
-                                @if ($fullName || $phone)
-                                    <option value="{{ $customer->id }}">{{ $fullName }}{{ $phone ? '    ·    ' . App\Helpers\CustomHelper::formatPhone($phone) : '' }}</option>
-                                @endif
-                            @endforeach
-                        </select>
+                        {{-- Customer + dependent Customer Order dropdown. The order list
+                             is scoped to the selected customer; picking one is optional. --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Customer</label>
+                                <select id="ut_customer" class="w-full">
+                                    <option value="">Select customer…</option>
+                                    @foreach ($customers as $customer)
+                                        @php
+                                            $fullName = trim((string) $customer->full_name);
+                                            $phone    = trim((string) $customer->phone);
+                                        @endphp
+                                        @if ($fullName || $phone)
+                                            <option value="{{ $customer->id }}">{{ $fullName }}{{ $phone ? '    ·    ' . App\Helpers\CustomHelper::formatPhone($phone) : '' }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Customer Order <span class="font-normal text-gray-400">(optional)</span></label>
+                                <select id="ut_customer_order" class="w-full" disabled>
+                                    <option value="">Select a customer first</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="ut_supplier_wrap" class="hidden">
@@ -267,6 +275,12 @@
     var _utOrderTimer = null;
     var UT_ORDER_LOOKUP_URL = "{{ route('admin.dashboard.charge-modal.orders') }}";
 
+    // Dependent Customer → Order dropdown state.
+    var _utCustomerOrders     = [];    // orders loaded for the selected customer
+    var _utCustOrdSeq         = 0;     // stale async guard for the dependent list
+    var _utSyncingCustomer    = false; // suppress the customer-change reload during programmatic sync
+    var UT_CUSTOMER_ORDERS_URL = "{{ route('admin.dashboard.charge-modal.customer-orders') }}";
+
     // Reason lists per related-type. CALL_REASON_LISTS is defined by the shared
     // call modal partial (also on this page for edit/complete); fall back to a
     // minimal list if it's ever absent so the modal still functions.
@@ -370,7 +384,13 @@
             searchEnabled: false, shouldSort: false, itemSelectText: '',
             placeholder: true, placeholderValue: 'Select Reason',
         });
+        window.utCustomerOrderChoices = new Choices(document.getElementById('ut_customer_order'), utChoicesConfig);
+        utResetCustomerOrder();
         utSetReasonChoices('customer');
+
+        // Dependent Customer → Order wiring.
+        document.getElementById('ut_customer').addEventListener('change', utOnCustomerChange);
+        document.getElementById('ut_customer_order').addEventListener('change', utOnCustomerOrderChange);
     });
 
     function utSetReasonChoices(type) {
@@ -398,10 +418,96 @@
         box.innerHTML = '';
     }
 
-    function utSetCustomerLocked(locked) {
-        if (!window.utCustomerChoices) return;
-        if (locked) window.utCustomerChoices.disable();
-        else window.utCustomerChoices.enable();
+    // ── Dependent Customer → Order dropdown ─────────────────────────────────
+    function utFormatCustomerOrderLabel(o) {
+        var label = '#' + o.order_number + ' — ' + (o.first_product || 'Order');
+        if (o.extra_count > 0) label += ' +' + o.extra_count + ' more';
+        if (o.order_date)      label += ' — ' + o.order_date;
+        return label;
+    }
+
+    // Disabled "Select a customer first" state; forgets any loaded orders.
+    function utResetCustomerOrder() {
+        _utCustomerOrders = [];
+        if (!window.utCustomerOrderChoices) return;
+        window.utCustomerOrderChoices.clearStore();
+        window.utCustomerOrderChoices.setChoices(
+            [{ value: '', label: 'Select a customer first', selected: true, placeholder: true }],
+            'value', 'label', true
+        );
+        window.utCustomerOrderChoices.disable();
+    }
+
+    function utFindLoadedOrder(id) {
+        id = String(id);
+        return _utCustomerOrders.find(function (o) { return String(o.id) === id; }) || null;
+    }
+
+    function utPopulateCustomerOrderChoices(orders, selectId) {
+        if (!window.utCustomerOrderChoices) return;
+        var choices = [{ value: '', label: 'Select an order', placeholder: true, selected: !selectId }];
+        orders.forEach(function (o) {
+            choices.push({
+                value:    String(o.id),
+                label:    utFormatCustomerOrderLabel(o),
+                selected: selectId && String(o.id) === String(selectId),
+            });
+        });
+        window.utCustomerOrderChoices.clearStore();
+        window.utCustomerOrderChoices.setChoices(choices, 'value', 'label', true);
+        window.utCustomerOrderChoices.enable();
+    }
+
+    // Load a customer's orders into the dependent dropdown. `ensureOrder` (from a
+    // global search / prefill) is appended if the fetched list omits it, and
+    // `selectId` is preselected when present.
+    function utLoadCustomerOrders(customerId, selectId, ensureOrder) {
+        if (!customerId) { utResetCustomerOrder(); return Promise.resolve(); }
+
+        var seq = ++_utCustOrdSeq;
+        if (window.utCustomerOrderChoices) {
+            window.utCustomerOrderChoices.clearStore();
+            window.utCustomerOrderChoices.setChoices(
+                [{ value: '', label: 'Loading orders…', selected: true, placeholder: true }],
+                'value', 'label', true
+            );
+            window.utCustomerOrderChoices.disable();
+        }
+
+        return fetch(UT_CUSTOMER_ORDERS_URL + '?customer_id=' + encodeURIComponent(customerId), { headers: { 'Accept': 'application/json' } })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (seq !== _utCustOrdSeq) return; // a newer customer change superseded this
+                var orders = data.results || [];
+                if (ensureOrder && !orders.some(function (o) { return String(o.id) === String(ensureOrder.id); })) {
+                    orders = [ensureOrder].concat(orders);
+                }
+                _utCustomerOrders = orders;
+                utPopulateCustomerOrderChoices(orders, selectId);
+            })
+            .catch(function () {
+                if (seq === _utCustOrdSeq) utResetCustomerOrder();
+            });
+    }
+
+    // Customer changed → (re)load its orders; drop any now-incompatible order.
+    function utOnCustomerChange() {
+        if (_utSyncingCustomer) return;
+        var customerId = document.getElementById('ut_customer').value;
+        if (!customerId) {
+            _utOrder = null;
+            utResetCustomerOrder();
+            return;
+        }
+        if (_utOrder && String(_utOrder.customer_id) !== String(customerId)) {
+            _utOrder = null;
+        }
+        utLoadCustomerOrders(customerId, _utOrder ? _utOrder.id : null);
+    }
+
+    function utOnCustomerOrderChange() {
+        var id = document.getElementById('ut_customer_order').value;
+        _utOrder = id ? utFindLoadedOrder(id) : null;
     }
 
     // Select a customer in the Choices dropdown, appending the option first
@@ -422,6 +528,10 @@
         sel.value = id;
     }
 
+    // Global order search / prefill selected an order. Orders always carry a
+    // customer, so this fills the Customer field and the dependent Customer
+    // Order dropdown, synchronizing both. Selecting the customer is done with
+    // the sync guard so it doesn't trigger a redundant reload.
     function utSetOrder(order) {
         var prevCustomer = document.getElementById('ut_customer').value;
         _utOrder = order;
@@ -429,37 +539,37 @@
         document.getElementById('ut_order_search').value = '';
         utHideOrderResults();
 
-        var chip = document.getElementById('ut_order_chip');
-        document.getElementById('ut_order_chip_text').textContent =
-            'Order ' + order.order_number + ' — ' + (order.customer_name || 'no linked customer');
-        chip.classList.remove('hidden');
-        chip.classList.add('flex');
+        var changed = prevCustomer && String(prevCustomer) !== String(order.customer_id);
 
-        if (order.customer_id) {
-            var changed = prevCustomer && String(prevCustomer) !== String(order.customer_id);
-            utSelectCustomer(order.customer_id, order.customer_name);
-            utSetCustomerLocked(true);
-            utOrderMsg(changed ? 'Customer updated to match ' + order.order_number + '.' : '', 'warn');
-        } else {
-            // Order carries no customer link — keep whatever the employee
-            // selected (or nothing) and say so instead of guessing.
-            utSetCustomerLocked(false);
-            utOrderMsg('No linked customer record was found for ' + order.order_number + '.', 'warn');
-        }
+        _utSyncingCustomer = true;
+        utSelectCustomer(order.customer_id, order.customer_name);
+        _utSyncingCustomer = false;
+
+        utOrderMsg(changed ? 'Customer updated to match Order #' + order.order_number + '.' : '', 'warn');
+
+        utLoadCustomerOrders(order.customer_id, order.id, {
+            id:            order.id,
+            order_number:  order.order_number,
+            first_product: order.first_product || order.product_name || 'Order',
+            extra_count:   order.extra_count || 0,
+            order_date:    order.order_date || null,
+            status:        order.status || null,
+        });
     }
 
-    // Clearing the order keeps the customer — the employee may still want a
-    // customer-level task.
+    // Clearing the order keeps the customer — a customer-level task is valid.
     function utClearOrder() {
         _utOrder = null;
-        var chip = document.getElementById('ut_order_chip');
-        chip.classList.add('hidden');
-        chip.classList.remove('flex');
-        document.getElementById('ut_order_chip_text').textContent = '';
         document.getElementById('ut_order_search').value = '';
         utHideOrderResults();
         utOrderMsg('');
-        utSetCustomerLocked(false);
+
+        if (document.getElementById('ut_customer').value) {
+            // Keep the loaded list; just drop back to the "Select an order" placeholder.
+            if (window.utCustomerOrderChoices) window.utCustomerOrderChoices.setChoiceByValue('');
+        } else {
+            utResetCustomerOrder();
+        }
     }
 
     function utRenderOrderResults(results, q) {
@@ -509,8 +619,6 @@
                 });
         }, 300);
     });
-
-    document.getElementById('ut_order_clear').addEventListener('click', utClearOrder);
 
     // Close the results dropdown on outside click
     document.addEventListener('click', function (e) {

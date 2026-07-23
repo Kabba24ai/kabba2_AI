@@ -284,11 +284,17 @@ class OrderLinkedTaskTest extends TestCase
     {
         $html = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
 
+        // Global order search (start-by-order path).
         $this->assertStringContainsString('Search by Order #', $html);
         $this->assertStringContainsString('ut_order_search', $html);
         $this->assertStringContainsString('ut_order_results', $html);
-        $this->assertStringContainsString('ut_order_chip', $html);
         $this->assertStringContainsString(route('admin.dashboard.charge-modal.orders'), $html);
+
+        // Dependent Customer → Order dropdown (start-by-customer path).
+        $this->assertStringContainsString('ut_customer_order', $html);
+        $this->assertStringContainsString('Customer Order', $html);
+        $this->assertStringContainsString('Select a customer first', $html);
+        $this->assertStringContainsString(route('admin.dashboard.charge-modal.customer-orders'), $html);
     }
 
     // ─────────────────────────────────────────────────────────

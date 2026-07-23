@@ -73,5 +73,7 @@ Route::post('/damage-charge/store', DamageChargeStoreController::class)->name('d
 // Shared New Fuel Charge modal — read-only typeahead lookups.
 Route::get('/charge-modal/orders', [\App\Http\Controllers\Admin\Dashboard\ChargeModalLookupController::class, 'orders'])->name('charge-modal.orders');
 Route::get('/charge-modal/customers', [\App\Http\Controllers\Admin\Dashboard\ChargeModalLookupController::class, 'customers'])->name('charge-modal.customers');
+// Dependent Customer → Order dropdown in the New Task modal.
+Route::get('/charge-modal/customer-orders', [\App\Http\Controllers\Admin\Dashboard\ChargeModalLookupController::class, 'customerOrders'])->name('charge-modal.customer-orders');
 
 });

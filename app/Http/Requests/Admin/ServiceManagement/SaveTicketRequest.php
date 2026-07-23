@@ -18,6 +18,12 @@ class SaveTicketRequest extends FormRequest
         return true;
     }
 
+    /** A Standard Equipment Ticket: fleet unit, no customer/order. */
+    private function isStandard(): bool
+    {
+        return $this->input('ticket_source') === 'standard';
+    }
+
     public function rules(): array
     {
         $blocked = RepairStatus::blocked();
@@ -37,11 +43,24 @@ class SaveTicketRequest extends FormRequest
             'equipment_id'             => ['required', 'exists:equipment,id'],
             'opened_at'                => ['sometimes', 'required', 'date'],
 
-            // Rental-order intake path: order is mandatory and equipment must
-            // come from that order (enforced in withValidator below)
+            // Intake source: 'customer' (order-related, the pre-existing path)
+            // or 'standard' (a fleet unit on our lot, no customer/order). Absent
+            // on the edit form and legacy payloads — those keep the customer
+            // rules, so this field only ADDS the Standard path's constraints.
+            'ticket_source'            => ['nullable', Rule::in(['customer', 'standard'])],
+
+            // Standard path: equipment is chosen within a category, and the
+            // category is required. Membership is verified in withValidator.
+            'equipment_category_id'    => [Rule::requiredIf(fn () => $this->isStandard()), 'nullable', 'exists:product_categories,id'],
+
+            // Rental-order (customer) intake path: order is mandatory and
+            // equipment must come from that order (enforced in withValidator).
+            // The Standard path never requires — or allows — an order.
             'intake'                   => ['nullable', 'boolean'],
-            'order_id'                 => [Rule::requiredIf(fn () => $this->boolean('intake')), 'nullable', 'exists:orders,id'],
-            'service_store_id'         => ['nullable', 'exists:stores,id'],
+            'order_id'                 => [Rule::requiredIf(fn () => !$this->isStandard() && $this->boolean('intake')), 'nullable', 'exists:orders,id'],
+            // Service Store is required for a Standard ticket (there is no order
+            // to infer a location from); optional otherwise, as before.
+            'service_store_id'         => [Rule::requiredIf(fn () => $this->isStandard()), 'nullable', 'exists:stores,id'],
             'rental_date'              => ['nullable', 'date'],
 
             // Equipment ID Override: the unit actually being repaired when the
@@ -86,6 +105,36 @@ class SaveTicketRequest extends FormRequest
                 $validator->errors()->add('team_leader_id', 'The team leader must be one of the assigned personnel.');
             }
 
+            // Standard Equipment path — enforce the isolation rules on the
+            // server (never trust hidden browser fields): the unit must belong
+            // to the chosen category, and no order/customer/override may ride
+            // along. This path is mutually exclusive with the order checks.
+            if ($this->isStandard()) {
+                $categoryId = (int) $this->input('equipment_category_id');
+                $equipmentId = (int) $this->input('equipment_id');
+
+                if ($categoryId && $equipmentId && !$validator->errors()->hasAny(['equipment_id', 'equipment_category_id'])) {
+                    $belongs = \Illuminate\Support\Facades\DB::table('equipment')
+                        ->where('id', $equipmentId)
+                        ->where('product_category_id', $categoryId)
+                        ->exists();
+                    if (!$belongs) {
+                        $validator->errors()->add('equipment_id', 'Select equipment that belongs to the chosen category.');
+                    }
+                }
+
+                // Reject a manipulated payload that smuggles order-related data
+                // into a Standard ticket.
+                if ($this->filled('order_id')) {
+                    $validator->errors()->add('order_id', 'A standard equipment ticket cannot be linked to a rental order.');
+                }
+                if ($this->filled('equipment_override_id')) {
+                    $validator->errors()->add('equipment_override_id', 'A standard equipment ticket cannot use an equipment override.');
+                }
+
+                return;
+            }
+
             // Rental-order intake: no unrelated equipment in this path
             if (!$this->boolean('intake') || $validator->errors()->hasAny(['order_id', 'equipment_id'])) {
                 return;
@@ -106,9 +155,11 @@ class SaveTicketRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'order_id.required'             => 'Select the rental order this service ticket relates to.',
-            'blocked_reason.required'       => 'A blocked reason is required when the ticket is waiting on parts or approvals.',
-            'expected_action_date.required' => 'An expected action date is required when the ticket is waiting on parts or approvals.',
+            'order_id.required'               => 'Select the rental order this service ticket relates to.',
+            'equipment_category_id.required'  => 'Select the equipment category first.',
+            'service_store_id.required'       => 'Select the service store for this standard equipment ticket.',
+            'blocked_reason.required'         => 'A blocked reason is required when the ticket is waiting on parts or approvals.',
+            'expected_action_date.required'   => 'An expected action date is required when the ticket is waiting on parts or approvals.',
         ];
     }
 }

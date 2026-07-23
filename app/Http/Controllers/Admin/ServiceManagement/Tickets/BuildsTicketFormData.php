@@ -140,7 +140,34 @@ trait BuildsTicketFormData
 
         $stores = Store::where('status', 'Active')->orderBy('store_name')->get(['id', 'store_name']);
 
-        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'symptomCategories', 'symptoms', 'symptomProfiles', 'employees', 'stores');
+        // Standard Equipment intake: the category picker. Only categories that
+        // actually own fleet units are offered (an empty category can never
+        // yield an equipment match), keeping the list short and honest. The
+        // equipment itself is NOT loaded here — it is fetched per-category,
+        // server-side, by EquipmentSearchController.
+        $equipmentCategories = ProductCategory::whereHas('equipments')
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
+        // Validation round-trip for the Standard path: rehydrate the label of a
+        // previously-chosen unit so the chip re-renders without another lookup.
+        $oldStandardEquipment = null;
+        if (old('ticket_source') === 'standard' && old('equipment_id')) {
+            $unit = Equipment::find((int) old('equipment_id'));
+            if ($unit) {
+                $oldStandardEquipment = [
+                    'id'                  => $unit->id,
+                    'display_id'          => $unit->equipment_id,
+                    'name'                => $unit->equipment_name,
+                    'label'               => $unit->equipment_name . ($unit->equipment_id ? ' (' . $unit->equipment_id . ')' : ''),
+                    'product_id'          => $unit->assigned_product_id,
+                    'product_category_id' => $unit->product_category_id,
+                    'symptom_profile_id'  => $unit->service_symptom_profile_id,
+                ];
+            }
+        }
+
+        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'symptomCategories', 'symptoms', 'symptomProfiles', 'employees', 'stores', 'equipmentCategories', 'oldStandardEquipment');
     }
 
     /** Shared dropdown data for the create/edit ticket forms. */

@@ -59,6 +59,8 @@
              resubmit after a validation error) dedupes to the first ticket. --}}
         <input type="hidden" name="idempotency_token" value="{{ old('idempotency_token', (string) Str::uuid()) }}">
 
+        @php $ticketSource = old('ticket_source', 'customer'); @endphp
+
         {{-- Containerized single-column intake: the summary/next-steps
              sidebar was removed (no operational value) — the form itself is
              the whole page, centered at a readable width. --}}
@@ -66,8 +68,42 @@
 
             <div class="space-y-6">
 
-                {{-- ===== Card 1: Rental Order Source ===== --}}
+                {{-- ===== Step 1: Ticket Source ===== --}}
+                {{-- One shared intake, two paths. The choice here decides which
+                     fields render below; switching safely clears the other
+                     path's state (handled in JS) so nothing stale is posted. --}}
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-1">
+                        <span class="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center">
+                            <x-heroicon-o-clipboard-document-list class="w-4 h-4" />
+                        </span>
+                        Ticket Source
+                    </h2>
+                    <p class="text-xs text-gray-400 mb-4">What is this service ticket for?</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="st-source-card relative flex flex-col gap-1 rounded-lg border p-4 cursor-pointer transition"
+                               data-source="customer">
+                            <span class="flex items-center gap-2">
+                                <input type="radio" name="ticket_source" value="customer" class="st-source-radio text-blue-600 focus:ring-blue-500"
+                                    @checked($ticketSource === 'customer')>
+                                <span class="text-sm font-semibold text-gray-800">Customer-Related Ticket</span>
+                            </span>
+                            <span class="text-xs text-gray-500 pl-6">Equipment issue associated with a customer rental order.</span>
+                        </label>
+                        <label class="st-source-card relative flex flex-col gap-1 rounded-lg border p-4 cursor-pointer transition"
+                               data-source="standard">
+                            <span class="flex items-center gap-2">
+                                <input type="radio" name="ticket_source" value="standard" class="st-source-radio text-blue-600 focus:ring-blue-500"
+                                    @checked($ticketSource === 'standard')>
+                                <span class="text-sm font-semibold text-gray-800">Standard Equipment Ticket</span>
+                            </span>
+                            <span class="text-xs text-gray-500 pl-6">Equipment issue for a fleet unit that is not associated with a customer order.</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- ===== Card 1: Rental Order Source (customer path only) ===== --}}
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5" data-src="customer">
                     <div class="flex items-center justify-between gap-4 mb-1">
                         <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2">
                             <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -141,15 +177,16 @@
                         Equipment &amp; Service Location
                     </h2>
                     <p class="text-xs text-gray-400 mb-4">
-                        Where the repair will be managed and how urgent it is. Equipment choices come from the selected order only —
-                        single-equipment orders select automatically.
+                        Where the repair will be managed and how urgent it is.
                     </p>
-                    {{-- One four-column row mirroring the Rental Order Source card --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+                    {{-- Customer path: equipment comes from the selected order,
+                         with an optional override for the wrong-unit case. --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-src="customer">
                         <div>
                             <label class="{{ $labelClass }} required">Equipment</label>
                             <select name="equipment_id" id="st-equipment" required disabled class="{{ $inputClass }}"
-                                data-old="{{ old('equipment_id') }}">
+                                data-old="{{ old('ticket_source', 'customer') === 'customer' ? old('equipment_id') : '' }}">
                                 <option value="">Select an order first…</option>
                             </select>
                             {{-- Single-equipment orders lock the select (nothing to choose);
@@ -170,8 +207,48 @@
                             </select>
                             <p class="text-xs text-gray-400 mt-1">Only when the unit being repaired differs from the order. The order itself stays unchanged.</p>
                         </div>
+                    </div>
+
+                    {{-- Standard path: pick a category, then the fleet unit within
+                         it. Equipment is fetched server-side per category (never
+                         the whole fleet) and matches Name + Equipment ID only. --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-src="standard">
                         <div>
-                            <label class="{{ $labelClass }}">Service Store</label>
+                            <label class="{{ $labelClass }} required">Equipment Category</label>
+                            <select name="equipment_category_id" id="st-category" class="{{ $inputClass }}">
+                                <option value="">Select a category…</option>
+                                @foreach ($equipmentCategories as $cat)
+                                    <option value="{{ $cat->id }}" @selected((int) old('equipment_category_id') === $cat->id)>{{ $cat->title }}</option>
+                                @endforeach
+                            </select>
+                            @error('equipment_category_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="{{ $labelClass }} required" for="st-std-search">Equipment</label>
+                            <div class="relative">
+                                <input type="text" id="st-std-search" autocomplete="off" disabled
+                                       placeholder="Select a category first…" class="{{ $inputClass }}">
+                                <div id="st-std-results"
+                                     class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
+                            </div>
+                            {{-- The one posted equipment id for the standard path. Enabled
+                                 only while this path is active, so it never collides with
+                                 the customer equipment control (same name). --}}
+                            <input type="hidden" name="equipment_id" id="st-std-equipment" value="" disabled>
+                            {{-- Selected-unit chip (name + equipment id) --}}
+                            <div id="st-std-selected" class="hidden items-center justify-between gap-3 border border-blue-200 bg-blue-50/60 rounded-md px-3 py-2 mt-2 text-sm">
+                                <span id="st-std-selected-label" class="font-medium text-gray-800 min-w-0 truncate"></span>
+                                <button type="button" id="st-std-change" class="text-xs text-blue-600 hover:underline shrink-0">Change</button>
+                            </div>
+                            <p id="st-std-required" class="hidden text-sm text-red-600 mt-1">Select an equipment category and unit.</p>
+                            <p class="text-xs text-gray-400 mt-1">Search by equipment name or ID within the category.</p>
+                        </div>
+                    </div>
+
+                    {{-- Shared: service store + priority apply to both paths --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="{{ $labelClass }}" id="st-store-label">Service Store</label>
                             <select name="service_store_id" class="{{ $inputClass }}">
                                 <option value="">— Select store —</option>
                                 @foreach ($stores as $store)
@@ -191,8 +268,8 @@
                         </div>
                     </div>
 
-                    {{-- Override Reason: appears below the row only once an override is chosen --}}
-                    <div class="mt-4 {{ old('equipment_override_id') ? '' : 'hidden' }}" id="st-override-reason-wrap">
+                    {{-- Override Reason: customer path only, once an override is chosen --}}
+                    <div class="mt-4 {{ old('equipment_override_id') ? '' : 'hidden' }}" id="st-override-reason-wrap" data-src="customer">
                         <label class="{{ $labelClass }}">Override Reason</label>
                         <input type="text" name="equipment_override_reason" value="{{ old('equipment_override_reason') }}"
                             class="{{ $inputClass }}" maxlength="255"
@@ -281,7 +358,7 @@
                          filtered by the selected equipment's product, categories, and
                          recorded capabilities --}}
                     <div id="st-complaint-empty" class="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
-                        <p class="text-sm text-gray-400">Select a rental order and equipment to see the applicable complaints.</p>
+                        <p class="text-sm text-gray-400">Select equipment to see the applicable complaints.</p>
                     </div>
                     {{-- Shown when the selected unit has no Reported-Problem
                          template (and no legacy profile match). The full
@@ -361,6 +438,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     // Order → equipment map: this path never offers unrelated equipment
     const ORDERS = @json($orderOptions);
+
+    // ── Intake source (customer | standard) ────────────────────────────
+    // One shared form, two paths. `currentSource` drives which equipment
+    // control feeds the shared complaint engine; `standardUnit` is the unit
+    // chosen on the standard path (shape-compatible with an order unit so the
+    // exact same symptom resolution applies).
+    let currentSource = @json($ticketSource);
+    let standardUnit  = @json($oldStandardEquipment);
+    const EQUIPMENT_SEARCH_URL = @json(route('admin.service-management.tickets.equipment-search'));
 
     const orderSelect     = document.getElementById('st-order');
     const equipmentSelect = document.getElementById('st-equipment');
@@ -488,9 +574,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (existing) showSelectedOrder(existing);
     })();
 
-    // The hidden select can't carry a native `required` (not focusable) —
-    // guard the submit client-side; the server re-validates regardless.
+    // The hidden controls can't carry a native `required` (not focusable) —
+    // guard the submit client-side per source; the server re-validates both.
+    const stdRequiredNote = document.getElementById('st-std-required');
     document.querySelector('form[action*="tickets"]').addEventListener('submit', function (e) {
+        if (currentSource === 'standard') {
+            if (!categorySelect.value || !standardEquip.value) {
+                e.preventDefault();
+                stdRequiredNote.classList.remove('hidden');
+                (categorySelect.value ? stdSearch : categorySelect).focus();
+            }
+            return;
+        }
         if (!orderSelect.value) {
             e.preventDefault();
             requiredNote.classList.remove('hidden');
@@ -546,6 +641,9 @@ document.addEventListener('DOMContentLoaded', function () {
     let checkedComplaints = new Set(OLD_COMPLAINTS.map(String));
 
     function selectedUnit() {
+        if (currentSource === 'standard') {
+            return standardUnit;
+        }
         const order = ORDERS.find(o => String(o.id) === String(orderSelect.value));
         return order ? order.equipment.find(u => String(u.id) === String(equipmentSelect.value)) : null;
     }
@@ -878,6 +976,191 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Keep the panel open if a crew was already selected (validation round-trip)
     if (document.querySelector('.st-crew-check:checked')) panel.classList.remove('hidden');
+
+    // ══ Standard Equipment intake: category → server-searched unit ══════
+    const categorySelect   = document.getElementById('st-category');
+    const stdSearch        = document.getElementById('st-std-search');
+    const stdResults       = document.getElementById('st-std-results');
+    const stdSelected      = document.getElementById('st-std-selected');
+    const stdSelectedLabel = document.getElementById('st-std-selected-label');
+    const standardEquip    = document.getElementById('st-std-equipment');
+    const storeLabel       = document.getElementById('st-store-label');
+
+    // Enable/disable every control inside a container in one shot — a disabled
+    // control never submits, which is how the two same-named equipment_id
+    // inputs stay mutually exclusive by path.
+    function setControlsDisabled(root, disabled) {
+        root.querySelectorAll('input, select, textarea').forEach(function (ctrl) { ctrl.disabled = disabled; });
+    }
+
+    function clearStandardEquipment() {
+        standardUnit = null;
+        standardEquip.value = '';
+        stdSearch.value = '';
+        stdResults.classList.add('hidden');
+        stdSelected.classList.add('hidden');
+        stdSelected.classList.remove('flex');
+        if (stdRequiredNote) stdRequiredNote.classList.add('hidden');
+    }
+
+    // Standard → Customer: equipment must be re-resolved through the order.
+    function clearStandard() {
+        clearStandardEquipment();
+        categorySelect.value = '';
+        stdSearch.disabled = true;
+        stdSearch.placeholder = 'Select a category first…';
+    }
+
+    // Customer → Standard: drop all order/customer/override state.
+    function clearCustomer() {
+        orderSelect.value = '';
+        selectedChip.classList.add('hidden');
+        selectedChip.classList.remove('flex');
+        pickers.classList.remove('hidden');
+        requiredNote.classList.add('hidden');
+        ['st-search-order', 'st-search-customer'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const rental = document.querySelector('input[name="rental_date"]');
+        if (rental) rental.value = '';
+        if (overrideSelect.choicesInstance) {
+            overrideSelect.choicesInstance.setChoiceByValue('');
+        } else {
+            overrideSelect.value = '';
+        }
+        overrideReasonWrap.classList.add('hidden');
+        const reason = document.querySelector('input[name="equipment_override_reason"]');
+        if (reason) reason.value = '';
+        equipmentSelect.dataset.old = '';
+    }
+
+    function applySource(source, opts) {
+        opts = opts || {};
+        currentSource = source;
+
+        document.querySelectorAll('[data-src]').forEach(function (block) {
+            const match = block.dataset.src === source;
+            block.classList.toggle('hidden', !match);
+            setControlsDisabled(block, !match);
+        });
+
+        document.querySelectorAll('.st-source-card').forEach(function (card) {
+            const active = card.dataset.source === source;
+            // Reuse the order-chip palette (already in the compiled bundle) so
+            // this needs no asset rebuild.
+            card.classList.toggle('border-blue-200', active);
+            card.classList.toggle('bg-blue-50/60', active);
+            card.classList.toggle('border-gray-200', !active);
+        });
+
+        // Service Store is required on the standard path (no order to infer it).
+        if (storeLabel) storeLabel.classList.toggle('required', source === 'standard');
+
+        if (source === 'customer') {
+            if (opts.clearOther) clearStandard();
+            // The [data-src] loop just re-enabled these controls; syncOrder
+            // re-applies the correct disabled state. Seed dataset.old with the
+            // current selection so the rebuild never drops it (the early init
+            // already consumed the server-side old value).
+            equipmentSelect.dataset.old = equipmentSelect.value || equipmentLocked.value || '';
+            syncOrder(true);
+        } else {
+            if (opts.clearOther) clearCustomer();
+            // The standard equipment input must be enabled so it can POST.
+            standardEquip.disabled = false;
+            categorySelect.disabled = false;
+            stdSearch.disabled = !categorySelect.value;
+            stdSearch.placeholder = categorySelect.value ? 'Search by equipment name or ID…' : 'Select a category first…';
+        }
+
+        syncComplaintList();
+    }
+
+    function renderStandardResults(list) {
+        if (!list.length) {
+            stdResults.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">No matching equipment in this category</div>';
+            stdResults.classList.remove('hidden');
+            return;
+        }
+        stdResults.innerHTML = list.map(function (u) {
+            return '<div data-id="' + u.id + '" class="px-3 py-2 hover:bg-gray-50 cursor-pointer">'
+                + '<div class="text-sm font-medium text-gray-800">' + esc(u.name) + '</div>'
+                + (u.display_id ? '<div class="text-xs text-gray-400">' + esc(u.display_id) + '</div>' : '')
+                + '</div>';
+        }).join('');
+        stdResults.classList.remove('hidden');
+        stdResults.querySelectorAll('[data-id]').forEach(function (row) {
+            row.addEventListener('click', function () {
+                const unit = list.find(function (u) { return String(u.id) === row.dataset.id; });
+                if (unit) selectStandardUnit(unit);
+            });
+        });
+    }
+
+    function selectStandardUnit(unit) {
+        standardUnit = unit;
+        standardEquip.value = unit.id;
+        stdSelectedLabel.textContent = unit.label;
+        stdSelected.classList.remove('hidden');
+        stdSelected.classList.add('flex');
+        stdResults.classList.add('hidden');
+        stdSearch.value = '';
+        if (stdRequiredNote) stdRequiredNote.classList.add('hidden');
+        syncComplaintList();
+    }
+
+    let stdSearchTimer = null;
+    function runStandardSearch(q) {
+        const url = new URL(EQUIPMENT_SEARCH_URL, window.location.origin);
+        url.searchParams.set('category_id', categorySelect.value);
+        url.searchParams.set('search', q);
+        fetch(url.toString(), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (payload) { renderStandardResults(payload.data || []); })
+            .catch(function () {
+                stdResults.innerHTML = '<div class="px-3 py-2 text-sm text-red-500">Search failed — try again.</div>';
+                stdResults.classList.remove('hidden');
+            });
+    }
+
+    categorySelect.addEventListener('change', function () {
+        // Changing category immediately clears any previously selected unit.
+        clearStandardEquipment();
+        const hasCat = !!categorySelect.value;
+        stdSearch.disabled = !hasCat;
+        stdSearch.placeholder = hasCat ? 'Search by equipment name or ID…' : 'Select a category first…';
+        syncComplaintList();
+    });
+
+    stdSearch.addEventListener('input', function () {
+        const q = stdSearch.value.trim();
+        clearTimeout(stdSearchTimer);
+        if (!categorySelect.value || q.length < 1) { stdResults.classList.add('hidden'); return; }
+        stdSearchTimer = setTimeout(function () { runStandardSearch(q); }, 200);
+    });
+
+    document.getElementById('st-std-change').addEventListener('click', function () {
+        clearStandardEquipment();
+        stdSearch.focus();
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!stdResults.contains(e.target) && e.target !== stdSearch) stdResults.classList.add('hidden');
+    });
+
+    document.querySelectorAll('.st-source-radio').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            if (this.checked) applySource(this.value, { clearOther: true });
+        });
+    });
+
+    // Initialize the visible path + fix control enabled/disabled state. On a
+    // standard-path validation round-trip, restore the chosen unit's chip.
+    applySource(currentSource, { preserve: true });
+    if (currentSource === 'standard' && standardUnit) {
+        selectStandardUnit(standardUnit);
+    }
 });
 </script>
 @endpush

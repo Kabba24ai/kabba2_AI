@@ -61,6 +61,9 @@ Route::prefix('service-management')
         Route::prefix('tickets')->name('tickets.')->middleware('permission:service_tickets.view')->group(function () {
             Route::get('/',                 Tickets\IndexController::class)->name('index');
             Route::get('/create',           Tickets\CreateController::class)->name('create');
+            // Standard Equipment intake — category-scoped equipment lookup.
+            // Static path, declared before /{ticket} so binding never claims it.
+            Route::get('/equipment-search', Tickets\EquipmentSearchController::class)->name('equipment-search');
             Route::post('/',                Tickets\StoreController::class)->name('store')->middleware('permission:service_tickets.manage');
             Route::get('/{ticket}',         Tickets\ShowController::class)->name('show');
             Route::get('/{ticket}/edit',    Tickets\EditController::class)->name('edit');

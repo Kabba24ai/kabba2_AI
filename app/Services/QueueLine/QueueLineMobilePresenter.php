@@ -37,43 +37,64 @@ final class QueueLineMobilePresenter
 
     /**
      * The full board feed: canonical eligibility + ordering + one batched
-     * fuel-state query (never per-item).
+     * fuel-state query (never per-item). Items are grouped into the three
+     * Queue Line sections (2026-07-23) — Pending, Staged, Completed — over
+     * the SAME date window (Overdue/Today/Tomorrow) the active board already
+     * uses; Completed is sourced from completedQuery() since boardQuery()
+     * excludes completed rows by design (that exclusion still governs the
+     * web board, which never shows a Completed section).
      *
-     * @return array{items: array, meta: array}
+     * @return array{items: array{pending: array, staged: array, completed: array}, meta: array}
      */
     public static function board(?int $storeId = null): array
     {
-        $rows = QueueLineEligibility::sortItems(
-            QueueLineEligibility::filterFinanciallyActive(
-                QueueLineEligibility::boardQuery($storeId)->get()
-            )
+        $activeRows = QueueLineEligibility::filterFinanciallyActive(
+            QueueLineEligibility::boardQuery($storeId)->get()
+        );
+        $completedRows = QueueLineEligibility::filterFinanciallyActive(
+            QueueLineEligibility::completedQuery($storeId)->get()
         );
 
-        $fuelByAssignment = self::fuelMap($rows);
-        $keyByAssignment = QueueLineStagingService::keyMap($rows);
+        $allRows = $activeRows->concat($completedRows);
+        $fuelByAssignment = self::fuelMap($allRows);
+        $keyByAssignment = QueueLineStagingService::keyMap($allRows);
 
-        $items = $rows
-            ->map(fn (OrderProduct $row) => self::serialize(
-                $row,
-                self::currentFuelFor($row, $fuelByAssignment),
-                self::currentKeyFor($row, $keyByAssignment),
-            ))
-            ->values()
-            ->all();
+        $serialize = fn (OrderProduct $row) => self::serialize(
+            $row,
+            self::currentFuelFor($row, $fuelByAssignment),
+            self::currentKeyFor($row, $keyByAssignment),
+        );
 
-        return ['items' => $items, 'meta' => self::meta($rows, $fuelByAssignment, $keyByAssignment)];
+        $pending = QueueLineEligibility::sortItems(
+            $activeRows->filter(fn (OrderProduct $row) => QueueLineEligibility::boardStatus($row) === QueueLineEligibility::STATUS_PENDING)
+        );
+        $staged = QueueLineEligibility::sortItems(
+            $activeRows->filter(fn (OrderProduct $row) => QueueLineEligibility::boardStatus($row) === QueueLineEligibility::STATUS_STAGED)
+        );
+        $completed = $completedRows->sortByDesc(fn (OrderProduct $row) => $row->queueLineItem?->completed_at)->values();
+
+        $items = [
+            'pending' => $pending->map($serialize)->values()->all(),
+            'staged' => $staged->map($serialize)->values()->all(),
+            'completed' => $completed->map($serialize)->values()->all(),
+        ];
+
+        return ['items' => $items, 'meta' => self::meta($activeRows, $fuelByAssignment, $keyByAssignment, $completed->count())];
     }
 
     /** Lightweight counts for the home-page badge (§15) — no item payloads. */
     public static function summary(?int $storeId = null): array
     {
-        $rows = QueueLineEligibility::filterFinanciallyActive(
+        $activeRows = QueueLineEligibility::filterFinanciallyActive(
             QueueLineEligibility::boardQuery($storeId)->get()
         );
-        $fuelByAssignment = self::fuelMap($rows);
-        $keyByAssignment = QueueLineStagingService::keyMap($rows);
+        $completedCount = QueueLineEligibility::filterFinanciallyActive(
+            QueueLineEligibility::completedQuery($storeId)->get()
+        )->count();
+        $fuelByAssignment = self::fuelMap($activeRows);
+        $keyByAssignment = QueueLineStagingService::keyMap($activeRows);
 
-        return self::meta($rows, $fuelByAssignment, $keyByAssignment)['counts'];
+        return self::meta($activeRows, $fuelByAssignment, $keyByAssignment, $completedCount)['counts'];
     }
 
     /** One item, detail depth (adds suppression + completion state). */
@@ -165,10 +186,12 @@ final class QueueLineMobilePresenter
             'payment_label' => $order->last_payment_status === null
                 ? 'No Payment Recorded' // approved Phase 2 wording — never guessed
                 : (string) $order->last_payment_status,
+            'status' => QueueLineEligibility::boardStatus($row), // pending | staged | completed — the board section this item belongs to
             'staged' => (bool) $row->queueLineItem?->isStaged(),
             'fully_staged' => QueueLineStagingService::isFullyStaged($row, $fuel, $key),
+            'completed' => $isCompleted = $row->queueLineItem?->completed_at !== null,
             'readiness' => self::readiness($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key), $row),
-            'available_actions' => self::availableActions($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key)),
+            'available_actions' => self::availableActions($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key), $isCompleted),
         ];
     }
 
@@ -195,8 +218,19 @@ final class QueueLineMobilePresenter
      * there is no fuel-only step. Release actions never appear
      * (Driver/Customer Checklist own them).
      */
-    private static function availableActions(string $assignmentState, bool $fullyStaged): array
+    private static function availableActions(string $assignmentState, bool $fullyStaged, bool $isCompleted = false): array
     {
+        // Completed items already left the yard — read-only, history only.
+        if ($isCompleted) {
+            return [
+                'assign_equipment' => false,
+                'switch_equipment' => false,
+                'mark_staged' => false,
+                'return_to_pending' => false,
+                'view_history' => true,
+            ];
+        }
+
         $needsEquipment = $assignmentState === 'needs_equipment';
 
         return [
@@ -234,13 +268,14 @@ final class QueueLineMobilePresenter
             : null;
     }
 
-    private static function meta(Collection $rows, Collection $fuelByAssignment, Collection $keyByAssignment): array
+    private static function meta(Collection $rows, Collection $fuelByAssignment, Collection $keyByAssignment, int $completedCount = 0): array
     {
         $counts = [
             'total' => $rows->count(),
             'rush' => 0, 'overdue' => 0, 'today' => 0, 'tomorrow' => 0,
             'needs_equipment' => 0,
             'staging_required' => 0, // assigned but not yet fully staged
+            'completed' => $completedCount,
         ];
 
         foreach ($rows as $row) {

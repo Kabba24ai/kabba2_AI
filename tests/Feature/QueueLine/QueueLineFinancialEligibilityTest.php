@@ -75,7 +75,7 @@ class QueueLineFinancialEligibilityTest extends QueueLineTestCase
         $this->pay($row->order, 100, 'Voided');
 
         $this->assertStringNotContainsString('data-order-product-id="' . $row->id . '"', $this->boardHtml());
-        $this->assertEmpty(QueueLineMobilePresenter::board()['items']);
+        $this->assertEmpty(array_filter(QueueLineMobilePresenter::board()['items']));
         $this->assertSame(0, QueueLineMobilePresenter::summary()['total']);
     }
 
@@ -86,7 +86,7 @@ class QueueLineFinancialEligibilityTest extends QueueLineTestCase
         $this->refund($row->order->fresh(), $original, 100);
 
         $this->assertStringNotContainsString('data-order-product-id="' . $row->id . '"', $this->boardHtml());
-        $this->assertEmpty(QueueLineMobilePresenter::board()['items']);
+        $this->assertEmpty(array_filter(QueueLineMobilePresenter::board()['items']));
     }
 
     public function test_fee_retained_operationally_complete_refund_is_excluded_like_schedule_treats_it(): void

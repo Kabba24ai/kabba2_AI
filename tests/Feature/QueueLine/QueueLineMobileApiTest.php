@@ -29,6 +29,18 @@ class QueueLineMobileApiTest extends QueueLineTestCase
             ->getJson($this->api('queue-line' . ($query ? '?' . http_build_query($query) : '')));
     }
 
+    /**
+     * The active (not-yet-completed) board items — Pending + Staged sections
+     * merged, since most assertions here don't care which of the two an item
+     * currently sits in.
+     */
+    private function activeItems(array $query = []): \Illuminate\Support\Collection
+    {
+        $items = $this->board($query)->json('data.items');
+
+        return collect($items['pending'])->concat($items['staged']);
+    }
+
     private function verifyFuel(OrderProduct $row, Equipment $unit): void
     {
         QueueFuelVerificationService::verify(
@@ -89,7 +101,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $rushed = $this->makeRow(null, ['delivery_date' => now()->addDay()->format('Y-m-d')]);
         QueueLineService::rush($rushed, $this->admin);
 
-        $urgencies = collect($this->board()->json('data.items'))->pluck('urgency')->all();
+        $urgencies = $this->activeItems()->pluck('urgency')->all();
 
         $this->assertSame(['rush', 'overdue', 'today', 'tomorrow'], $urgencies);
     }
@@ -110,7 +122,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
 
         $needs = $this->makeRow();
 
-        $byId = collect($this->board()->json('data.items'))->keyBy('order_product_unique_id');
+        $byId = $this->activeItems()->keyBy('order_product_unique_id');
 
         $this->assertSame('direct', $byId[$direct->unique_id]['assignment_state']);
         $this->assertSame('alternate', $byId[$alternate->unique_id]['assignment_state']);
@@ -126,7 +138,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $original = $this->softAssign($row);
         $this->verifyFuel($row, $original);
 
-        $item = collect($this->board()->json('data.items'))->firstWhere('order_product_unique_id', $row->unique_id);
+        $item = $this->activeItems()->firstWhere('order_product_unique_id', $row->unique_id);
         $this->assertSame('verified', $item['fuel']['state']);
         $this->assertNotNull($item['fuel']['verified_by']);
 
@@ -135,7 +147,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         EquipmentReassignmentService::switch($row->fresh(['softAssignment.equipment', 'order']), $other, $this->admin, $this->admin);
         EquipmentReassignmentService::switch($row->fresh(['softAssignment.equipment', 'order']), $original, $this->admin, $this->admin);
 
-        $item = collect($this->board()->json('data.items'))->firstWhere('order_product_unique_id', $row->unique_id);
+        $item = $this->activeItems()->firstWhere('order_product_unique_id', $row->unique_id);
         $this->assertSame('not_verified', $item['fuel']['state'], 'prior-episode verification must never revive');
     }
 
@@ -148,7 +160,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $unit = $this->softAssign($ready);
         $this->stage($ready, $unit);
 
-        $byId = collect($this->board()->json('data.items'))->keyBy('order_product_unique_id');
+        $byId = $this->activeItems()->keyBy('order_product_unique_id');
 
         $this->assertSame(
             ['assign_equipment' => true, 'switch_equipment' => false, 'mark_staged' => false, 'return_to_pending' => false, 'view_history' => true],
@@ -176,7 +188,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $fuelOnly = $this->makeRow();
         $unitF = $this->softAssign($fuelOnly);
         $this->verifyFuel($fuelOnly, $unitF);
-        $item = collect($this->board()->json('data.items'))->firstWhere('order_product_unique_id', $fuelOnly->unique_id);
+        $item = $this->activeItems()->firstWhere('order_product_unique_id', $fuelOnly->unique_id);
         $this->assertSame('staging_required', $item['readiness']);
         $this->assertFalse($item['fully_staged']);
         $this->assertSame('verified', $item['fuel']['state']);
@@ -185,7 +197,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $readyTruck = $this->makeRow();
         $unitT = $this->softAssign($readyTruck);
         $this->stage($readyTruck, $unitT);
-        $item = collect($this->board()->json('data.items'))->firstWhere('order_product_unique_id', $readyTruck->unique_id);
+        $item = $this->activeItems()->firstWhere('order_product_unique_id', $readyTruck->unique_id);
         $this->assertSame('ready_for_dispatch', $item['readiness']);
     }
 
@@ -194,9 +206,9 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $north = $this->makeRow(); // storeNorth by fixture default
         $this->makeRow(null, ['delivery_store_id' => $this->storeSouth->id]);
 
-        $items = $this->board(['store' => $this->storeNorth->unique_id])->json('data.items');
+        $items = $this->activeItems(['store' => $this->storeNorth->unique_id]);
         $this->assertCount(1, $items);
-        $this->assertSame($north->unique_id, $items[0]['order_product_unique_id']);
+        $this->assertSame($north->unique_id, $items->first()['order_product_unique_id']);
 
         $this->board(['store' => 'STORE-NOPE'])
             ->assertStatus(422)
@@ -208,7 +220,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $row = $this->makeRow();
         $this->softAssign($row);
 
-        $item = collect($this->board()->json('data.items'))->first();
+        $item = $this->activeItems()->first();
 
         foreach (['id', 'order_id', 'order_product_id', 'product_id', 'equipment_id_internal', 'equipment_soft_assign_id'] as $key) {
             $this->assertArrayNotHasKey($key, $item);
@@ -218,7 +230,14 @@ class QueueLineMobileApiTest extends QueueLineTestCase
         $this->assertArrayNotHasKey('id', $item['store']);
     }
 
-    public function test_suppressed_and_completed_items_never_appear_on_the_mobile_board(): void
+    /**
+     * Suppressed-forever items never appear anywhere on the mobile board.
+     * Completed items are excluded from Pending/Staged (2026-07-19 rule,
+     * unchanged) but DO surface in the Completed section (2026-07-23) — the
+     * three-section board is the mobile module's own view; the web board
+     * still excludes completed items entirely (QueueLineBoardTest covers that).
+     */
+    public function test_suppressed_items_never_appear_but_completed_items_move_to_the_completed_section(): void
     {
         $suppressed = $this->makeRow();
         $this->softAssign($suppressed);
@@ -230,8 +249,13 @@ class QueueLineMobileApiTest extends QueueLineTestCase
 
         $visible = $this->makeRow();
 
-        $ids = collect($this->board()->json('data.items'))->pluck('order_product_unique_id');
-        $this->assertSame([$visible->unique_id], $ids->all());
+        $items = $this->board()->json('data.items');
+        $activeIds = collect($items['pending'])->concat($items['staged'])->pluck('order_product_unique_id');
+        $completedIds = collect($items['completed'])->pluck('order_product_unique_id');
+
+        $this->assertSame([$visible->unique_id], $activeIds->all());
+        $this->assertSame([$completed->unique_id], $completedIds->all());
+        $this->assertNotContains($suppressed->unique_id, $completedIds, 'suppressed-forever items never appear, even completed');
     }
 
     // ── Summary (home-page badge) ────────────────────────────────────────

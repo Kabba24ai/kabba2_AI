@@ -41,6 +41,12 @@ final class QueueLineEligibility
 
     public const ASSIGNMENT_UNASSIGNED = 'unassigned';
 
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_STAGED = 'staged';
+
+    public const STATUS_COMPLETED = 'completed';
+
     /**
      * The Phase 1 baseline eligibility predicate — every clause mirrors an
      * existing Schedule/Dispatch predicate except the tomorrow upper bound
@@ -85,6 +91,49 @@ final class QueueLineEligibility
                 'softAssignment.equipment.activeEquipmentRentalReadyTemplate', // RR badge
                 'queueLineItem',
             ]);
+    }
+
+    /**
+     * The mobile board's Completed section (2026-07-23) — same date/product/
+     * transport window as boardQuery, but for items whose Queue Line row is
+     * ALREADY completed. delivery_status is deliberately NOT filtered here
+     * (a completed row is no longer 'Pending'). The web board never calls
+     * this — it intentionally excludes completed items via boardQuery.
+     */
+    public static function completedQuery(?int $storeId = null): Builder
+    {
+        return OrderProduct::query()
+            ->where('product_data->product_type', 'Rental')
+            ->whereHas('order')
+            ->whereNotNull('delivery_date')
+            ->whereDate('delivery_date', '<=', today()->addDay())
+            ->whereIn('delivery_transport_mode', ['Truck', 'Store'])
+            ->when($storeId, fn (Builder $q) => $q->where('delivery_store_id', $storeId))
+            ->whereHas('queueLineItem', fn (Builder $q) => $q->whereNotNull('completed_at'))
+            ->with([
+                'order.lastPayment',
+                'order.payments',
+                'product:id,unique_id,product_name',
+                'product.mediaChildren',
+                'deliveryStore:id,unique_id,store_name',
+                'softAssignment.equipment.assignedProduct:id,product_name',
+                'softAssignment.equipment.assignedProduct.mediaChildren',
+                'softAssignment.equipment.store:id,store_name',
+                'softAssignment.equipment.activeEquipmentRentalReadyTemplate',
+                'queueLineItem',
+            ]);
+    }
+
+    /** Pending (not staged) | Staged (on Queue Line, not yet completed) | Completed. */
+    public static function boardStatus(OrderProduct $row): string
+    {
+        $item = $row->queueLineItem;
+
+        return match (true) {
+            $item?->completed_at !== null => self::STATUS_COMPLETED,
+            $item?->isStaged() ?? false => self::STATUS_STAGED,
+            default => self::STATUS_PENDING,
+        };
     }
 
     /**

@@ -12,6 +12,8 @@ use App\Services\QueueLine\QueueLineOperationException;
 use Illuminate\Http\JsonResponse;
 
 /**
+ * Queue Line Switch Equipment
+ *
  * POST queue-line/{order_product_unique_id}/switch-equipment
  *
  * Thin adapter over the SAME canonical EquipmentReassignmentService the web
@@ -21,14 +23,17 @@ use Illuminate\Http\JsonResponse;
  * the canonical no-op, reported as replayed (the idempotency token is
  * accepted for client bookkeeping; the operation is naturally idempotent).
  *
- * Queue Line Switch Equipment
- * @group Admin App
- * @authenticated
  */
 class QueueLineSwitchEquipmentController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line Switch Equipment
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(QueueLineSwitchEquipmentRequest $request, string $orderProductUniqueId): JsonResponse
     {
         $validated = $request->validated();

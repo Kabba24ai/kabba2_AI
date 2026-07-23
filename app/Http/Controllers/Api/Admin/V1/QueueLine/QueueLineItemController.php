@@ -8,18 +8,23 @@ use App\Services\QueueLine\QueueLineMobilePresenter;
 use Illuminate\Http\JsonResponse;
 
 /**
+ * Queue Line Item Detail
+ *
  * GET queue-line/{order_product_unique_id} — item detail: full operational
  * state (assignment, fuel, readiness, suppression, completion) for the
  * mobile detail screen. Read-only.
  *
- * Queue Line Item Detail
- * @group Admin App
- * @authenticated
  */
 class QueueLineItemController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line Item Detail
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(string $orderProductUniqueId): JsonResponse
     {
         $item = $this->findQueueItem($orderProductUniqueId);

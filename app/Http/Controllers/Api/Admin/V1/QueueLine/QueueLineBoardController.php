@@ -10,6 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
+ * Queue Line Board
+ *
  * GET queue-line — the standalone mobile board.
  *
  * The server owns eligibility, ordering (Rush → Overdue → Today → Tomorrow),
@@ -18,14 +20,17 @@ use Illuminate\Http\Request;
  * store (note: this application has no per-user store restriction model —
  * the filter is a view scope, and an invalid store id is rejected).
  *
- * Queue Line Board
- * @group Admin App
- * @authenticated
  */
 class QueueLineBoardController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line Board
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(Request $request): JsonResponse
     {
         $storeId = null;

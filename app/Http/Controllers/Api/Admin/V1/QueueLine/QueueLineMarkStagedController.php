@@ -12,6 +12,8 @@ use App\Services\QueueLine\QueueLineStagingService;
 use Illuminate\Http\JsonResponse;
 
 /**
+ * Queue Line Mark Staged
+ *
  * POST queue-line/{order_product_unique_id}/mark-staged
  *
  * The ONE staging action — identical to the web thumbs-up modal: one
@@ -25,14 +27,17 @@ use Illuminate\Http\JsonResponse;
  * Stale screens get QUEUE_ASSIGNMENT_CHANGED with the currently assigned
  * unit; the idempotency token replays the original event safely.
  *
- * Queue Line Mark Staged
- * @group Admin App
- * @authenticated
  */
 class QueueLineMarkStagedController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line Mark Staged
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(QueueLineMarkStagedRequest $request, string $orderProductUniqueId): JsonResponse
     {
         $validated = $request->validated();

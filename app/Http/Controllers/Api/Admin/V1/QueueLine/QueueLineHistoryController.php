@@ -8,6 +8,8 @@ use App\Services\QueueLine\QueueLineHistory;
 use Illuminate\Http\JsonResponse;
 
 /**
+ * Queue Line History
+ *
  * GET queue-line/{order_product_unique_id}/history
  *
  * The combined operational timeline (assignment, fuel, release, reversal,
@@ -16,14 +18,17 @@ use Illuminate\Http\JsonResponse;
  * endpoints. Prior-assignment fuel events carry current_episode=false so
  * they can never be mistaken for the current verification.
  *
- * Queue Line History
- * @group Admin App
- * @authenticated
  */
 class QueueLineHistoryController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line History
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(string $orderProductUniqueId): JsonResponse
     {
         $item = $this->findQueueItem($orderProductUniqueId);

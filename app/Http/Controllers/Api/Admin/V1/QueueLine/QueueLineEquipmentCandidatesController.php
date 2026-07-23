@@ -10,6 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
+ * Queue Line Equipment Candidates
+ *
  * GET queue-line/{order_product_unique_id}/equipment-candidates?search=
  *
  * Candidate units for assignment/switch — the SAME ordering rules as the
@@ -23,14 +25,17 @@ use Illuminate\Http\Request;
  * candidate. `requires_reason` tells the app whether the canonical service
  * will demand a reason (non-direct match) — the rule itself stays server-side.
  *
- * Queue Line Equipment Candidates
- * @group Admin App
- * @authenticated
  */
 class QueueLineEquipmentCandidatesController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line Equipment Candidates
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(Request $request, string $orderProductUniqueId): JsonResponse
     {
         $item = $this->findQueueItem($orderProductUniqueId);

@@ -11,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
+ * Queue Line Return To Pending
+ *
  * POST queue-line/{order_product_unique_id}/return-to-pending
  *
  * The counterpart of mark-staged — returns the item entirely to its
@@ -22,14 +24,17 @@ use Illuminate\Http\Request;
  * Idempotent by nature: repeating the call on an already-Pending item
  * reverses nothing further and succeeds.
  *
- * Queue Line Return To Pending
- * @group Admin App
- * @authenticated
  */
 class QueueLineReturnToPendingController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line Return To Pending
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(Request $request, string $orderProductUniqueId): JsonResponse
     {
         $validated = $request->validate([

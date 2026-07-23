@@ -10,17 +10,22 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
+ * Queue Line Summary
+ *
  * GET queue-line/summary — lightweight counts for the home-page badge (§15).
  * Never returns item payloads; the app must not load the board for a badge.
  *
- * Queue Line Summary
- * @group Admin App
- * @authenticated
  */
 class QueueLineSummaryController extends Controller
 {
     use RespondsWithQueueLineEnvelope;
 
+    /**
+     * Queue Line Summary
+     *
+     * @group Admin App
+     * @authenticated
+     */
     public function __invoke(Request $request): JsonResponse
     {
         $storeId = null;

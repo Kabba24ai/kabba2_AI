@@ -141,7 +141,15 @@
                 {!! \App\Helpers\CustomHelper::paymentStatusBadge($order->last_payment_status) !!}
             @endif
             @if ($delivered)
-                <span class="px-2 py-0.5 rounded {{ $ui['badge'] }} font-bold uppercase bg-green-600 text-white">Completed</span>
+                <span class="px-2 py-0.5 rounded {{ $ui['badge'] }} font-bold uppercase bg-green-600 text-white">Delivered</span>
+                @if ($queueItem && $queueItem->staged_at === null)
+                    {{-- Fast Track: left the yard without going through staging.
+                         Informational only (2026-07-23) — never restricts. --}}
+                    <span class="px-2 py-0.5 rounded {{ $ui['badge'] }} font-bold uppercase bg-yellow-300 text-yellow-900 border border-yellow-500"
+                        title="Fast Track — this item left the yard without going through Queue Line staging (fuel/key verification was not recorded).">
+                        Fast Track
+                    </span>
+                @endif
             @endif
         </div>
     </div>

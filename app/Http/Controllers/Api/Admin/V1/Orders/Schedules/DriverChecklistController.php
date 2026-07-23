@@ -28,30 +28,14 @@ class DriverChecklistController extends Controller
             // listener runs synchronously inline) so a failure anywhere in this sequence
             // rolls back the schedule update instead of leaving a partial commit behind
             // the generic failure response below.
-            // Queue Line release enforcement (Phase 3C): "Ready to Go" on the
-            // DELIVERY leg is the moment equipment leaves the yard — for a
-            // Queue Line-managed item the currently staged unit must carry a
-            // CURRENT Fuel Full verification. Non-queue items (returns,
-            // retail, out-of-window, Remove Forever, already completed) are
-            // never touched. Checked BEFORE the transaction so a block never
-            // writes anything.
-            if (
-                $validated['checklist_type'] === 'delivery'
-                && ($validated['equipment_driver_status'] ?? null) === \App\Enums\Orders\EquipmentDriverStatus::READY_TO_GO->value
-            ) {
-                $guardTarget = OrderProduct::with('softAssignment.equipment', 'queueLineItem')
-                    ->where('unique_id', $validated['order_product_unique_id'])
-                    ->first();
-
-                if ($guardTarget && ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($guardTarget))) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $blocked['message'],
-                        'error' => $blocked,
-                    ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
-                }
-            }
-
+            //
+            // Queue Line staging is now INFORMATIONAL, not restrictive (2026-07-23,
+            // approved): the release guard no longer blocks a driver from leaving
+            // the yard with an un-staged / un-fuel-verified machine. A machine that
+            // departs without going through staging is a legitimate Fast Track — it
+            // is recorded (queue_line_items.staged_at stays null against a completion
+            // latch) and surfaced with a "NOT STAGED / FAST TRACK" badge, never
+            // prevented. See QueueLineReleaseGuard (now an informational evaluator).
             DB::transaction(function () use ($validated) {
                 $user = auth('api_user')->user();
 
@@ -65,8 +49,21 @@ class DriverChecklistController extends Controller
                 $statusDrivenFields = [];
 
                 if ($status === EquipmentDriverStatus::READY_TO_GO->value) {
+                    // PREP only — fuel/keys/attachments. The truck has NOT left
+                    // the yard yet, so this no longer completes the Queue Line item.
                     $statusDrivenFields = [
                         $typePrefix . '_ready_to_go_at' => now(),
+                        $typePrefix . '_is_arrived' => false,
+                    ];
+                }
+
+                if ($status === EquipmentDriverStatus::ON_MY_WAY->value) {
+                    // DEPARTURE — "Load Map & Go". This is the actual moment the
+                    // equipment leaves the yard and is the Queue Line completion
+                    // trigger (CompleteOnDispatchStart listens for it on the
+                    // delivery leg). Stamp a dedicated timestamp for the audit trail.
+                    $statusDrivenFields = [
+                        $typePrefix . '_on_my_way_at' => now(),
                         $typePrefix . '_is_arrived' => false,
                     ];
                 }

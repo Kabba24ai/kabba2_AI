@@ -204,8 +204,20 @@ final class QueueLineHistory
             $events->push([
                 'at' => $orderProduct->delivery_ready_to_go_at,
                 'type' => self::TYPE_RELEASE,
-                'title' => 'Dispatch started — Ready to Go',
-                'detail' => 'Driver checklist marked the truck ready to leave.',
+                'title' => 'Ready to Go (prep)',
+                'detail' => 'Driver checklist prep complete — fuel, keys, attachments. Truck not yet departed.',
+                'employee' => null,
+                'actor' => null,
+                'equipment' => null,
+            ]);
+        }
+
+        if ($orderProduct->delivery_on_my_way_at) {
+            $events->push([
+                'at' => $orderProduct->delivery_on_my_way_at,
+                'type' => self::TYPE_RELEASE,
+                'title' => 'Load Map & Go — departed the yard',
+                'detail' => 'Driver went en route ("On My Way") — the equipment left the yard.',
                 'employee' => null,
                 'actor' => null,
                 'equipment' => null,
@@ -222,10 +234,12 @@ final class QueueLineHistory
             $events->push([
                 'at' => $item->completed_at,
                 'type' => self::TYPE_RELEASE,
-                'title' => 'Left the Queue Line',
-                'detail' => $item->completed_via === QueueLineService::VIA_DISPATCH_STARTED
-                    ? 'Completed when dispatch started (truck delivery).'
-                    : 'Completed when the customer checklist was saved (in-store handoff).',
+                'title' => $item->staged_at === null ? 'Left the yard — FAST TRACK (not staged)' : 'Left the yard',
+                'detail' => match ($item->completed_via) {
+                    QueueLineService::VIA_DISPATCH_STARTED => 'Completed when the driver departed (Load Map & Go).',
+                    QueueLineService::VIA_SCHEDULE_COMPLETED => 'Completed when the delivery was marked Completed (direct pickup / administrative completion).',
+                    default => 'Completed when the customer checklist was saved (in-store handoff).',
+                },
                 'employee' => null,
                 'actor' => null,
                 'equipment' => $completedEquipment?->equipment_id,

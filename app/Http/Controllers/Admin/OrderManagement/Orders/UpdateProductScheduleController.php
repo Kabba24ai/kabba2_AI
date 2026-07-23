@@ -36,23 +36,14 @@ class UpdateProductScheduleController extends Controller
         }
         $user = auth()->user();
 
-        // Queue Line release enforcement (Phase 4 §2): manually flipping the
-        // delivery leg to 'Completed' records a physical release, so it obeys
-        // the same canonical guard as the checklist paths. Administrative
-        // statuses ('Close as Completed', 'Reschedule', 'Pending') are exempt
-        // by design, and non-queue-managed items pass through untouched.
-        if ($validatedData['type'] === 'delivery'
-            && ($validatedData['delivery_status'] ?? null) === 'Completed'
-            && $orderProduct->delivery_status !== 'Completed') {
-            $orderProduct->loadMissing('softAssignment.equipment', 'queueLineItem');
-            if ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($orderProduct)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $blocked['message'],
-                    'error' => $blocked,
-                ], 422);
-            }
-        }
+        // Queue Line staging is INFORMATIONAL, not restrictive (2026-07-23,
+        // approved): flipping the delivery leg to 'Completed' is never blocked
+        // for lacking staging/fuel verification. A never-staged completion is a
+        // legitimate Fast Track — recorded (staged_at stays null on the
+        // completion latch, surfaced as "FAST TRACK / NOT STAGED"), never
+        // prevented. The SyncOnScheduleUpdate listener records the completion
+        // onto Equipment Delivered off the OrderProductScheduleUpdated event
+        // dispatched at the end of this action.
 
         $deliveryChanged = false;
         $pickupChanged = false;

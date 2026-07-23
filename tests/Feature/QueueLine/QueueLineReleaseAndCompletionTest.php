@@ -15,9 +15,21 @@ use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 /**
- * Phase 3C — release enforcement, Queue Line completion, and the mobile
- * contracts. Governing sequence: select the machine → verify THAT machine
- * Fuel Full → release → complete and leave the board.
+ * Queue Line completion + departure semantics (2026-07-23 enhancement).
+ *
+ * Two governing changes from the original Phase 3C contract:
+ *   1. DEPARTURE = "On My Way" ("Load Map & Go"). "Ready to Go" is only prep
+ *      and no longer completes the item; the truck leaves the yard — and the
+ *      Queue Line item completes — when the driver goes On My Way. "Arrived" is
+ *      a safety net for a flow that skips On My Way.
+ *   2. Staging is INFORMATIONAL, not restrictive. No release path is blocked
+ *      for lacking staging / fuel verification. An item that leaves without
+ *      going through staging is a Fast Track: it completes and records the
+ *      skipped staging (staged_at null on the completion latch); it is never
+ *      prevented.
+ *
+ * Episode-bound fuel-verification currency itself is pinned by
+ * QueueLineFuelVerificationTest; here we only assert departure/completion.
  */
 class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
 {
@@ -50,13 +62,23 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         )['verification'];
     }
 
-    private function readyToGo($row): \Illuminate\Testing\TestResponse
+    private function driverStatus($row, string $status, string $type = 'delivery'): \Illuminate\Testing\TestResponse
     {
         return $this->actingAs($this->admin, 'api_user')->postJson($this->api('orders/schedules/driver-checklist'), [
             'order_product_unique_id' => $row->unique_id,
-            'checklist_type' => 'delivery',
-            'equipment_driver_status' => 'Ready to Go',
+            'checklist_type' => $type,
+            'equipment_driver_status' => $status,
         ]);
+    }
+
+    private function readyToGo($row): \Illuminate\Testing\TestResponse
+    {
+        return $this->driverStatus($row, 'Ready to Go');
+    }
+
+    private function onMyWay($row): \Illuminate\Testing\TestResponse
+    {
+        return $this->driverStatus($row, 'On My Way');
     }
 
     private function saveDelivery($row, $equipment): \Illuminate\Testing\TestResponse
@@ -68,28 +90,9 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         ]);
     }
 
-    // ── Truck release enforcement (Ready to Go) ──────────────────────────
+    // ── Departure trigger: On My Way, not Ready to Go ────────────────────
 
-    public function test_ready_to_go_blocked_without_fuel_with_structured_422(): void
-    {
-        $row = $this->makeRow();
-        $unit = $this->softAssign($row);
-
-        $response = $this->readyToGo($row);
-
-        $response->assertStatus(422)
-            ->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED')
-            ->assertJsonPath('error.order_product_unique_id', $row->unique_id)
-            ->assertJsonPath('error.fuel_state', 'not_verified');
-        $this->assertStringContainsString($unit->equipment_name, $response->json('error.message'));
-        // No internal table ids exposed
-        $this->assertArrayNotHasKey('id', $response->json('error.equipment'));
-        // Nothing written — release never started
-        $this->assertNull($row->fresh()->delivery_ready_to_go_at);
-        $this->assertNull($row->fresh('queueLineItem')->queueLineItem?->completed_at);
-    }
-
-    public function test_ready_to_go_with_current_fuel_releases_and_completes(): void
+    public function test_ready_to_go_is_prep_only_and_does_not_complete(): void
     {
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
@@ -98,112 +101,144 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $this->readyToGo($row)->assertOk();
 
         $fresh = $row->fresh(['queueLineItem']);
-        $this->assertNotNull($fresh->delivery_ready_to_go_at);
+        $this->assertNotNull($fresh->delivery_ready_to_go_at, 'prep timestamp is stamped');
+        $this->assertNull($fresh->delivery_on_my_way_at);
+        // Prep does not remove the truck from the yard — no completion.
+        $this->assertNull($fresh->queueLineItem?->completed_at);
+        $this->assertContains($row->id, $this->boardIds());
+    }
+
+    public function test_on_my_way_departs_the_yard_and_completes(): void
+    {
+        $row = $this->makeRow();
+        $unit = $this->softAssign($row);
+        $this->verifyFuel($row);
+
+        $this->onMyWay($row)->assertOk();
+
+        $fresh = $row->fresh(['queueLineItem']);
+        $this->assertNotNull($fresh->delivery_on_my_way_at);
         $item = $fresh->queueLineItem;
         $this->assertNotNull($item->completed_at);
         $this->assertSame('dispatch_started', $item->completed_via);
         $this->assertEquals($unit->id, $item->completed_equipment_id);
     }
 
-    public function test_prior_unit_prior_episode_and_reversed_verifications_never_satisfy_release(): void
+    public function test_arrived_completes_when_on_my_way_was_skipped(): void
     {
-        // Verified ABC, then switched to XYZ → XYZ unverified → blocked
+        $row = $this->makeRow();
+        $unit = $this->softAssign($row);
+
+        // Driver jumped straight to Arrived — the safety net still completes.
+        $this->driverStatus($row, 'Arrived')->assertOk();
+
+        $this->assertNotNull($row->fresh('queueLineItem')->queueLineItem?->completed_at);
+    }
+
+    // ── Informational staging: nothing blocks; unstaged = Fast Track ──────
+
+    public function test_departure_without_fuel_or_staging_fast_tracks(): void
+    {
+        $row = $this->makeRow();
+        $this->softAssign($row); // no fuel, not staged
+
+        $this->onMyWay($row)->assertOk();
+
+        $item = $row->fresh('queueLineItem')->queueLineItem;
+        $this->assertNotNull($item->completed_at, 'departs and completes despite no staging');
+        $this->assertNull($item->staged_at, 'skipped staging is recorded — Fast Track');
+    }
+
+    public function test_departure_is_never_blocked_by_stale_or_reversed_fuel(): void
+    {
+        // Verified ABC, switched to XYZ (fresh episode, XYZ unverified) — still departs.
         $rowA = $this->makeRow();
         $abc = $this->softAssign($rowA);
         $this->verifyFuel($rowA);
         $xyz = $this->makeEquipment(['assigned_product_id' => $rowA->product_id]);
         EquipmentReassignmentService::switch($rowA->fresh(['softAssignment.equipment', 'order']), $xyz, $this->employee, $this->admin);
-        $this->readyToGo($rowA)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED');
+        $this->onMyWay($rowA)->assertOk();
+        $this->assertNotNull($rowA->fresh('queueLineItem')->queueLineItem?->completed_at);
 
-        // Switched BACK to ABC (new episode) → old ABC sign-off dead → blocked
-        EquipmentReassignmentService::switch($rowA->fresh(['softAssignment.equipment', 'order']), $abc, $this->employee, $this->admin);
-        $this->readyToGo($rowA)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED');
-
-        // Reversed verification → blocked
+        // Reversed verification — still departs.
         $rowB = $this->makeRow();
         $this->softAssign($rowB);
         $verification = $this->verifyFuel($rowB);
         QueueFuelVerificationService::reverse($verification, $this->employee, $this->admin, 'wrong machine');
-        $this->readyToGo($rowB)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED');
+        $this->onMyWay($rowB)->assertOk();
+        $this->assertNotNull($rowB->fresh('queueLineItem')->queueLineItem?->completed_at);
     }
 
-    public function test_remove_today_does_not_waive_fuel_but_remove_forever_exits_management(): void
+    public function test_remove_today_hides_the_card_but_departure_still_completes(): void
     {
-        // Remove Today: hidden card, fuel still enforced
         $hidden = $this->makeRow();
         $this->softAssign($hidden);
         QueueLineService::removeToday($hidden, $this->admin);
-        $this->readyToGo($hidden)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED');
+        $this->assertNotContains($hidden->id, $this->boardIds());
 
-        // Remove Forever: outside Queue Line management (approved Phase 1
-        // policy, incl. the fuel requirement) → release flows freely
-        $removed = $this->makeRow();
-        $this->softAssign($removed);
-        QueueLineService::removeForever($removed, $this->admin);
-        $this->readyToGo($removed)->assertOk();
+        $this->onMyWay($hidden)->assertOk();
+        $this->assertNotNull($hidden->fresh('queueLineItem')->queueLineItem?->completed_at);
     }
 
-    public function test_needs_equipment_item_cannot_release(): void
+    public function test_needs_equipment_item_fast_tracks_on_departure(): void
     {
         $row = $this->makeRow(); // eligible, no assignment
 
-        $this->readyToGo($row)
-            ->assertStatus(422)
-            ->assertJsonPath('error.code', 'QUEUE_EQUIPMENT_REQUIRED');
+        $this->onMyWay($row)->assertOk();
+
+        $item = $row->fresh('queueLineItem')->queueLineItem;
+        $this->assertNotNull($item->completed_at);
+        $this->assertNull($item->completed_equipment_id);
+        $this->assertNull($item->staged_at);
     }
 
     public function test_non_queue_scope_is_never_blocked(): void
     {
-        // Return leg (pickup Ready to Go) — never touched by the guard
+        // Return leg (pickup) — never a delivery departure
         $delivered = $this->makeRow(null, ['delivery_status' => 'Completed', 'is_delivered' => true, 'pickup_date' => now()->format('Y-m-d')]);
-        $this->actingAs($this->admin, 'api_user')->postJson($this->api('orders/schedules/driver-checklist'), [
-            'order_product_unique_id' => $delivered->unique_id,
-            'checklist_type' => 'pickup',
-            'equipment_driver_status' => 'Ready to Go',
-        ])->assertOk();
+        $this->driverStatus($delivered, 'On My Way', 'pickup')->assertOk();
 
         // Outside the Queue Line window (early release, due in 5 days)
         $early = $this->makeRow(null, ['delivery_date' => now()->addDays(5)->format('Y-m-d')]);
         $this->softAssign($early);
-        $this->readyToGo($early)->assertOk();
+        $this->onMyWay($early)->assertOk();
 
         // Sales product line
         $sales = $this->makeRow(null, ['product_data' => ['product_type' => 'Sales', 'product_option_items' => []]]);
-        $this->readyToGo($sales)->assertOk();
+        $this->onMyWay($sales)->assertOk();
     }
 
-    public function test_repeated_ready_to_go_replays_and_keeps_the_original_completion(): void
+    public function test_repeated_departure_replays_and_keeps_the_original_completion(): void
     {
         $row = $this->makeRow();
         $this->softAssign($row);
         $this->verifyFuel($row);
 
-        $this->readyToGo($row)->assertOk();
+        $this->onMyWay($row)->assertOk();
         $original = $row->fresh('queueLineItem')->queueLineItem->completed_at;
 
         Carbon::setTestNow(now()->addMinutes(15));
-        $this->readyToGo($row)->assertOk(); // already completed → guard skips, latch holds
+        $this->onMyWay($row)->assertOk(); // already completed → latch holds
         Carbon::setTestNow();
 
         $this->assertTrue($row->fresh('queueLineItem')->queueLineItem->completed_at->equalTo($original));
     }
 
-    // ── In-store release enforcement (Customer Checklist) ────────────────
+    // ── In-store handoff (Customer Checklist) ────────────────────────────
 
-    public function test_save_delivery_blocked_without_fuel_before_any_destructive_work(): void
+    public function test_save_delivery_without_fuel_fast_tracks(): void
     {
         $row = $this->makeRow(null, ['delivery_transport_mode' => 'Store']);
         $unit = $this->softAssign($row);
 
-        $this->saveDelivery($row, $unit)
-            ->assertStatus(422)
-            ->assertJsonPath('error.code', 'QUEUE_FUEL_VERIFICATION_REQUIRED');
+        $this->saveDelivery($row, $unit)->assertOk();
 
-        // Fuel was evaluated BEFORE the soft assignment was deleted
-        $fresh = $row->fresh(['softAssignment']);
-        $this->assertNotNull($fresh->softAssignment);
-        $this->assertSame('Pending', $fresh->delivery_status);
-        $this->assertNull($fresh->equipment_id);
+        $fresh = $row->fresh(['queueLineItem']);
+        $this->assertSame('Completed', $fresh->delivery_status);
+        $this->assertEquals($unit->id, $fresh->equipment_id);
+        $item = $fresh->queueLineItem;
+        $this->assertNotNull($item->completed_at);
+        $this->assertNull($item->staged_at, 'in-store handoff without staging is a Fast Track');
     }
 
     public function test_save_delivery_with_fuel_releases_hard_assigns_and_completes(): void
@@ -221,32 +256,31 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $this->assertNotNull($item->completed_at);
         $this->assertSame('customer_checklist_completed', $item->completed_via);
         $this->assertEquals($unit->id, $item->completed_equipment_id);
-        // Fuel + reassignment history survive completion
         $this->assertSame(1, QueueLineFuelVerification::count());
     }
 
-    public function test_save_delivery_with_a_different_unit_than_staged_is_rejected(): void
+    public function test_save_delivery_with_a_different_unit_completes_with_that_unit(): void
     {
+        // Informational policy: the released (request) unit is authoritative;
+        // there is no block for releasing a machine other than the staged one.
         $row = $this->makeRow(null, ['delivery_transport_mode' => 'Store']);
-        $staged = $this->softAssign($row);
-        $this->verifyFuel($row);
+        $this->softAssign($row);
         $other = $this->makeEquipment(['assigned_product_id' => $row->product_id]);
 
-        $this->saveDelivery($row, $other)
-            ->assertStatus(422)
-            ->assertJsonPath('error.code', 'QUEUE_ASSIGNMENT_CHANGED');
+        $this->saveDelivery($row, $other)->assertOk();
 
-        $this->assertSame('Pending', $row->fresh()->delivery_status);
-        $this->assertEquals($staged->id, $row->fresh(['softAssignment'])->softAssignment->equipment_id);
+        $fresh = $row->fresh();
+        $this->assertSame('Completed', $fresh->delivery_status);
+        $this->assertEquals($other->id, $fresh->equipment_id);
     }
 
     public function test_truck_defensive_second_check_is_idempotent(): void
     {
-        // Truck path: Ready to Go completes the item…
+        // Truck path: On My Way completes the item…
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
         $this->verifyFuel($row);
-        $this->readyToGo($row)->assertOk();
+        $this->onMyWay($row)->assertOk();
         $original = $row->fresh('queueLineItem')->queueLineItem;
 
         // …the later checklist save replays the completion, never rewrites it
@@ -271,17 +305,16 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $this->softAssign($sibling);
         $this->verifyFuel($releasing);
 
-        $this->readyToGo($releasing)->assertOk();
+        $this->onMyWay($releasing)->assertOk();
 
         foreach ([[], ['wallboard' => true]] as $params) {
             $html = Livewire::test(Board::class, $params)->html();
-            // A completed item leaves the ACTIVE segments and reappears as
-            // the read-only Completed reference card (lifecycle pipeline
-            // 2026-07-20) — it never renders as actionable work again.
-            $this->assertStringContainsString('Queue Line — Completed', $html);
+            // A completed item leaves the ACTIVE segments and reappears as the
+            // read-only Equipment Delivered reference card.
+            $this->assertStringContainsString('Equipment Delivered', $html);
             $this->assertSame(1, substr_count($html, 'data-delivered="1"'));
             $this->assertStringContainsString('data-order-product-id="' . $releasing->id . '"', $html);
-            $this->assertStringContainsString('Completed', $html);
+            $this->assertStringContainsString('Delivered', $html);
             $this->assertStringContainsString('data-order-product-id="' . $sibling->id . '"', $html);
         }
     }
@@ -291,7 +324,7 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
         $this->verifyFuel($row);
-        $this->readyToGo($row)->assertOk();
+        $this->onMyWay($row)->assertOk();
 
         // Lazy row creation via later actions keeps the latch
         QueueLineService::rush($row->fresh(), $this->admin);
@@ -319,15 +352,11 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $this->assertNotNull($row->fresh('queueLineItem')->queueLineItem->completed_at);
         $fuelEvents = QueueLineFuelVerification::count();
 
-        // The supported operational reversal (checklist removal) re-Pendings
-        // the order's rows and fires the checklist_removed event
         event(new OrderCustomerChecklistEvent($row->order, $this->admin, 'checklist_removed'));
 
         $item = $row->fresh('queueLineItem')->queueLineItem;
         $this->assertNull($item->completed_at);
         $this->assertNull($item->completed_via);
-        // Fuel history untouched — a fresh assignment episode will demand a
-        // fresh verification anyway
         $this->assertSame($fuelEvents, QueueLineFuelVerification::count());
     }
 
@@ -338,7 +367,6 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $row = $this->makeRow();
         $this->softAssign($row); // unverified on purpose
 
-        // Administrative closure through the existing web action
         $this->withoutMiddleware()->putJson(
             route('admin.order-management.orders.update-product-schedule', [$row->order->unique_id, $row->unique_id]),
             ['type' => 'delivery', 'delivery_status' => 'Close as Completed']
@@ -346,8 +374,8 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
 
         $fresh = $row->fresh(['queueLineItem']);
         $this->assertSame('Close as Completed', $fresh->delivery_status);
-        // Off the board via the eligibility predicate — but NO Queue Line
-        // completion latch and NO misleading dispatch history
+        // Off the board via the eligibility predicate — administrative closure
+        // (cancelled / never shipped) never reaches Equipment Delivered.
         $this->assertNotContains($row->id, $this->boardIds());
         $this->assertNull($fresh->queueLineItem?->completed_at);
     }
@@ -381,7 +409,6 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $this->assertEquals($replacement->id, $row->fresh(['softAssignment'])->softAssignment->equipment_id);
         $this->assertSame(1, OrderHistory::where('action', 'equipment_reassigned')->count());
 
-        // Replay: same request again → canonical no-op, reported replayed
         $this->apiSwitch($row, $replacement, ['idempotency_token' => 'tok-1'])
             ->assertOk()
             ->assertJsonPath('data.replayed', true);
@@ -393,11 +420,9 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $row = $this->makeRow();
         $this->softAssign($row);
 
-        // Rented unit
         $rented = $this->makeEquipment(['current_status' => 'rented']);
         $this->apiSwitch($row, $rented)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_EQUIPMENT_RENTED');
 
-        // Alternate without reason / with reason
         $otherProduct = \App\Models\ProductManagement\Product::create([
             'product_name' => 'Alt', 'slug' => 'alt-' . uniqid(), 'product_type' => 'Rental',
         ]);
@@ -406,13 +431,11 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $this->apiSwitch($row, $alt, ['reason' => '40ft buried'])->assertOk()->assertJsonPath('data.classification', 'alternate');
         $this->assertSame(1, EquipmentSubstitutionLog::count());
 
-        // Delivered item
         $delivered = $this->makeRow(null, ['delivery_status' => 'Completed', 'is_delivered' => true]);
         $hard = $this->makeEquipment();
         $delivered->update(['equipment_id' => $hard->id]);
         $this->apiSwitch($delivered, $this->makeEquipment())->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_ITEM_DELIVERED');
 
-        // Unknown item / equipment
         $this->actingAs($this->admin, 'api_user')->postJson($this->api('queue-line/ORD-SCH-NOPE/switch-equipment'), [
             'equipment_unique_id' => $alt->unique_id,
             'performed_by' => $this->employee->unique_id,
@@ -434,7 +457,7 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
             ->assertJsonPath('data.replayed', false);
     }
 
-    // ── Mobile staging (all-or-nothing — replaces the fuel-only endpoint) ──
+    // ── Mobile staging (all-or-nothing) ──────────────────────────────────
 
     private function apiMarkStaged($row, $equipment, array $overrides = []): \Illuminate\Testing\TestResponse
     {
@@ -457,7 +480,6 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
             ->assertJsonPath('data.replayed', false)
             ->assertJsonPath('data.staged_by', 'Release Tech');
 
-        // The SAME canonical records the web modal writes — fuel + key + latch
         $v = QueueLineFuelVerification::firstOrFail();
         $this->assertSame('queue_line_mobile', $v->source);
         $this->assertEquals($this->employee->id, $v->performed_by);
@@ -467,14 +489,13 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $this->assertEquals($this->employee->id, $key->performed_by);
         $this->assertNotNull($row->fresh('queueLineItem')->queueLineItem->staged_at);
 
-        // Token replay — nothing duplicated
         $this->apiMarkStaged($row, $unit, ['idempotency_token' => 'mob-9'])
             ->assertOk()->assertJsonPath('data.replayed', true);
         $this->assertSame(1, QueueLineFuelVerification::count());
         $this->assertSame(1, \App\Models\Orders\QueueLineKeyConfirmation::count());
 
-        // Release now passes
-        $this->readyToGo($row)->assertOk();
+        // A staged item still departs on On My Way
+        $this->onMyWay($row)->assertOk();
     }
 
     public function test_mobile_mark_staged_is_all_or_nothing(): void
@@ -482,11 +503,9 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
         $row = $this->makeRow();
         $unit = $this->softAssign($row);
 
-        // Fuel not full → whole request rejected, nothing recorded
         $this->apiMarkStaged($row, $unit, ['fuel_full' => false])
             ->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_FUEL_NOT_FULL');
 
-        // Key missing → same
         $this->apiMarkStaged($row, $unit, ['key_with_machine' => false])
             ->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_KEY_MISSING');
 
@@ -508,7 +527,6 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
             ->assertOk()
             ->assertJsonPath('data.fully_staged', false);
 
-        // Latch cleared; append-only reversals recorded; history preserved
         $this->assertNull($row->fresh('queueLineItem')->queueLineItem->staged_at);
         $this->assertSame(2, QueueLineFuelVerification::count());
         $this->assertSame(2, \App\Models\Orders\QueueLineKeyConfirmation::count());
@@ -516,23 +534,19 @@ class QueueLineReleaseAndCompletionTest extends QueueLineTestCase
 
     public function test_mobile_mark_staged_rejects_stale_unassigned_and_ineligible_items(): void
     {
-        // Stale equipment
         $row = $this->makeRow();
         $old = $this->softAssign($row);
         $new = $this->makeEquipment(['assigned_product_id' => $row->product_id]);
         EquipmentReassignmentService::switch($row->fresh(['softAssignment.equipment', 'order']), $new, $this->employee, $this->admin);
         $this->apiMarkStaged($row, $old)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_ASSIGNMENT_CHANGED');
 
-        // Needs Equipment
         $bare = $this->makeRow();
         $this->apiMarkStaged($bare, $this->makeEquipment())->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_EQUIPMENT_REQUIRED');
 
-        // Ineligible (outside window)
         $far = $this->makeRow(null, ['delivery_date' => now()->addDays(9)->format('Y-m-d')]);
         $farUnit = $this->softAssign($far);
         $this->apiMarkStaged($far, $farUnit)->assertStatus(422)->assertJsonPath('error.code', 'QUEUE_ITEM_NOT_ELIGIBLE');
 
-        // Partial state never leaks from a rejection
         $this->assertSame(0, \App\Models\Orders\QueueLineKeyConfirmation::count());
     }
 

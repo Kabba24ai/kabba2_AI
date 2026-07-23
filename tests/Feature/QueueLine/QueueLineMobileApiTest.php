@@ -336,7 +336,7 @@ class QueueLineMobileApiTest extends QueueLineTestCase
 
         $release = collect($events)->firstWhere('type', 'release');
         $this->assertNotNull($release);
-        $this->assertSame('Left the Queue Line', $release['title']);
+        $this->assertStringContainsString('Left the yard', $release['title']);
         $this->assertStringContainsString('customer checklist', $release['detail']);
     }
 

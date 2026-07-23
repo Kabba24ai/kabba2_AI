@@ -104,21 +104,13 @@ class SaveDeliveryController extends BaseController
                 );
             }
 
-            // Queue Line release enforcement (Phase 3C): this save is the
-            // in-store release moment (and the truck-path completion), and it
-            // deletes the soft assignment while hard-assigning — so fuel is
-            // evaluated HERE, against the live assignment episode, BEFORE any
-            // destructive work. The unit being released ($equipment, from the
-            // request) must be the staged unit and must be fuel-verified.
-            // Non-queue items are never touched.
-            $orderProduct->loadMissing('softAssignment.equipment', 'queueLineItem');
-            if ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($orderProduct, $equipment)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $blocked['message'],
-                    'error' => $blocked,
-                ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
-            }
+            // Queue Line staging is informational, not restrictive (2026-07-23):
+            // the in-store handoff / truck-path completion is never blocked for
+            // lacking staging/fuel verification. A never-staged handoff is a
+            // legitimate Fast Track — recorded (staged_at null on the completion
+            // latch, surfaced as "FAST TRACK / NOT STAGED") and never prevented.
+            // Completion is recorded by SyncOnCustomerChecklist off the
+            // OrderCustomerChecklistEvent this controller dispatches.
 
             if(isset($validated['checklist']) && !empty($validated['checklist'])) {
                 $questions = optional($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)->map->question->values() ?? collect();

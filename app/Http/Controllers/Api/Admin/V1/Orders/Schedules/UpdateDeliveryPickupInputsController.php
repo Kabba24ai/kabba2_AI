@@ -50,21 +50,10 @@ class UpdateDeliveryPickupInputsController extends Controller
             // claiming completion is not.
             if ($prefix === 'delivery') {
                 if ($schedule->delivery_by !== null) {
-                    // Queue Line release enforcement (Phase 4 §2): this branch
-                    // marks the delivery Completed, so it obeys the canonical
-                    // guard. Items already released through a guarded path are
-                    // completed (latched) and pass through untouched.
-                    $guardTarget = OrderProduct::with('softAssignment.equipment', 'queueLineItem')
-                        ->find($schedule->id);
-                    if ($guardTarget && ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($guardTarget))) {
-                        return response()->json([
-                            'status' => false,
-                            'success' => false,
-                            'message' => $blocked['message'],
-                            'error' => $blocked,
-                        ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
-                    }
-
+                    // Queue Line staging is informational, not restrictive
+                    // (2026-07-23): completion is never blocked for lacking
+                    // staging/fuel verification — a never-staged completion is a
+                    // Fast Track, recorded and surfaced, never prevented.
                     $fields['is_delivered']          = 1;
                     $fields['delivery_is_delivered'] = true;
                     $fields['delivery_status']       = 'Completed';

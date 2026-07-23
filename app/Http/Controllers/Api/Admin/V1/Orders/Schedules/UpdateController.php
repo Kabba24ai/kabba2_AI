@@ -32,22 +32,12 @@ class UpdateController extends Controller
                 ->where('unique_id', $validated['order_product_unique_id'])
                 ->firstOrFail();
 
-            // Queue Line release enforcement (Phase 4 §2): marking the delivery
-            // leg 'Completed' from the admin app is a release — same canonical
-            // guard, same structured 422 as the driver-checklist path.
-            if ($validated['schedule_type'] === 'Delivery'
-                && $validated['schedule_status'] === 'Completed'
-                && $schedule->delivery_status !== 'Completed') {
-                $schedule->loadMissing('softAssignment.equipment', 'queueLineItem');
-                if ($blocked = \App\Services\QueueLine\QueueLineReleaseGuard::check($schedule)) {
-                    return response()->json([
-                        'status' => false,
-                        'success' => false,
-                        'message' => $blocked['message'],
-                        'error' => $blocked,
-                    ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
-                }
-            }
+            // Queue Line staging is informational, not restrictive (2026-07-23):
+            // marking the delivery leg 'Completed' from the admin app is never
+            // blocked for lacking staging/fuel verification — a never-staged
+            // completion is a Fast Track, recorded and surfaced, never
+            // prevented. SyncOnScheduleUpdate records completion off the event
+            // dispatched below.
 
             if ($validated['schedule_type'] === 'Delivery') {
                 $field = 'delivery_status';

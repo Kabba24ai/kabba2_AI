@@ -6,11 +6,23 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 
 /**
- * THE single release-enforcement rule (Phase 3C): outbound equipment on a
- * Queue Line-managed item may not leave the yard without a CURRENT Queue
- * Fuel Verification for the exact unit being released.
+ * The Queue Line release EVALUATOR.
  *
- * Scope — enforcement applies ONLY when the item is under active Queue
+ * As of 2026-07-23 this is INFORMATIONAL only (approved): no caller blocks a
+ * release on its result any more. Leaving the yard without staging / fuel
+ * verification is a legitimate Fast Track — it is recorded (the completion
+ * latch with a null staged_at) and surfaced with a "FAST TRACK / NOT STAGED"
+ * badge, never prevented. check() is retained because the mobile presenter and
+ * board still use its structured result to describe readiness ("what is this
+ * item still missing?"); the controllers that once returned a 422 from it now
+ * simply proceed. Do NOT reintroduce a hard block here without an explicit
+ * policy decision — that would reverse the Fast Track mission.
+ *
+ * Historic contract (still the shape check() returns): outbound equipment on a
+ * Queue Line-managed item is "ready" only with a CURRENT Queue Fuel
+ * Verification for the exact unit being released.
+ *
+ * Scope — evaluation applies ONLY when the item is under active Queue
  * Line management (the canonical eligibility predicate: Rental, order
  * alive, delivery leg Pending, dated through tomorrow, Truck or Store):
  *  - returns / Return Only legs / retail lines: never touched (eligibility

@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateOrderAddressControll
 
 use App\Http\Controllers\Admin\OrderManagement\Orders\ReceiptDownload;
 use App\Http\Controllers\Admin\OrderManagement\Orders\SendReceiptEmailController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\OperationsHistoryController;
 
 use App\Http\Controllers\Admin\OrderManagement\Orders\AddToAccountPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\SendTermsAndConditionsController;
@@ -86,6 +87,9 @@ Route::prefix('orders')
 
         Route::get('/{unique_id}/receipt-download', ReceiptDownload::class)->name('receipt-download');
         Route::get('/{unique_id}/receipt-email', SendReceiptEmailController::class)->name('receipt-email');
+
+        // Operations History — read-only tabbed operational audit modal
+        Route::get('/{unique_id}/operations-history', OperationsHistoryController::class)->name('operations-history');
 
         // Notes
         Route::prefix('notes')

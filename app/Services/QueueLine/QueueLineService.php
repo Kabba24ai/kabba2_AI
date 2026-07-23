@@ -31,6 +31,15 @@ final class QueueLineService
     public const VIA_CUSTOMER_CHECKLIST_COMPLETED = 'customer_checklist_completed';
 
     /**
+     * Canonical delivery completion recorded off a schedule status change
+     * (2026-07-23): an admin/API/dispatch flip of the delivery leg to
+     * Completed / Close as Completed — direct pickup, walk-in Fast Track, or
+     * administrative completion. Widens "Equipment Delivered" to everything
+     * that left the yard today, not just items that went through staging.
+     */
+    public const VIA_SCHEDULE_COMPLETED = 'schedule_completed';
+
+    /**
      * Completion latch (Phase 3C): the equipment physically left the yard.
      * One-way and idempotent — a repeat call NEVER moves the original
      * timestamp, source, or equipment; only an explicit reopen() resets it.
@@ -38,7 +47,7 @@ final class QueueLineService
      */
     public static function complete(OrderProduct $orderProduct, string $via, ?int $equipmentId): QueueLineItem
     {
-        if (! in_array($via, [self::VIA_DISPATCH_STARTED, self::VIA_CUSTOMER_CHECKLIST_COMPLETED], true)) {
+        if (! in_array($via, [self::VIA_DISPATCH_STARTED, self::VIA_CUSTOMER_CHECKLIST_COMPLETED, self::VIA_SCHEDULE_COMPLETED], true)) {
             throw new QueueLineOperationException("Unknown Queue Line completion source: {$via}.");
         }
 
@@ -80,6 +89,33 @@ final class QueueLineService
             'completed_at' => null,
             'completed_via' => null,
             'completed_equipment_id' => null,
+        ])->save();
+
+        return $item;
+    }
+
+    /**
+     * Return an item to Queue Line — Pending as though it never left the yard
+     * (2026-07-23). Used when an administrator reverses a delivery
+     * (Completed → Pending) or reschedules it: the completion latch clears AND
+     * the staged latch clears, so the item re-enters the Pending column and the
+     * full staging process is required again before it can leave. No-op when no
+     * sidecar row exists (nothing ever happened to the item).
+     */
+    public static function requeue(OrderProduct $orderProduct): ?QueueLineItem
+    {
+        $item = QueueLineItem::where('order_product_id', $orderProduct->id)->first();
+
+        if (! $item) {
+            return null;
+        }
+
+        $item->forceFill([
+            'completed_at' => null,
+            'completed_via' => null,
+            'completed_equipment_id' => null,
+            'staged_at' => null,
+            'staged_by' => null,
         ])->save();
 
         return $item;

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ServiceManagement\Diagnostics;
 use App\Http\Controllers\Admin\ServiceManagement\Notes;
 use App\Http\Controllers\Admin\ServiceManagement\LaborEntries;
 use App\Http\Controllers\Admin\ServiceManagement\Media;
+use App\Http\Controllers\Admin\ServiceManagement\BoardController;
 use App\Http\Controllers\Admin\ServiceManagement\OverviewController;
 use App\Http\Controllers\Admin\ServiceManagement\Parts;
 use App\Http\Controllers\Admin\ServiceManagement\ProblemTemplates;
@@ -26,6 +27,11 @@ Route::prefix('service-management')
     ->name('service-management.')
     ->group(function () {
         Route::get('/', OverviewController::class)->name('overview')->middleware('permission:service_tickets.view');
+
+        // Service Operations Board — consolidated technician-swimlane dashboard
+        // (Livewire). Non-destructive alongside the overview until it becomes
+        // the default Service Operations view.
+        Route::get('/board', BoardController::class)->name('board')->middleware('permission:service_tickets.view');
 
         // Equipment Reported-Problem templates (Equipment problem-templates)
         // — the taxonomy library, template builder, and per-unit attachment.

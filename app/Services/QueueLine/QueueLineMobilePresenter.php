@@ -162,7 +162,10 @@ final class QueueLineMobilePresenter
                 'status' => $equipment->current_status?->value,
                 'status_label' => $equipment->status_label,
                 'power_source_type' => $equipment->power_source_type,
+                'is_fuel' => $equipment->power_source_type !== null,
                 'key_starting_mechanism'=> $equipment->key_starting_mechanism,
+                'is_key' => $equipment->key_starting_mechanism !== null
+                    && $equipment->key_starting_mechanism !== \App\Enums\Equipments\EquipmentKeyStartingMechanism::NONE,
                 'rental_ready' => QueueLineEligibility::rentalReadyLabel($row),
             ] : null,
             'options_count' => QueueLineEligibility::optionsCount($row),

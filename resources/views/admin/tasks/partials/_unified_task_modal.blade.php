@@ -375,7 +375,9 @@
         window.utOrderChoices = new Choices(document.getElementById('ut_order'), {
             searchEnabled: true, shouldSort: false, itemSelectText: '',
             searchResultLimit: 50, searchFloor: 1, renderChoiceLimit: -1,
+            removeItemButton: true,   // lets the user clear a selected order (keeps the customer)
             placeholder: true, placeholderValue: 'Search or select an order',
+            noChoicesText: 'No orders found', noResultsText: 'No matching orders',
         });
         utResetOrderField();
         utSetReasonChoices('customer');
@@ -406,41 +408,40 @@
         return label;
     }
 
-    // Plain choice objects only (NO `placeholder: true` flag — that flag makes
-    // Choices render an empty list). A plain empty-value option is the "no order"
-    // row, matching the working Reason dropdown's setChoices pattern.
-    function utOrderChoiceOptions(orders, selectId) {
+    // PLAIN order choices only — no empty/placeholder option (its value:'' collided
+    // with the loading placeholder and stuck the control). The "no selection" state
+    // is handled by removeActiveItems() + the instance placeholder; clearing a
+    // selection is handled by removeItemButton.
+    function utOrderChoiceOptions(orders) {
         _utOrderById = {};
-        var opts = [{ value: '', label: 'Search or select an order', selected: selectId == null }];
-        orders.forEach(function (o) {
+        return orders.map(function (o) {
             _utOrderById[String(o.id)] = o;
-            opts.push({ value: String(o.id), label: utOrderLabel(o), selected: selectId != null && String(o.id) === String(selectId) });
+            return { value: String(o.id), label: utOrderLabel(o) };
         });
-        return opts;
     }
 
     // Push a choice set programmatically (guarded so it doesn't fire the change
-    // handler). Uses setChoices(replace=true) ALONE — the same pattern the Reason
-    // dropdown uses. (A preceding clearStore() leaves the rendered list empty.)
+    // handler). Clear any stale active item first, then replace choices, then
+    // (re)select if asked.
     function utApplyOrderChoices(orders, selectId) {
         if (!window.utOrderChoices) return;
         _utSyncing = true;
-        window.utOrderChoices.setChoices(utOrderChoiceOptions(orders, selectId), 'value', 'label', true);
+        window.utOrderChoices.removeActiveItems();
+        window.utOrderChoices.setChoices(utOrderChoiceOptions(orders), 'value', 'label', true);
+        if (selectId != null) window.utOrderChoices.setChoiceByValue(String(selectId));
         window.utOrderChoices.enable();
         _utSyncing = false;
     }
 
-    // Global (no customer) baseline: empty searchable list.
+    // Global (no customer) baseline: empty list, placeholder showing.
     function utResetOrderField() {
         _utOrderMode = 'global';
         _utOrder     = null;
         _utOrderById = {};
         if (!window.utOrderChoices) return;
         _utSyncing = true;
-        window.utOrderChoices.setChoices(
-            [{ value: '', label: 'Search or select an order', selected: true }],
-            'value', 'label', true
-        );
+        window.utOrderChoices.removeActiveItems();
+        window.utOrderChoices.setChoices([], 'value', 'label', true);
         window.utOrderChoices.enable();
         _utSyncing = false;
     }
@@ -469,9 +470,12 @@
         if (!customerId) { utResetOrderField(); return Promise.resolve(); }
 
         var seq = ++_utOrderSeq;
+        // Clear the list while the (fast) fetch runs — no "Loading" placeholder,
+        // which previously stuck as a value:'' selected item.
         if (window.utOrderChoices) {
             _utSyncing = true;
-            window.utOrderChoices.setChoices([{ value: '', label: 'Loading orders…', selected: true }], 'value', 'label', true);
+            window.utOrderChoices.removeActiveItems();
+            window.utOrderChoices.setChoices([], 'value', 'label', true);
             _utSyncing = false;
         }
 

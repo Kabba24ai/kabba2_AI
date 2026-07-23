@@ -641,6 +641,13 @@
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
                                 <li>
+                                    <a href="{{ route('admin.service-management.board') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.service-management.board') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-view-columns class="h-5 w-5" /> Operations Board
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('admin.service-management.overview') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.service-management.overview') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">

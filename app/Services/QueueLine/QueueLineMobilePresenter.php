@@ -38,11 +38,14 @@ final class QueueLineMobilePresenter
     /**
      * The full board feed: canonical eligibility + ordering + one batched
      * fuel-state query (never per-item). Items are grouped into the three
-     * Queue Line sections (2026-07-23) — Pending, Staged, Completed — over
-     * the SAME date window (Overdue/Today/Tomorrow) the active board already
-     * uses; Completed is sourced from completedQuery() since boardQuery()
-     * excludes completed rows by design (that exclusion still governs the
-     * web board, which never shows a Completed section).
+     * Queue Line sections (2026-07-23) — parity with the web board's own
+     * three-segment pipeline (Board.php: pending / ready / deliveredToday).
+     * Pending/Staged use the same eligibility window boardQuery() already
+     * enforces (Overdue/Today/Tomorrow); Completed is sourced from
+     * completedQuery() — "completed today" only, same as deliveredToday(),
+     * and deliberately skips filterFinanciallyActive like the web feed does
+     * (a completed hand-off is historical fact, never hidden by a later
+     * void/refund).
      *
      * @return array{items: array{pending: array, staged: array, completed: array}, meta: array}
      */
@@ -51,9 +54,7 @@ final class QueueLineMobilePresenter
         $activeRows = QueueLineEligibility::filterFinanciallyActive(
             QueueLineEligibility::boardQuery($storeId)->get()
         );
-        $completedRows = QueueLineEligibility::filterFinanciallyActive(
-            QueueLineEligibility::completedQuery($storeId)->get()
-        );
+        $completedRows = QueueLineEligibility::completedQuery($storeId)->get();
 
         $allRows = $activeRows->concat($completedRows);
         $fuelByAssignment = self::fuelMap($allRows);
@@ -88,9 +89,7 @@ final class QueueLineMobilePresenter
         $activeRows = QueueLineEligibility::filterFinanciallyActive(
             QueueLineEligibility::boardQuery($storeId)->get()
         );
-        $completedCount = QueueLineEligibility::filterFinanciallyActive(
-            QueueLineEligibility::completedQuery($storeId)->get()
-        )->count();
+        $completedCount = QueueLineEligibility::completedQuery($storeId)->count();
         $fuelByAssignment = self::fuelMap($activeRows);
         $keyByAssignment = QueueLineStagingService::keyMap($activeRows);
 

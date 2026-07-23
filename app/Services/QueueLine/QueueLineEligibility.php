@@ -94,25 +94,25 @@ final class QueueLineEligibility
     }
 
     /**
-     * The mobile board's Completed section (2026-07-23) — same date/product/
-     * transport window as boardQuery, but for items whose Queue Line row is
-     * ALREADY completed. delivery_status is deliberately NOT filtered here
-     * (a completed row is no longer 'Pending'). The web board never calls
-     * this — it intentionally excludes completed items via boardQuery.
+     * The mobile board's Completed section (2026-07-23) — parity with the
+     * web board's "Delivered Today" feed (Board::deliveredToday()): scoped to
+     * completed_at = the CURRENT operational day, not the pending/staged
+     * eligibility window (delivery_date <= tomorrow is irrelevant here — an
+     * item can be completed today regardless of when it was due). No
+     * financial-activity filter either, matching the web feed — a completed
+     * hand-off is a historical fact, never retroactively hidden by a later
+     * void/refund. The web board never calls this — it renders the same rows
+     * directly from QueueLineItem via deliveredToday(); this exists solely
+     * for the mobile module's three-section view.
      */
     public static function completedQuery(?int $storeId = null): Builder
     {
         return OrderProduct::query()
-            ->where('product_data->product_type', 'Rental')
             ->whereHas('order')
-            ->whereNotNull('delivery_date')
-            ->whereDate('delivery_date', '<=', today()->addDay())
-            ->whereIn('delivery_transport_mode', ['Truck', 'Store'])
+            ->whereHas('queueLineItem', fn (Builder $q) => $q->whereDate('completed_at', today()))
             ->when($storeId, fn (Builder $q) => $q->where('delivery_store_id', $storeId))
-            ->whereHas('queueLineItem', fn (Builder $q) => $q->whereNotNull('completed_at'))
             ->with([
                 'order.lastPayment',
-                'order.payments',
                 'product:id,unique_id,product_name',
                 'product.mediaChildren',
                 'deliveryStore:id,unique_id,store_name',

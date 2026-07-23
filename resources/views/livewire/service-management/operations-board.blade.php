@@ -82,21 +82,26 @@
                     <span style="margin-left: auto; font-size: 12px; font-weight: 700; color: {{ $lane['accent'] }}; background: #fff; border: 1px solid {{ $lane['accent'] }}; border-radius: 999px; padding: 4px 10px;">{{ $lane['count'] }}</span>
                 </div>
 
-                {{-- Card strip --}}
-                <div style="flex: 1; min-width: 0; display: flex; align-items: stretch; gap: 12px; padding: 16px; overflow-x: auto;">
+                {{-- Card strip (SortableJS target — see the drag script below) --}}
+                <div data-svc-lane="{{ $lane['key'] }}" wire:key="lane-strip-{{ $lane['key'] }}"
+                    style="flex: 1; min-width: 0; display: flex; align-items: stretch; gap: 12px; padding: 16px; overflow-x: auto;">
                     @foreach ($lane['cards'] as $card)
-                        <div wire:key="card-{{ $card['id'] }}" style="width: 258px; flex: 0 0 auto; background: #fff; border: 1px solid #e9edf2; border-radius: 13px; box-shadow: 0 1px 3px rgba(15,23,42,.06); overflow: hidden; display: flex; flex-direction: column;">
+                        <div data-svc-card data-id="{{ $card['id'] }}" wire:key="card-{{ $card['id'] }}"
+                            style="width: 258px; flex: 0 0 auto; background: #fff; border: 1px solid #e9edf2; border-radius: 13px; box-shadow: 0 1px 3px rgba(15,23,42,.06); overflow: hidden; display: flex; flex-direction: column;">
                             @if ($card['emergency'])
                                 <div style="background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-align: center; padding: 4px;">EMERGENCY</div>
                             @endif
-                            <a href="{{ $card['showUrl'] }}" style="display: block; padding: 13px 14px 10px; text-decoration: none; color: inherit;">
-                                <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 11px;">
-                                    <span style="flex: 0 0 auto; width: 26px; height: 26px; border-radius: 8px; background: {{ $card['ordinal'] === 1 ? '#0f172a' : '#eef2f7' }}; color: {{ $card['ordinal'] === 1 ? '#fff' : '#64748b' }}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{ $card['ordinal'] }}</span>
-                                    @if ($card['ordinal'] === 1)
-                                        <span style="font-size: 9.5px; font-weight: 700; letter-spacing: .1em; color: #0d9488; background: #d3f4ec; border-radius: 999px; padding: 3px 8px;">NEXT UP</span>
-                                    @endif
-                                    <span style="margin-left: auto; font-size: 11px; font-weight: 600; color: {{ $card['ageOld'] ? '#d97706' : '#94a3b8' }};">{{ $card['ageLabel'] }}</span>
-                                </div>
+                            {{-- Header row is OUTSIDE the anchor so the drag grip never navigates. --}}
+                            <div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px 0;">
+                                <span data-svc-handle title="Drag to reorder or reassign"
+                                    style="flex: 0 0 auto; cursor: grab; color: #cbd5e1; font-size: 14px; line-height: 1; user-select: none;">⠿</span>
+                                <span style="flex: 0 0 auto; width: 26px; height: 26px; border-radius: 8px; background: {{ $card['ordinal'] === 1 ? '#0f172a' : '#eef2f7' }}; color: {{ $card['ordinal'] === 1 ? '#fff' : '#64748b' }}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{ $card['ordinal'] }}</span>
+                                @if ($card['ordinal'] === 1)
+                                    <span style="font-size: 9.5px; font-weight: 700; letter-spacing: .1em; color: #0d9488; background: #d3f4ec; border-radius: 999px; padding: 3px 8px;">NEXT UP</span>
+                                @endif
+                                <span style="margin-left: auto; font-size: 11px; font-weight: 600; color: {{ $card['ageOld'] ? '#d97706' : '#94a3b8' }};">{{ $card['ageLabel'] }}</span>
+                            </div>
+                            <a href="{{ $card['showUrl'] }}" style="display: block; padding: 10px 14px 10px; text-decoration: none; color: inherit;">
                                 <div style="font-size: 14px; font-weight: 700; color: #0f172a; line-height: 1.25;">{{ $card['equip'] }}</div>
                                 <div style="font-size: 11.5px; color: #94a3b8; margin: 1px 0 10px;">{{ $card['equipId'] }}</div>
                                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 11px; flex-wrap: wrap;">
@@ -113,7 +118,7 @@
                                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $card['customer'] }}</span>
                                 </div>
                             </a>
-                            <div style="padding: 0 14px 13px;">
+                            <div style="padding: 0 14px 13px; margin-top: auto;">
                                 <select wire:change="setStatus({{ $card['id'] }}, $event.target.value)"
                                     style="font-family: inherit; font-size: 11.5px; font-weight: 600; color: {{ $card['statusC'] }}; background: {{ $card['statusBg'] }}; border: 1px solid {{ $card['statusBd'] }}; border-radius: 8px; padding: 6px 10px; cursor: pointer; width: 100%;">
                                     @foreach ($cardStatuses as $s)
@@ -131,4 +136,56 @@
             </div>
         @endforelse
     </div>
+
+    @script
+    <script>
+        (function () {
+            const GROUP = 'svc-board';
+            let instances = [];
+
+            function teardown() {
+                instances.forEach(function (s) { try { s.destroy(); } catch (e) {} });
+                instances = [];
+            }
+
+            function build() {
+                teardown();
+                if (!window.Sortable) return;
+                document.querySelectorAll('[data-svc-lane]').forEach(function (lane) {
+                    instances.push(window.Sortable.create(lane, {
+                        group: GROUP,
+                        handle: '[data-svc-handle]',
+                        draggable: '[data-svc-card]',
+                        animation: 150,
+                        ghostClass: 'svc-ghost',
+                        onEnd: function (evt) {
+                            const target = evt.to;
+                            const item = evt.item;
+                            if (!target || !item) return;
+                            const laneKey = target.getAttribute('data-svc-lane');
+                            const ticketId = parseInt(item.getAttribute('data-id') || '', 10);
+                            if (!laneKey || isNaN(ticketId)) return;
+                            const orderedIds = Array.prototype.slice
+                                .call(target.querySelectorAll('[data-svc-card]'))
+                                .map(function (el) { return parseInt(el.getAttribute('data-id') || '', 10); })
+                                .filter(function (n) { return !isNaN(n); });
+                            $wire.moveCard(ticketId, laneKey, orderedIds);
+                        },
+                    }));
+                });
+            }
+
+            build();
+
+            // Rebuild after every Livewire update to this page (poll, filter,
+            // status change, or the drag itself) so SortableJS re-binds to the
+            // freshly morphed lane DOM.
+            Livewire.hook('commit', function (payload) {
+                if (payload && typeof payload.succeed === 'function') {
+                    payload.succeed(function () { build(); });
+                }
+            });
+        })();
+    </script>
+    @endscript
 </div>

@@ -6,8 +6,10 @@ use App\Enums\Service\RepairStatus;
 use App\Enums\Service\ServicePriority;
 use App\Enums\Service\ServiceType;
 use App\Enums\Service\FinancialStatus;
+use App\Models\Iam\Personnel\User;
 use App\Models\Service\ServiceTicket;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 /**
@@ -49,6 +51,55 @@ class OperationsBoard extends Component
         $ticket = ServiceTicket::find($ticketId);
         if ($ticket !== null) {
             $ticket->transitionTo($target);
+        }
+    }
+
+    /**
+     * Persist a drag: move ticket $ticketId into lane $laneKey and rewrite the
+     * priority order of that lane from $orderedIds (its cards after the drop,
+     * left-to-right). $laneKey is a team-leader user id, or 'unassigned'.
+     *
+     *  - Reassign: the lane owner is the ticket's Team Leader. Moving to a tech
+     *    lane makes that tech the team leader (added to the crew if absent);
+     *    moving to Unassigned clears the team-leader flag (crew is untouched).
+     *  - Reorder: board_position is set to the 1-based index within the lane.
+     *    Positions are only ever compared within a lane, so reusing 1..n per
+     *    lane is correct; the source lane keeps its remaining order.
+     */
+    public function moveCard(int $ticketId, string $laneKey, array $orderedIds): void
+    {
+        $ticket = ServiceTicket::find($ticketId);
+        if ($ticket === null) {
+            return;
+        }
+
+        // Clear any existing team-leader flag on this ticket's crew.
+        DB::table('service_ticket_personnel')
+            ->where('service_ticket_id', $ticket->id)
+            ->update(['is_team_leader' => 0]);
+
+        if ($laneKey !== 'unassigned') {
+            $techId = (int) $laneKey;
+            if ($techId > 0 && User::whereKey($techId)->exists()) {
+                if ($ticket->personnel()->where('users.id', $techId)->exists()) {
+                    DB::table('service_ticket_personnel')
+                        ->where('service_ticket_id', $ticket->id)
+                        ->where('employee_id', $techId)
+                        ->update(['is_team_leader' => 1]);
+                } else {
+                    $ticket->personnel()->attach($techId, ['is_team_leader' => true]);
+                }
+            }
+        }
+
+        // Rewrite the target lane's priority order (1-based, left to right).
+        $position = 1;
+        foreach ($orderedIds as $id) {
+            $id = (int) $id;
+            if ($id > 0) {
+                ServiceTicket::whereKey($id)->update(['board_position' => $position]);
+                $position++;
+            }
         }
     }
 

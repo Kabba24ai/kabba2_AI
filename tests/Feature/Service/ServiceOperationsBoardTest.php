@@ -135,4 +135,45 @@ class ServiceOperationsBoardTest extends TestCase
             ->assertSee('Open Tickets')
             ->assertSee('Emergency');
     }
+
+    // ── Phase 2: drag persistence (reorder + reassign) ───────────────────
+
+    public function test_move_card_reorders_within_a_lane(): void
+    {
+        $a = $this->makeTicket([], [$this->tech->id], $this->tech->id);
+        $b = $this->makeTicket([], [$this->tech->id], $this->tech->id);
+
+        // Drop b before a in the tech's lane.
+        Livewire::test(OperationsBoard::class)
+            ->call('moveCard', $b->id, (string) $this->tech->id, [$b->id, $a->id]);
+
+        $this->assertSame(1, $b->fresh()->board_position);
+        $this->assertSame(2, $a->fresh()->board_position);
+    }
+
+    public function test_move_card_reassigns_the_team_leader(): void
+    {
+        $tech2 = User::create(['first_name' => 'Brady', 'last_name' => 'Stultz', 'email' => 'brady@test.local', 'status' => 'Active']);
+        $ticket = $this->makeTicket([], [$this->tech->id], $this->tech->id);
+        $this->assertSame($this->tech->id, $ticket->teamLeader()?->id);
+
+        Livewire::test(OperationsBoard::class)
+            ->call('moveCard', $ticket->id, (string) $tech2->id, [$ticket->id]);
+
+        $ticket->refresh();
+        $this->assertSame($tech2->id, $ticket->teamLeader()?->id);
+        // Reassigning to a tech not on the crew adds them.
+        $this->assertTrue($ticket->personnel()->where('users.id', $tech2->id)->exists());
+    }
+
+    public function test_move_card_to_unassigned_clears_the_team_leader(): void
+    {
+        $ticket = $this->makeTicket([], [$this->tech->id], $this->tech->id);
+        $this->assertNotNull($ticket->teamLeader());
+
+        Livewire::test(OperationsBoard::class)
+            ->call('moveCard', $ticket->id, 'unassigned', [$ticket->id]);
+
+        $this->assertNull($ticket->refresh()->teamLeader());
+    }
 }

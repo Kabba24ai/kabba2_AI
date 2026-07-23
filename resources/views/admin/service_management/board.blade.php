@@ -5,6 +5,10 @@
 @push('css')
 <style>
     main { background-color: #f8fafc; flex: 1 1 auto; }
+    [data-svc-handle]:active { cursor: grabbing; }
+    .svc-ghost { opacity: .4; }
+    [data-svc-lane]::-webkit-scrollbar { height: 9px; }
+    [data-svc-lane]::-webkit-scrollbar-thumb { background: rgba(15,23,42,.18); border-radius: 999px; }
 </style>
 @endpush
 

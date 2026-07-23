@@ -149,6 +149,17 @@ trait BuildsTicketFormData
             ->orderBy('title')
             ->get(['id', 'title']);
 
+        // Validation round-trip for the Customer path: rehydrate the chosen
+        // order (with its serviceable units) so the order chip + equipment
+        // picker restore without the order needing to be in any preload.
+        $oldCustomerOrder = null;
+        if (old('ticket_source', 'customer') !== 'standard' && old('order_id')) {
+            $oldCustomerOrder = \App\Services\ServiceManagement\ServiceIntakeOrderPresenter::present(
+                \App\Models\Orders\Order::with(\App\Services\ServiceManagement\ServiceIntakeOrderPresenter::relations())
+                    ->find((int) old('order_id'))
+            );
+        }
+
         // Validation round-trip for the Standard path: rehydrate the label of a
         // previously-chosen unit so the chip re-renders without another lookup.
         $oldStandardEquipment = null;
@@ -167,7 +178,7 @@ trait BuildsTicketFormData
             }
         }
 
-        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'symptomCategories', 'symptoms', 'symptomProfiles', 'employees', 'stores', 'equipmentCategories', 'oldStandardEquipment');
+        return compact('orderOptions', 'filterCategories', 'filterProducts', 'overrideEquipment', 'symptomCategories', 'symptoms', 'symptomProfiles', 'employees', 'stores', 'equipmentCategories', 'oldStandardEquipment', 'oldCustomerOrder');
     }
 
     /** Shared dropdown data for the create/edit ticket forms. */

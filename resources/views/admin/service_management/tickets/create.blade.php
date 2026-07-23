@@ -448,12 +448,28 @@ document.addEventListener('DOMContentLoaded', function () {
     let standardUnit  = @json($oldStandardEquipment);
     const EQUIPMENT_SEARCH_URL = @json(route('admin.service-management.tickets.equipment-search'));
 
+    // Customer path: the order the employee picked from the LIVE server search.
+    // It (not the preloaded ORDERS list) is the source of truth for the chosen
+    // order's equipment + complaint resolution, so orders outside any preload —
+    // e.g. soft-assigned Queue Line orders — work identically once selected.
+    const ORDER_SEARCH_URL = @json(route('admin.service-management.tickets.order-search'));
+    let selectedCustomerOrder = @json($oldCustomerOrder);
+
     const orderSelect     = document.getElementById('st-order');
     const equipmentSelect = document.getElementById('st-equipment');
     const equipmentLocked = document.getElementById('st-equipment-locked');
 
+    // Resolve the currently-selected customer order: the live-searched
+    // selection wins; ORDERS remains only a fallback.
+    function currentOrder() {
+        if (selectedCustomerOrder && String(selectedCustomerOrder.id) === String(orderSelect.value)) {
+            return selectedCustomerOrder;
+        }
+        return ORDERS.find(o => String(o.id) === String(orderSelect.value));
+    }
+
     function syncOrder(preserveOld) {
-        const order = ORDERS.find(o => String(o.id) === String(orderSelect.value));
+        const order = currentOrder();
         const keep  = preserveOld ? (equipmentSelect.dataset.old || '') : '';
         equipmentSelect.dataset.old = '';
         equipmentSelect.innerHTML = '';
@@ -517,12 +533,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function selectOrder(order) {
+        selectedCustomerOrder = order;
+        // The hidden <select> only needs to carry this one id to submit — the
+        // full order object (with equipment) lives in selectedCustomerOrder.
+        orderSelect.innerHTML = '<option value="' + order.id + '"></option>';
         orderSelect.value = String(order.id);
         orderSelect.dispatchEvent(new Event('change'));
         showSelectedOrder(order);
     }
 
     document.getElementById('st-order-change').addEventListener('click', function () {
+        selectedCustomerOrder = null;
         orderSelect.value = '';
         orderSelect.dispatchEvent(new Event('change'));
         selectedChip.classList.add('hidden');
@@ -531,47 +552,75 @@ document.addEventListener('DOMContentLoaded', function () {
         ['st-search-order', 'st-search-customer'].forEach(id => document.getElementById(id).value = '');
     });
 
-    function bindOrderSearch(inputId, resultsId) {
+    // Live, server-side order search (all orders — not a capped preload — so an
+    // order whose unit is soft-assigned through the Queue Line is findable).
+    // `by` selects the field: the Order # box matches order/reference number,
+    // the Customer box matches customer/billing name.
+    function bindOrderSearch(inputId, resultsId, by) {
         const input   = document.getElementById(inputId);
         const results = document.getElementById(resultsId);
+        let timer = null;
+        let lastResults = [];
 
-        input.addEventListener('input', function () {
-            const q = input.value.trim().toLowerCase().replace(/^#/, '');
-            if (q.length < 2) { results.classList.add('hidden'); return; }
-
-            const matches = ORDERS
-                .filter(o => String(o.label).toLowerCase().includes(q))
-                .slice(0, 12);
-
-            results.innerHTML = matches.map(o =>
-                `<div data-id="${o.id}" class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
-                    <span class="font-medium">${esc(o.label)}</span>
-                    ${o.rental_date ? `<span class="text-gray-400"> · ${esc(o.rental_date)}</span>` : ''}
-                 </div>`).join('')
-                || '<div class="px-3 py-2 text-sm text-gray-400">No matching orders</div>';
+        function render(list) {
+            lastResults = list;
+            results.innerHTML = list.length
+                ? list.map(o =>
+                    `<div data-id="${o.id}" class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
+                        <span class="font-medium">${esc(o.label)}</span>
+                        ${o.rental_date ? `<span class="text-gray-400"> · ${esc(o.rental_date)}</span>` : ''}
+                     </div>`).join('')
+                : '<div class="px-3 py-2 text-sm text-gray-400">No matching orders</div>';
             results.classList.remove('hidden');
-
             results.querySelectorAll('[data-id]').forEach(function (row) {
                 row.addEventListener('click', function () {
-                    const order = ORDERS.find(o => String(o.id) === row.dataset.id);
+                    const order = lastResults.find(o => String(o.id) === row.dataset.id);
                     results.classList.add('hidden');
                     input.value = '';
                     if (order) selectOrder(order);
                 });
             });
+        }
+
+        input.addEventListener('input', function () {
+            const q = input.value.trim().replace(/^#/, '');
+            clearTimeout(timer);
+            if (q.length < 2) { results.classList.add('hidden'); return; }
+            timer = setTimeout(function () {
+                const url = new URL(ORDER_SEARCH_URL, window.location.origin);
+                url.searchParams.set('search', q);
+                url.searchParams.set('by', by);
+                fetch(url.toString(), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (payload) { render(payload.data || []); })
+                    .catch(function () {
+                        results.innerHTML = '<div class="px-3 py-2 text-sm text-red-500">Search failed — try again.</div>';
+                        results.classList.remove('hidden');
+                    });
+            }, 250);
         });
 
         document.addEventListener('click', function (e) {
             if (!results.contains(e.target) && e.target !== input) results.classList.add('hidden');
         });
     }
-    bindOrderSearch('st-search-order', 'st-search-order-results');
-    bindOrderSearch('st-search-customer', 'st-search-customer-results');
+    bindOrderSearch('st-search-order', 'st-search-order-results', 'order');
+    bindOrderSearch('st-search-customer', 'st-search-customer-results', 'customer');
 
-    // Validation round-trip: restore the chip when order_id survived.
+    // Validation round-trip: restore the previously-chosen order (and its unit)
+    // from the server-hydrated selection — it need not be in any preload.
+    const oldCustomerEquipmentId = @json(old('ticket_source', 'customer') !== 'standard' ? old('equipment_id') : null);
     (function () {
-        const existing = ORDERS.find(o => String(o.id) === String(orderSelect.value));
-        if (existing) showSelectedOrder(existing);
+        const restoreOrder = selectedCustomerOrder
+            || ORDERS.find(o => String(o.id) === String(orderSelect.value));
+        if (!restoreOrder) return;
+        selectedCustomerOrder = restoreOrder;
+        orderSelect.innerHTML = '<option value="' + restoreOrder.id + '"></option>';
+        orderSelect.value = String(restoreOrder.id);
+        equipmentSelect.dataset.old = oldCustomerEquipmentId || '';
+        syncOrder(true);           // rebuild equipment, restoring the old unit
+        showSelectedOrder(restoreOrder);
+        syncComplaintList();
     })();
 
     // The hidden controls can't carry a native `required` (not focusable) —
@@ -644,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (currentSource === 'standard') {
             return standardUnit;
         }
-        const order = ORDERS.find(o => String(o.id) === String(orderSelect.value));
+        const order = currentOrder();
         return order ? order.equipment.find(u => String(u.id) === String(equipmentSelect.value)) : null;
     }
 
@@ -1013,6 +1062,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Customer → Standard: drop all order/customer/override state.
     function clearCustomer() {
+        selectedCustomerOrder = null;
         orderSelect.value = '';
         selectedChip.classList.add('hidden');
         selectedChip.classList.remove('flex');

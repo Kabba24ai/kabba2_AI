@@ -150,4 +150,58 @@ class TaskCustomerOrderLookupTest extends TestCase
 
         $this->fetch($c->id)->assertOk()->assertJsonCount(0, 'results');
     }
+
+    // ── Global order search (no customer selected) ──────────────────────────
+
+    private function fetchGlobal(array $params)
+    {
+        return $this->getJson(route('admin.dashboard.charge-modal.orders', $params));
+    }
+
+    public function test_global_search_returns_first_product_extra_count_and_customer(): void
+    {
+        $c = $this->customer('Gina');
+        $o = $this->order($c, now()->format('Y-m-d'));
+        $this->addProduct($o, 'Mini Excavator');
+        $this->addProduct($o, 'Trailer');
+
+        $res = $this->fetchGlobal(['q' => $o->order_number])->assertOk();
+
+        $res->assertJsonPath('results.0.order_number', $o->order_number);
+        $res->assertJsonPath('results.0.first_product', 'Mini Excavator');
+        $res->assertJsonPath('results.0.extra_count', 1);
+        // The customer rides along so selecting an order can auto-populate it.
+        $res->assertJsonPath('results.0.customer_id', $c->id);
+    }
+
+    public function test_global_short_query_returns_empty_without_recent(): void
+    {
+        $c = $this->customer('Hank');
+        $this->addProduct($this->order($c, now()->format('Y-m-d')), 'Rig');
+
+        // Preserves the shared fuel-charge behavior: <2 chars and no recent → [].
+        $this->fetchGlobal(['q' => '1'])->assertOk()->assertJsonCount(0, 'results');
+    }
+
+    public function test_global_recent_returns_orders_when_opened_blank(): void
+    {
+        $c = $this->customer('Iris');
+        $this->addProduct($this->order($c, now()->format('Y-m-d')), 'Rig');
+
+        $res = $this->fetchGlobal(['recent' => 1])->assertOk();
+
+        $this->assertGreaterThanOrEqual(1, count($res->json('results')));
+        $res->assertJsonPath('results.0.first_product', 'Rig');
+    }
+
+    public function test_global_result_uses_fallback_when_order_has_no_product(): void
+    {
+        $c = $this->customer('Jack');
+        $o = $this->order($c, now()->format('Y-m-d'));   // no products added
+
+        $res = $this->fetchGlobal(['q' => $o->order_number])->assertOk();
+
+        $res->assertJsonPath('results.0.first_product', 'No product listed');
+        $res->assertJsonPath('results.0.extra_count', 0);
+    }
 }

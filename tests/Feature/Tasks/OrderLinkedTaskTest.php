@@ -271,7 +271,7 @@ class OrderLinkedTaskTest extends TestCase
         $this->assertStringContainsString('data-order-number="' . $order->order_number . '"', $html);
         $this->assertStringContainsString('data-customer-id="' . $this->customer->id . '"', $html);
         $this->assertStringContainsString('UnifiedTaskModal', $html);
-        $this->assertStringContainsString('ut_order_search', $html);
+        $this->assertStringContainsString('ut_order', $html);
         $this->assertStringNotContainsString('onclick="openNewTaskModal({', $html);
 
         // The old Call Needed workflow is gone from this page
@@ -280,21 +280,23 @@ class OrderLinkedTaskTest extends TestCase
         $this->assertStringNotContainsString('saveOrderCallReminder', $html);
     }
 
-    public function test_task_center_modal_has_the_order_lookup_field(): void
+    public function test_task_center_modal_has_the_single_coordinated_order_field(): void
     {
         $html = $this->get(route('admin.tasks.index'))->assertOk()->getContent();
 
-        // Global order search (start-by-order path).
+        // ONE order field, Customer-first, labelled "Search by Order # (optional)".
         $this->assertStringContainsString('Search by Order #', $html);
-        $this->assertStringContainsString('ut_order_search', $html);
-        $this->assertStringContainsString('ut_order_results', $html);
-        $this->assertStringContainsString(route('admin.dashboard.charge-modal.orders'), $html);
+        $this->assertStringContainsString('id="ut_order"', $html);
+        $this->assertStringContainsString('Search or select an order', $html);
 
-        // Dependent Customer → Order dropdown (start-by-customer path).
-        $this->assertStringContainsString('ut_customer_order', $html);
-        $this->assertStringContainsString('Customer Order', $html);
-        $this->assertStringContainsString('Select a customer first', $html);
+        // Both lookup endpoints are wired (global search + customer-scoped list).
+        $this->assertStringContainsString(route('admin.dashboard.charge-modal.orders'), $html);
         $this->assertStringContainsString(route('admin.dashboard.charge-modal.customer-orders'), $html);
+
+        // No second/duplicate order control remains.
+        $this->assertStringNotContainsString('ut_customer_order', $html);
+        $this->assertStringNotContainsString('ut_order_search', $html);
+        $this->assertStringNotContainsString('ut_order_results', $html);
     }
 
     // ─────────────────────────────────────────────────────────

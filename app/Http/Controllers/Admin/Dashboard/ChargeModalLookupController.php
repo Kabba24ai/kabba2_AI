@@ -16,39 +16,60 @@ class ChargeModalLookupController extends Controller
 {
     private const LIMIT = 8;
 
+    /** Rows returned when the order field is opened blank (?recent=1). */
+    private const RECENT_LIMIT = 15;
+
     /** Upper bound on the dependent Customer → Order dropdown (active + recent history). */
     private const CUSTOMER_ORDER_LIMIT = 100;
 
     public function orders(Request $request)
     {
-        $q = trim((string) $request->input('q', ''));
+        $q      = trim((string) $request->input('q', ''));
+        $recent = $request->boolean('recent');
 
-        if (mb_strlen($q) < 2) {
+        // The New Fuel Charge modal keeps its "type at least 2 chars" behavior;
+        // only the New Task order field passes ?recent=1 to preload a short
+        // recent list when the dropdown is opened with no customer selected.
+        if (mb_strlen($q) < 2 && ! $recent) {
             return response()->json(['results' => []]);
         }
 
         $orders = Order::query()
-            ->with('customer:id,first_name,last_name')
-            ->where(function ($query) use ($q) {
-                $query->where('order_number', 'like', "%{$q}%")
-                    ->orWhere('unique_id', 'like', "%{$q}%")
-                    ->orWhereHas('customer', fn ($c) => $c->whereRaw(
-                        "CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$q}%"]
-                    ));
+            ->with([
+                'customer:id,first_name,last_name',
+                'products' => fn ($p) => $p->orderBy('id')->select('id', 'order_id', 'product_name'),
+            ])
+            ->when(mb_strlen($q) >= 2, function ($query) use ($q) {
+                $query->where(function ($w) use ($q) {
+                    $w->where('order_number', 'like', "%{$q}%")
+                        ->orWhere('unique_id', 'like', "%{$q}%")
+                        ->orWhereHas('customer', fn ($c) => $c->whereRaw(
+                            "CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$q}%"]
+                        ));
+                });
             })
             ->latest('id')
-            ->limit(self::LIMIT)
+            ->limit(mb_strlen($q) >= 2 ? self::LIMIT : self::RECENT_LIMIT)
             ->get();
 
         return response()->json([
-            'results' => $orders->map(fn (Order $order) => [
-                'id'            => $order->id,
-                'order_number'  => $order->order_number,
-                'customer_id'   => $order->customer_id,
-                'customer_name' => $order->customer?->full_name ?? $order->customer_name ?? '—',
-                'order_date'    => optional($order->order_date ?? $order->created_at)->format('M j, Y'),
-                'status'        => $order->status,
-            ])->values(),
+            'results' => $orders->map(function (Order $order) {
+                $products   = $order->products;
+                $firstName  = optional($products->first())->product_name ?? 'No product listed';
+                $extraCount = max(0, $products->count() - 1);
+
+                return [
+                    'id'            => $order->id,
+                    'order_number'  => $order->order_number,
+                    'customer_id'   => $order->customer_id,
+                    'customer_name' => $order->customer?->full_name ?? $order->customer_name ?? '—',
+                    'first_product' => $firstName,
+                    'extra_count'   => $extraCount,
+                    // Kept for the fuel-charge modal; the task order label ignores them.
+                    'order_date'    => optional($order->order_date ?? $order->created_at)->format('M j, Y'),
+                    'status'        => $order->status,
+                ];
+            })->values(),
         ]);
     }
 

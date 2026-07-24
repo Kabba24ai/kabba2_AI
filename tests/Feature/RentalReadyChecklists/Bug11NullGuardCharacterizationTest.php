@@ -113,6 +113,12 @@ class Bug11NullGuardCharacterizationTest extends TestCase
             'quantity'     => 1,
             'total'        => 100,
             'equipment_id' => $equipment->id,
+            // These tests simulate an active/delivered rental's own inspection
+            // data — the endpoint now only treats the order product as the
+            // answered-data source once it's genuinely delivered (see
+            // RentalReadyChecklists\IndexController's isRentedAndDelivered
+            // gating), matching Equipment\IndexController's identical rule.
+            'is_delivered' => 1,
         ]);
 
         // Equipment::orderProduct() is belongsTo(OrderProduct, 'current_order_product_id') —

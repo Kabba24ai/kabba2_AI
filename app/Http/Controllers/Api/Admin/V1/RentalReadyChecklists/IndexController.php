@@ -53,7 +53,24 @@ class IndexController extends BaseController
             ]);
         }
 
-        if (isset($equipment->orderProduct)) {
+        // Branch decision aligned with Equipment\IndexController and
+        // Orders\IndexController's identical computation: only treat the
+        // current order product as the source of ANSWERED data once it is
+        // genuinely rented AND delivered. Previously this branched on the
+        // mere PRESENCE of a current order product (isset($equipment->orderProduct)),
+        // so an equipment with an active but NOT YET delivered assignment
+        // incorrectly skipped the template and fell straight to (usually
+        // empty) answered data. A currently-rented, already-delivered unit
+        // with no rental-ready inspection filed still correctly returns
+        // empty here — there is no answered data to show, and showing the
+        // template would misrepresent a completed rental as still pending
+        // inspection.
+        $isRentedAndDelivered = $equipment
+            && $equipment->current_status->isRented()
+            && $equipment->orderProduct
+            && $equipment->orderProduct->is_delivered == 1;
+
+        if ($isRentedAndDelivered) {
             // find from order product's rental ready checklist if exists
             // BUG-11: an order product may have no EquipmentRentalReadyTemplate yet
             // (no prior inspection recorded against it) — optional() only proxies the

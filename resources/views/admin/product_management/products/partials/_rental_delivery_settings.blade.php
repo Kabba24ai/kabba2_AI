@@ -819,7 +819,10 @@
                 <div class="flex items-center gap-1">
                     <select id="prepaid_cleaning_rate_setting" name="prepaid_cleaning_rate_setting"
                         class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
-                        <option value="" disabled selected>Select Rate</option>
+                        {{-- Genuine null/unlinked option (not disabled) so a
+                             previously-linked product can return to no preset.
+                             Empty value → ConvertEmptyStringsToNull → DB NULL. --}}
+                        <option value="" @selected(empty(old('prepaid_cleaning_rate_setting', $objProduct->prepaid_cleaning_rate_setting ?? '')))>Select Rate</option>
                         @foreach ($productSettings['prepaid_cleaning_rates'] ?? [] as $prepaidCleaningRate)
                             <option value="{{ $prepaidCleaningRate['description'] }}"
                                 data-rate="{{ $prepaidCleaningRate['rate'] }}" @selected(old('prepaid_cleaning_rate_setting', $objProduct->prepaid_cleaning_rate_setting ?? '') === $prepaidCleaningRate['description'])>
@@ -834,7 +837,8 @@
                 <div class="flex items-center gap-1">
                     <select id="prepaid_fuel_rate_setting" name="prepaid_fuel_rate_setting"
                         class="w-full rounded-lg border px-2 py-1 text-sm shadow-sm focus:ring-2 focus:border-blue-500 dark:bg-gray-900 dark:text-white">
-                        <option value="" disabled selected>Select Rate</option>
+                        {{-- Genuine null/unlinked option (see Prepaid Cleaning above). --}}
+                        <option value="" @selected(empty(old('prepaid_fuel_rate_setting', $objProduct->prepaid_fuel_rate_setting ?? '')))>Select Rate</option>
                         @foreach ($productSettings['prepaid_fuel_rates'] ?? [] as $prepaidFuelRate)
                             <option value="{{ $prepaidFuelRate['description'] }}"
                                 data-rate="{{ $prepaidFuelRate['rate'] }}" @selected(old('prepaid_fuel_rate_setting', $objProduct->prepaid_fuel_rate_setting ?? '') === $prepaidFuelRate['description'])>
@@ -1613,12 +1617,14 @@
             const prepaidCleaningInput = document.querySelector('input[name="rental_prepaid_cleaning"]');
             const prepaidFuelInput = document.querySelector('input[name="rental_prepaid_fuel"]');
 
+            // Selecting a configured rate auto-populates the amount. Selecting
+            // "Select Rate" (no data-rate) unlinks the preset but PRESERVES the
+            // current amount as a manual value — clearing the link must never
+            // silently wipe a valid charge.
             prepaidCleaningRates?.addEventListener('change', function() {
                 const dataRate = this.options[this.selectedIndex].getAttribute('data-rate');
                 if (dataRate) {
                     prepaidCleaningInput.value = dataRate;
-                } else {
-                    prepaidCleaningInput.value = '';
                 }
             });
 
@@ -1626,8 +1632,6 @@
                 const dataRate = this.options[this.selectedIndex].getAttribute('data-rate');
                 if (dataRate) {
                     prepaidFuelInput.value = dataRate;
-                } else {
-                    prepaidFuelInput.value = '';
                 }
             });
 

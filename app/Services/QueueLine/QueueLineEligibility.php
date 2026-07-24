@@ -89,7 +89,7 @@ final class QueueLineEligibility
                 'softAssignment.equipment.assignedProduct.mediaChildren', // substitute cards show the ASSIGNED product's image (UI Iteration 1)
                 'softAssignment.equipment.store:id,store_name',           // Wrong Location badge (display-only)
                 'softAssignment.equipment.activeEquipmentRentalReadyTemplate', // RR badge
-                'queueLineItem',
+                'queueLineItem.stagedBy:id,first_name,last_name',
             ]);
     }
 
@@ -120,7 +120,7 @@ final class QueueLineEligibility
                 'softAssignment.equipment.assignedProduct.mediaChildren',
                 'softAssignment.equipment.store:id,store_name',
                 'softAssignment.equipment.activeEquipmentRentalReadyTemplate',
-                'queueLineItem',
+                'queueLineItem.stagedBy:id,first_name,last_name',
             ]);
     }
 

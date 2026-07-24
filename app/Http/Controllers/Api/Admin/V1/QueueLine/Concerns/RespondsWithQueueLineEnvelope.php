@@ -68,7 +68,7 @@ trait RespondsWithQueueLineEnvelope
             'product:id,unique_id,product_name',
             'product.mediaChildren',
             'deliveryStore:id,unique_id,store_name',
-            'queueLineItem',
+            'queueLineItem.stagedBy:id,first_name,last_name',
         ])
             ->whereHas('order')
             ->where('unique_id', $orderProductUniqueId)

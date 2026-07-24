@@ -191,6 +191,8 @@ final class QueueLineMobilePresenter
                 : (string) $order->last_payment_status,
             'status' => QueueLineEligibility::boardStatus($row), // pending | staged | completed — the board section this item belongs to
             'staged' => (bool) $row->queueLineItem?->isStaged(),
+            'staged_by' => $row->queueLineItem?->stagedBy?->full_name,
+            'staged_at' => $row->queueLineItem?->staged_at?->toIso8601String(),
             'fully_staged' => QueueLineStagingService::isFullyStaged($row, $fuel, $key),
             'completed' => $isCompleted = $row->queueLineItem?->completed_at !== null,
             // Fast Track (web parity — _card.blade.php): completed but NEVER

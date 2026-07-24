@@ -1,14 +1,14 @@
 {
-  "_api-BCUvS0xh.js": {
-    "file": "assets/api-BCUvS0xh.js",
+  "_api-DVkapAgo.css": {
+    "file": "assets/api-DVkapAgo.css",
+    "src": "_api-DVkapAgo.css"
+  },
+  "_api-d62SBa25.js": {
+    "file": "assets/api-d62SBa25.js",
     "name": "api",
     "css": [
       "assets/api-DVkapAgo.css"
     ]
-  },
-  "_api-DVkapAgo.css": {
-    "file": "assets/api-DVkapAgo.css",
-    "src": "_api-DVkapAgo.css"
   },
   "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-D1LuMI3I.ttf",
@@ -48,17 +48,17 @@
     "isEntry": true
   },
   "resources/admin/css/app.css": {
-    "file": "assets/app-C4IsOFgM.css",
+    "file": "assets/app-Mj5-VNKu.css",
     "src": "resources/admin/css/app.css",
     "isEntry": true
   },
   "resources/admin/js/app.js": {
-    "file": "assets/app-C-FPEtgx.js",
+    "file": "assets/app-D-d0aJX8.js",
     "name": "app",
     "src": "resources/admin/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-BCUvS0xh.js"
+      "_api-d62SBa25.js"
     ],
     "css": [
       "assets/app-CvEZSTg0.css"
@@ -71,22 +71,22 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-D71k81il.css",
+    "file": "assets/app-DGpRb38s.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/css/app.css": {
-    "file": "assets/app-C49qvxTb.css",
+    "file": "assets/app-BNEgMtXv.css",
     "src": "resources/front/assets/css/app.css",
     "isEntry": true
   },
   "resources/front/assets/js/app.js": {
-    "file": "assets/app-CY4-7Abe.js",
+    "file": "assets/app-C7jAgyiW.js",
     "name": "app",
     "src": "resources/front/assets/js/app.js",
     "isEntry": true,
     "imports": [
-      "_api-BCUvS0xh.js"
+      "_api-d62SBa25.js"
     ],
     "css": [
       "assets/app-Ce1H3Bte.css"

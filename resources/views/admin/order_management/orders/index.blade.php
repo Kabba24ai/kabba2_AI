@@ -100,9 +100,16 @@
                 </select>
             </div>
             <div class="w-full sm:w-48">
-                <select name="product"
+                {{-- Extension Charge is not a product row — it is an extension
+                     child order (Order::scopeExtensionChildren). It is exposed
+                     here as a pinned, non-numeric sentinel value ("extension")
+                     so staff can isolate extension orders (e.g. + Payment Status
+                     "Pending" = unpaid extensions). data-pinned-products keeps it
+                     at the top of the list across category changes (shared JS). --}}
+                <select name="product" data-pinned-products='[{"value":"extension","label":"Extension Charge"}]'
                     class="choices-select w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                     <option value="">Select Products</option>
+                    <option value="extension" data-pinned @selected(request('product') === 'extension')>Extension Charge</option>
                     @foreach ($products as $id => $title)
                         <option value="{{ $id }}" @selected(request('product') == $id)>
                             {{ $title }}
@@ -114,10 +121,16 @@
                 <select id="payment_method" name="payment_method"
                     class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Payment Types</option>
-                    {{-- COD kept here (unlike other filters) so staff can find orders still
-                         awaiting delivery payment — canonical() alone excludes it as a
-                         completed method, which this filter still wants to offer. --}}
-                    @foreach (array_merge([\App\Enums\Orders\OrderPaymentMethod::COD], \App\Enums\Orders\OrderPaymentMethod::canonical()) as $method)
+                    {{-- Canonical methods (+ COD, which canonical() excludes as a
+                         completed method but this filter still offers so staff can
+                         find orders awaiting delivery payment). Sorted A-Z by label;
+                         only the "All Payment Types" default stays first. --}}
+                    @php
+                        $paymentMethods = collect(array_merge([\App\Enums\Orders\OrderPaymentMethod::COD], \App\Enums\Orders\OrderPaymentMethod::canonical()))
+                            ->sortBy(fn ($method) => $method->label())
+                            ->values();
+                    @endphp
+                    @foreach ($paymentMethods as $method)
                         <option value="{{ $method->value }}" @selected(request('payment_method') === $method->value)>
                             {{ $method->label() }}
                         </option>
@@ -128,8 +141,19 @@
             <div class="w-full sm:w-36">
                 <select id="payment_status" name="payment_status"
                     class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">All Payments</option>
-                    @foreach (\App\Enums\Orders\OrderPaymentStatus::cases() as $status)
+                    {{-- Default label renamed "All Payments" → "Payment Status"
+                         (filters payment STATE, not method). Options come from
+                         OrderPaymentStatus::canonical() — the enum's documented
+                         filter source — which excludes the legacy Invoice* cases,
+                         the AR-only Account marker, and system-only Superseded.
+                         Sorted A-Z by label; the default stays first. --}}
+                    <option value="">Payment Status</option>
+                    @php
+                        $paymentStatuses = collect(\App\Enums\Orders\OrderPaymentStatus::canonical())
+                            ->sortBy(fn ($status) => $status->label())
+                            ->values();
+                    @endphp
+                    @foreach ($paymentStatuses as $status)
                         <option value="{{ $status->value }}" @selected(request('payment_status') === $status->value)>
                             {{ $status->label() }}
                         </option>

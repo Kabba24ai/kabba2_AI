@@ -27,7 +27,15 @@ class IndexController extends Controller
             // stale or mismatched ids are dropped (degrade to the wider filter)
             // instead of becoming contradictory hidden filters.
             $categoryId = ProductFilterHelper::normalizeCategoryId($request->input('category'));
-            $productId  = ProductFilterHelper::normalizeProductId($request->input('product'), $categoryId);
+
+            // "Extension Charge" is a pinned, non-numeric sentinel in the Product
+            // filter — extension charges are extension CHILD orders (Order::
+            // scopeExtensionChildren), not product rows. Detect it BEFORE
+            // normalizeProductId(), which drops any non-numeric product value.
+            $extensionOnly = $request->input('product') === 'extension';
+            $productId  = $extensionOnly
+                ? null
+                : ProductFilterHelper::normalizeProductId($request->input('product'), $categoryId);
 
             // Fetch orders from the database, most recent first
             $query = Order::query()
@@ -91,6 +99,12 @@ class IndexController extends Controller
                                     ->whereHas('referenceOrder.products', $productMatch);
                             });
                     });
+                })
+
+                // Product = "Extension Charge": isolate the extension child
+                // orders themselves (canonical scope; excludes reorders).
+                ->when($extensionOnly, function ($q) {
+                    $q->extensionChildren();
                 })
 
                 // Payment Architecture Finalization (Tier 2): these previously

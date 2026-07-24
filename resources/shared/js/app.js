@@ -272,6 +272,18 @@ window.initDependentProductFilter = function (categoryEl, productEl, categoryPro
         ? productEl.options[0].textContent.trim()
         : 'Select Products';
 
+    // Pinned, non-numeric sentinel options (e.g. "Extension Charge") that must
+    // stay at the top of the list regardless of the selected category. Read
+    // once from the select's data-pinned-products attribute; absent on pages
+    // that don't use them (e.g. Schedule), so this is a no-op there.
+    let pinned = [];
+    try {
+        pinned = productEl.dataset.pinnedProducts ? JSON.parse(productEl.dataset.pinnedProducts) : [];
+    } catch (e) {
+        pinned = [];
+    }
+    const pinnedValues = pinned.map(function (p) { return String(p.value); });
+
     function rebuild() {
         const cat = String(categoryEl.value || '');
         const allowed = cat && categoryProductMap[cat]
@@ -279,13 +291,17 @@ window.initDependentProductFilter = function (categoryEl, productEl, categoryPro
             : null;
         const current = String(productEl.value || '');
 
-        let keepCurrent = current === '';
+        let keepCurrent = current === '' || pinnedValues.indexOf(current) !== -1;
         const choices = [];
         allProducts.forEach(function (p) {
             const id = String(p.id);
             if (allowed && allowed.indexOf(id) === -1) return;
             if (id === current) keepCurrent = true;
             choices.push({ value: id, label: p.name });
+        });
+        // Pinned sentinels first (after the placeholder), always available.
+        pinned.slice().reverse().forEach(function (p) {
+            choices.unshift({ value: String(p.value), label: p.label });
         });
         choices.unshift({ value: '', label: placeholderLabel, placeholder: true });
 

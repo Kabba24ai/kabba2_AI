@@ -54,38 +54,38 @@ class UpdateDeliveryPickupInputsController extends Controller
             $deliveryCompleted = false;
 
             if ($prefix === 'delivery') {
-                if ($schedule->delivery_by !== null) {
-                    // Queue Line staging is informational, not restrictive
-                    // (2026-07-23): completion is never blocked for lacking
-                    // staging/fuel verification — a never-staged completion is a
-                    // Fast Track, recorded and surfaced, never prevented.
-                    $fields['is_delivered']          = 1;
-                    $fields['delivery_is_delivered'] = true;
-                    $fields['delivery_status']       = 'Completed';
-                    $deliveryCompleted = true;
-                } else {
-                    Log::channel('api_errors')->warning('UpdateDeliveryPickupInputs: delivery completion blocked — delivery_by is null', [
-                        'order_product_id'        => $schedule->id,
-                        'order_id'                => $schedule->order_id,
-                        'order_product_unique_id' => $validated['order_product_unique_id'],
-                        'employee_id'             => auth('api_user')->id(),
-                        'endpoint'                => request()->path(),
-                    ]);
-                }
+                // Queue Line staging is informational, not restrictive
+                // (2026-07-23): completion is never blocked for lacking
+                // staging/fuel verification — a never-staged completion is a
+                // Fast Track, recorded and surfaced, never prevented.
+                $fields['is_delivered']          = 1;
+                $fields['delivery_is_delivered'] = true;
+                $fields['delivery_status']       = 'Completed';
+                $deliveryCompleted = true;
+                // if ($schedule->delivery_by !== null) {
+                // } else {
+                //     Log::channel('api_errors')->warning('UpdateDeliveryPickupInputs: delivery completion blocked — delivery_by is null', [
+                //         'order_product_id'        => $schedule->id,
+                //         'order_id'                => $schedule->order_id,
+                //         'order_product_unique_id' => $validated['order_product_unique_id'],
+                //         'employee_id'             => auth('api_user')->id(),
+                //         'endpoint'                => request()->path(),
+                //     ]);
+                // }
             } else {
-                if ($schedule->pickup_by !== null) {
-                    $fields['is_returned']         = 1;
-                    $fields['pickup_is_delivered'] = true;
-                    $fields['pickup_status']        = 'Completed';
-                } else {
-                    Log::channel('api_errors')->warning('UpdateDeliveryPickupInputs: return completion blocked — pickup_by is null', [
-                        'order_product_id'        => $schedule->id,
-                        'order_id'                => $schedule->order_id,
-                        'order_product_unique_id' => $validated['order_product_unique_id'],
-                        'employee_id'             => auth('api_user')->id(),
-                        'endpoint'                => request()->path(),
-                    ]);
-                }
+                $fields['is_returned']         = 1;
+                $fields['pickup_is_delivered'] = true;
+                $fields['pickup_status']        = 'Completed';
+                // if ($schedule->pickup_by !== null) {
+                // } else {
+                //     Log::channel('api_errors')->warning('UpdateDeliveryPickupInputs: return completion blocked — pickup_by is null', [
+                //         'order_product_id'        => $schedule->id,
+                //         'order_id'                => $schedule->order_id,
+                //         'order_product_unique_id' => $validated['order_product_unique_id'],
+                //         'employee_id'             => auth('api_user')->id(),
+                //         'endpoint'                => request()->path(),
+                //     ]);
+                // }
             }
 
             $schedule->fill($fields);

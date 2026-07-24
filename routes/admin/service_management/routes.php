@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ServiceManagement\Approvals;
 use App\Http\Controllers\Admin\ServiceManagement\ChargeLines;
+use App\Http\Controllers\Admin\ServiceManagement\CustomerDamage;
 use App\Http\Controllers\Admin\ServiceManagement\Deposit;
 use App\Http\Controllers\Admin\ServiceManagement\DiagnosticSteps;
 use App\Http\Controllers\Admin\ServiceManagement\Diagnostics;
@@ -32,6 +33,19 @@ Route::prefix('service-management')
         // (Livewire). Non-destructive alongside the overview until it becomes
         // the default Service Operations view.
         Route::get('/board', BoardController::class)->name('board')->middleware('permission:service_tickets.view');
+
+        // Customer Damage Staging — the review bridge between the return
+        // checklist and disposition (No Action / Charge / Service Ticket).
+        // INERT permission annotations (Gate::before bypass) like the rest of
+        // the module: view = read the queue; manage = create/dispose.
+        Route::prefix('customer-damage')->name('customer-damage.')
+            ->middleware('permission:customer_damage.view')
+            ->group(function () {
+            Route::get('/',                        CustomerDamage\IndexController::class)->name('index');
+            Route::get('/order-products',          CustomerDamage\OrderProductLookupController::class)->name('order-products');
+            Route::post('/',                       CustomerDamage\StoreController::class)->name('store')->middleware('permission:customer_damage.manage');
+            Route::post('/{uniqueId}/disposition', CustomerDamage\DispositionController::class)->name('disposition')->middleware('permission:customer_damage.manage');
+        });
 
         // Equipment Reported-Problem templates (Equipment problem-templates)
         // — the taxonomy library, template builder, and per-unit attachment.

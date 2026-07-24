@@ -207,6 +207,15 @@ class ModuleSeeder extends Seeder
                             'manage' => 'Manage Warranty Claims',
                         ],
                     ],
+                    [
+                        'module_name' => 'customer_damage',
+                        'module_title' => 'Customer Damage',
+                        'model_name' => 'CustomerDamageStaging',
+                        'permission_names' => [
+                            'view'   => 'View Customer Damage',
+                            'manage' => 'Review / Dispose Customer Damage', // charge / service ticket / no action
+                        ],
+                    ],
                 ],
             ],
             // Service Management [End]

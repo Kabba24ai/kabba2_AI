@@ -661,6 +661,13 @@
                                         <x-heroicon-o-ticket class="h-5 w-5" /> Tickets
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('admin.service-management.customer-damage.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.service-management.customer-damage.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-exclamation-triangle class="h-5 w-5" /> Customer Damage
+                                    </a>
+                                </li>
                                 @if (Route::has('admin.field-service.tickets.index'))
                                     <li>
                                         <a href="{{ route('admin.field-service.tickets.index') }}"

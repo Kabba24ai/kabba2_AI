@@ -220,6 +220,20 @@ class SaveReturnController extends BaseController
 
             $orderProduct->update($orderProductData);
 
+            // Customer Damage Staging — one review record per damaged return,
+            // for office disposition (No Action / Charge / Service Ticket).
+            // Idempotent on the SAME key as the damage BillingCharge
+            // (mobile_checklist:{op}:damage:{cycle}); adds NO yard-technician
+            // input, creates NO ticket and NO second charge, and never breaks
+            // the return save (the service reports failures internally).
+            if ($hasDamagedReturn) {
+                \App\Services\Service\CustomerDamageStagingService::ingestFromReturnChecklist(
+                    $orderProduct->refresh(),
+                    $cycleKey,
+                    isset($validated['user_id']) ? (int) $validated['user_id'] : null,
+                );
+            }
+
             // If the checklist recorded a fuel charge, create the CA ledger entry
             if (!empty($orderProductData['fuel_total_charge']) && $orderProductData['fuel_total_charge'] > 0) {
                 $orderProduct->refresh();

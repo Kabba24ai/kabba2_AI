@@ -64,8 +64,10 @@ trait RespondsWithQueueLineEnvelope
         return OrderProduct::with([
             'softAssignment.equipment.assignedProduct:id,product_name',
             'softAssignment.equipment.activeEquipmentRentalReadyTemplate',
-            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question',
-            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question',
+            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.answers',
+            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.category',
+            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers',
+            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category',
             'softAssignment.equipment.orderProduct.checklistQuestions',
             'softAssignment.equipment.orderProduct.equipmentRentalReadyTemplate.checklistQuestions',
             'order.lastPayment',

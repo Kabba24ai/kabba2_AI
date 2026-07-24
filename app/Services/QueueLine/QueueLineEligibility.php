@@ -103,8 +103,10 @@ final class QueueLineEligibility
     private static function equipmentChecklistEagerLoads(): array
     {
         return [
-            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question',
-            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question',
+            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.answers',
+            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.category',
+            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers',
+            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category',
             'softAssignment.equipment.orderProduct.checklistQuestions',
             'softAssignment.equipment.orderProduct.equipmentRentalReadyTemplate.checklistQuestions',
         ];

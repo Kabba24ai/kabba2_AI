@@ -80,6 +80,10 @@ class QueueLineEquipmentCandidatesController extends Controller
                 'requires_reason' => $match !== 'direct', // canonical rule, surfaced for the UI
                 'status' => $unit->current_status?->value,
                 'status_label' => $unit->status_label,
+                'power_source_type' => $unit->power_source_type,
+                'key_starting_mechanism' => $unit->key_starting_mechanism,
+                'is_fuel' => $unit->hasFuelData(),
+                'is_key' => $unit->hasKeyData(),
                 'store' => $unit->store ? [
                     'unique_id' => $unit->store->unique_id,
                     'name' => $unit->store->store_name,
@@ -100,6 +104,10 @@ class QueueLineEquipmentCandidatesController extends Controller
                     'unique_id' => $item->softAssignment->equipment->unique_id,
                     'display_id' => $item->softAssignment->equipment->equipment_id,
                     'name' => $item->softAssignment->equipment->equipment_name,
+                    'power_source_type' => $item->softAssignment->equipment->power_source_type,
+                    'key_starting_mechanism' => $item->softAssignment->equipment->key_starting_mechanism,
+                    'is_fuel' => $item->softAssignment->equipment->hasFuelData(),
+                    'is_key' => $item->softAssignment->equipment->hasKeyData(),
                 ] : null,
             ],
         );

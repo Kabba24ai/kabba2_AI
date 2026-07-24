@@ -15,6 +15,7 @@ class ListResource extends JsonResource
         $addr     = $order?->shippingAddress;
 
         $isHardAssigned = (bool) $this->equipment?->current_status?->isRented();
+        $equipmentUnit  = $isHardAssigned ? $this->equipment : $this->softAssignment?->equipment;
         $equipmentName  = $isHardAssigned
             ? ($this->equipment_details['equipment_name'] ?? null)
             : ($this->softAssignment?->equipment?->equipment_name ?? null);
@@ -57,9 +58,13 @@ class ListResource extends JsonResource
             ],
 
             'equipment' => [
-                'name'             => $equipmentName ?? '',
-                'equipment_id'     => $equipmentId ?? '',
-                'is_hard_assigned' => $isHardAssigned,
+                'name'                    => $equipmentName ?? '',
+                'equipment_id'            => $equipmentId ?? '',
+                'is_hard_assigned'        => $isHardAssigned,
+                'power_source_type'       => $equipmentUnit?->power_source_type,
+                'key_starting_mechanism'  => $equipmentUnit?->key_starting_mechanism,
+                'is_fuel'                 => $equipmentUnit?->hasFuelData() ?? false,
+                'is_key'                  => $equipmentUnit?->hasKeyData() ?? false,
             ],
 
             'delivery' => [

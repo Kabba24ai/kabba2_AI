@@ -44,6 +44,10 @@ class AlertResource extends JsonResource
                 'matched_product'         => $this->matchedProduct?->product_name,
                 'equipment_status_at_match' => $this->equipment_status_at_match,
                 'equipment_current_status'  => $this->equipment?->current_status?->value,
+                'power_source_type'         => $this->equipment?->power_source_type,
+                'key_starting_mechanism'    => $this->equipment?->key_starting_mechanism,
+                'is_fuel'                   => $this->equipment?->hasFuelData() ?? false,
+                'is_key'                    => $this->equipment?->hasKeyData() ?? false,
             ],
 
             'disposition'       => $this->disposition?->value,
@@ -65,8 +69,12 @@ class AlertResource extends JsonResource
             ])->values(),
 
             'requested_equipment' => $waitList?->items->map(fn ($item) => [
-                'equipment_id'   => $item->equipment_id,
-                'equipment_name' => $item->equipment?->equipment_name,
+                'equipment_id'           => $item->equipment_id,
+                'equipment_name'         => $item->equipment?->equipment_name,
+                'power_source_type'      => $item->equipment?->power_source_type,
+                'key_starting_mechanism' => $item->equipment?->key_starting_mechanism,
+                'is_fuel'                => $item->equipment?->hasFuelData() ?? false,
+                'is_key'                 => $item->equipment?->hasKeyData() ?? false,
             ])->values(),
 
             'acknowledged_by' => $this->acknowledgedBy?->full_name,

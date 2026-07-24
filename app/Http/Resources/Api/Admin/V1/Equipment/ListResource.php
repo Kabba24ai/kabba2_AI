@@ -48,12 +48,12 @@ class ListResource extends JsonResource
             'license_plate' => $this->license_plate ?? '',
             'imei' => $this->imei ?? '',
             'power_source_type' => $this->power_source_type ?? '',
+            'key_starting_mechanism' => $this->key_starting_mechanism ?? '',
             // Queue Line applicability parity (2026-07-23): true only when the
             // unit has an EXPLICIT trait selected — an unset field, or
             // key_starting_mechanism = None, means the check does not apply.
-            'is_fuel' => $this->power_source_type !== null,
-            'is_key' => $this->key_starting_mechanism !== null
-                && $this->key_starting_mechanism !== \App\Enums\Equipments\EquipmentKeyStartingMechanism::NONE,
+            'is_fuel' => $this->hasFuelData(),
+            'is_key' => $this->hasKeyData(),
             'has_def' => $this->has_def ?? '',
             'diesel_tank_capacity' => $this->diesel_tank_capacity ?? 0,
             'def_tank_capacity' => $this->def_tank_capacity ?? 0,

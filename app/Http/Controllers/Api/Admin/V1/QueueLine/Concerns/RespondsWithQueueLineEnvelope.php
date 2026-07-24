@@ -49,6 +49,10 @@ trait RespondsWithQueueLineEnvelope
                     'unique_id' => $currentEquipment->unique_id,
                     'display_id' => $currentEquipment->equipment_id,
                     'name' => $currentEquipment->equipment_name,
+                    'power_source_type' => $currentEquipment->power_source_type,
+                    'key_starting_mechanism' => $currentEquipment->key_starting_mechanism,
+                    'is_fuel' => $currentEquipment->hasFuelData(),
+                    'is_key' => $currentEquipment->hasKeyData(),
                 ] : null,
             ], fn ($v) => $v !== null),
         ], $status);

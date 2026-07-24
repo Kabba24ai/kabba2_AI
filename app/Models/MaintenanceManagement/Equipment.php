@@ -157,6 +157,28 @@ class Equipment extends Model
         ], true);
     }
 
+    /**
+     * Broader than requiresFuelCheck(): true whenever ANY explicit power
+     * source is selected (Diesel/Gas/Batteries/Electric), not just the
+     * fuel-burning ones. Used by API resources to tell the app whether a
+     * fuel trait exists at all, separate from whether it demands a sign-off.
+     */
+    public function hasFuelData(): bool
+    {
+        return $this->power_source_type !== null;
+    }
+
+    /**
+     * Broader than requiresKeyCheck(): true whenever a starting mechanism is
+     * explicitly selected and isn't None (so Key Pad / Pull Cord count here,
+     * unlike requiresKeyCheck() which only cares about physical keys).
+     */
+    public function hasKeyData(): bool
+    {
+        return $this->key_starting_mechanism !== null
+            && $this->key_starting_mechanism !== EquipmentKeyStartingMechanism::NONE;
+    }
+
     // scopes
 
     public function scopeAvailable($query)

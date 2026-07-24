@@ -82,9 +82,10 @@ class IndexController extends BaseController
 
     private function formatJob(OrderProduct $job): array
     {
-        $slot       = $job->getAttribute('_slot');
-        $isDelivery = $slot === 'Delivery';
-        $addr       = $job->order?->shippingAddress;
+        $slot          = $job->getAttribute('_slot');
+        $isDelivery    = $slot === 'Delivery';
+        $addr          = $job->order?->shippingAddress;
+        $equipmentUnit = $job->equipment ?? $job->softAssignment?->equipment;
 
         $addressParts = array_filter([
             $addr?->address  ?? '',
@@ -122,6 +123,12 @@ class IndexController extends BaseController
             'equipment_name' => $job->equipment?->equipment_name
                 ?? $job->softAssignment?->equipment?->equipment_name
                 ?? '',
+            'equipment' => $equipmentUnit ? [
+                'power_source_type' => $equipmentUnit->power_source_type,
+                'key_starting_mechanism' => $equipmentUnit->key_starting_mechanism,
+                'is_fuel' => $equipmentUnit->hasFuelData(),
+                'is_key' => $equipmentUnit->hasKeyData(),
+            ] : null,
 
             'order_unique_id' => $job->order?->unique_id    ?? '',
             'order_number'    => $job->order?->order_number ?? '',

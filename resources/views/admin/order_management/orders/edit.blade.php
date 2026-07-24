@@ -4005,10 +4005,17 @@
                             class="border rounded px-2 py-1 text-sm w-20 text-right hidden"
                             placeholder="Hours">
                     </div>
-                    <!-- Total -->
-                    <div class="pt-2 border-t text-sm font-semibold text-gray-800 text-right">
-                        Current Allocated Hours: <span id="returnCurrentAllocatedHours">0</span> |
-                        Total Hours Added: <span id="returnTotalHoursAdded">{{ $dailyHours }}</span>
+                    <!-- Total: live equation — Allocated + Added = Total.
+                         Values update live from recalcTotal(); Total Hours is
+                         the finished sum, given slightly stronger emphasis. -->
+                    <div class="pt-2 border-t">
+                        <div class="flex flex-wrap items-center justify-end gap-x-1.5 gap-y-0.5 text-sm text-gray-700">
+                            <span>Allocated Hours: <span id="returnCurrentAllocatedHours" class="font-semibold text-gray-900">0</span></span>
+                            <span class="text-gray-400">+</span>
+                            <span>Hours Added: <span id="returnTotalHoursAdded" class="font-semibold text-gray-900">0</span></span>
+                            <span class="text-gray-400">=</span>
+                            <span>Total Hours: <span id="returnGrandTotalHours" class="font-bold text-gray-900">0</span></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -7382,6 +7389,7 @@
             const hoursSection            = document.getElementById('returnHoursOptions');
             const currentAllocatedDisplay = document.getElementById('returnCurrentAllocatedHours');
             const totalDisplay            = document.getElementById('returnTotalHoursAdded');
+            const grandTotalDisplay       = document.getElementById('returnGrandTotalHours');
             const customInput             = document.getElementById('customHoursInput');
             const saveBtn                 = document.getElementById('saveChangeReturnDate');
             const manualDateInput         = document.getElementById('returnManualDateInput');
@@ -7397,6 +7405,7 @@
             let _deliveryDateValue    = null;   // fallback when current return date is unavailable
             let _updateFn             = null;
             let _returnDateEl         = null;   // DOM element to update on save
+            let _currentAllocatedHours = 0;     // hours already on the order (equation's left term)
 
             // Calendar days added per duration type × 1 qty
             const DURATION_DAYS = { daily: 1, weekend: 1, weekly: 7, monthly: 28 };
@@ -7414,16 +7423,31 @@
                 return radio ? parseFloat(radio.dataset.hours) : 0;
             }
 
+            // One shared formatter for all three equation values: "8" not
+            // "8.00", "5.6" not "5.60", strips float noise (5.6000001), 0 → "0".
+            function formatHours(n) {
+                const num = parseFloat(n);
+                if (!isFinite(num)) return '0';
+                return String(Math.round(num * 1000) / 1000);
+            }
+
+            // Renders the live equation "Allocated + Added = Total" and returns
+            // the ADDED hours — the value the save path submits (unchanged). The
+            // grand total is display-only; the server still owns validation and
+            // hour allocation.
             function recalcTotal() {
                 const type = getSelectedHoursType();
-                let total;
+                let added;
                 if (type === 'custom') {
-                    total = parseFloat(customInput.value) || 0;
+                    added = parseFloat(customInput.value) || 0;
                 } else {
-                    total = getBaseHours(type) * (qty[type] ?? 1);
+                    added = getBaseHours(type) * (qty[type] ?? 1);
                 }
-                totalDisplay.textContent = total;
-                return total;
+                const allocated = _currentAllocatedHours || 0;
+                if (currentAllocatedDisplay) currentAllocatedDisplay.textContent = formatHours(allocated);
+                totalDisplay.textContent = formatHours(added);
+                if (grandTotalDisplay) grandTotalDisplay.textContent = formatHours(allocated + added);
+                return added;
             }
 
             function updateQtyDisplay(type) {
@@ -7635,8 +7659,9 @@
                 if (currentDateLabel) {
                     currentDateLabel.textContent = currentReturnDate || '—';
                 }
+                _currentAllocatedHours = parseFloat(currentAllocatedHours) || 0;
                 if (currentAllocatedDisplay) {
-                    currentAllocatedDisplay.textContent = parseFloat(currentAllocatedHours) || 0;
+                    currentAllocatedDisplay.textContent = formatHours(_currentAllocatedHours);
                 }
 
                 // Pre-populate manual picker with current return date

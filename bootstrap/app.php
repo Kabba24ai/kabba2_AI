@@ -57,6 +57,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // This 👇
         $middleware->api(prepend: [\App\Http\Middleware\ForceJsonResponseMiddleware::class]);
+
+        // Opt-in Admin App request logging — see config/admin_app_logging.php.
+        // No-ops for any request not matching an entry there.
+        $middleware->api(append: [\App\Http\Middleware\LogAdminAppApiMiddleware::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->dontFlash([

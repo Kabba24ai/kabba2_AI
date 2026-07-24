@@ -104,7 +104,13 @@ final class OrderFinancialActivity
      */
     public static function excludeInactiveOrderProducts(Builder $query): Builder
     {
+        // reorder() strips any ORDER BY the caller already applied to $query
+        // (e.g. Orders\Schedules\IndexController orders by delivery_date
+        // before calling this) — MySQL rejects DISTINCT + an ORDER BY column
+        // absent from the SELECT list (error 3065), and ordering is
+        // meaningless for a plucked list of ids anyway.
         $suspectOrderIds = (clone $query)
+            ->reorder()
             ->whereHas('order.payments', fn ($p) => $p->whereIn('status', self::SUSPECT_PAYMENT_STATUSES))
             ->distinct()
             ->pluck('order_products.order_id');
@@ -128,7 +134,9 @@ final class OrderFinancialActivity
     /** Same exclusion for a query on ORDERS themselves (e.g. badge counts). */
     public static function excludeInactiveOrders(Builder $query): Builder
     {
+        // See excludeInactiveOrderProducts() — same reorder() rationale.
         $suspectOrderIds = (clone $query)
+            ->reorder()
             ->whereHas('payments', fn ($p) => $p->whereIn('status', self::SUSPECT_PAYMENT_STATUSES))
             ->distinct()
             ->pluck('orders.id');

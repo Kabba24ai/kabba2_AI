@@ -684,6 +684,15 @@
             });
         }
 
+        // Contextual assignment: an employee-lane "+ Add task" passes that lane's
+        // user id, so only the Assigned To field is preselected. The reset above
+        // (utAssigneeChoices.removeActiveItems) already cleared it, so a global
+        // "+ New Task" — or the Unassigned lane — has no context and stays
+        // Unassigned; no employee ever carries across entry points.
+        if (context && context.assignedToUserId && window.utAssigneeChoices) {
+            window.utAssigneeChoices.setChoiceByValue(String(context.assignedToUserId));
+        }
+
         var modal = document.getElementById('UnifiedTaskModal');
         modal.style.display = 'flex';
         modal.classList.remove('hidden');
@@ -704,10 +713,13 @@
         var btn = e.target.closest('[data-open-task-modal]');
         if (!btn) return;
         openNewTaskModal({
-            orderId:      parseInt(btn.dataset.orderId, 10) || null,
-            orderNumber:  btn.dataset.orderNumber || null,
-            customerId:   parseInt(btn.dataset.customerId, 10) || null,
-            customerName: btn.dataset.customerName || null,
+            orderId:           parseInt(btn.dataset.orderId, 10) || null,
+            orderNumber:       btn.dataset.orderNumber || null,
+            customerId:        parseInt(btn.dataset.customerId, 10) || null,
+            customerName:      btn.dataset.customerName || null,
+            // Employee-lane "+ Add task" preselects the assignee (absent/blank
+            // on the global button and the Unassigned lane → stays Unassigned).
+            assignedToUserId:  parseInt(btn.dataset.assignedTo, 10) || null,
         });
     });
 

@@ -287,7 +287,12 @@
                             @endif
                         @endforeach
 
-                        <button type="button" onclick="openNewTaskModal()"
+                        {{-- Employee-lane entry point: opens the SAME unified New
+                             Task modal but preselects this lane's assignee. The
+                             Unassigned lane ($lane['user_id'] === null) carries no
+                             data-assigned-to, so it opens blank like + New Task.
+                             Declarative + delegated so it works after AJAX swaps. --}}
+                        <button type="button" data-open-task-modal @if ($lane['user_id']) data-assigned-to="{{ $lane['user_id'] }}" @endif
                             style="border:1px dashed #cbd5e1; background:transparent; border-radius:11px; padding:11px; font-family:inherit; font-size:13px; font-weight:600; color:#94a3b8; cursor:pointer;">
                             + Add task
                         </button>

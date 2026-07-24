@@ -50,6 +50,10 @@
     $showTasks  = $typeParam !== 'calls';
     $showCalls  = $typeParam !== 'tasks';
 
+    // Canonical date filter (resolved by the controller: 'all'|'today'|'overdue',
+    // incl. legacy-param translation). Defensive default keeps the view safe.
+    $dueFilter  = $dueFilter ?? 'all';
+
     // Focused single-employee view (an employee lane was selected). In this
     // mode task cards show the description so work can be understood in place.
     $focused = (bool) request('assigned_to');
@@ -66,7 +70,7 @@
         <input type="hidden" name="assigned_to" value="{{ request('assigned_to') }}">
     @endif
 
-    {{-- Row 1: Status | Priority | Type | Due Today | Overdue | Clear --}}
+    {{-- Row 1: Status | Priority | Type | Due | Clear --}}
     <div class="flex flex-wrap items-end gap-x-3 gap-y-2 pb-[7px]">
 
         {{-- Status --}}
@@ -114,20 +118,36 @@
             </div>
         </div>
 
-        {{-- Due Today / Overdue --}}
-        <div class="flex items-center gap-3 pb-1">
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="due_today" value="1" {{ request('due_today') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-brand-500">
-                Due Today
-            </label>
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="overdue" value="1" {{ request('overdue') ? 'checked' : '' }} onchange="this.form.requestSubmit()" class="rounded border-gray-300 text-red-500">
-                Overdue
-            </label>
+        {{-- Due date 3-way toggle — exclusive (All | Due Today | Overdue),
+             mirroring the Type toggle. Replaces the old two independent
+             checkboxes: selecting both "Due Today" and "Overdue" was
+             contradictory (a task can't be both) and returned zero results.
+             One canonical param (due_filter); '' = All, matching the Type
+             toggle's empty-is-default convention so it drops from the URL. --}}
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Due</label>
+            <input type="hidden" name="due_filter" id="task-due-val" value="{{ $dueFilter === 'all' ? '' : $dueFilter }}">
+            <div class="inline-flex items-center bg-gray-100 rounded-lg p-0.5 gap-0.5">
+                <button type="button"
+                    onclick="document.getElementById('task-due-val').value=''; this.closest('form').requestSubmit()"
+                    class="{{ $dueFilter === 'all' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
+                    All
+                </button>
+                <button type="button"
+                    onclick="document.getElementById('task-due-val').value='today'; this.closest('form').requestSubmit()"
+                    class="{{ $dueFilter === 'today' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
+                    Due Today
+                </button>
+                <button type="button"
+                    onclick="document.getElementById('task-due-val').value='overdue'; this.closest('form').requestSubmit()"
+                    class="{{ $dueFilter === 'overdue' ? 'bg-white shadow-sm text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700 font-medium' }} px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap">
+                    Overdue
+                </button>
+            </div>
         </div>
 
         {{-- Clear filters --}}
-        @if (request()->hasAny(['category', 'status', 'priority', 'assigned_to', 'due_today', 'overdue', 'type']))
+        @if (request()->hasAny(['category', 'status', 'priority', 'assigned_to', 'due_filter', 'due_today', 'overdue', 'type']))
             <a href="{{ route('admin.tasks.index') }}"
                class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50 hover:text-gray-800">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

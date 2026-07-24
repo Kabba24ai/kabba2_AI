@@ -40,6 +40,9 @@ class TaskController extends Controller
         $includeTasks = $typeParam !== 'calls';
         $includeCalls = $typeParam !== 'tasks';
 
+        // Canonical date filter for the exclusive All | Due Today | Overdue toggle.
+        $dueFilter = $this->dueFilter($request);
+
         // Tab badge counts — independent of the type filter so each tab always shows its real total
         $taskCount = $this->baseTaskQuery($request)
             ->when($request->filled('category'),    fn($q) => $q->where('category', $request->category))
@@ -111,7 +114,8 @@ class TaskController extends Controller
         return view('admin.tasks.index', compact(
             'lanes', 'users', 'categories', 'priorities', 'statuses',
             'categoryCounts', 'customers', 'suppliers',
-            'taskCount', 'callCount', 'productCategories', 'equipmentList'
+            'taskCount', 'callCount', 'productCategories', 'equipmentList',
+            'dueFilter'
         ));
     }
 
@@ -175,26 +179,74 @@ class TaskController extends Controller
         return $lanes;
     }
 
+    /**
+     * Canonical Task Center date filter: one source of truth returning
+     * 'all' | 'today' | 'overdue' (replaces the old due_today/overdue booleans,
+     * which could both be set at once and produced a contradictory empty query).
+     *
+     * Resolution order:
+     *  - an explicit ?due_filter wins; an invalid value falls back to 'all';
+     *  - otherwise legacy bookmarked params are translated so old links never
+     *    error or produce a contradiction:
+     *      only due_today  → today
+     *      only overdue    → overdue
+     *      both or neither → all
+     */
+    private function dueFilter(Request $request): string
+    {
+        $value = $request->input('due_filter');
+
+        if (in_array($value, ['all', 'today', 'overdue'], true)) {
+            return $value;
+        }
+
+        if ($value !== null) {
+            return 'all'; // present but invalid
+        }
+
+        $today   = $request->boolean('due_today');
+        $overdue = $request->boolean('overdue');
+
+        if ($today && ! $overdue) {
+            return 'today';
+        }
+        if ($overdue && ! $today) {
+            return 'overdue';
+        }
+
+        return 'all';
+    }
+
     private function baseTaskQuery(Request $request): Builder
     {
+        $due = $this->dueFilter($request);
+
         return Task::query()
             ->when(
                 $request->filled('status'),
                 fn($q) => $q->where('status', $request->status),
                 fn($q) => $q->whereNotIn('status', ['completed', 'cancelled'])
             )
-            ->when($request->filled('priority'),    fn($q) => $q->where('priority', $request->priority))
-            ->when($request->boolean('due_today'),  fn($q) => $q->dueToday())
-            ->when($request->boolean('overdue'),    fn($q) => $q->overdue());
+            ->when($request->filled('priority'),  fn($q) => $q->where('priority', $request->priority))
+            // Due Today = due_date is today (canonical scopeDueToday); Overdue =
+            // due_date strictly before today. Both use the app-timezone today()
+            // boundary, are mutually exclusive, and exclude each other's day —
+            // Overdue never includes today's tasks (the mission's requirement).
+            // Active-status is already enforced by the status branch above.
+            ->when($due === 'today',   fn($q) => $q->dueToday())
+            ->when($due === 'overdue', fn($q) => $q->whereNotNull('due_date')->whereDate('due_date', '<', today()));
     }
 
     private function baseCallQuery(Request $request): Builder
     {
+        $due = $this->dueFilter($request);
+
         return CustomerCallNeeded::where('status', 'active')
             ->where(fn($q) => $q->whereNull('follow_up_at')->orWhere('follow_up_at', '<=', now()))
-            ->when($request->filled('priority'),   fn($q) => $q->where('priority', $request->priority))
-            ->when($request->boolean('due_today'), fn($q) => $q->whereDate('due_date', today()))
-            ->when($request->boolean('overdue'),   fn($q) => $q->whereNotNull('due_date')->where('due_date', '<', now()));
+            ->when($request->filled('priority'), fn($q) => $q->where('priority', $request->priority))
+            // Same exclusive today/before-today boundaries as the task query.
+            ->when($due === 'today',   fn($q) => $q->whereDate('due_date', today()))
+            ->when($due === 'overdue', fn($q) => $q->whereNotNull('due_date')->whereDate('due_date', '<', today()));
     }
 
     public function create()

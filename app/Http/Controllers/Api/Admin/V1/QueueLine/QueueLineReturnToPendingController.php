@@ -38,7 +38,7 @@ class QueueLineReturnToPendingController extends Controller
     public function __invoke(Request $request, string $orderProductUniqueId): JsonResponse
     {
         $validated = $request->validate([
-            'performed_by' => ['required', 'string', 'max:255'], // user unique_id
+            'performed_by' => ['nullable', 'string', 'max:255'], // user unique_id
         ]);
 
         $orderProduct = $this->findQueueItem($orderProductUniqueId);
@@ -47,7 +47,12 @@ class QueueLineReturnToPendingController extends Controller
             return $this->itemNotFound();
         }
 
-        $performedBy = $this->findActiveEmployee($validated['performed_by']);
+        // performed_by is optional — omitted, it defaults to the authenticated
+        // employee (self-selected on shared devices is the exception, not
+        // the rule, for a reversal action like this one).
+        $performedBy = $validated['performed_by'] ?? null
+            ? $this->findActiveEmployee($validated['performed_by'])
+            : auth('api_user')->user();
 
         if (! $performedBy) {
             return $this->invalidEmployee();

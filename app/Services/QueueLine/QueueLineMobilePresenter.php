@@ -3,6 +3,7 @@
 namespace App\Services\QueueLine;
 
 use App\Helpers\CustomHelper;
+use App\Http\Resources\Api\Admin\V1\Equipment\ListResource as EquipmentResource;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\QueueLineFuelVerification;
 use Illuminate\Support\Carbon;
@@ -155,19 +156,20 @@ final class QueueLineMobilePresenter
             ],
             'urgency' => $row->queueLineItem?->isRushed() ? 'rush' : QueueLineEligibility::bucketFor($row),
             'assignment_state' => $assignmentState,
-            'equipment' => $equipment ? [
-                'unique_id' => $equipment->unique_id,
-                'display_id' => $equipment->equipment_id,
-                'name' => $equipment->equipment_name,
-                'assigned_product_name' => $equipment->assignedProduct?->product_name,
-                'status' => $equipment->current_status?->value,
-                'status_label' => $equipment->status_label,
-                'power_source_type' => $equipment->power_source_type,
-                'is_fuel' => $equipment->hasFuelData(),
-                'key_starting_mechanism'=> $equipment->key_starting_mechanism,
-                'is_key' => $equipment->hasKeyData(),
-                'rental_ready' => QueueLineEligibility::rentalReadyLabel($row),
-            ] : null,
+            // 'equipment' => $equipment ? [
+            //     'unique_id' => $equipment->unique_id,
+            //     'display_id' => $equipment->equipment_id,
+            //     'name' => $equipment->equipment_name,
+            //     'assigned_product_name' => $equipment->assignedProduct?->product_name,
+            //     'status' => $equipment->current_status?->value,
+            //     'status_label' => $equipment->status_label,
+            //     'power_source_type' => $equipment->power_source_type,
+            //     'is_fuel' => $equipment->hasFuelData(),
+            //     'key_starting_mechanism'=> $equipment->key_starting_mechanism,
+            //     'is_key' => $equipment->hasKeyData(),
+            //     'rental_ready' => QueueLineEligibility::rentalReadyLabel($row),
+            // ] : null,
+            'equipment' => $equipment ? new EquipmentResource($equipment) : null,
             'options_count' => QueueLineEligibility::optionsCount($row),
             // Applicability (2026-07-21): 'not_applicable' = the unit has no
             // such trait (not Diesel/Gas → no fuel; no 1 Key / 2 Keys

@@ -123,7 +123,11 @@ final class QueueLineMobilePresenter
     public static function serialize(OrderProduct $row, ?QueueLineFuelVerification $fuel, $key = null): array
     {
         $classification = QueueLineEligibility::classifyAssignment($row);
-        $equipment = $row->softAssignment?->equipment;
+        // Completed items lose their soft assignment on delivery
+        // (SaveDeliveryController deletes it) — fall back to the hard
+        // equipment FK so equipment/equipment_collection are never null
+        // just because the item finished its Queue Line lifecycle.
+        $equipment = $row->softAssignment?->equipment ?? $row->equipment;
         $order = $row->order;
 
         $assignmentState = match ($classification) {

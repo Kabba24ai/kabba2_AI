@@ -85,31 +85,48 @@ final class QueueLineEligibility
                 'product:id,unique_id,product_name',
                 'product.mediaChildren',          // image_url accessor source (Phase 2 cards)
                 'deliveryStore:id,unique_id,store_name',
-                'softAssignment.equipment.assignedProduct:id,product_name',
-                'softAssignment.equipment.assignedProduct.mediaChildren', // substitute cards show the ASSIGNED product's image (UI Iteration 1)
-                'softAssignment.equipment.store:id,store_name',           // Wrong Location badge (display-only)
-                'softAssignment.equipment.activeEquipmentRentalReadyTemplate', // RR badge
                 'queueLineItem.stagedBy:id,first_name,last_name',
-                ...self::equipmentChecklistEagerLoads(),
+                ...self::equipmentEagerLoads(),
             ]);
     }
 
     /**
-     * Everything QueueLineMobilePresenter::equipmentResourceWithChecklists()
-     * needs to attach checklistQA/rentalReadyQA without N+1 — the SAME
-     * relation chains Equipment\IndexController and Orders\IndexController
-     * eager-load for the identical computation.
+     * Every relation a card needs off the assigned equipment — loaded under
+     * BOTH softAssignment.equipment AND the hard equipment relation.
+     *
+     * Completion (SaveDeliveryController) deletes the soft assignment row
+     * once an item is delivered — the physical unit lives on ONLY via
+     * OrderProduct::equipment() (the hard FK) from that point on. Pending/
+     * Staged items are soft-assigned only, Completed items are typically
+     * hard-assigned only; loading both keeps a single serialize() code path
+     * correct everywhere instead of branching on which one is populated.
      */
-    private static function equipmentChecklistEagerLoads(): array
+    public static function equipmentEagerLoads(): array
     {
-        return [
-            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.answers',
-            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.category',
-            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers',
-            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category',
-            'softAssignment.equipment.orderProduct.checklistQuestions',
-            'softAssignment.equipment.orderProduct.equipmentRentalReadyTemplate.checklistQuestions',
+        $suffixes = [
+            'assignedProduct:id,product_name',
+            'assignedProduct.mediaChildren', // substitute cards show the ASSIGNED product's image (UI Iteration 1)
+            'store:id,store_name',           // Wrong Location badge (display-only)
+            'activeEquipmentRentalReadyTemplate', // RR badge
+            // Everything QueueLineMobilePresenter::equipmentResourceWithChecklists()
+            // needs to attach checklistQA/rentalReadyQA without N+1 — the SAME
+            // relation chains Equipment\IndexController and Orders\IndexController
+            // eager-load for the identical computation.
+            'checklistMaster.customerAdminTemplate.templateQuestions.question.answers',
+            'checklistMaster.customerAdminTemplate.templateQuestions.question.category',
+            'checklistMaster.rentalReadyTemplate.templateQuestions.question.answers',
+            'checklistMaster.rentalReadyTemplate.templateQuestions.question.category',
+            'orderProduct.checklistQuestions',
+            'orderProduct.equipmentRentalReadyTemplate.checklistQuestions',
         ];
+
+        $loads = [];
+        foreach ($suffixes as $suffix) {
+            $loads[] = "softAssignment.equipment.{$suffix}";
+            $loads[] = "equipment.{$suffix}";
+        }
+
+        return $loads;
     }
 
     /**
@@ -135,12 +152,8 @@ final class QueueLineEligibility
                 'product:id,unique_id,product_name',
                 'product.mediaChildren',
                 'deliveryStore:id,unique_id,store_name',
-                'softAssignment.equipment.assignedProduct:id,product_name',
-                'softAssignment.equipment.assignedProduct.mediaChildren',
-                'softAssignment.equipment.store:id,store_name',
-                'softAssignment.equipment.activeEquipmentRentalReadyTemplate',
                 'queueLineItem.stagedBy:id,first_name,last_name',
-                ...self::equipmentChecklistEagerLoads(),
+                ...self::equipmentEagerLoads(),
             ]);
     }
 
@@ -204,7 +217,11 @@ final class QueueLineEligibility
      */
     public static function classifyAssignment(OrderProduct $row): string
     {
-        $equipment = $row->softAssignment?->equipment;
+        // Completion (SaveDeliveryController) deletes the soft assignment —
+        // a delivered item's unit lives on only via the hard equipment FK.
+        // Pending/Staged rows are never hard-assigned yet, so this fallback
+        // is a no-op for them; it only ever activates for Completed rows.
+        $equipment = $row->softAssignment?->equipment ?? $row->equipment;
 
         if (! $equipment) {
             return self::ASSIGNMENT_UNASSIGNED;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin\V1\QueueLine\Concerns;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
+use App\Services\QueueLine\QueueLineEligibility;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -62,19 +63,12 @@ trait RespondsWithQueueLineEnvelope
     protected function findQueueItem(string $orderProductUniqueId): ?OrderProduct
     {
         return OrderProduct::with([
-            'softAssignment.equipment.assignedProduct:id,product_name',
-            'softAssignment.equipment.activeEquipmentRentalReadyTemplate',
-            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.answers',
-            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question.category',
-            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.answers',
-            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question.category',
-            'softAssignment.equipment.orderProduct.checklistQuestions',
-            'softAssignment.equipment.orderProduct.equipmentRentalReadyTemplate.checklistQuestions',
             'order.lastPayment',
             'product:id,unique_id,product_name',
             'product.mediaChildren',
             'deliveryStore:id,unique_id,store_name',
             'queueLineItem.stagedBy:id,first_name,last_name',
+            ...QueueLineEligibility::equipmentEagerLoads(),
         ])
             ->whereHas('order')
             ->where('unique_id', $orderProductUniqueId)

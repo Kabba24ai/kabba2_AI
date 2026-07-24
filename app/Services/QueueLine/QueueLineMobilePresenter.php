@@ -194,8 +194,14 @@ final class QueueLineMobilePresenter
                 : (string) $order->last_payment_status,
             'status' => QueueLineEligibility::boardStatus($row), // pending | staged | completed — the board section this item belongs to
             'staged' => (bool) $row->queueLineItem?->isStaged(),
-            'staged_by' => $row->queueLineItem?->stagedBy?->full_name,
+            'staged_by' => $row->queueLineItem?->stagedBy?->full_name, // the admin/API session that entered it
             'staged_at' => CustomHelper::formatDateTime($row->queueLineItem?->staged_at),
+            // The technician who physically did the fuel/key work (dual
+            // attribution — see QueueLineStagingService::markStaged()).
+            // Fuel and key are submitted together, so either row carries the
+            // same performed_by; fall back to whichever one applies.
+            'performed_by' => $fuel?->performedBy?->full_name ?? $key?->performedBy?->full_name,
+            'performed_at' => CustomHelper::formatDateTime($fuel?->created_at ?? $key?->created_at),
             'fully_staged' => QueueLineStagingService::isFullyStaged($row, $fuel, $key),
             'completed' => $isCompleted = $row->queueLineItem?->completed_at !== null,
             'completed_at' => CustomHelper::formatDateTime($row->queueLineItem?->completed_at),

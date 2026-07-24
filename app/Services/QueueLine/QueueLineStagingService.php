@@ -257,9 +257,11 @@ final class QueueLineStagingService
             }
 
             // 3) Canonical staged latch (null-latch: first stage wins).
-            //    Attributed to the ADMIN entering it — the physical work
-            //    attribution lives on the fuel/key rows as performed_by.
-            QueueLineService::stage($orderProduct->fresh(['softAssignment.equipment', 'queueLineItem']), $actor);
+            //    Attributed to performedBy — the employee who physically
+            //    staged it — so staged_by is never lost even when the unit
+            //    has neither a fuel nor a key trait (no fuel/key row is ever
+            //    written to carry that attribution in that case).
+            QueueLineService::stage($orderProduct->fresh(['softAssignment.equipment', 'queueLineItem']), $performedBy);
 
             // Replayed = every part that applies replayed; with no
             // applicable parts, the staged latch itself is the signal.

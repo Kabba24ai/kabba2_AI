@@ -2,6 +2,7 @@
 
 namespace App\Services\QueueLine;
 
+use App\Helpers\CustomHelper;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\QueueLineFuelVerification;
 use Illuminate\Support\Carbon;
@@ -192,9 +193,10 @@ final class QueueLineMobilePresenter
             'status' => QueueLineEligibility::boardStatus($row), // pending | staged | completed — the board section this item belongs to
             'staged' => (bool) $row->queueLineItem?->isStaged(),
             'staged_by' => $row->queueLineItem?->stagedBy?->full_name,
-            'staged_at' => $row->queueLineItem?->staged_at?->toIso8601String(),
+            'staged_at' => CustomHelper::formatDateTime($row->queueLineItem?->staged_at),
             'fully_staged' => QueueLineStagingService::isFullyStaged($row, $fuel, $key),
             'completed' => $isCompleted = $row->queueLineItem?->completed_at !== null,
+            'completed_at' => CustomHelper::formatDateTime($row->queueLineItem?->completed_at),
             // Fast Track (web parity — _card.blade.php): completed but NEVER
             // staged (staged_at stayed null the whole episode) — left the yard
             // without going through Mark Staged. Informational only, never

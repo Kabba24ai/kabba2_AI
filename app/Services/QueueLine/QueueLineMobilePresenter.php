@@ -4,6 +4,7 @@ namespace App\Services\QueueLine;
 
 use App\Helpers\CustomHelper;
 use App\Http\Resources\Api\Admin\V1\Equipment\ListResource as EquipmentResource;
+use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
 use App\Models\Orders\QueueLineFuelVerification;
 use Illuminate\Support\Carbon;
@@ -169,7 +170,7 @@ final class QueueLineMobilePresenter
                 'is_key' => $equipment->hasKeyData(),
                 'rental_ready' => QueueLineEligibility::rentalReadyLabel($row),
             ] : null,
-            'equipment_collection' => $equipment ? new EquipmentResource($equipment) : null,
+            'equipment_collection' => $equipment ? self::equipmentResourceWithChecklists($equipment) : null,
             'options_count' => QueueLineEligibility::optionsCount($row),
             // Applicability (2026-07-21): 'not_applicable' = the unit has no
             // such trait (not Diesel/Gas → no fuel; no 1 Key / 2 Keys
@@ -213,6 +214,51 @@ final class QueueLineMobilePresenter
             'readiness' => self::readiness($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key), $row),
             'available_actions' => self::availableActions($assignmentState, QueueLineStagingService::isFullyStaged($row, $fuel, $key), $isCompleted),
         ];
+    }
+
+    /**
+     * Attaches checklistQA/rentalReadyQA onto the equipment the SAME way
+     * Equipment\IndexController and Orders\IndexController do, then wraps it
+     * in the shared Equipment\ListResource — so equipment_collection reads
+     * identically here as it does on those two endpoints for the same unit.
+     *
+     * Once a unit is currently rented AND its own hard assignment has been
+     * delivered, the ANSWERED data (what was actually recorded on that
+     * delivery) is shown instead of the blank template — a delivered rental
+     * is never represented by unanswered template questions. If no
+     * rental-ready inspection was ever filed for that delivery,
+     * rentalReadyQA is correctly empty (no fallback to the template).
+     */
+    private static function equipmentResourceWithChecklists(Equipment $equipment): EquipmentResource
+    {
+        $isRentedAndDelivered = $equipment->current_status?->isRented()
+            && $equipment->orderProduct
+            && $equipment->orderProduct->is_delivered == 1;
+
+        if ($isRentedAndDelivered) {
+            $checklistQA = optional($equipment->orderProduct->checklistQuestions) ?? collect();
+
+            $rentalReadyQA = collect($equipment->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions)
+                ->pluck('rental_ready_qa_json')
+                ->filter()
+                ->map(fn ($item) => is_string($item) ? json_decode($item, true) : $item)
+                ->values();
+        } else {
+            $checklistQA = collect($equipment->checklistMaster?->customerAdminTemplate?->templateQuestions)
+                ->pluck('question')
+                ->filter()
+                ->values();
+
+            $rentalReadyQA = collect($equipment->checklistMaster?->rentalReadyTemplate?->templateQuestions)
+                ->pluck('question')
+                ->filter()
+                ->values();
+        }
+
+        $equipment->setRelation('checklistQA', $checklistQA);
+        $equipment->setRelation('rentalReadyQA', $rentalReadyQA);
+
+        return new EquipmentResource($equipment);
     }
 
     private static function readiness(string $assignmentState, bool $fullyStaged, OrderProduct $row): string

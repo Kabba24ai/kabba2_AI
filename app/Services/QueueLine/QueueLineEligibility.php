@@ -90,7 +90,24 @@ final class QueueLineEligibility
                 'softAssignment.equipment.store:id,store_name',           // Wrong Location badge (display-only)
                 'softAssignment.equipment.activeEquipmentRentalReadyTemplate', // RR badge
                 'queueLineItem.stagedBy:id,first_name,last_name',
+                ...self::equipmentChecklistEagerLoads(),
             ]);
+    }
+
+    /**
+     * Everything QueueLineMobilePresenter::equipmentResourceWithChecklists()
+     * needs to attach checklistQA/rentalReadyQA without N+1 — the SAME
+     * relation chains Equipment\IndexController and Orders\IndexController
+     * eager-load for the identical computation.
+     */
+    private static function equipmentChecklistEagerLoads(): array
+    {
+        return [
+            'softAssignment.equipment.checklistMaster.customerAdminTemplate.templateQuestions.question',
+            'softAssignment.equipment.checklistMaster.rentalReadyTemplate.templateQuestions.question',
+            'softAssignment.equipment.orderProduct.checklistQuestions',
+            'softAssignment.equipment.orderProduct.equipmentRentalReadyTemplate.checklistQuestions',
+        ];
     }
 
     /**
@@ -121,6 +138,7 @@ final class QueueLineEligibility
                 'softAssignment.equipment.store:id,store_name',
                 'softAssignment.equipment.activeEquipmentRentalReadyTemplate',
                 'queueLineItem.stagedBy:id,first_name,last_name',
+                ...self::equipmentChecklistEagerLoads(),
             ]);
     }
 

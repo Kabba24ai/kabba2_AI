@@ -18,10 +18,10 @@ class UpdateDeliveryPickupInputsRequest extends ApiBaseFormRequest
             'type'                    => ['required', Rule::in(['delivery', 'pickup'])],
 
             'inputs_date'             => 'nullable|date',
-            'tnc_status'              => ['nullable', Rule::enum(OrderTermsStatus::class)],
-            'drivers_license_status'  => ['nullable', Rule::enum(DriversLicenseStatus::class)],
-            'video_status'            => ['nullable', Rule::enum(VideoInputStatus::class)],
-            'checklist_status'        => ['nullable', Rule::enum(ChecklistInputStatus::class)],
+            'tnc_status'              => ['nullable'],
+            'drivers_license_status'  => ['nullable'],
+            'video_status'            => ['nullable'],
+            'checklist_status'        => ['nullable'],
         ];
     }
 
@@ -44,22 +44,22 @@ class UpdateDeliveryPickupInputsRequest extends ApiBaseFormRequest
                 'type'        => 'string',
             ],
             'tnc_status' => [
-                'description' => 'Terms and conditions status. Allowed: ' . implode(', ', OrderTermsStatus::getValues()),
+                'description' => 'Terms and conditions status. Allowed: ',
                 'example'     => 'Accepted',
                 'type'        => 'string',
             ],
             'drivers_license_status' => [
-                'description' => 'Driver\'s license verification status. Allowed: ' . implode(', ', DriversLicenseStatus::getValues()),
+                'description' => 'Driver\'s license verification status. Allowed: ',
                 'example'     => 'Verified',
                 'type'        => 'string',
             ],
             'video_status' => [
-                'description' => 'Video status. Allowed: ' . implode(', ', VideoInputStatus::getValues()),
+                'description' => 'Video status. Allowed: ',
                 'example'     => 'Completed',
                 'type'        => 'string',
             ],
             'checklist_status' => [
-                'description' => 'Checklist completion status. Allowed: ' . implode(', ', ChecklistInputStatus::getValues()),
+                'description' => 'Checklist completion status. Allowed: ',
                 'example'     => 'Completed',
                 'type'        => 'string',
             ],

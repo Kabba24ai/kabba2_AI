@@ -68,6 +68,9 @@
         $inputSm = 'w-full border border-gray-300 rounded-md px-2 py-2 text-sm bg-white';
     @endphp
 
+    {{-- Cockpit centered container — caps overall width so the work area doesn't stretch on ultrawide displays. --}}
+    <div class="mx-auto w-full max-w-[1560px]">
+
     {{-- ===== Ticket header ===== --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -1693,6 +1696,7 @@
             </form>
         </div>
     </div>
+    </div>{{-- /cockpit centered container --}}
 
     {{-- ===== Add Diagnostic Step modal ===== --}}
     <div id="addStepModal"

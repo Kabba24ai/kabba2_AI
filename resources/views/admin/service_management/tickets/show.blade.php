@@ -255,9 +255,9 @@
                     </p>
                 </div>
                 @if ($equipmentThumb)
-                    <img src="{{ $equipmentThumb }}" alt="" class="w-full h-28 rounded-lg object-cover border border-gray-200 bg-gray-50">
+                    <img src="{{ $equipmentThumb }}" alt="" class="w-full max-w-[250px] h-32 rounded-lg object-cover border border-gray-200 bg-gray-50">
                 @else
-                    <div class="w-full h-28 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300">
+                    <div class="w-full max-w-[250px] h-32 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300">
                         <x-heroicon-o-cube class="w-8 h-8" />
                     </div>
                 @endif

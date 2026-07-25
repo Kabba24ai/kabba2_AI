@@ -19,9 +19,10 @@
     $chargeActionDefs = [
         'history'       => ['title' => 'Charge History',      'hover' => 'hover:text-blue-600 hover:bg-blue-50'],
         'notes'         => ['title' => 'Notes',               'hover' => 'hover:text-yellow-600 hover:bg-yellow-50'],
-        'adjust'        => ['title' => 'Adjust Amount',       'hover' => 'hover:text-purple-600 hover:bg-purple-50'],
-        'payment'       => ['title' => 'Collect Payment',     'hover' => 'hover:text-green-600 hover:bg-green-50'],
-        'refund'        => ['title' => 'Refund',              'hover' => 'hover:text-amber-600 hover:bg-amber-50'],
+        'adjust'         => ['title' => 'Adjust Amount',       'hover' => 'hover:text-purple-600 hover:bg-purple-50'],
+        'payment'        => ['title' => 'Collect Payment',     'hover' => 'hover:text-green-600 hover:bg-green-50'],
+        'add-to-account' => ['title' => 'Add to Account',      'hover' => 'hover:text-indigo-600 hover:bg-indigo-50'],
+        'refund'         => ['title' => 'Refund',              'hover' => 'hover:text-amber-600 hover:bg-amber-50'],
         'view-damage'   => ['title' => 'View Damage Details', 'hover' => 'hover:text-indigo-600 hover:bg-indigo-50'],
         'resolve'       => ['title' => 'Resolve',             'hover' => 'hover:text-emerald-600 hover:bg-emerald-50'],
         'uncollectible' => ['title' => 'Mark Uncollectible',  'hover' => 'hover:text-red-600 hover:bg-red-50'],
@@ -43,6 +44,7 @@
                 @case('notes')         <x-heroicon-o-chat-bubble-left class="w-4 h-4" /> @break
                 @case('adjust')        <x-heroicon-o-pencil-square class="w-4 h-4" /> @break
                 @case('payment')       <x-heroicon-o-credit-card class="w-4 h-4" /> @break
+                @case('add-to-account') <x-heroicon-o-building-library class="w-4 h-4" /> @break
                 @case('refund')        <x-heroicon-o-arrow-uturn-left class="w-4 h-4" /> @break
                 @case('view-damage')   <x-heroicon-o-eye class="w-4 h-4" /> @break
                 @case('resolve')       <x-heroicon-o-check-circle class="w-4 h-4" /> @break

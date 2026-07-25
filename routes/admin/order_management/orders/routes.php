@@ -44,6 +44,7 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\Uncollectibl
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\NoteController as BENoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\AdjustController as BEAdjustController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\DeleteController as BEDeleteController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\AddToAccountController as BEAddToAccountController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\CustomerCredit\ApplyController as CustomerCreditApplyController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\CustomerCredit\RemoveController as CustomerCreditRemoveController;
 
@@ -129,6 +130,7 @@ Route::prefix('orders')
                 Route::post('/{chargeUniqueId}/note',          BENoteController::class)->name('note');
                 Route::post('/{chargeUniqueId}/adjust',        BEAdjustController::class)->name('adjust');
                 Route::post('/{chargeUniqueId}/delete',        BEDeleteController::class)->name('delete');
+                Route::post('/{chargeUniqueId}/add-to-account', BEAddToAccountController::class)->name('add-to-account');
             });
 
         // Route::get('repair-deleted-orders', RepairDeletedOrdersController::class)->name('repair-deleted-orders');

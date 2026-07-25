@@ -38,7 +38,22 @@ use Illuminate\Support\Facades\DB;
  */
 class AlertLifecycleService
 {
+    /**
+     * The completion/resolution outcomes. These are the ONLY statuses the
+     * Completed-Today / Resolved-This-Week metrics count — 'account' is a
+     * queue exit but NOT a completion, so it is deliberately absent here.
+     */
     public const TERMINAL_STATUSES = ['resolved', 'completed', 'uncollectible'];
+
+    /**
+     * Every status that removes an alert from the active queue. Superset of
+     * TERMINAL_STATUSES that also includes 'account' (charge transferred to
+     * the customer's credit account — Add Charge to Account). Queue
+     * membership, the outstanding guard, and lifecycle recording all key on
+     * this set; the completion metrics key on TERMINAL_STATUSES so an
+     * on-account transfer is auditable without inflating "Completed Today".
+     */
+    public const QUEUE_EXIT_STATUSES = ['resolved', 'completed', 'uncollectible', 'account'];
 
     public const SOURCE_ORDER_PRODUCT   = 'order_product';
     public const SOURCE_CUSTOMER_ACCOUNT = 'customer_account';
@@ -47,7 +62,7 @@ class AlertLifecycleService
 
     public static function isTerminal(?string $status): bool
     {
-        return $status !== null && in_array($status, self::TERMINAL_STATUSES, true);
+        return $status !== null && in_array($status, self::QUEUE_EXIT_STATUSES, true);
     }
 
     /** Outstanding = null OR any non-terminal status. */

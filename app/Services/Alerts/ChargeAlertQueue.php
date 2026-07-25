@@ -49,6 +49,7 @@ class ChargeAlertQueue
             'completed',
             'uncollectible',
             'resolved',
+            'account', // transferred to the customer's credit account — no longer awaiting collection
         ])
         ->whereHas('equipment', function ($q) {
             $q->where('not_for_rent', 0)
@@ -207,7 +208,7 @@ class ChargeAlertQueue
             // whereNotIn alone silently excludes NULL rows in MySQL.
             $q->where(function ($inner) {
                 $inner->whereNull('damage_status')
-                      ->orWhereNotIn('damage_status', ['completed', 'uncollectible', 'resolved']);
+                      ->orWhereNotIn('damage_status', ['completed', 'uncollectible', 'resolved', 'account']);
             });
         })
         ->latest('id')

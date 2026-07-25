@@ -20,6 +20,11 @@
         ?->map(fn ($c) => ['id' => $c->unique_id, 'label' => $c->card_number])
         ->values() ?? collect();
     $beCustomerName = $order->customer?->full_name ?? $order->customer_name;
+
+    // Add-to-Account eligibility is an order-level property (all charges share
+    // the order's customer) — compute once. The service re-checks server-side.
+    $beAcctEligible = \App\Services\Billing\AddChargeToAccountService::customerIsEligible($order->customer);
+    $beAcctBalance  = (float) ($order->customer?->available_credit_balance ?? 0);
 @endphp
 <div class="bg-white rounded-xl border border-green-200 shadow-sm mb-4">
     {{-- Header --}}
@@ -143,12 +148,24 @@
                             ? (float) \App\Services\Orders\BillingChargeRefundService::remainingRefundable($charge)['total']
                             : 0.0;
 
+                        // Add to Account — supported charge types, still open,
+                        // with an eligible active credit account. The service
+                        // re-validates all of this under a row lock.
+                        $canAddToAccount = $isOpen && $beAcctEligible
+                            && \App\Services\Billing\AddChargeToAccountService::typeIsSupported($charge);
+                        // Whether the receivable is already booked (drives the
+                        // "balance after" the confirmation modal shows).
+                        $alreadyInAr = $charge->customer_account_id !== null;
+
                         // Capability from charge state + business rules only
                         // (approved architecture rule) — never from the page.
                         $rowActions = [];
                         if ($isFuel || $isDamage) {
                             if ($isOpen) {
                                 $rowActions = ['history', 'notes', 'adjust', 'payment', 'resolve', 'uncollectible'];
+                                if ($canAddToAccount) {
+                                    $rowActions[] = 'add-to-account';
+                                }
                             } else {
                                 $rowActions = ['history', 'notes'];
                                 if ($refundRemaining > 0) {
@@ -162,6 +179,9 @@
                             $rowActions = $isOpen
                                 ? ['notes', 'adjust', 'payment', 'delete']
                                 : ['notes', 'delete'];
+                            if ($isOpen && $canAddToAccount) {
+                                $rowActions[] = 'add-to-account';
+                            }
                         } elseif ($isService) {
                             // Service settlement charge (ST-2b): payable + noteable
                             // through the shared surfaces, exactly like other
@@ -261,7 +281,10 @@
                                      data-cards='@json($beCustomerCards)'
                                      data-refund-remaining="{{ number_format($refundRemaining, 2, '.', '') }}"
                                      data-child-number="{{ $extChildNumber }}"
-                                     data-paystate="{{ $extPayState }}">
+                                     data-paystate="{{ $extPayState }}"
+                                     data-charge-label="{{ $typeLabel }}"
+                                     data-account-balance="{{ number_format($beAcctBalance, 2, '.', '') }}"
+                                     data-already-in-ar="{{ $alreadyInAr ? '1' : '0' }}">
                                     <x-admin.billing.charge-actions :actions="$rowActions" />
                                 </div>
                             @endif

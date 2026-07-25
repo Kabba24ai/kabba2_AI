@@ -113,6 +113,46 @@
     </div>
 </div>
 
+{{-- ── Add to Account modal ────────────────────────────────────────────
+     Transfers the charge's outstanding balance to the customer's credit
+     account (A-R). Charge-mode rows only (BillingCharge-keyed). All
+     accounting, eligibility, idempotency and concurrency are enforced
+     server-side in AddChargeToAccountService — nothing here is trusted. --}}
+<div id="ws-add-to-account-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-gray-900">Add Charge to Account — <span data-modal-context></span></h3>
+            <button type="button" class="text-gray-400 hover:text-gray-600" data-modal-close>&times;</button>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 divide-y divide-gray-100 text-sm mb-3">
+            <div class="flex justify-between px-3 py-2"><span class="text-gray-500">Charge</span><span id="ws-a2a-charge" class="font-medium text-gray-900"></span></div>
+            <div class="flex justify-between px-3 py-2"><span class="text-gray-500">Outstanding amount</span><span id="ws-a2a-outstanding" class="font-semibold text-gray-900"></span></div>
+            <div class="flex justify-between px-3 py-2"><span class="text-gray-500">Current account balance</span><span id="ws-a2a-current" class="font-medium text-gray-900"></span></div>
+            <div class="flex justify-between px-3 py-2"><span class="text-gray-500">Balance after transfer</span><span id="ws-a2a-after" class="font-semibold text-indigo-700"></span></div>
+        </div>
+
+        <p id="ws-a2a-message" class="text-xs text-gray-500 mb-3">
+            This charge will be treated as settled on the order and added to the customer's credit-account balance. No cash or card payment will be recorded.
+        </p>
+
+        <label class="block text-sm font-medium text-gray-700 mb-1">Performed by</label>
+        <select id="ws-a2a-user" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+            @foreach ($users as $u)
+                <option value="{{ $u->id }}" @selected($u->id === $authUserId)>{{ $u->first_name }} {{ $u->last_name }}</option>
+            @endforeach
+        </select>
+
+        <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Note <span class="text-gray-400 font-normal">— optional</span></label>
+        <input type="text" id="ws-a2a-note" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Internal reference / PO number">
+
+        <div class="flex justify-end gap-2 mt-4">
+            <button type="button" class="px-4 py-2 text-sm rounded-md border border-gray-300" data-modal-close>Cancel</button>
+            <button type="button" id="ws-a2a-save" class="px-4 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700"><span id="ws-a2a-save-label">Add to Account</span></button>
+        </div>
+    </div>
+</div>
+
 {{-- ── History modal ───────────────────────────────────────────────── --}}
 <div id="ws-history-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[85vh] overflow-y-auto">
@@ -217,6 +257,7 @@
         adjustCharge:        @json(route('admin.order-management.orders.billing-charges.adjust', ':bcid')),
         resolveCharge:       @json(route('admin.order-management.orders.billing-charges.resolve', ':bcid')),
         uncollectibleCharge: @json(route('admin.order-management.orders.billing-charges.uncollectible', ':bcid')),
+        addToAccountCharge:  @json(route('admin.order-management.orders.billing-charges.add-to-account', ':bcid')),
     };
 
     let activeRow = null;
@@ -301,6 +342,21 @@
                     amt.value = remaining.toFixed(2);
                     amt.max = remaining.toFixed(2);
                     openModal('ws-refund-modal');
+                } else if (action === 'add-to-account') {
+                    const outstanding = Number(activeRow.dataset.amountTotal || 0);
+                    const current     = Number(activeRow.dataset.accountBalance || 0);
+                    const alreadyInAr = activeRow.dataset.alreadyInAr === '1';
+                    const after       = alreadyInAr ? current : current + outstanding;
+                    $('ws-a2a-charge').textContent      = activeRow.dataset.chargeLabel || 'Charge';
+                    $('ws-a2a-outstanding').textContent = money(outstanding);
+                    $('ws-a2a-current').textContent     = money(current);
+                    $('ws-a2a-after').textContent       = money(after);
+                    $('ws-a2a-note').value              = '';
+                    $('ws-a2a-message').textContent = alreadyInAr
+                        ? "This charge is already carried on the customer's account. Adding it to account marks it settled on the order and stops collection — the balance does not change. No cash or card payment is recorded."
+                        : "This charge will be treated as settled on the order and added to the customer's credit-account balance. No cash or card payment will be recorded.";
+                    $('ws-a2a-save-label').textContent = 'Add ' + money(outstanding) + ' to Account';
+                    openModal('ws-add-to-account-modal');
                 } else {
                     // Page-specific actions (e.g. view-damage, extension
                     // delete) — the host page plugs in a handler.
@@ -405,6 +461,19 @@
             }
         }
         changed();
+    });
+
+    // ── Add to Account ─────────────────────────────────────────────────
+    $('ws-a2a-save').addEventListener('click', async () => {
+        const by   = $('ws-a2a-user').value;
+        const note = $('ws-a2a-note').value.trim();
+        try {
+            await postJson(URLS.addToAccountCharge.replace(':bcid', activeRow.dataset.bcId), {
+                performed_by: by,
+                note: note || null,
+            });
+            changed();
+        } catch (e) { alert(e.message); }
     });
 
     // ── History ────────────────────────────────────────────────────────

@@ -106,6 +106,10 @@ class VoidPaymentController extends Controller
 
                 $this->closeSchedulesAfterVoid($order, $payment, $user, $request->boolean('cancel_order'));
 
+                // Keep the parent Extension BillingCharge in sync (D6): a
+                // voided child payment must not leave the charge reading Paid.
+                \App\Services\ExtensionPaymentSyncService::revertParentChargeOnVoid($order, $user->id);
+
                 return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
             }
 
@@ -143,6 +147,10 @@ class VoidPaymentController extends Controller
             ]);
 
             $this->closeSchedulesAfterVoid($order, $payment, $user, $request->boolean('cancel_order'));
+
+            // Keep the parent Extension BillingCharge in sync (D6): a voided
+            // child payment must not leave the charge reading Paid.
+            \App\Services\ExtensionPaymentSyncService::revertParentChargeOnVoid($order, $user->id);
 
             return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
 

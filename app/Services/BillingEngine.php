@@ -115,6 +115,39 @@ class BillingEngine
     }
 
     /**
+     * Mark a billing charge as voided — the collection it represented was
+     * reversed at the gateway before settlement (an in-place void, not a
+     * refund). Status transition: any → voided.
+     *
+     * The canonical counterpart to markPaid() for the reversal direction:
+     * when an extension child order's card payment is VOIDED, its parent
+     * Extension charge must stop reading "Paid" (ExtensionPaymentSyncService
+     * ::revertParentChargeOnVoid calls this). paid_at is intentionally left
+     * as-is: it is the historical record of when the (now-voided) payment
+     * settled, and every revenue/tax report already gates extension charges
+     * on the child order still holding a live 'Paid' payment (the settled-
+     * extension guard), so status='voided' — not the presence of paid_at —
+     * is what keeps a voided extension out of those totals.
+     *
+     * Idempotent: a charge already voided is returned unchanged.
+     */
+    public static function markVoided(BillingCharge $charge, ?int $userId = null): BillingCharge
+    {
+        if ($charge->status === \App\Enums\Billing\BillingChargeStatus::Voided) {
+            return $charge;
+        }
+
+        $charge->status = 'voided';
+        $charge->save();
+
+        Log::channel('billing_engine')->info(
+            "BillingEngine charge voided | unique_id={$charge->unique_id} | user_id=" . ($userId ?? 'null')
+        );
+
+        return $charge;
+    }
+
+    /**
      * Mark a billing charge as uncollectible.
      * Status transition: pending → uncollectible
      */

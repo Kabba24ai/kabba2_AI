@@ -198,103 +198,6 @@
         </div>
     @endif
 
-    {{-- ===== Context header — permanent operational context ===== --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
-        <div class="grid grid-cols-2 lg:grid-cols-5 divide-y lg:divide-y-0 divide-x-0 lg:divide-x divide-gray-100">
-            <div class="p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5 mb-2">
-                    <x-heroicon-o-clipboard-document-list class="w-4 h-4" /> Order
-                </p>
-                @if ($ticket->order)
-                    <p class="text-sm font-semibold text-blue-700">{!! $ticket->order->view_link ?? $ticket->order->order_number !!}</p>
-                    <p class="text-xs text-gray-400 mt-1.5">Customer</p>
-                    <p class="text-sm font-medium text-gray-800">
-                        {{ $ticket->customer ? trim($ticket->customer->first_name . ' ' . $ticket->customer->last_name) : ($ticket->order->customer_name ?? '—') }}
-                    </p>
-                    <p class="text-xs text-gray-400 mt-1.5">Rental Date</p>
-                    <p class="text-sm text-gray-700">{{ $ticket->rental_date?->format('M j, Y') ?? '—' }}</p>
-                @else
-                    <p class="text-sm text-gray-400 italic">No related order</p>
-                    <p class="text-xs text-gray-400 mt-1.5">Customer</p>
-                    <p class="text-sm font-medium text-gray-800">
-                        {{ $ticket->customer ? trim($ticket->customer->first_name . ' ' . $ticket->customer->last_name) : '—' }}
-                    </p>
-                @endif
-            </div>
-            <div class="p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5 mb-2">
-                    <x-heroicon-o-wrench-screwdriver class="w-4 h-4" /> Equipment
-                </p>
-                <div class="flex items-start gap-3">
-                    @if ($equipmentThumb)
-                        <img src="{{ $equipmentThumb }}" alt="" class="w-12 h-12 rounded-lg object-cover border border-gray-200 bg-gray-50 shrink-0">
-                    @else
-                        <span class="w-12 h-12 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 shrink-0">
-                            <x-heroicon-o-cube class="w-6 h-6" />
-                        </span>
-                    @endif
-                    <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $ticket->equipment?->equipment_name ?? '—' }}</p>
-                        @if ($ticket->equipment?->brand)
-                            <p class="text-xs text-gray-500">{{ $ticket->equipment->brand }}</p>
-                        @endif
-                        @if ($ticket->equipment?->equipment_id)
-                            <p class="text-sm font-medium text-blue-700 mt-0.5">Unit # {{ $ticket->equipment->equipment_id }}</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            <div class="p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5 mb-2">
-                    <x-heroicon-o-building-storefront class="w-4 h-4" /> Store
-                </p>
-                @if ($ticket->serviceStore)
-                    <p class="text-sm font-semibold text-gray-900">{{ $ticket->serviceStore->store_name }}</p>
-                    @if ($ticket->serviceStore->address)
-                        <p class="text-xs text-gray-500 mt-1">{{ $ticket->serviceStore->address }}</p>
-                        <p class="text-xs text-gray-500">{{ trim(($ticket->serviceStore->city ?? '') . ' ' . ($ticket->serviceStore->zip_code ?? '')) }}</p>
-                    @endif
-                @else
-                    <p class="text-sm text-gray-700">{{ $ticket->service_location->label() }}</p>
-                    <p class="text-xs text-gray-400 mt-1">No repair store selected</p>
-                @endif
-            </div>
-            <div class="p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5 mb-2">
-                    <x-heroicon-o-flag class="w-4 h-4" /> Priority
-                </p>
-                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {{ $ticket->priority->color() }}">
-                    {{ $ticket->priority->label() }}
-                </span>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5 mt-4 mb-2">
-                    <x-heroicon-o-clock class="w-4 h-4" /> Status
-                </p>
-                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {{ $workbenchBadge }}">
-                    {{ $workbenchLabel }}
-                </span>
-            </div>
-            <div class="p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5 mb-2">
-                    <x-heroicon-o-user-group class="w-4 h-4" /> Team
-                </p>
-                @if ($ticket->personnel->isEmpty())
-                    <p class="text-sm text-gray-400 italic">No personnel assigned</p>
-                @else
-                    @if ($teamLeader)
-                        <p class="text-xs text-gray-400">Team Leader</p>
-                        <p class="text-sm font-semibold text-blue-700 mb-1.5">{{ $teamLeader->full_name }}</p>
-                    @endif
-                    @php $members = $ticket->personnel->reject(fn ($p) => $teamLeader && $p->id === $teamLeader->id); @endphp
-                    @if ($members->isNotEmpty())
-                        <p class="text-xs text-gray-400">Team Members</p>
-                        @foreach ($members as $person)
-                            <p class="text-sm font-medium text-gray-800">{{ $person->full_name }}</p>
-                        @endforeach
-                    @endif
-                @endif
-            </div>
-        </div>
-    </div>
 
     {{-- Workflow progress now lives in the Spine (right rail) as the stage navigator. --}}
 
@@ -338,10 +241,58 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
 
-        {{-- ================= LEFT RAIL — persistent context ================= --}}
-        <div class="space-y-6">
+        {{-- ================= CONTEXT RAIL (left) — the unit & who it belongs to ================= --}}
+        <div class="lg:col-start-1 lg:col-span-3 space-y-6">
+
+            {{-- Unit + ownership context (consolidated from the old top band) --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+                <div>
+                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ $ticket->equipment?->equipment_name ?? 'No equipment' }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        {{ $ticket->equipment?->equipment_id ? 'Unit ' . $ticket->equipment->equipment_id : '' }}{{ $ticket->equipment?->brand ? ' · ' . $ticket->equipment->brand : '' }}
+                    </p>
+                </div>
+                @if ($equipmentThumb)
+                    <img src="{{ $equipmentThumb }}" alt="" class="w-full h-28 rounded-lg object-cover border border-gray-200 bg-gray-50">
+                @else
+                    <div class="w-full h-28 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300">
+                        <x-heroicon-o-cube class="w-8 h-8" />
+                    </div>
+                @endif
+
+                <div>
+                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Customer</p>
+                    <p class="text-sm text-gray-800 mt-0.5">{{ $ticket->customer ? trim($ticket->customer->first_name . ' ' . $ticket->customer->last_name) : ($ticket->order?->customer_name ?? '—') }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Rental Order</p>
+                    <p class="text-sm text-gray-800 mt-0.5">@if ($ticket->order){!! $ticket->order->view_link ?? $ticket->order->order_number !!}@else<span class="text-gray-400 italic">No related order</span>@endif</p>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Service Store</p>
+                    <p class="text-sm text-gray-800 mt-0.5">{{ $ticket->serviceStore?->store_name ?? $ticket->service_location->label() }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Priority</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold {{ $ticket->priority->color() }} mt-1">{{ $ticket->priority->label() }}</span>
+                </div>
+
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Assigned</p>
+                    @if ($ticket->personnel->isEmpty())
+                        <p class="text-sm text-gray-400 italic">No personnel assigned</p>
+                    @else
+                        @if ($teamLeader)
+                            <p class="text-sm text-gray-800">{{ $teamLeader->full_name }} · <span class="text-gray-500">Team Leader</span></p>
+                        @endif
+                        @foreach ($ticket->personnel->reject(fn ($p) => $teamLeader && $p->id === $teamLeader->id) as $person)
+                            <p class="text-sm text-gray-800">{{ $person->full_name }}</p>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
 
             {{-- Complaint — structured selections + freeform details --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -452,7 +403,7 @@
         </div>
 
         {{-- ================= CENTER — active work area (one stage at a time) ================= --}}
-        <div class="lg:col-span-2 space-y-4" id="wb-work">
+        <div class="lg:col-start-6 lg:col-span-7 space-y-4" id="wb-work">
 
             {{-- Work-area header — reflects the stage selected in the Spine --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -1631,8 +1582,8 @@
             </details>
         </div>
 
-        {{-- ================= RIGHT RAIL — Spine (stage navigator) + activity ================= --}}
-        <div class="space-y-6">
+        {{-- ================= SPINE (middle) — stage navigator + activity ================= --}}
+        <div class="lg:col-start-4 lg:col-span-2 space-y-6">
 
             {{-- Spine — click a stage to focus the work area on it --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 lg:sticky lg:top-6">
@@ -1646,25 +1597,28 @@
                 @else
                     <p class="text-xs font-semibold text-amber-700 mb-3">{{ $workbenchLabel }}</p>
                 @endif
-                <div class="space-y-1">
+                <div class="mt-1">
                     @foreach ($stages as $stage)
                         <button type="button" data-spine="{{ $stage['key'] }}"
-                            class="wb-spine-step w-full flex items-start justify-between gap-2 px-2 py-2 rounded-lg text-left transition {{ $stage['key'] === $currentStage ? 'is-active' : '' }}">
-                            <span class="flex items-center gap-2 min-w-0">
+                            class="wb-spine-step w-full flex gap-3 text-left px-2 py-1.5 rounded-lg transition {{ $stage['key'] === $currentStage ? 'is-active' : '' }}">
+                            <div class="flex flex-col items-center shrink-0">
                                 @if ($stage['state'] === 'complete')
-                                    <span class="w-4 h-4 rounded-full bg-green-500 text-white flex items-center justify-center shrink-0">
-                                        <x-heroicon-o-check class="w-2.5 h-2.5" />
+                                    <span class="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center shrink-0">
+                                        <x-heroicon-o-check class="w-4 h-4" />
                                     </span>
                                 @elseif ($stage['state'] === 'current')
-                                    <span class="w-4 h-4 rounded-full border-[5px] border-blue-600 bg-white shrink-0"></span>
+                                    <span class="w-7 h-7 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 ring-4 ring-blue-100">{{ $stageNumbers[$stage['key']] }}</span>
                                 @else
-                                    <span class="w-4 h-4 rounded-full border-2 border-gray-200 bg-white shrink-0"></span>
+                                    <span class="w-7 h-7 rounded-full bg-white border-2 border-gray-200 text-gray-400 text-[11px] font-bold flex items-center justify-center shrink-0">{{ $stageNumbers[$stage['key']] }}</span>
                                 @endif
-                                <span class="text-sm {{ $stage['state'] === 'current' ? 'font-semibold text-gray-900' : ($stage['state'] === 'complete' ? 'text-gray-700' : 'text-gray-400') }} truncate">
-                                    {{ $stage['label'] }}
-                                </span>
-                            </span>
-                            <span class="text-[11px] text-gray-400 text-right shrink-0">{{ implode(' · ', array_slice($stage['meta'], 0, 2)) }}</span>
+                                @unless ($loop->last)
+                                    <span class="w-0.5 flex-1 min-h-[16px] my-1 rounded {{ $stage['state'] === 'complete' ? 'bg-green-300' : 'bg-gray-200' }}"></span>
+                                @endunless
+                            </div>
+                            <div class="min-w-0 pb-3">
+                                <p class="text-sm leading-tight {{ $stage['state'] === 'current' ? 'font-semibold text-gray-900' : ($stage['state'] === 'complete' ? 'font-medium text-gray-800' : 'text-gray-400') }}">{{ $stage['label'] }}</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">{{ implode(' · ', array_slice($stage['meta'], 0, 2)) }}</p>
+                            </div>
                         </button>
                     @endforeach
                 </div>

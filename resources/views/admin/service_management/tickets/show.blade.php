@@ -241,10 +241,10 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-[300px_minmax(220px,250px)_minmax(0,1fr)] gap-6 lg:gap-3 mb-8 items-start">
 
         {{-- ================= CONTEXT RAIL (left) — the unit & who it belongs to ================= --}}
-        <div class="lg:row-start-1 lg:col-start-1 lg:col-span-3 space-y-6">
+        <div class="lg:row-start-1 lg:col-start-1 space-y-6">
 
             {{-- Unit + ownership context (consolidated from the old top band) --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
@@ -403,7 +403,7 @@
         </div>
 
         {{-- ================= CENTER — active work area (one stage at a time) ================= --}}
-        <div class="lg:row-start-1 lg:col-start-6 lg:col-span-7 space-y-4" id="wb-work">
+        <div class="lg:row-start-1 lg:col-start-3 space-y-4" id="wb-work">
 
             {{-- Work-area header — reflects the stage selected in the Spine --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -1583,7 +1583,7 @@
         </div>
 
         {{-- ================= SPINE (middle) — stage navigator + activity ================= --}}
-        <div class="lg:row-start-1 lg:col-start-4 lg:col-span-2 space-y-6">
+        <div class="lg:row-start-1 lg:col-start-2 space-y-6">
 
             {{-- Spine — click a stage to focus the work area on it --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 lg:sticky lg:top-6">

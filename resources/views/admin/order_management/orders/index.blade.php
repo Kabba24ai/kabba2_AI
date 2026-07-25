@@ -126,7 +126,8 @@
                          find orders awaiting delivery payment). Sorted A-Z by label;
                          only the "All Payment Types" default stays first. --}}
                     @php
-                        $paymentMethods = collect(array_merge([\App\Enums\Orders\OrderPaymentMethod::COD], \App\Enums\Orders\OrderPaymentMethod::canonical()))
+                        // Canonical filter provider: canonical() + COD + Account.
+                        $paymentMethods = collect(\App\Enums\Orders\OrderPaymentMethod::filterOptions())
                             ->sortBy(fn ($method) => $method->label())
                             ->values();
                     @endphp
@@ -143,19 +144,20 @@
                     class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
                     {{-- Default label renamed "All Payments" → "Payment Status"
                          (filters payment STATE, not method). Options come from
-                         OrderPaymentStatus::canonical() — the enum's documented
-                         filter source — which excludes the legacy Invoice* cases,
-                         the AR-only Account marker, and system-only Superseded.
-                         Sorted A-Z by label; the default stays first. --}}
+                         OrderPaymentStatus::filterOptions() — canonical() plus
+                         Account, so on-account orders are findable — excluding the
+                         legacy Invoice* cases and system-only Superseded. The
+                         Account label is rendered "On Account" via the canonical
+                         presenter. Sorted A-Z by label; the default stays first. --}}
                     <option value="">Payment Status</option>
                     @php
-                        $paymentStatuses = collect(\App\Enums\Orders\OrderPaymentStatus::canonical())
-                            ->sortBy(fn ($status) => $status->label())
+                        $paymentStatuses = collect(\App\Enums\Orders\OrderPaymentStatus::filterOptions())
+                            ->sortBy(fn ($status) => \App\Services\PaymentDescriptionPresenter::statusLabel($status))
                             ->values();
                     @endphp
                     @foreach ($paymentStatuses as $status)
                         <option value="{{ $status->value }}" @selected(request('payment_status') === $status->value)>
-                            {{ $status->label() }}
+                            {{ \App\Services\PaymentDescriptionPresenter::statusLabel($status) }}
                         </option>
                     @endforeach
                 </select>

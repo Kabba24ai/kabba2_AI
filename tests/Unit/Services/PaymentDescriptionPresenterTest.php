@@ -81,11 +81,16 @@ class PaymentDescriptionPresenterTest extends TestCase
         }
     }
 
-    public function test_account_status_reads_as_pending_not_a_completed_status(): void
+    public function test_account_status_reads_as_on_account_not_pending(): void
     {
-        // Account is an Accounts Receivable workflow marker — the funds
-        // have not actually been collected yet.
-        $this->assertSame('Pending', PaymentDescriptionPresenter::statusLabel(OrderPaymentStatus::Account));
+        // Payment & Accounts Consistency Initiative (Phase 8): Account is an
+        // Accounts Receivable marker — the funds are on the customer's credit
+        // account, NOT awaiting collection on the order. It reads "On Account"
+        // (the one canonical term shared with BillingChargeStatus::Account),
+        // never "Pending"/"Unpaid".
+        $this->assertSame('On Account', PaymentDescriptionPresenter::statusLabel(OrderPaymentStatus::Account));
+        // And it carries its own indigo badge, not Pending's yellow.
+        $this->assertStringContainsString('indigo', PaymentDescriptionPresenter::statusBadgeClasses(OrderPaymentStatus::Account));
     }
 
     public function test_unknown_or_null_status_never_throws(): void

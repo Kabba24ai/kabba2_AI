@@ -67,6 +67,18 @@ class OrderPaymentSummaryTest extends TestCase
         $pendingQuery->shouldReceive('get')->andReturn(collect());
         $paymentsQuery->shouldReceive('whereIn')->andReturn($pendingQuery);
 
+        // OrderPaymentSummary also runs payments()->where('status', X)->orderBy()
+        // ->get() for voidedPayments (Voided) and accountPayments (Account).
+        // Each resolves on its own empty-set mock — these scenarios model
+        // settled rows only, so there is neither a voided nor an account row.
+        $paymentsQuery->shouldReceive('where')->andReturnUsing(function () {
+            $branch = Mockery::mock();
+            $branch->shouldReceive('orderBy')->andReturnSelf();
+            $branch->shouldReceive('get')->andReturn(collect());
+
+            return $branch;
+        });
+
         $order->shouldReceive('payments')->andReturn($paymentsQuery);
 
         foreach ($settledPayments as $payment) {

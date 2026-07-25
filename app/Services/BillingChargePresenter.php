@@ -43,6 +43,10 @@ class BillingChargePresenter
             // Alert-world 'completed' means the money was collected — same
             // state Paid represents on the BillingCharge side, same green.
             'completed'     => ['label' => 'Completed', 'classes' => BillingChargeStatus::Paid->badgeClass()],
+            // Alert-world 'account' = charge transferred to the customer's
+            // credit account (Add Charge to Account) — same canonical
+            // "On Account" indigo as BillingChargeStatus::Account.
+            'account'       => ['label' => BillingChargeStatus::Account->label(), 'classes' => BillingChargeStatus::Account->badgeClass()],
             'resolved'      => ['label' => BillingChargeStatus::Resolved->label(), 'classes' => BillingChargeStatus::Resolved->badgeClass()],
             'uncollectible' => ['label' => BillingChargeStatus::Uncollectible->label(), 'classes' => BillingChargeStatus::Uncollectible->badgeClass()],
             default         => ['label' => BillingChargeStatus::Pending->label(), 'classes' => BillingChargeStatus::Pending->badgeClass()],

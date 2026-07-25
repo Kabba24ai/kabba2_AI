@@ -16,19 +16,11 @@
         @foreach($additionalCharges as $charge)
             @php
                 $isFuel   = $charge->reason === 'Fuel Charge';
+                // Legacy alert-status string ('pending'|'completed'|'account'|
+                // 'resolved'|'uncollectible') → rendered through the canonical
+                // billing-charge badge below, so an on-account fuel/damage
+                // charge reads "On Account" instead of a divergent "Pending".
                 $status   = $isFuel ? ($charge->fuel_alert_status ?? 'pending') : ($charge->damage_alert_status ?? 'pending');
-                $statusBadge = match($status) {
-                    'completed'     => 'bg-green-100 text-green-700',
-                    'resolved'      => 'bg-blue-100 text-blue-700',
-                    'uncollectible' => 'bg-gray-100 text-gray-500',
-                    default         => 'bg-amber-100 text-amber-800',
-                };
-                $statusLabel = match($status) {
-                    'completed'     => 'Paid',
-                    'resolved'      => 'Resolved',
-                    'uncollectible' => 'Uncollectible',
-                    default         => 'Pending',
-                };
                 // Financial Engine Phase 2.5: tax only applies when sales_tax_type
                 // is explicitly 'add' — passing rate=0 otherwise preserves that
                 // gate, since TaxCalculationService itself only checks rate > 0.
@@ -73,9 +65,7 @@
                             <p class="text-xs text-gray-400">+${{ number_format($taxAmount, 2) }} tax</p>
                         @endif
                     </div>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusBadge }}">
-                        {{ $statusLabel }}
-                    </span>
+                    <x-admin.billing.charge-status-badge :status="$status" />
                 </div>
             </div>
         @endforeach

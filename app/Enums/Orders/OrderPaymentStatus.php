@@ -108,12 +108,25 @@ enum OrderPaymentStatus : string
      * The seven statuses in the canonical vocabulary — excludes Account
      * (an Accounts Receivable workflow marker) and the legacy Invoice*
      * cases (status+method fused; use impliedMethod() to split them
-     * instead of offering them as their own status). Use this — not
-     * self::cases() — to build any status filter dropdown.
+     * instead of offering them as their own status). Use this for
+     * money-movement selection/validation contexts; for a FILTER dropdown
+     * that must be able to isolate on-account orders, use filterOptions().
      */
     public static function canonical(): array
     {
         return [self::Pending, self::Paid, self::PartialPayment, self::PartialRefund, self::Refund, self::Voided, self::Failed];
+    }
+
+    /**
+     * Status options for a FILTER dropdown: canonical() plus Account. A
+     * filter must be able to isolate orders sitting on the customer's credit
+     * account (order_payments.status stores 'Account'), which canonical()
+     * deliberately omits. This is the one canonical provider every payment-
+     * status filter should build from — do not hand-roll option lists.
+     */
+    public static function filterOptions(): array
+    {
+        return [...self::canonical(), self::Account];
     }
 
     public static function getValues(): array

@@ -31,8 +31,10 @@ class PaymentDescriptionPresenter
      * e.g. "Invoice Cash" = paid, via cash, through the Invoice flow)
      * collapse to their status half only — call methodLabel() with
      * impliedMethod() for the method half. Account (an Accounts
-     * Receivable workflow marker, not money actually collected) reads
-     * as Pending, since that's the true state of the funds.
+     * Receivable workflow marker) reads as "On Account" — the one
+     * canonical terminology shared with BillingChargeStatus::Account —
+     * NOT "Pending": the money is not awaiting collection on the order,
+     * it has been moved to the customer's credit-account balance.
      */
     public static function statusLabel(OrderPaymentStatus|string|null $status): string
     {
@@ -47,7 +49,7 @@ class PaymentDescriptionPresenter
         }
 
         if ($status === OrderPaymentStatus::Account) {
-            return OrderPaymentStatus::Pending->label();
+            return 'On Account';
         }
 
         return $status->label();
@@ -64,7 +66,8 @@ class PaymentDescriptionPresenter
 
         return match (true) {
             $status === null => 'bg-gray-200 text-gray-800',
-            $status === OrderPaymentStatus::Pending, $status === OrderPaymentStatus::Account => 'bg-yellow-100 text-yellow-800',
+            $status === OrderPaymentStatus::Account => 'bg-indigo-100 text-indigo-800',
+            $status === OrderPaymentStatus::Pending => 'bg-yellow-100 text-yellow-800',
             $status === OrderPaymentStatus::PartialPayment => 'bg-orange-100 text-orange-800',
             $status === OrderPaymentStatus::PartialRefund => 'bg-orange-100 text-orange-800',
             $status === OrderPaymentStatus::Refund => 'bg-purple-100 text-purple-800',
@@ -136,6 +139,7 @@ class PaymentDescriptionPresenter
             $summary->refundStatus === $summaryClass::REFUND_FULL => 'bg-purple-100 text-purple-800',
             $summary->refundStatus === $summaryClass::REFUND_PARTIAL => 'bg-orange-100 text-orange-800',
             $summary->collectionStatus === $summaryClass::COLLECTION_PAID_IN_FULL => 'bg-green-100 text-green-800',
+            $summary->collectionStatus === $summaryClass::COLLECTION_ON_ACCOUNT => 'bg-indigo-100 text-indigo-800',
             $summary->collectionStatus === $summaryClass::COLLECTION_PARTIALLY_PAID => 'bg-orange-100 text-orange-800',
             default => 'bg-yellow-100 text-yellow-800',
         };

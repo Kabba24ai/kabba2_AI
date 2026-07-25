@@ -327,14 +327,21 @@ class PaymentVocabularyStandardizationTest extends TestCase
         $this->assertNull(\App\Services\PaymentDescriptionPresenter::termsLabel($codOrder));
     }
 
-    // ── Account is not offered as a payment method ──────────────────────
+    // ── Account IS offered as a FILTER option (Consistency Initiative Ph.9) ──
 
-    public function test_order_list_payment_method_filter_excludes_account(): void
+    public function test_order_list_payment_filters_expose_account(): void
     {
+        // Payment & Accounts Consistency Initiative (Phase 9): the Orders
+        // filters must be able to isolate on-account orders, so both the
+        // Payment Type and Payment Status filters now expose Account
+        // (via OrderPaymentMethod/Status::filterOptions()). Account remains
+        // excluded from canonical() for money-movement/validation contexts —
+        // filters just use the augmented provider.
         $response = $this->get(route('admin.order-management.orders.index'));
 
         $response->assertOk();
         $response->assertSee('value="' . OrderPaymentMethod::Cash->value . '"', false);
-        $response->assertDontSee('value="' . OrderPaymentMethod::Account->value . '"', false);
+        $response->assertSee('value="' . OrderPaymentMethod::Account->value . '"', false);
+        $response->assertSee('value="' . OrderPaymentStatus::Account->value . '"', false);
     }
 }

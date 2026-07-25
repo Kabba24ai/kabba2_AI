@@ -136,10 +136,7 @@
                 <label class="block text-xs text-gray-500 mb-1">Payment</label>
                 <select id="f-payment-status"
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="paid"    @selected(($filters['payment_status'] ?? 'paid') === 'paid')>Paid</option>
-                    <option value="all"     @selected(($filters['payment_status'] ?? '') === 'all')>All</option>
-                    <option value="pod"     @selected(($filters['payment_status'] ?? '') === 'pod')>POD</option>
-                    <option value="account" @selected(($filters['payment_status'] ?? '') === 'account')>Account</option>
+                    @include('admin.reports.partials._payment_status_options', ['filters' => $filters])
                 </select>
             </div>
 

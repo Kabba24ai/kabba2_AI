@@ -54,8 +54,9 @@ enum OrderPaymentMethod : string
      * workflow marker, not a way funds were transferred), and Online/Bank
      * Transfer (never an accepted payment method in this system — see the
      * @deprecated note on the case itself). Use this — not self::cases()
-     * — to build any payment-method selection dropdown, validation rule,
-     * or report filter.
+     * — to build any payment-method selection dropdown or validation rule.
+     * For a FILTER dropdown (which must also isolate COD and on-Account
+     * orders), use filterOptions().
      */
     public static function canonical(): array
     {
@@ -63,6 +64,19 @@ enum OrderPaymentMethod : string
             self::cases(),
             fn (self $case) => !in_array($case, [self::COD, self::Account, self::Online], true),
         ));
+    }
+
+    /**
+     * Method options for a FILTER dropdown: the approved canonical() methods
+     * plus the two operational markers a filter must be able to isolate —
+     * COD (pay-on-delivery orders) and Account (orders on the customer's
+     * credit account). The one canonical provider every payment-method
+     * filter should build from, replacing hand-rolled array_merge([COD], …)
+     * lists. Online/Bank Transfer stays out (retired, never selectable).
+     */
+    public static function filterOptions(): array
+    {
+        return [self::COD, self::Account, ...self::canonical()];
     }
 
     public static function getValues(): array

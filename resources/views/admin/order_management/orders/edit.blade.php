@@ -98,6 +98,17 @@
                         </button>
                     @endif
 
+                    {{-- On Account: the order's balance was transferred to the
+                         customer's credit account (A-R). Canonical "On Account"
+                         (indigo) — never "Pending"/"Unpaid". No money was
+                         collected on the order; the receivable lives in CRM. --}}
+                    @if ($paymentSummary->isOnAccount)
+                        <span class="inline-flex items-center px-4 py-1 text-xs font-semibold bg-indigo-500 text-white rounded-full">
+                            <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
+                            On Account · {{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}
+                        </span>
+                    @endif
+
                     @if ($order->is_paid && $paymentSummary->refundStatus !== OrderPaymentSummary::REFUND_NONE)
                         {{-- Paid, but refund status takes precedence over a plain
                              "Paid In Full" claim — a fully/partially refunded order
@@ -150,7 +161,14 @@
                             <x-heroicon-o-x-circle class="w-4 h-4 mr-1 text-orange-600" />
                             Void
                         </button>
-                    @elseif ($order->is_paid === true && $order->remaining_amount > 0)
+                    @elseif ($paymentSummary->canRefund())
+                        {{-- Canonical refund eligibility: OrderPaymentSummary::canRefund()
+                             (a settled payment with a remaining refundable balance).
+                             Correct for every method by construction — Account
+                             (never settled) and Voided never qualify, so the button
+                             no longer shows on an on-account or voided order. Now
+                             also matches the refund controller's own eligibility
+                             (a partially-paid order with settled money is refundable). --}}
                         <button id="refundPaymentBtn" type="button"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-gray-600" />
@@ -159,7 +177,11 @@
                         </button>
                     @endif
 
-                    @if ($order->remaining_amount == 0)
+                    {{-- "Full Refund" must never show for an on-account order (no
+                         money was collected on the order — Phase 6/8). Account
+                         orders have remaining_amount == 0, which previously
+                         satisfied this condition and wrongly surfaced the button. --}}
+                    @if ($order->remaining_amount == 0 && ! $paymentSummary->isOnAccount)
                         <button type="button"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 transition rounded-lg">
                             <x-heroicon-o-credit-card class="w-4 h-4 mr-1 text-red-600" />
@@ -3242,7 +3264,10 @@
                         </div>
                         <div class="flex justify-between">
                             <span>Method:</span>
-                            <span class="font-medium text-gray-900">{{ \App\Services\PaymentDescriptionPresenter::methodsUsedLabel($pdSummary->paymentMethodsUsed) }}</span>
+                            {{-- methodsUsedForDisplay() surfaces "Account" for an
+                                 on-account order (whose settled-method set is empty)
+                                 instead of "Unknown". --}}
+                            <span class="font-medium text-gray-900">{{ \App\Services\PaymentDescriptionPresenter::methodsUsedLabel($pdSummary->methodsUsedForDisplay()) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Date:</span>

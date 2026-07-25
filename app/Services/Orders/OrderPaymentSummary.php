@@ -29,6 +29,8 @@ final class OrderPaymentSummary
 {
     public const COLLECTION_UNPAID = 'unpaid';
 
+    public const COLLECTION_ON_ACCOUNT = 'on_account';
+
     public const COLLECTION_PARTIALLY_PAID = 'partially_paid';
 
     public const COLLECTION_PAID_IN_FULL = 'paid_in_full';
@@ -119,6 +121,27 @@ final class OrderPaymentSummary
     public readonly Collection $voidedPayments;
 
     /**
+     * Every Account-status payment row on the order, oldest first. An
+     * Account row is the marker that the order's balance was transferred to
+     * the customer's credit account (Accounts Receivable) — Account is not a
+     * settled status, so these rows never contribute to totals/methods/refund
+     * state (exactly like voided rows). They exist so the summary can present
+     * the order as "On Account" instead of falling through to "Unpaid".
+     *
+     * @var Collection<int, OrderPayment>
+     */
+    public readonly Collection $accountPayments;
+
+    /**
+     * True when the order's balance sits on the customer's credit account:
+     * nothing has been collected as real money (totalSettledPayments <= 0)
+     * and at least one Account-status row exists. This is a presentation
+     * dimension only — the receivable itself lives on customers.available_
+     * credit_balance / customer_accounts, not here.
+     */
+    public readonly bool $isOnAccount;
+
+    /**
      * The most recent settled original payment — exposed ONLY for
      * backward-compatible single-payment display (e.g. legacy call sites
      * not yet migrated off Order::lastPaidPayment). Never use this to
@@ -136,7 +159,15 @@ final class OrderPaymentSummary
         $this->balanceDue = (float) $order->balance_due;
         $this->orderRefundableBalance = (float) $order->remaining_amount;
 
+        $this->accountPayments = $order->payments()
+            ->where('status', OrderPaymentStatus::Account->value)
+            ->orderBy('id')
+            ->get();
+
+        $this->isOnAccount = $this->totalSettledPayments <= 0.0 && $this->accountPayments->isNotEmpty();
+
         $this->collectionStatus = match (true) {
+            $this->totalSettledPayments <= 0.0 && $this->accountPayments->isNotEmpty() => self::COLLECTION_ON_ACCOUNT,
             $this->totalSettledPayments <= 0.0 => self::COLLECTION_UNPAID,
             (bool) $order->is_paid => self::COLLECTION_PAID_IN_FULL,
             default => self::COLLECTION_PARTIALLY_PAID,
@@ -203,6 +234,7 @@ final class OrderPaymentSummary
     {
         $collection = match ($this->collectionStatus) {
             self::COLLECTION_UNPAID => 'Unpaid',
+            self::COLLECTION_ON_ACCOUNT => 'On Account',
             self::COLLECTION_PARTIALLY_PAID => 'Partially Paid',
             self::COLLECTION_PAID_IN_FULL => 'Paid in Full',
         };
@@ -211,6 +243,58 @@ final class OrderPaymentSummary
             self::REFUND_NONE => $collection,
             self::REFUND_PARTIAL => "{$collection} · Partially Refunded",
             self::REFUND_FULL => "{$collection} · Fully Refunded",
+        };
+    }
+
+    /**
+     * Methods to show for the ORDER's payment method, accounting for the
+     * on-account case. paymentMethodsUsed only contains SETTLED methods, so a
+     * pure Account order has none — which would render as "Unknown". This
+     * surfaces "Account" instead, so the Payment Details modal and any
+     * method display read correctly for an on-account order.
+     *
+     * @return Collection<int, \App\Enums\Orders\OrderPaymentMethod>
+     */
+    public function methodsUsedForDisplay(): Collection
+    {
+        if ($this->paymentMethodsUsed->isEmpty() && $this->isOnAccount) {
+            return collect([\App\Enums\Orders\OrderPaymentMethod::Account]);
+        }
+
+        return $this->paymentMethodsUsed;
+    }
+
+    /**
+     * THE canonical order-level refund predicate. An order is refundable
+     * only when at least one settled original payment still has a remaining
+     * refundable balance. This is deliberately status-driven, so it is
+     * correct for every method by construction:
+     *   - Card / POD settled with balance → refundable
+     *   - Account (never a settled status) → NOT refundable (no money was
+     *     collected on the order; account adjustments belong in the CRM
+     *     account workflow)
+     *   - Voided (remainingRefundable = 0) → NOT refundable
+     *   - Fully refunded → NOT refundable
+     * Every surface deciding "show the Refund button / accept a refund" must
+     * consult this instead of re-deriving is_paid && remaining_amount.
+     */
+    public function canRefund(): bool
+    {
+        return $this->refundablePayments->isNotEmpty();
+    }
+
+    /** User-facing reason a refund is unavailable, or null when canRefund() is true. */
+    public function refundableReason(): ?string
+    {
+        if ($this->canRefund()) {
+            return null;
+        }
+
+        return match (true) {
+            $this->isOnAccount => 'On-account orders have no order-level refund. Adjust the balance in the CRM account workflow.',
+            $this->originalSettledPayments->isEmpty() && $this->voidedPayments->isNotEmpty() => 'This payment was voided and cannot be refunded.',
+            $this->collectionStatus === self::COLLECTION_UNPAID => 'No settled payment to refund.',
+            default => 'No refundable balance remains on this order.',
         };
     }
 }

@@ -29,6 +29,30 @@ class ServiceIntakeOrderPresenter
         ];
     }
 
+    /**
+     * The equipment IDs an order may be serviced against — resolved from the
+     * SAME hard-FK-OR-soft-assignment sources present() uses, so intake
+     * validation accepts exactly the units the intake form offered. An order
+     * whose unit is soft-assigned through the Queue Line (hard FK still null)
+     * resolves here just as it does in the picker. Empty when nothing is
+     * serviceable.
+     *
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    public static function serviceableEquipmentIds(?int $orderId): \Illuminate\Support\Collection
+    {
+        if (!$orderId) {
+            return collect();
+        }
+
+        $order = Order::with(self::relations())->find($orderId);
+
+        return collect(self::present($order)['equipment'] ?? [])
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+    }
+
     /** @return array|null  Null when the order has no serviceable equipment unit. */
     public static function present(?Order $order): ?array
     {

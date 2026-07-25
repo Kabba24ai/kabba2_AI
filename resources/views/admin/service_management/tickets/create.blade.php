@@ -172,8 +172,11 @@
                     <div class="mb-4"></div>
 
                     {{-- Customer path: equipment comes from the selected order,
-                         with an optional override for the wrong-unit case. --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-src="customer">
+                         with an optional override for the wrong-unit case.
+                         Hidden by default on the Standard path so a validation
+                         re-render never shows both equipment blocks at once —
+                         JS applySource() keeps this in sync thereafter. --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 @if($ticketSource === 'standard') hidden @endif" data-src="customer">
                         <div>
                             <label class="{{ $labelClass }} required">Equipment</label>
                             <select name="equipment_id" id="st-equipment" required disabled class="{{ $inputClass }}"
@@ -202,8 +205,11 @@
 
                     {{-- Standard path: pick a category, then the fleet unit within
                          it. Equipment is fetched server-side per category (never
-                         the whole fleet) and matches Name + Equipment ID only. --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-src="standard">
+                         the whole fleet) and matches Name + Equipment ID only.
+                         Hidden unless the Standard source is active so the
+                         Customer path never renders the category / general
+                         equipment fields alongside the order equipment. --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 @if($ticketSource !== 'standard') hidden @endif" data-src="standard">
                         <div>
                             <label class="{{ $labelClass }} required">Equipment Category</label>
                             <select name="equipment_category_id" id="st-category" class="{{ $inputClass }}">

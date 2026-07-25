@@ -140,11 +140,14 @@ class SaveTicketRequest extends FormRequest
                 return;
             }
 
-            $orderEquipmentIds = \Illuminate\Support\Facades\DB::table('order_products')
-                ->where('order_id', $this->input('order_id'))
-                ->whereNotNull('equipment_id')
-                ->pluck('equipment_id')
-                ->map(fn ($id) => (int) $id);
+            // Resolve the order's serviceable units the SAME way the intake
+            // picker does — hard `order_products.equipment_id` FK OR the Queue
+            // Line soft assignment. The old check saw only the hard FK, so a
+            // soft-assigned order (e.g. staged-but-not-dispatched) that the form
+            // legitimately offered was rejected here on submit.
+            $orderEquipmentIds = \App\Services\ServiceManagement\ServiceIntakeOrderPresenter::serviceableEquipmentIds(
+                (int) $this->input('order_id')
+            );
 
             if (!$orderEquipmentIds->contains((int) $this->input('equipment_id'))) {
                 $validator->errors()->add('equipment_id', 'Select equipment from the chosen rental order.');

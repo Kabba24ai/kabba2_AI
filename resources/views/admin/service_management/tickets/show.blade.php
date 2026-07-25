@@ -9,6 +9,16 @@
     details.wb-menu > summary::-webkit-details-marker,
     details.wb-panel > summary::-webkit-details-marker { display: none; }
     details.wb-panel[open] > summary .wb-chevron { transform: rotate(180deg); }
+
+    /* Cockpit — the spine drives which stage the work area shows. One at a time.
+       Scoped to .wb-cockpit-ready so that if JS never runs, every panel stays
+       visible (graceful fallback to the old stacked workbench). */
+    #wb-work.wb-cockpit-ready .wb-stage { display: none; }
+    #wb-work.wb-cockpit-ready .wb-stage.is-active { display: block; }
+    .wb-stage > summary .wb-chevron { display: none; }          /* active stage is always expanded */
+    .wb-spine-step { cursor: pointer; }
+    .wb-spine-step.is-active { background: #eff6ff; box-shadow: inset 3px 0 0 #2563eb; }
+    .wb-spine-step:not(.is-active):hover { background: #f8fafc; }
 </style>
 @endpush
 
@@ -43,6 +53,13 @@
         ];
         $stageLabels = collect($stages)->keyBy('key');
 
+        // Spine → work-area map consumed by the Cockpit JS (single var keeps @json comma-safe).
+        $wbStageMeta = collect($stages)->mapWithKeys(fn ($s) => [$s['key'] => [
+            'label' => $s['label'],
+            'state' => $s['state'],
+            'goal'  => $stageGoals[$s['key']] ?? ($s['key'] === 'intake' ? 'Unit received and the reported problem logged at intake.' : ''),
+        ]])->all();
+
         $equipmentThumb = $ticket->equipment?->documentImages?->first()?->media?->getUrl()
             ?? $ticket->equipment?->assignedProduct?->media?->getUrl();
         $teamLeader  = $ticket->teamLeader();
@@ -55,14 +72,15 @@
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('admin.service-management.tickets.index') }}"
+                <a href="{{ route('admin.service-management.board') }}"
                     class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700">
-                    <x-heroicon-o-arrow-left class="w-4 h-4" /> Back to Tickets
+                    <x-heroicon-o-arrow-left class="w-4 h-4" /> Back to Board
                 </a>
                 <h1 class="text-2xl font-semibold text-gray-900">Service Ticket {{ $ticket->ticket_number }}</h1>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {{ $ticket->repair_status->color() }}">
                     {{ $ticket->repair_status->label() }}
                 </span>
+                <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ $ticket->service_type->label() }}</span>
                 <span class="text-sm text-gray-500">
                     Created: {{ $ticket->created_at->format('M j, Y g:i A') }}
                     @if ($ticket->createdBy) <span class="block text-xs text-gray-400">by {{ $ticket->createdBy->full_name }}</span> @endif
@@ -72,7 +90,7 @@
                 {{-- More Actions: repair status transitions (existing rules, now in a menu) --}}
                 <details class="wb-menu relative">
                     <summary class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        More Actions <x-heroicon-o-chevron-down class="w-3.5 h-3.5 text-gray-400" />
+                        Change Status <x-heroicon-o-chevron-down class="w-3.5 h-3.5 text-gray-400" />
                     </summary>
                     <div class="absolute right-0 z-30 mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-lg p-3 space-y-2">
                         <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Operational Actions</p>
@@ -278,39 +296,7 @@
         </div>
     </div>
 
-    {{-- ===== Workflow progress ribbon ===== --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-        <h2 class="text-sm font-semibold text-gray-800 mb-4">Service Workflow Progress</h2>
-        <div class="overflow-x-auto">
-            <ol class="flex items-start gap-6 min-w-max pr-2">
-                @foreach ($stages as $stage)
-                    <li class="flex items-start gap-2.5">
-                        @if ($stage['state'] === 'complete')
-                            <span class="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center shrink-0">
-                                <x-heroicon-o-check class="w-4 h-4" />
-                            </span>
-                        @elseif ($stage['state'] === 'current')
-                            <span class="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 ring-4 ring-blue-100">
-                                {{ $stageNumbers[$stage['key']] }}
-                            </span>
-                        @else
-                            <span class="w-7 h-7 rounded-full bg-white border-2 border-gray-200 text-gray-400 text-xs font-bold flex items-center justify-center shrink-0">
-                                {{ $stageNumbers[$stage['key']] }}
-                            </span>
-                        @endif
-                        <div>
-                            <p class="text-sm font-semibold {{ $stage['state'] === 'current' ? 'text-blue-700' : ($stage['state'] === 'complete' ? 'text-gray-800' : 'text-gray-400') }}">
-                                {{ $stage['label'] }}
-                            </p>
-                            @foreach ($stage['meta'] as $line)
-                                <p class="text-xs {{ $stage['state'] === 'current' ? 'text-blue-600' : 'text-gray-400' }}">{{ $line }}</p>
-                            @endforeach
-                        </div>
-                    </li>
-                @endforeach
-            </ol>
-        </div>
-    </div>
+    {{-- Workflow progress now lives in the Spine (right rail) as the stage navigator. --}}
 
     {{-- ===== Blocked banner — prominent only when blocked ===== --}}
     @if ($isBlocked)
@@ -465,32 +451,47 @@
             </div>
         </div>
 
-        {{-- ================= CENTER — active work panel ================= --}}
-        <div class="lg:col-span-2 space-y-4">
+        {{-- ================= CENTER — active work area (one stage at a time) ================= --}}
+        <div class="lg:col-span-2 space-y-4" id="wb-work">
 
-            {{-- Current phase banner --}}
+            {{-- Work-area header — reflects the stage selected in the Spine --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-                    <div class="flex items-start gap-3">
-                        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                            <x-heroicon-o-wrench class="w-5 h-5" />
-                        </span>
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Current Phase</p>
-                            <p class="text-xl font-semibold text-blue-700">{{ $stageLabels[$currentStage]['label'] ?? 'Closed' }}</p>
+                <div class="flex items-start gap-3">
+                    <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <x-heroicon-o-wrench class="w-5 h-5" />
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide" id="wb-work-eyebrow">Current Phase</p>
+                            <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full hidden" id="wb-work-chip"></span>
                         </div>
-                    </div>
-                    <div class="sm:pl-4 pt-3 sm:pt-0">
-                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Goal</p>
-                        <p class="text-sm text-gray-600 mt-1">
-                            {{ $stageGoals[$currentStage] ?? 'This ticket is closed. Reopen it from More Actions if further work is needed.' }}
-                        </p>
+                        <p class="text-xl font-semibold text-blue-700" id="wb-work-title">{{ $stageLabels[$currentStage]['label'] ?? 'Closed' }}</p>
+                        <p class="text-sm text-gray-600 mt-1" id="wb-work-goal">{{ $stageGoals[$currentStage] ?? 'This ticket is closed. Reopen it from Change Status if further work is needed.' }}</p>
                     </div>
                 </div>
             </div>
 
+            {{-- ── Stage panel: Intake & Context (read-only summary) ─────── --}}
+            <details class="wb-stage wb-panel bg-white rounded-xl border border-gray-200 shadow-sm" data-stage="intake">
+                <summary class="flex items-center justify-between gap-3 p-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center bg-green-100 text-green-700">{{ $stageNumbers['intake'] }}</span>
+                        <h2 class="text-sm font-semibold text-gray-800">Intake &amp; Context</h2>
+                    </div>
+                </summary>
+                <div class="px-5 pb-5 border-t border-gray-100 pt-4">
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div class="sm:col-span-2"><dt class="text-xs text-gray-400 uppercase tracking-wide">Reported Problem</dt><dd class="mt-1 text-gray-700 whitespace-pre-line">{{ $ticket->customer_complaint ?: '—' }}</dd></div>
+                        <div><dt class="text-xs text-gray-400 uppercase tracking-wide">Equipment</dt><dd class="mt-1 text-gray-700">{{ $ticket->equipment?->equipment_name ?? '—' }}{{ $ticket->equipment?->equipment_id ? ' · Unit #' . $ticket->equipment->equipment_id : '' }}</dd></div>
+                        <div><dt class="text-xs text-gray-400 uppercase tracking-wide">Customer / Order</dt><dd class="mt-1 text-gray-700">{{ $ticket->customer ? trim($ticket->customer->first_name . ' ' . $ticket->customer->last_name) : ($ticket->order?->customer_name ?? '—') }}{{ $ticket->order ? ' · ' . $ticket->order->order_number : '' }}</dd></div>
+                        <div><dt class="text-xs text-gray-400 uppercase tracking-wide">Service Store</dt><dd class="mt-1 text-gray-700">{{ $ticket->serviceStore?->store_name ?? $ticket->service_location->label() }}</dd></div>
+                        <div><dt class="text-xs text-gray-400 uppercase tracking-wide">Opened</dt><dd class="mt-1 text-gray-700">{{ $ticket->created_at->format('M j, Y g:i A') }}{{ $ticket->createdBy ? ' · ' . $ticket->createdBy->full_name : '' }}</dd></div>
+                    </dl>
+                </div>
+            </details>
+
             {{-- ── Stage panel: Diagnostic ─────────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'diagnostic' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" @if($currentStage === 'diagnostic') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'diagnostic' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" data-stage="diagnostic" @if($currentStage === 'diagnostic') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['diagnostic']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'diagnostic' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['diagnostic'] }}</span>
@@ -697,7 +698,7 @@
             </details>
 
             {{-- ── Stage panel: Responsibility ─────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'responsibility' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" @if($currentStage === 'responsibility') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'responsibility' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" data-stage="responsibility" @if($currentStage === 'responsibility') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['responsibility']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'responsibility' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['responsibility'] }}</span>
@@ -740,7 +741,7 @@
             </details>
 
             {{-- ── Stage panel: Approval ───────────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'approval' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" @if($currentStage === 'approval') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'approval' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" data-stage="approval" @if($currentStage === 'approval') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['approval']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'approval' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['approval'] }}</span>
@@ -828,7 +829,7 @@
             </details>
 
             {{-- ── Stage panel: Parts Deposit ──────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'deposit' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" @if($currentStage === 'deposit') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'deposit' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" data-stage="deposit" @if($currentStage === 'deposit') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['deposit']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'deposit' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['deposit'] }}</span>
@@ -919,7 +920,7 @@
             </details>
 
             {{-- ── Stage panel: Authorization ──────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'authorized' ? 'border-blue-300' : ($ticket->repair_authorized ? 'border-green-300' : 'border-gray-200') }} shadow-sm" @if($currentStage === 'authorized') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'authorized' ? 'border-blue-300' : ($ticket->repair_authorized ? 'border-green-300' : 'border-gray-200') }} shadow-sm" data-stage="authorized" @if($currentStage === 'authorized') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['authorized']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'authorized' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['authorized'] }}</span>
@@ -1004,7 +1005,7 @@
             </details>
 
             {{-- ── Stage panel: Repair ─────────────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'repair' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" @if($currentStage === 'repair') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'repair' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" data-stage="repair" @if($currentStage === 'repair') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['repair']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'repair' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['repair'] }}</span>
@@ -1469,7 +1470,7 @@
             </details>
 
             {{-- ── Stage panel: Settlement ─────────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'settlement' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" @if($currentStage === 'settlement') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'settlement' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" data-stage="settlement" @if($currentStage === 'settlement') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['settlement']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'settlement' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['settlement'] }}</span>
@@ -1547,7 +1548,7 @@
             </details>
 
             {{-- ── Stage panel: Close Ticket ───────────────────────────── --}}
-            <details class="wb-panel bg-white rounded-xl border {{ $currentStage === 'close' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" @if($currentStage === 'close') open @endif>
+            <details class="wb-stage wb-panel bg-white rounded-xl border {{ $currentStage === 'close' ? 'border-blue-300' : 'border-gray-200' }} shadow-sm" data-stage="close" @if($currentStage === 'close') open @endif>
                 <summary class="flex items-center justify-between gap-3 p-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['close']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'close' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['close'] }}</span>
@@ -1630,12 +1631,12 @@
             </details>
         </div>
 
-        {{-- ================= RIGHT RAIL — operational status ================= --}}
+        {{-- ================= RIGHT RAIL — Spine (stage navigator) + activity ================= --}}
         <div class="space-y-6">
 
-            {{-- Current status checklist --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                <h2 class="text-sm font-semibold text-gray-800 mb-1">Current Status</h2>
+            {{-- Spine — click a stage to focus the work area on it --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 lg:sticky lg:top-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-1">Workflow</h2>
                 @if ($isBlocked)
                     <p class="text-xs font-semibold text-amber-700 mb-3">Waiting on {{ $ticket->repair_status->waitingOnLabel() }}</p>
                 @elseif ($ticket->repair_status === RepairStatus::Closed)
@@ -1645,9 +1646,10 @@
                 @else
                     <p class="text-xs font-semibold text-amber-700 mb-3">{{ $workbenchLabel }}</p>
                 @endif
-                <ul class="space-y-2.5">
+                <div class="space-y-1">
                     @foreach ($stages as $stage)
-                        <li class="flex items-start justify-between gap-2">
+                        <button type="button" data-spine="{{ $stage['key'] }}"
+                            class="wb-spine-step w-full flex items-start justify-between gap-2 px-2 py-2 rounded-lg text-left transition {{ $stage['key'] === $currentStage ? 'is-active' : '' }}">
                             <span class="flex items-center gap-2 min-w-0">
                                 @if ($stage['state'] === 'complete')
                                     <span class="w-4 h-4 rounded-full bg-green-500 text-white flex items-center justify-center shrink-0">
@@ -1663,9 +1665,10 @@
                                 </span>
                             </span>
                             <span class="text-[11px] text-gray-400 text-right shrink-0">{{ implode(' · ', array_slice($stage['meta'], 0, 2)) }}</span>
-                        </li>
+                        </button>
                     @endforeach
-                </ul>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-3">Click a stage to focus the work area on it.</p>
             </div>
 
             {{-- Recent activity --}}
@@ -1928,6 +1931,58 @@ document.addEventListener('DOMContentLoaded', function () {
         timeline.setAttribute('open', '');
         timeline.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+
+    // ── Cockpit spine — the work area shows ONE stage at a time ──
+    const WB_STAGES = @json($wbStageMeta);
+    const wbWork    = document.getElementById('wb-work');
+    const wbPanels  = document.querySelectorAll('.wb-stage');
+    const wbSteps   = document.querySelectorAll('[data-spine]');
+    const wbTitle   = document.getElementById('wb-work-title');
+    const wbGoal    = document.getElementById('wb-work-goal');
+    const wbEyebrow = document.getElementById('wb-work-eyebrow');
+    const wbChip    = document.getElementById('wb-work-chip');
+
+    if (wbWork && wbPanels.length) {
+        wbWork.classList.add('wb-cockpit-ready');   // enables the one-at-a-time CSS
+
+        // The active stage is always expanded; the spine is the only navigator,
+        // so the stage header itself must not toggle the panel shut.
+        wbPanels.forEach(p => {
+            const summary = p.querySelector(':scope > summary');
+            if (summary) summary.addEventListener('click', e => e.preventDefault());
+        });
+
+        const chipText = { complete: 'Complete', current: 'Current', pending: 'Upcoming' };
+        const chipCls  = { complete: 'bg-green-100 text-green-700', current: 'bg-blue-100 text-blue-700', pending: 'bg-gray-100 text-gray-500' };
+        const eyebrow  = { complete: 'Completed Stage', current: 'Current Phase', pending: 'Upcoming Stage' };
+
+        function wbShowStage(key) {
+            const meta = WB_STAGES[key];
+            if (!meta) return;
+            wbPanels.forEach(p => {
+                const on = p.dataset.stage === key;
+                p.classList.toggle('is-active', on);
+                if (on) { p.setAttribute('open', ''); } else { p.removeAttribute('open'); }
+            });
+            wbSteps.forEach(s => s.classList.toggle('is-active', s.dataset.spine === key));
+            const state = meta.state || 'pending';
+            if (wbTitle)   wbTitle.textContent   = meta.label;
+            if (wbGoal)    wbGoal.textContent     = meta.goal || '';
+            if (wbEyebrow) wbEyebrow.textContent  = eyebrow[state] || eyebrow.pending;
+            if (wbChip) {
+                wbChip.textContent = chipText[state] || chipText.pending;
+                wbChip.className = 'text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ' + (chipCls[state] || chipCls.pending);
+            }
+        }
+
+        wbSteps.forEach(step => step.addEventListener('click', function () {
+            wbShowStage(this.dataset.spine);
+            if (window.innerWidth < 1024) wbWork.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }));
+
+        // Default focus: the stage the workbench says is current.
+        wbShowStage(@json($currentStage));
+    }
 });
 </script>
 @endpush

@@ -12,6 +12,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * A single governed AI rule. One canonical record backs both the human-readable
  * CRM presentation and the future machine/AI consumption, so they cannot drift.
+ *
+ * Ownership & future AI Hub compatibility: this table is the CRM-owned
+ * authoritative repository (module = "crm"). A future Kabba AI Hub is an
+ * orchestration layer (Zapier-like) that will REFERENCE rules by stable
+ * identity — {module, rule_key, version, authority, implementation_status} —
+ * and must never duplicate, redefine, or grant authority beyond what the source
+ * rule declares. CRM remains authoritative for definition, approval, version,
+ * and the authority boundary. `module` is implicit today (this repository);
+ * no hub is built in this phase and no synchronization exists.
  */
 class AiRule extends Model
 {

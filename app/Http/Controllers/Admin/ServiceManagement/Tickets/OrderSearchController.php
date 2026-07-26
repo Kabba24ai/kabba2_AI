@@ -38,9 +38,13 @@ class OrderSearchController extends Controller
 
         $matchesOrder    = $by === 'order' || $by === 'any';
         $matchesCustomer = $by === 'customer' || $by === 'any';
+        // The consolidated selector (by=any — what both intakes use) also matches
+        // the order's product/equipment names, mirroring the Field Service search
+        // and the shared ServiceOrderLabel it displays.
+        $matchesEquipment = $by === 'any';
 
         $orders = Order::with(ServiceIntakeOrderPresenter::relations())
-            ->where(function ($q) use ($term, $matchesOrder, $matchesCustomer) {
+            ->where(function ($q) use ($term, $matchesOrder, $matchesCustomer, $matchesEquipment) {
                 if ($matchesOrder) {
                     $q->orWhere('order_number', 'like', "%{$term}%")
                         ->orWhere('reference_order_number', 'like', "%{$term}%");
@@ -50,6 +54,12 @@ class OrderSearchController extends Controller
                         ->orWhereHas('billingAddress', function ($b) use ($term) {
                             $b->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$term}%"]);
                         });
+                }
+                if ($matchesEquipment) {
+                    // EXISTS subquery — a multi-product order still returns once.
+                    $q->orWhereHas('products', function ($p) use ($term) {
+                        $p->where('product_name', 'like', "%{$term}%");
+                    });
                 }
             })
             ->latest('id')

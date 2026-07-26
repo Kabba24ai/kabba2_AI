@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\FieldService\Tickets;
 use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
+use App\Services\ServiceManagement\ServiceOrderLabel;
 use App\Services\ServiceManagement\ServiceProblemLibrary;
 
 trait BuildsFieldTicketFormData
@@ -29,25 +30,22 @@ trait BuildsFieldTicketFormData
             ])
             ->latest('id')
             ->limit(300)
-            ->get(['id', 'order_number', 'customer_id', 'customer_name', 'customer_phone']);
+            ->get(['id', 'order_number', 'reference_order_number', 'customer_id', 'customer_name', 'customer_phone']);
 
         $orderOptions = $orders->map(function (Order $order) {
             $ship = $order->shippingAddress;
 
-            // Append the order's product names so the searchable dropdown is
-            // identifiable at a glance (first few, then "+N more").
-            $names = $order->products->pluck('product_name')->filter()->unique()->values();
-            $label = trim($order->order_number . ' — ' . ($order->customer_name ?? $order->customer?->full_name ?? 'Unknown'));
-            if ($names->isNotEmpty()) {
-                // " - " separates the customer from the product list; products
-                // stay separated by " · ".
-                $label .= ' - ' . $names->take(3)->implode(' · ')
-                    . ($names->count() > 3 ? ' +' . ($names->count() - 3) . ' more' : '');
-            }
+            // One shared Customer Order label contract (identical on the Standard
+            // Service intake) so the two search results can never drift again:
+            // order # — customer - equipment (first three, then "+N more").
+            $label = ServiceOrderLabel::for($order)['label'];
 
             return [
                 'id'       => $order->id,
                 'label'    => $label,
+                // Reference number — searchable in the client-side Choices box
+                // (via customProperties) without appearing in the visible label.
+                'reference' => $order->reference_order_number,
                 'customer' => $order->customer_name ?? $order->customer?->full_name,
                 // Derived contact — the shipping-address recipient, else the order customer.
                 'contact'  => [

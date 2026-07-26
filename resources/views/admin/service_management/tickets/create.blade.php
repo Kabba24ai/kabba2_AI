@@ -555,7 +555,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 ? list.map(o =>
                     `<div data-id="${o.id}" class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
                         <span class="font-medium">${esc(o.label)}</span>
-                        ${o.rental_date ? `<span class="text-gray-400"> · ${esc(o.rental_date)}</span>` : ''}
                      </div>`).join('')
                 : '<div class="px-3 py-2 text-sm text-gray-400">No matching orders</div>';
             results.classList.remove('hidden');

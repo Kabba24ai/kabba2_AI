@@ -25,6 +25,7 @@ class OrderIntakeSearchTest extends TestCase
     private int $hardOrderId;
     private int $softOrderId;
     private int $chargeOrderId;
+    private int $customerId;
 
     protected function setUp(): void
     {
@@ -47,6 +48,7 @@ class OrderIntakeSearchTest extends TestCase
         $custId = DB::table('customers')->insertGetId([
             'unique_id' => 'ois-cust', 'first_name' => 'Dolly', 'last_name' => 'Parton',
         ]);
+        $this->customerId = $custId;
 
         // Order with a HARD-assigned unit
         $this->hardOrderId = $this->makeOrder('#8001', $custId, 'Dolly Parton');
@@ -150,5 +152,68 @@ class OrderIntakeSearchTest extends TestCase
         $this->getJson(route('admin.service-management.tickets.order-search', ['search' => 'a', 'by' => 'order']))
             ->assertOk()
             ->assertJson(['data' => []]);
+    }
+
+    // ── Equipment/product-name search (shared capability with Field Service) ──
+
+    private function serviceableOrderWithProduct(string $tag, string $productName): int
+    {
+        $eq = Equipment::create([
+            'unique_id' => 'ois-eq-' . $tag, 'equipment_name' => 'Unit ' . $tag,
+            'equipment_id' => 'EQ-' . strtoupper($tag), 'brand' => 'Test', 'current_status' => 'available',
+        ]);
+        $orderId = $this->makeOrder('#' . $tag, $this->customerId, 'Dolly Parton');
+        $this->addProduct($orderId, $tag, $eq->id, $productName);
+
+        return $orderId;
+    }
+
+    public function test_searches_by_equipment_product_name(): void
+    {
+        $orderId = $this->serviceableOrderWithProduct('9001', 'Stump Grinder - HD 37 Hp');
+
+        $ids = collect($this->searchOrders('Stump Grinder', 'any'))->pluck('id')->all();
+        $this->assertContains($orderId, $ids, 'Order should be findable by its equipment/product name.');
+    }
+
+    public function test_partial_case_insensitive_equipment_search(): void
+    {
+        $orderId = $this->serviceableOrderWithProduct('9002', 'Stump Grinder - HD 37 Hp');
+
+        $ids = collect($this->searchOrders('stump', 'any'))->pluck('id')->all();
+        $this->assertContains($orderId, $ids, 'A partial, lower-case equipment term should still match.');
+    }
+
+    // A multi-equipment order must appear EXACTLY once even when several of its
+    // products match the term (whereHas EXISTS subquery, not a join).
+    public function test_multi_equipment_order_appears_once(): void
+    {
+        $eqA = Equipment::create(['unique_id' => 'ois-eqA', 'equipment_name' => 'Twin A', 'equipment_id' => 'TW-A', 'brand' => 'Test', 'current_status' => 'available']);
+        $eqB = Equipment::create(['unique_id' => 'ois-eqB', 'equipment_name' => 'Twin B', 'equipment_id' => 'TW-B', 'brand' => 'Test', 'current_status' => 'available']);
+        $orderId = $this->makeOrder('#9003', $this->customerId, 'Dolly Parton');
+        $this->addProduct($orderId, '9003a', $eqA->id, 'Excavator Twin One');
+        $this->addProduct($orderId, '9003b', $eqB->id, 'Excavator Twin Two');
+
+        $matches = collect($this->searchOrders('Excavator Twin', 'any'))->where('id', $orderId);
+        $this->assertCount(1, $matches, 'A multi-product order must be returned exactly once.');
+    }
+
+    public function test_unrelated_equipment_term_excludes_order(): void
+    {
+        $orderId = $this->serviceableOrderWithProduct('9004', 'Stump Grinder - HD 37 Hp');
+
+        $ids = collect($this->searchOrders('Backhoe', 'any'))->pluck('id')->all();
+        $this->assertNotContains($orderId, $ids, 'An unrelated equipment term must not return the order.');
+    }
+
+    // The new equipment matching must not regress order-number / customer search.
+    public function test_order_number_and_customer_search_still_work(): void
+    {
+        $byNumber = collect($this->searchOrders('8001', 'any'))->pluck('id')->all();
+        $this->assertContains($this->hardOrderId, $byNumber);
+
+        $byCustomer = collect($this->searchOrders('Dolly', 'any'))->pluck('id')->all();
+        $this->assertContains($this->hardOrderId, $byCustomer);
+        $this->assertContains($this->softOrderId, $byCustomer);
     }
 }

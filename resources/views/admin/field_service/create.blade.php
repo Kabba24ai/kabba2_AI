@@ -84,7 +84,9 @@
                 <select name="order_id" id="fs-order" class="{{ $inputClass }}">
                     <option value="">Search order # or customer…</option>
                     @foreach ($orderOptions as $order)
-                        <option value="{{ $order['id'] }}" @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
+                        <option value="{{ $order['id'] }}"
+                            @if(!empty($order['reference'])) data-custom-properties='{"reference":"{{ $order['reference'] }}"}' @endif
+                            @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
                     @endforeach
                 </select>
                 @error('order_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
@@ -623,7 +625,11 @@ document.addEventListener('DOMContentLoaded', function () {
         itemSelectText: '',
         searchResultLimit: 1000,
         renderChoiceLimit: -1,
-        searchPlaceholderValue: 'Type an order # or customer name…',
+        // Order #, customer, and equipment are already in the visible label;
+        // reference # rides in customProperties so it's searchable too — matching
+        // the Standard Service server search's fields.
+        searchFields: ['label', 'value', 'customProperties.reference'],
+        searchPlaceholderValue: 'Type an order #, customer, or equipment…',
     });
 });
 </script>

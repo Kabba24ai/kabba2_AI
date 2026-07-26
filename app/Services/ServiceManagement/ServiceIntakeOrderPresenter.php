@@ -90,7 +90,10 @@ class ServiceIntakeOrderPresenter
 
         return [
             'id'          => $order->id,
-            'label'       => trim($order->order_number . ' — ' . ($order->customer_name ?? $order->customer?->full_name ?? 'Unknown')),
+            // One shared Customer Order label contract (identical on Field
+            // Service) — order # — customer - equipment. rental_date is retained
+            // for persistence + the selected-order detail line, never the label.
+            'label'       => ServiceOrderLabel::for($order)['label'],
             'rental_date' => $rentalDate ? Carbon::parse($rentalDate)->format('M j, Y') : null,
             'equipment'   => $units,
         ];

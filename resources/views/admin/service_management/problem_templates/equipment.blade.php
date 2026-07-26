@@ -9,12 +9,10 @@
 
         {{-- Sticky control bar: category → template → apply --}}
         <div class="sticky top-0 z-20 -mx-4 px-4 py-4 bg-white border-b border-gray-200 shadow-sm mb-5">
-            <div class="flex items-start justify-between gap-4 mb-3">
-                <div>
-                    <h1 class="text-xl font-bold text-gray-900">Equipment Template Assignment</h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Filter equipment by category, choose a Problem Template, then apply it to the selected units.</p>
-                </div>
-                <a href="{{ route('admin.service-management.problem-templates.index') }}" class="text-sm text-blue-600 hover:underline shrink-0 pt-1">← Problem Library</a>
+            @include('admin.service_management.problem_templates.partials._nav', ['active' => 'equipment'])
+            <div class="mt-3 mb-3">
+                <h1 class="text-xl font-bold text-gray-900">Equipment Template Assignment</h1>
+                <p class="text-sm text-gray-500 mt-0.5">Filter equipment by category, choose a Problem Template, then apply it to the selected units.</p>
             </div>
 
             <div class="flex flex-wrap items-end gap-4">

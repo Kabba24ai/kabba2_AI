@@ -6,19 +6,11 @@
     @include('flash::message')
 
     <div class="max-w-5xl mx-auto px-4 py-6">
-        <div class="flex items-start justify-between gap-4 mb-5">
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">Problem Templates</h1>
-                <p class="text-sm text-gray-500 mt-0.5">Reusable, ordered problem sets. Edit any template — changes flow to every equipment unit using it.</p>
-            </div>
-            <div class="flex items-center gap-4 shrink-0 pt-1">
-                <a href="{{ route('admin.service-management.problem-templates.index') }}" class="text-sm text-gray-500 hover:text-gray-700 hover:underline">← Problem Library</a>
-                <a href="{{ route('admin.service-management.problem-templates.equipment') }}" class="text-sm text-blue-600 hover:underline">Equipment Attachment</a>
-                <a href="{{ route('admin.service-management.problem-templates.create') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition">
-                    <x-heroicon-o-plus class="w-4 h-4" /> New Template
-                </a>
-            </div>
+        @include('admin.service_management.problem_templates.partials._nav', ['active' => 'templates'])
+
+        <div class="mb-5 mt-4">
+            <h1 class="text-xl font-bold text-gray-900">Problem Templates</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Reusable, ordered problem sets. Edit any template — changes flow to every equipment unit using it.</p>
         </div>
 
         <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">

@@ -64,19 +64,11 @@
 
     <div class="max-w-7xl mx-auto px-4 py-6">
 
-        <div class="flex items-start justify-between mb-6 gap-4">
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">Problem Library</h1>
-                <p class="text-sm text-gray-500 mt-0.5">Manage shared problem categories and the symptoms used across Service intake.</p>
-            </div>
-            <div class="flex items-center gap-4 shrink-0 pt-1">
-                <a href="{{ route('admin.service-management.problem-templates.templates') }}" class="text-sm text-blue-600 hover:underline">Templates</a>
-                <a href="{{ route('admin.service-management.problem-templates.equipment') }}" class="text-sm text-blue-600 hover:underline">Equipment Attachment</a>
-                <a href="{{ route('admin.service-management.problem-templates.create') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition">
-                    <x-heroicon-o-plus class="w-4 h-4" /> New Template
-                </a>
-            </div>
+        @include('admin.service_management.problem_templates.partials._nav', ['active' => 'library'])
+
+        <div class="mb-6 mt-4">
+            <h1 class="text-xl font-bold text-gray-900">Problem Library</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Manage shared problem categories and the symptoms used across Service intake.</p>
         </div>
 
         {{-- ===== Category grid ===== --}}

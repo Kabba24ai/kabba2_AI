@@ -62,7 +62,8 @@
 
         {{-- Sticky header + metadata + Save --}}
         <div class="sticky top-0 z-20 -mx-4 px-4 py-4 bg-white border-b border-gray-200 shadow-sm mb-5">
-            <div class="flex items-start justify-between gap-4 mb-3">
+            @include('admin.service_management.problem_templates.partials._nav', ['active' => 'templates'])
+            <div class="flex items-start justify-between gap-4 mb-3 mt-3">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900">{{ $template ? 'Edit Problem Template' : 'Create Problem Template' }}</h1>
                     <p class="text-sm text-gray-500 mt-0.5">Compose a reusable template from the Problem Library — categories and items stay in library order.</p>

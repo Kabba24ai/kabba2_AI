@@ -66,6 +66,13 @@ class FieldServiceTicketTest extends TestCase
             'unique_id' => 'test-op-1', 'order_id' => $this->orderId, 'product_name' => 'Boom Lift Rental',
             'price' => 500, 'quantity' => 1, 'total' => 500, 'equipment_id' => $this->lift->id,
         ]);
+        // Delivery (Shipping) address on the order — the source for the
+        // "Delivery Address" and "Order Contact" derivations.
+        DB::table('order_addresses')->insert([
+            'order_id' => $this->orderId, 'type' => 'Shipping',
+            'first_name' => 'Dana', 'last_name' => 'Foreman', 'phone' => '615-555-0199',
+            'address' => '12 Depot Rd', 'city' => 'Dickson', 'state' => 'TN', 'zip_code' => '37055',
+        ]);
 
         $this->actingAs($this->admin);
     }
@@ -76,13 +83,15 @@ class FieldServiceTicketTest extends TestCase
             'order_id'                => $this->orderId,
             'equipment_id'            => $this->lift->id,
             'serial_number'           => 'SN-778899',
-            'job_site_address'        => '4400 Ridge Rd, Bon Aqua TN',
+            'contact_source'          => 'other',
             'contact_name'            => 'Site Foreman',
             'contact_phone'           => '615-555-0100',
-            'reported_at'             => now()->format('Y-m-d\TH:i'),
-            'problem_summary'         => 'Boom lift will not start on jobsite.',
-            'diagnostic_summary'      => 'Phone troubleshooting failed; battery suspected.',
-            'ai_session_reference'    => 'AIT-TEST-42',
+            'location_source'         => 'other',
+            'loc_street'              => '4400 Ridge Rd',
+            'loc_city'                => 'Bon Aqua',
+            'loc_state'               => 'TN',
+            'loc_zip'                 => '37025',
+            'additional_details'      => 'Boom lift will not start on jobsite.',
             'photos_received'         => 1,
             'media_reviewed'          => 1,
             'priority'                => 'high',
@@ -135,16 +144,20 @@ class FieldServiceTicketTest extends TestCase
     {
         $this->get(route('admin.field-service.tickets.create'))
             ->assertOk()
-            ->assertSee('New Field Service Ticket')
-            ->assertSee('Incident Information')
+            ->assertSee('New Field Service Request')
+            ->assertSee('Dispatch Information')
+            ->assertSee('Customer Order')
+            ->assertSee('Who should the technician ask for?')
+            ->assertSee('Service Location')
+            ->assertSee('Reported Problem(s)')
             ->assertSee('Media Review')
             ->assertSee('Dispatch Assessment')
             ->assertSee('Dispatch Assignment')
-            ->assertSee('Initial Operational Expectation')
-            ->assertSee('Job Site Address')
-            ->assertSee('AI Technician Session')
             ->assertSee('Machine Stuck')
             ->assertSee('Recovery Risk')
+            // Removed from the streamlined intake.
+            ->assertDontSee('Date / Time Reported')
+            ->assertDontSee('Diagnostic Summary')
             ->assertDontSee('Financial Responsibility')
             ->assertDontSee('Settlement');
     }
@@ -162,8 +175,12 @@ class FieldServiceTicketTest extends TestCase
         $this->assertSame($this->orderId, $ticket->order_id);
         $this->assertSame($this->customerId, $ticket->customer_id, 'Customer must be derived from the order');
         $this->assertSame($this->lift->id, $ticket->equipment_id);
-        $this->assertSame('4400 Ridge Rd, Bon Aqua TN', $ticket->job_site_address);
-        $this->assertSame('AIT-TEST-42', $ticket->ai_session_reference);
+        // Address composed from the "Different Address" fields.
+        $this->assertStringContainsString('4400 Ridge Rd', $ticket->job_site_address);
+        // Server timestamp is the truth — reported_at is set, never from the form.
+        $this->assertNotNull($ticket->reported_at);
+        // Problem summary derived from the reported problems / details.
+        $this->assertSame('Boom lift will not start on jobsite.', $ticket->problem_summary);
         $this->assertTrue($ticket->photos_received);
         $this->assertTrue($ticket->media_reviewed);
         $this->assertFalse($ticket->video_received);
@@ -179,9 +196,12 @@ class FieldServiceTicketTest extends TestCase
 
     public function test_creation_validation_requires_site_problem_and_valid_enums(): void
     {
+        // The order is canonical; equipment, contact/location choices, and a
+        // stated problem are all required.
         $this->post(route('admin.field-service.tickets.store'), $this->payload([
-            'job_site_address' => '', 'problem_summary' => '', 'reported_at' => '',
-        ]))->assertSessionHasErrors(['job_site_address', 'problem_summary', 'reported_at']);
+            'order_id' => '', 'equipment_id' => '', 'contact_source' => '',
+            'location_source' => '', 'additional_details' => '', 'complaints' => [],
+        ]))->assertSessionHasErrors(['order_id', 'equipment_id', 'contact_source', 'location_source', 'complaints']);
 
         $this->post(route('admin.field-service.tickets.store'), $this->payload([
             'safety_concern' => 'extreme', 'machine_status' => 'melted', 'operational_expectation' => 'maybe',
@@ -195,13 +215,68 @@ class FieldServiceTicketTest extends TestCase
         $this->assertSame(0, FieldServiceTicket::count());
     }
 
-    public function test_ticket_without_order_has_no_customer(): void
+    public function test_order_is_required(): void
     {
-        $ticket = $this->makeTicket(['order_id' => null]);
+        // Every field service request originates from an order — it is the
+        // canonical source for customer, equipment, address, and contact.
+        $this->post(route('admin.field-service.tickets.store'), $this->payload(['order_id' => null]))
+            ->assertSessionHasErrors('order_id');
 
-        $this->assertNull($ticket->order_id);
-        $this->assertNull($ticket->customer_id);
-        $this->assertSame(FieldMissionStatus::Draft, $ticket->mission_status);
+        $this->assertSame(0, FieldServiceTicket::count());
+    }
+
+    public function test_contact_and_location_derive_from_the_order_when_chosen(): void
+    {
+        $ticket = $this->makeTicket([
+            'contact_source' => 'order',   'contact_name' => null, 'contact_phone' => null,
+            'location_source' => 'delivery', 'loc_street' => null, 'loc_city' => null, 'loc_state' => null, 'loc_zip' => null,
+        ]);
+
+        // Derived from the order's shipping address — the dispatcher entered nothing.
+        $this->assertSame('Dana Foreman', $ticket->contact_name);
+        $this->assertSame('615-555-0199', $ticket->contact_phone);
+        $this->assertStringContainsString('12 Depot Rd', $ticket->job_site_address);
+        $this->assertStringContainsString('Dickson', $ticket->job_site_address);
+    }
+
+    public function test_deriving_from_an_order_without_delivery_address_is_rejected(): void
+    {
+        // A second order with no shipping address on file.
+        $bareOrderId = DB::table('orders')->insertGetId([
+            'unique_id' => 'test-ord-2', 'order_number' => '#7002', 'order_date' => now()->toDateString(),
+            'customer_name' => 'Field Customer', 'customer_id' => $this->customerId,
+        ]);
+        DB::table('order_products')->insert([
+            'unique_id' => 'test-op-2', 'order_id' => $bareOrderId, 'product_name' => 'Loader',
+            'price' => 1, 'quantity' => 1, 'total' => 1, 'equipment_id' => $this->lift->id,
+        ]);
+
+        $this->post(route('admin.field-service.tickets.store'), $this->payload([
+            'order_id' => $bareOrderId, 'location_source' => 'delivery',
+            'loc_street' => null, 'loc_city' => null, 'loc_state' => null, 'loc_zip' => null,
+        ]))->assertSessionHasErrors('location_source');
+    }
+
+    public function test_reported_problems_become_companion_complaints(): void
+    {
+        $category = \App\Models\Service\ServiceSymptomCategory::create(['name' => 'Engine ' . \Illuminate\Support\Str::random(4), 'display_order' => 1, 'is_active' => true]);
+        $symptom  = \App\Models\Service\ServiceSymptom::create(['service_symptom_category_id' => $category->id, 'name' => 'Will not start ' . \Illuminate\Support\Str::random(4), 'display_order' => 1, 'is_active' => true]);
+
+        $ticket = $this->makeTicket([
+            'complaints'         => [$symptom->id],
+            'additional_details' => 'Cranks but no fire.',
+        ]);
+
+        // The shared problem vocabulary flows onto the canonical companion ticket.
+        $companion = $ticket->serviceTicket;
+        $this->assertNotNull($companion);
+        $this->assertSame(1, $companion->complaints()->count());
+        $this->assertDatabaseHas('service_ticket_complaints', [
+            'service_ticket_id' => $companion->id,
+            'name'              => $symptom->name,
+        ]);
+        // Free-text detail rides the companion's customer complaint.
+        $this->assertSame('Cranks but no fire.', $companion->customer_complaint);
     }
 
     // ── Workbench ────────────────────────────────────────────────────
@@ -219,7 +294,7 @@ class FieldServiceTicketTest extends TestCase
             ->assertSee('Ready for Dispatch')           // ribbon stage
             ->assertSee('Field Assessment')             // ribbon stage
             ->assertSee('Boom lift will not start on jobsite.')
-            ->assertSee('4400 Ridge Rd, Bon Aqua TN')
+            ->assertSee('4400 Ridge Rd')
             ->assertSee('Field Customer')
             ->assertSee('#7001')
             ->assertSee('Gate code 4411.')

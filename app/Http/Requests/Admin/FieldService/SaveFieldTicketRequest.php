@@ -22,17 +22,29 @@ class SaveFieldTicketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // 1. Source / incident information
-            'order_id'             => ['nullable', 'integer', 'exists:orders,id'],
-            'equipment_id'         => ['nullable', 'integer', 'exists:equipment,id'],
-            'serial_number'        => ['nullable', 'string', 'max:255'],
-            'job_site_address'     => ['required', 'string', 'max:2000'],
-            'contact_name'         => ['nullable', 'string', 'max:255'],
-            'contact_phone'        => ['nullable', 'string', 'max:50'],
-            'reported_at'          => ['required', 'date'],
-            'problem_summary'      => ['required', 'string', 'max:5000'],
-            'diagnostic_summary'   => ['nullable', 'string', 'max:10000'],
-            'ai_session_reference' => ['nullable', 'string', 'max:255'],
+            // 1. Dispatch information — the Order is the canonical source;
+            // Customer / Equipment / Address / Contact derive from it.
+            'order_id'      => ['required', 'integer', 'exists:orders,id'],
+            'equipment_id'  => ['required', 'integer', 'exists:equipment,id'],
+            'serial_number' => ['nullable', 'string', 'max:255'],
+
+            // Contact: use the order's contact, or intentionally name someone else.
+            'contact_source' => ['required', Rule::in(['order', 'other'])],
+            'contact_name'   => [Rule::requiredIf(fn () => $this->input('contact_source') === 'other'), 'nullable', 'string', 'max:255'],
+            'contact_phone'  => [Rule::requiredIf(fn () => $this->input('contact_source') === 'other'), 'nullable', 'string', 'max:50'],
+
+            // Service location: the order's delivery address, or a different one
+            // (entered deliberately — a technician is never sent on an assumption).
+            'location_source' => ['required', Rule::in(['delivery', 'other'])],
+            'loc_street'      => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:255'],
+            'loc_city'        => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:255'],
+            'loc_state'       => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:255'],
+            'loc_zip'         => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:20'],
+
+            // Reported problems — the shared shop symptom library + optional detail.
+            'complaints'         => ['nullable', 'array'],
+            'complaints.*'       => ['integer', 'exists:service_symptoms,id'],
+            'additional_details' => ['nullable', 'string', 'max:5000'],
 
             // 2. Media review checklist
             'photos_received'           => ['nullable', 'boolean'],
@@ -64,6 +76,33 @@ class SaveFieldTicketRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            // A stated problem is required — a library selection or free-text detail.
+            if (empty($this->input('complaints')) && trim((string) $this->input('additional_details')) === '') {
+                $validator->errors()->add('complaints', 'Select at least one reported problem, or add details.');
+            }
+
+            // Deriving from the order requires the order to actually carry it —
+            // otherwise the dispatcher must enter it deliberately.
+            $order = $this->input('order_id')
+                ? \App\Models\Orders\Order::with('shippingAddress')->find($this->input('order_id'))
+                : null;
+
+            if ($this->input('location_source') === 'delivery' && !($order?->shippingAddress?->full_address)) {
+                $validator->errors()->add('location_source', 'This order has no delivery address on file — enter a different address.');
+            }
+
+            if ($this->input('contact_source') === 'order') {
+                $contactName = $order?->shippingAddress?->full_name ?: $order?->customer_name;
+                if (!$contactName) {
+                    $validator->errors()->add('contact_source', 'This order has no contact on file — enter someone else.');
+                }
+            }
+        });
+    }
+
     public function attributes(): array
     {
         return [
@@ -71,7 +110,7 @@ class SaveFieldTicketRequest extends FormRequest
             'equipment_id'  => 'equipment',
             'technician_id' => 'assigned technician',
             'truck_id'      => 'service truck',
-            'reported_at'   => 'date/time reported',
+            'complaints'    => 'reported problems',
         ];
     }
 }

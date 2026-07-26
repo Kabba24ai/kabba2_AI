@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\FieldService\SaveFieldTicketRequest;
 use App\Models\FieldService\FieldServiceTicket;
 use App\Models\Orders\Order;
+use App\Models\Service\ServiceSymptom;
 use App\Services\ServiceManagement\ServiceTicketIntakeService;
 use Illuminate\Support\Facades\DB;
 
@@ -17,31 +18,71 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
 
-        // The Order stays the source of truth — customer is derived from
-        // the selected order, never entered separately.
-        $validated['customer_id'] = !empty($validated['order_id'])
-            ? Order::find($validated['order_id'])?->customer_id
-            : null;
+        // The Order is canonical — Customer / Contact / Delivery Address all
+        // derive from it unless the dispatcher intentionally overrode them.
+        $order = Order::with('shippingAddress')->findOrFail($validated['order_id']);
+        $ship  = $order->shippingAddress;
 
-        foreach (['photos_received', 'video_received', 'media_reviewed', 'additional_media_required', 'media_bypassed'] as $flag) {
-            $validated[$flag] = $request->boolean($flag);
+        // Contact: the order's, or a deliberately-named "someone else".
+        if (($validated['contact_source'] ?? 'order') === 'order') {
+            $contactName  = $ship?->full_name ?: $order->customer_name;
+            $contactPhone = $ship?->phone ?: $order->customer_phone;
+        } else {
+            $contactName  = $validated['contact_name'] ?? null;
+            $contactPhone = $validated['contact_phone'] ?? null;
         }
 
-        // The mission and its companion canonical service ticket are created
-        // atomically — the two can never diverge (an orphaned mission with no
-        // board card, or a companion with no mission).
-        $ticket = DB::transaction(function () use ($validated) {
-            $mission = FieldServiceTicket::create($validated + [
-                'created_by' => auth()->id(),
-            ]);
+        // Service location: the order's delivery address, or a different one.
+        if (($validated['location_source'] ?? 'delivery') === 'delivery') {
+            $jobSiteAddress = $ship?->full_address;
+        } else {
+            $jobSiteAddress = trim(implode(', ', array_filter([
+                $validated['loc_street'] ?? null,
+                $validated['loc_city'] ?? null,
+                trim(($validated['loc_state'] ?? '') . ' ' . ($validated['loc_zip'] ?? '')),
+            ])));
+        }
 
-            // Consolidation: every field mission gets a companion service ticket
-            // so it lands on the Operations Board like all other service work.
-            // The mission (dispatch/route/on-site) stays here; the companion
-            // carries board presence, assignment, and lifecycle. Keyed on the
-            // mission id, so re-running this creation for the SAME mission
-            // returns the existing ticket — exactly one canonical ticket per
-            // mission, never a duplicate.
+        // Reported problems come from the shared symptom library; compose a
+        // readable summary for the mission record, keep the structured ids for
+        // the companion service ticket's complaint records.
+        $complaintIds = array_map('intval', $validated['complaints'] ?? []);
+        $problemNames = $complaintIds
+            ? ServiceSymptom::whereIn('id', $complaintIds)->pluck('name')->all()
+            : [];
+        $additional     = $validated['additional_details'] ?? null;
+        $problemSummary = trim(
+            implode('; ', $problemNames)
+            . ($additional ? ($problemNames ? ' — ' : '') . $additional : '')
+        ) ?: 'See reported problems.';
+
+        // Mission column values — strip the request-only routing keys, then
+        // merge the resolved/derived values.
+        $missionAttributes = collect($validated)->except([
+            'contact_source', 'location_source', 'loc_street', 'loc_city', 'loc_state', 'loc_zip',
+            'complaints', 'additional_details', 'contact_name', 'contact_phone',
+        ])->all();
+
+        $missionAttributes = array_merge($missionAttributes, [
+            'customer_id'      => $order->customer_id,
+            'contact_name'     => $contactName,
+            'contact_phone'    => $contactPhone,
+            'job_site_address' => $jobSiteAddress,
+            'reported_at'      => now(),           // server timestamp is the truth
+            'problem_summary'  => $problemSummary,
+            'created_by'       => auth()->id(),
+        ]);
+
+        foreach (['photos_received', 'video_received', 'media_reviewed', 'additional_media_required', 'media_bypassed'] as $flag) {
+            $missionAttributes[$flag] = $request->boolean($flag);
+        }
+
+        // Mission + companion canonical service ticket, created atomically. The
+        // companion carries the SAME structured problems (shared vocabulary) and
+        // the free-text detail as its customer complaint.
+        $ticket = DB::transaction(function () use ($missionAttributes, $complaintIds, $additional, $order) {
+            $mission = FieldServiceTicket::create($missionAttributes);
+
             $serviceTicket = ServiceTicketIntakeService::create(
                 attributes: [
                     'service_type'       => ServiceType::FieldServiceCall->value,
@@ -50,9 +91,10 @@ class StoreController extends Controller
                     'order_id'           => $mission->order_id,
                     'customer_id'        => $mission->customer_id,
                     'priority'           => $mission->priority->value,
-                    'customer_complaint' => $mission->problem_summary,
+                    'customer_complaint' => $additional ?: $mission->problem_summary,
                     'opened_at'          => now(),
                 ],
+                complaintSymptomIds: $complaintIds,
                 personnelIds: $mission->technician_id ? [$mission->technician_id] : [],
                 teamLeaderId: $mission->technician_id,
                 idempotencyKey: 'field_service_ticket:' . $mission->id,
@@ -62,7 +104,7 @@ class StoreController extends Controller
             return $mission;
         });
 
-        flash('Field service ticket ' . $ticket->fresh()->ticket_number . ' created.')->success();
+        flash('Field service request ' . $ticket->fresh()->ticket_number . ' created.')->success();
 
         return redirect()->route('admin.field-service.tickets.show', $ticket);
     }

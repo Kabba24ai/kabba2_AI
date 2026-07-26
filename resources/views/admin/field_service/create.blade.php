@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'New Field Service Ticket')
+@section('title', 'New Field Service Request')
 
 @push('css')
 <style>
@@ -28,7 +28,7 @@
         <div>
             <h1 class="text-2xl font-semibold flex items-center gap-2">
                 <x-heroicon-o-truck class="w-6 h-6 text-blue-600" />
-                New Field Service Ticket
+                New Field Service Request
             </h1>
             <p class="text-sm text-gray-500 mt-1">
                 A field mission: send a technician to assess and stabilize a customer-site incident.
@@ -56,79 +56,134 @@
     <form method="POST" action="{{ route('admin.field-service.tickets.store') }}">
         @csrf
 
-        {{-- ===== 1. Source / Incident Information ===== --}}
+        {{-- ===== 1. Dispatch Information ===== --}}
+        @php $oldContactSource = old('contact_source', 'order'); $oldLocationSource = old('location_source', 'delivery'); @endphp
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-            <h2 class="text-sm font-semibold text-gray-800 mb-1">1 · Incident Information</h2>
+            <h2 class="text-sm font-semibold text-gray-800 mb-1">1 · Dispatch Information</h2>
             <p class="text-xs text-gray-400 mb-4">
-                Assumes remote diagnosis already happened. When the AI Technician module ships, this section will pre-fill from the handoff.
+                The order answers what the system already knows. You decide only where we go and who we meet.
             </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                    <label class="{{ $labelClass }}">Related Rental Order</label>
-                    <select name="order_id" id="fs-order" class="{{ $inputClass }}">
-                        <option value="">No related order</option>
-                        @foreach ($orderOptions as $order)
-                            <option value="{{ $order['id'] }}" @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
-                        @endforeach
-                    </select>
-                    @error('order_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                </div>
+
+            {{-- Customer Order — the canonical selector. --}}
+            <div class="mb-4">
+                <label class="{{ $labelClass }} required">Customer Order</label>
+                <select name="order_id" id="fs-order" class="{{ $inputClass }}">
+                    <option value="">Search order # or customer…</option>
+                    @foreach ($orderOptions as $order)
+                        <option value="{{ $order['id'] }}" @selected((int) old('order_id') === $order['id'])>{{ $order['label'] }}</option>
+                    @endforeach
+                </select>
+                @error('order_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Customer — display only. --}}
                 <div>
                     <label class="{{ $labelClass }}">Customer</label>
-                    <div id="fs-customer" class="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-500">
-                        Derived from the selected order
+                    <div id="fs-customer" class="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-600">Select an order…</div>
+                </div>
+
+                {{-- Equipment — single order: read-only; multiple: selector. --}}
+                <div>
+                    <label class="{{ $labelClass }} required">Equipment</label>
+                    {{-- The one posted equipment id, driven by the JS below. --}}
+                    <input type="hidden" name="equipment_id" id="fs-equipment" value="{{ old('equipment_id') }}">
+                    <div id="fs-equipment-single" class="hidden px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800"></div>
+                    <div id="fs-equipment-multi" class="hidden space-y-1.5"></div>
+                    <div id="fs-equipment-empty" class="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-400">Select an order…</div>
+                    <p id="fs-equipment-detail" class="text-xs text-gray-400 mt-1"></p>
+                    @error('equipment_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    <input type="hidden" name="serial_number" id="fs-serial" value="{{ old('serial_number') }}">
+                </div>
+            </div>
+
+            {{-- Contact Person — order contact, or someone else (deliberate). --}}
+            <div class="mt-4">
+                <label class="{{ $labelClass }}">Who should the technician ask for?</label>
+                <div class="flex flex-wrap gap-4 mb-2">
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <input type="radio" name="contact_source" value="order" class="fs-contact-src" @checked($oldContactSource === 'order')> Order Contact
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <input type="radio" name="contact_source" value="other" class="fs-contact-src" @checked($oldContactSource === 'other')> Someone Else
+                    </label>
+                </div>
+                @error('contact_source')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                {{-- Order contact (read-only display) --}}
+                <div id="fs-contact-order" class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm">
+                    <div id="fs-contact-order-name" class="font-medium text-gray-800">—</div>
+                    <div id="fs-contact-order-phone" class="text-gray-500">—</div>
+                </div>
+                {{-- Someone else (intentional entry) --}}
+                <div id="fs-contact-other" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="{{ $labelClass }} required">Contact Name</label>
+                        <input type="text" name="contact_name" value="{{ old('contact_name') }}" class="{{ $inputClass }}">
+                        @error('contact_name')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="{{ $labelClass }} required">Phone Number</label>
+                        <input type="text" name="contact_phone" value="{{ old('contact_phone') }}" class="{{ $inputClass }}">
+                        @error('contact_phone')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
-                <div>
-                    <label class="{{ $labelClass }}">Equipment</label>
-                    <select name="equipment_id" id="fs-equipment" class="{{ $inputClass }}" data-old="{{ old('equipment_id') }}">
-                        <option value="">— Select equipment —</option>
-                    </select>
-                    @error('equipment_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            {{-- Service Location — delivery address, or a different one (deliberate). --}}
+            <div class="mt-4">
+                <label class="{{ $labelClass }}">Service Location</label>
+                <div class="flex flex-wrap gap-4 mb-2">
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <input type="radio" name="location_source" value="delivery" class="fs-loc-src" @checked($oldLocationSource === 'delivery')> Delivery Address
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <input type="radio" name="location_source" value="other" class="fs-loc-src" @checked($oldLocationSource === 'other')> Different Address
+                    </label>
                 </div>
-                <div>
-                    <label class="{{ $labelClass }}">Serial Number</label>
-                    <input type="text" name="serial_number" id="fs-serial" value="{{ old('serial_number') }}"
-                        class="{{ $inputClass }}" placeholder="If available…">
+                @error('location_source')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                <div id="fs-loc-delivery" class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-800">—</div>
+                <div id="fs-loc-other" class="hidden grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div class="sm:col-span-4">
+                        <label class="{{ $labelClass }} required">Street</label>
+                        <input type="text" name="loc_street" value="{{ old('loc_street') }}" class="{{ $inputClass }}">
+                        @error('loc_street')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="{{ $labelClass }} required">City</label>
+                        <input type="text" name="loc_city" value="{{ old('loc_city') }}" class="{{ $inputClass }}">
+                        @error('loc_city')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="{{ $labelClass }} required">State</label>
+                        <input type="text" name="loc_state" value="{{ old('loc_state') }}" class="{{ $inputClass }}">
+                        @error('loc_state')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="{{ $labelClass }} required">ZIP</label>
+                        <input type="text" name="loc_zip" value="{{ old('loc_zip') }}" class="{{ $inputClass }}">
+                        @error('loc_zip')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
                 </div>
-                <div>
-                    <label class="{{ $labelClass }}">Contact Person</label>
-                    <input type="text" name="contact_name" value="{{ old('contact_name') }}" class="{{ $inputClass }}"
-                        placeholder="Who the technician asks for on site">
+            </div>
+
+            {{-- Reported Problems — the shared shop symptom library. --}}
+            <div class="mt-4">
+                <label class="{{ $labelClass }}">Reported Problem(s)</label>
+                <div class="relative">
+                    <input type="text" id="fs-problem-search" autocomplete="off" class="{{ $inputClass }}" placeholder="Search problem library…">
+                    <div id="fs-problem-results" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
                 </div>
-                <div>
-                    <label class="{{ $labelClass }}">Contact Phone</label>
-                    <input type="text" name="contact_phone" value="{{ old('contact_phone') }}" class="{{ $inputClass }}">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="{{ $labelClass }} required">Job Site Address</label>
-                    <input type="text" name="job_site_address" value="{{ old('job_site_address') }}" required
-                        class="{{ $inputClass }}" placeholder="Where the technician is going">
-                    @error('job_site_address')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                </div>
-                <div>
-                    <label class="{{ $labelClass }} required">Date / Time Reported</label>
-                    <input type="datetime-local" name="reported_at" required
-                        value="{{ old('reported_at', now()->format('Y-m-d\TH:i')) }}" class="{{ $inputClass }}">
-                    @error('reported_at')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                </div>
-                <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="{{ $labelClass }} required">Problem Summary</label>
-                    <textarea name="problem_summary" rows="3" required class="{{ $inputClass }}"
-                        placeholder="What the customer reported…">{{ old('problem_summary') }}</textarea>
-                    @error('problem_summary')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="{{ $labelClass }}">Diagnostic Summary / Handoff Notes</label>
-                    <textarea name="diagnostic_summary" rows="3" class="{{ $inputClass }}"
-                        placeholder="What remote troubleshooting already covered, and why a technician is needed…">{{ old('diagnostic_summary') }}</textarea>
-                </div>
-                <div>
-                    <label class="{{ $labelClass }}">AI Technician Session</label>
-                    <input type="text" name="ai_session_reference" value="{{ old('ai_session_reference') }}"
-                        class="{{ $inputClass }}" placeholder="Session reference (optional)">
-                    <p class="text-xs text-gray-400 mt-1">Future AI Technician handoff reference.</p>
-                </div>
+                <div id="fs-problem-selected" class="flex flex-wrap gap-2 mt-2"></div>
+                @error('complaints')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                @error('complaints.*')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            {{-- Additional Details — optional context; never a diagnosis. --}}
+            <div class="mt-4">
+                <label class="{{ $labelClass }}">Additional Details</label>
+                <textarea name="additional_details" rows="2" class="{{ $inputClass }}"
+                    placeholder="Anything else the customer reported…">{{ old('additional_details') }}</textarea>
+                @error('additional_details')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
         </div>
 
@@ -310,63 +365,140 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const ORDERS    = @json($orderOptions);
-    const EQUIPMENT = @json($equipmentOptions);
+    const ORDERS        = @json($orderOptions);
+    const PROBLEMS      = @json($problems);
+    const PROBLEM_CATS  = @json($problemCategories);
+    const OLD_COMPLAINTS = @json(old('complaints', []));
 
-    const orderSelect     = document.getElementById('fs-order');
-    const equipmentSelect = document.getElementById('fs-equipment');
-    const customerBox     = document.getElementById('fs-customer');
-    const serialInput     = document.getElementById('fs-serial');
-    let serialAutofilled  = false;
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+    function $(id) { return document.getElementById(id); }
 
-    function equipmentChoicesFor(order) {
-        // With an order: only that order's equipment. Without: full list.
-        return order && order.equipment.length ? order.equipment : EQUIPMENT;
+    const orderSelect = $('fs-order');
+    const customerBox = $('fs-customer');
+    const equipHidden = $('fs-equipment');   // the posted equipment_id
+    const serialHidden = $('fs-serial');
+    const eqSingle = $('fs-equipment-single');
+    const eqMulti  = $('fs-equipment-multi');
+    const eqEmpty  = $('fs-equipment-empty');
+    const eqDetail = $('fs-equipment-detail');
+
+    function currentOrder() { return ORDERS.find(o => String(o.id) === String(orderSelect.value)); }
+
+    function setEquipment(u) {
+        equipHidden.value  = u.id;
+        serialHidden.value = u.serial || '';
+        eqDetail.textContent = [u.model, u.serial ? 'SN ' + u.serial : ''].filter(Boolean).join(' · ');
     }
 
-    function syncOrder(preserveOld) {
-        const order = ORDERS.find(o => String(o.id) === String(orderSelect.value));
-        const keep  = preserveOld ? (equipmentSelect.dataset.old || '') : '';
-        equipmentSelect.dataset.old = '';
-        equipmentSelect.innerHTML = '';
+    // Single equipment → read-only; multiple → a selector; none → prompt.
+    function renderEquipment(order, keepId) {
+        [eqSingle, eqMulti, eqEmpty].forEach(el => el.classList.add('hidden'));
+        eqMulti.innerHTML = ''; eqDetail.textContent = '';
+        const units = order ? (order.equipment || []) : [];
 
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '— Select equipment —';
-        equipmentSelect.appendChild(placeholder);
+        if (!order) { eqEmpty.textContent = 'Select an order…'; eqEmpty.classList.remove('hidden'); equipHidden.value = ''; serialHidden.value = ''; return; }
+        if (units.length === 0) { eqEmpty.textContent = 'No equipment on this order'; eqEmpty.classList.remove('hidden'); equipHidden.value = ''; serialHidden.value = ''; return; }
 
-        equipmentChoicesFor(order).forEach(function (unit) {
-            const option = document.createElement('option');
-            option.value = unit.id;
-            option.textContent = unit.label;
-            option.dataset.serial = unit.serial || '';
-            if (String(unit.id) === String(keep)) option.selected = true;
-            equipmentSelect.appendChild(option);
+        if (units.length === 1) {
+            eqSingle.textContent = units[0].label;
+            eqSingle.classList.remove('hidden');
+            setEquipment(units[0]);
+            return;
+        }
+
+        eqMulti.classList.remove('hidden');
+        let matched = false;
+        units.forEach(function (u) {
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 cursor-pointer hover:bg-gray-100 transition text-sm';
+            label.innerHTML = '<input type="radio" name="fs_equipment_choice" value="' + u.id + '"> <span>' + esc(u.label) + '</span>';
+            const radio = label.querySelector('input');
+            if (String(u.id) === String(keepId)) { radio.checked = true; setEquipment(u); matched = true; }
+            radio.addEventListener('change', function () { setEquipment(u); });
+            eqMulti.appendChild(label);
         });
-
-        if (order && order.equipment.length === 1 && !keep) {
-            equipmentSelect.value = String(order.equipment[0].id);
-        }
-
-        customerBox.textContent = order
-            ? (order.customer || 'Unknown customer')
-            : 'Derived from the selected order';
-        syncSerial();
+        if (!matched) { equipHidden.value = ''; serialHidden.value = ''; eqDetail.textContent = 'Select the machine on site.'; }
     }
 
-    function syncSerial() {
-        const selected = equipmentSelect.options[equipmentSelect.selectedIndex];
-        const serial   = selected ? (selected.dataset.serial || '') : '';
-        if (serial && (!serialInput.value || serialAutofilled)) {
-            serialInput.value = serial;
-            serialAutofilled = true;
-        }
+    // ── Contact + location radios ──────────────────────────────────────
+    const contactOrder = $('fs-contact-order'), contactOther = $('fs-contact-other');
+    function syncContactDisplay(order) {
+        const c = (order && order.contact) || {};
+        $('fs-contact-order-name').textContent  = c.name  || '—';
+        $('fs-contact-order-phone').textContent = c.phone || '—';
+    }
+    function applyContactSource() {
+        const src = (document.querySelector('.fs-contact-src:checked') || {}).value || 'order';
+        contactOrder.classList.toggle('hidden', src !== 'order');
+        contactOther.classList.toggle('hidden', src !== 'other');
     }
 
-    orderSelect.addEventListener('change', function () { syncOrder(false); });
-    equipmentSelect.addEventListener('change', syncSerial);
-    serialInput.addEventListener('input', function () { serialAutofilled = false; });
-    syncOrder(true); // restore state after a validation round-trip
+    const locDelivery = $('fs-loc-delivery'), locOther = $('fs-loc-other');
+    function syncLocationDisplay(order) {
+        locDelivery.textContent = (order && order.address && order.address.full) || 'No delivery address on this order';
+    }
+    function applyLocationSource() {
+        const src = (document.querySelector('.fs-loc-src:checked') || {}).value || 'delivery';
+        locDelivery.classList.toggle('hidden', src !== 'delivery');
+        locOther.classList.toggle('hidden', src !== 'other');
+    }
+
+    document.querySelectorAll('.fs-contact-src').forEach(r => r.addEventListener('change', applyContactSource));
+    document.querySelectorAll('.fs-loc-src').forEach(r => r.addEventListener('change', applyLocationSource));
+
+    // ── Order orchestration ────────────────────────────────────────────
+    function onOrder(preserveEquip) {
+        const order = currentOrder();
+        customerBox.textContent = order ? (order.customer || 'Unknown customer') : 'Select an order…';
+        renderEquipment(order, preserveEquip ? equipHidden.value : '');
+        syncContactDisplay(order);
+        syncLocationDisplay(order);
+    }
+    orderSelect.addEventListener('change', function () { onOrder(false); });
+    onOrder(true); // restore after a validation round-trip
+    applyContactSource();
+    applyLocationSource();
+
+    // ── Reported-problem library (search → chips → complaints[]) ────────
+    const catName = {}; PROBLEM_CATS.forEach(c => { catName[c.id] = c.name; });
+    const search = $('fs-problem-search'), results = $('fs-problem-results'), chips = $('fs-problem-selected');
+    const chosen = new Map();
+
+    function renderChips() {
+        chips.innerHTML = '';
+        chosen.forEach(function (name, id) {
+            const chip = document.createElement('span');
+            chip.className = 'inline-flex items-center gap-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 text-xs font-medium';
+            chip.innerHTML = '<input type="hidden" name="complaints[]" value="' + id + '"><span>' + esc(name) + '</span><button type="button" class="text-blue-400 hover:text-blue-700 leading-none">&times;</button>';
+            chip.querySelector('button').addEventListener('click', function () { chosen.delete(id); renderChips(); });
+            chips.appendChild(chip);
+        });
+    }
+    function addProblem(id, name) { if (!chosen.has(id)) { chosen.set(id, name); renderChips(); } search.value = ''; results.classList.add('hidden'); search.focus(); }
+
+    function renderResults(q) {
+        q = q.trim().toLowerCase();
+        if (!q) { results.classList.add('hidden'); return; }
+        const matches = PROBLEMS.filter(p => !chosen.has(p.id) && p.name.toLowerCase().includes(q)).slice(0, 30);
+        if (!matches.length) { results.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">No matching problem</div>'; results.classList.remove('hidden'); return; }
+        results.innerHTML = matches.map(p => '<div data-id="' + p.id + '" class="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"><span class="text-gray-800">' + esc(p.name) + '</span> <span class="text-gray-400 text-xs">' + esc(catName[p.category_id] || '') + '</span></div>').join('');
+        results.classList.remove('hidden');
+        results.querySelectorAll('[data-id]').forEach(function (row) {
+            row.addEventListener('click', function () {
+                const p = matches.find(m => String(m.id) === row.dataset.id);
+                if (p) addProblem(p.id, p.name);
+            });
+        });
+    }
+    search.addEventListener('input', function () { renderResults(search.value); });
+    document.addEventListener('click', function (e) { if (!results.contains(e.target) && e.target !== search) results.classList.add('hidden'); });
+
+    // Restore previously-selected problems after a validation round-trip.
+    (OLD_COMPLAINTS || []).forEach(function (id) {
+        const p = PROBLEMS.find(x => String(x.id) === String(id));
+        if (p) chosen.set(p.id, p.name);
+    });
+    renderChips();
 
     new Choices(orderSelect, {
         searchEnabled: true,

@@ -13,13 +13,14 @@ use App\Http\Requests\Admin\FieldService\SaveFieldTicketRequest;
 use App\Models\FieldService\FieldServiceTicket;
 use App\Models\Orders\Order;
 use App\Models\Service\ServiceSymptom;
+use App\Services\FieldService\FieldDispatchRoutePlanner;
 use App\Services\ServiceManagement\ServiceProblemLibrary;
 use App\Services\ServiceManagement\ServiceTicketIntakeService;
 use Illuminate\Support\Facades\DB;
 
 class StoreController extends Controller
 {
-    public function __invoke(SaveFieldTicketRequest $request)
+    public function __invoke(SaveFieldTicketRequest $request, FieldDispatchRoutePlanner $planner)
     {
         $validated = $request->validated();
 
@@ -102,6 +103,43 @@ class StoreController extends Controller
             'technician_id'    => $leadTechnicianId,   // derived lead, not a second control
             'created_by'       => auth()->id(),
         ]);
+
+        // Dispatch routing — authoritative, server-side. When the dispatcher
+        // chose an explicit departure origin, resolve it (store address/coords
+        // or the Other address) against the resolved destination and compute
+        // Expected Arrival via the shared routing layer. A routing failure or an
+        // unconfigured integration NEVER blocks ticket creation — the origin and
+        // a non-calculated route status are still persisted. The snapshot
+        // preserves the plan even if a store address later changes.
+        if (in_array($validated['departure_location_type'] ?? null, ['store', 'other'], true)) {
+            $route = $planner->estimate([
+                'departure_location_type' => $validated['departure_location_type'] ?? null,
+                'departure_store_id'      => $validated['departure_store_id'] ?? null,
+                'departure_street'        => $validated['departure_street'] ?? null,
+                'departure_line2'         => $validated['departure_line2'] ?? null,
+                'departure_city'          => $validated['departure_city'] ?? null,
+                'departure_state'         => $validated['departure_state'] ?? null,
+                'departure_zip'           => $validated['departure_zip'] ?? null,
+                'destination_address'     => $jobSiteAddress,
+                'departure_at'            => $validated['estimated_departure_at'] ?? null,
+            ]);
+
+            $missionAttributes = array_merge($missionAttributes, [
+                'route_origin_label'             => $route->normalizedOrigin,
+                'route_destination_label'        => $route->normalizedDestination,
+                'route_origin_latitude'          => $route->originPoint?->latitude,
+                'route_origin_longitude'         => $route->originPoint?->longitude,
+                'route_destination_latitude'     => $route->destinationPoint?->latitude,
+                'route_destination_longitude'    => $route->destinationPoint?->longitude,
+                'route_distance_meters'          => $route->distanceMeters,
+                'route_duration_seconds'         => $route->durationSeconds,
+                'route_traffic_duration_seconds' => $route->trafficDurationSeconds,
+                'route_status'                   => $route->status->value,
+                'route_provider'                 => $route->provider,
+                'route_calculated_at'            => $route->calculatedAt,
+                'estimated_arrival_at'           => $route->expectedArrival,
+            ]);
+        }
 
         // Mission + companion canonical service ticket, created atomically.
         [$mission, $serviceTicket] = DB::transaction(function () use ($missionAttributes, $complaintIds, $companionComplaint, $personnelIds, $teamLeaderId) {

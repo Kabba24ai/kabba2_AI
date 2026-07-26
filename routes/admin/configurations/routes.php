@@ -55,6 +55,11 @@ Route::post('/application-code-settings', SaveApplicationCodeController::class)
     ->name('save-application-code-settings');
     Route::post('/timezone-settings', SaveTimezoneSettingsController::class)->name('save-timezone-settings');
 
+    // Google Maps & Routing — global platform integration (shared by Field
+    // Service now, Dispatch later). Save + net-new Test Connection diagnostic.
+    Route::post('/google-maps-settings', \App\Http\Controllers\Admin\Configurations\GoogleMaps\SaveController::class)->name('save-google-maps-settings');
+    Route::post('/google-maps-test-connection', \App\Http\Controllers\Admin\Configurations\GoogleMaps\TestConnectionController::class)->name('google-maps-test-connection');
+
     Route::post('/verify-master', VerifyMasterController::class)->name('verify-master');
     Route::post('/settings/reset', SettingsResetController::class)->name('reset-settings');
 

@@ -75,6 +75,26 @@ class FieldServiceTicket extends Model
         'truck_id',
         'estimated_departure_at',
         'estimated_arrival_at',
+        // Dispatch routing — explicit departure origin + immutable route snapshot.
+        'departure_location_type',
+        'departure_store_id',
+        'departure_street',
+        'departure_line2',
+        'departure_city',
+        'departure_state',
+        'departure_zip',
+        'route_origin_label',
+        'route_destination_label',
+        'route_origin_latitude',
+        'route_origin_longitude',
+        'route_destination_latitude',
+        'route_destination_longitude',
+        'route_distance_meters',
+        'route_duration_seconds',
+        'route_traffic_duration_seconds',
+        'route_status',
+        'route_provider',
+        'route_calculated_at',
         'suggested_tools',
         'suggested_parts',
         'special_instructions',
@@ -96,6 +116,7 @@ class FieldServiceTicket extends Model
         'reported_at'               => 'datetime',
         'estimated_departure_at'    => 'datetime',
         'estimated_arrival_at'      => 'datetime',
+        'route_calculated_at'       => 'datetime',
         'ready_at'                  => 'datetime',
         'assigned_at'               => 'datetime',
         'en_route_at'               => 'datetime',
@@ -207,6 +228,12 @@ class FieldServiceTicket extends Model
     public function truck()
     {
         return $this->belongsTo(DispatchAiTruck::class, 'truck_id');
+    }
+
+    /** The store chosen as the dispatch departure origin (when type = 'store'). */
+    public function departureStore()
+    {
+        return $this->belongsTo(\App\Models\Stores\Store::class, 'departure_store_id');
     }
 
     public function createdBy()

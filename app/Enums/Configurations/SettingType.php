@@ -27,6 +27,8 @@ enum SettingType: string
 
     case TIMEZONE = 'Time Zone Settings';
 
+    case GOOGLE_MAPS = 'Google Maps Settings';
+
     case OTHER = 'Other Settings';
 
     public function label(): string
@@ -47,6 +49,7 @@ enum SettingType: string
             self::MAIL_SEND_SETTINGS => 'Mail Send Settings',
             self::INVOICE_SETTINGS => 'Invoice Settings',
             self::TIMEZONE => 'Time Zone Settings',
+            self::GOOGLE_MAPS => 'Google Maps & Routing',
         };
     }
 }

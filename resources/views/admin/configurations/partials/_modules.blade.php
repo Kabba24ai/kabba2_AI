@@ -119,6 +119,16 @@
                 Time Zone
             </button>
 
+            <button
+                class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+                x-bind:class="activeTab === 'google-maps-settings' ?
+                    ' text-brand-500 border-brand-500 dark:border-brand-400 dark:text-brand-400' :
+                    'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+                x-on:click="activeTab = 'google-maps-settings'"
+                id="tab-google-maps-settings">
+                Google Maps &amp; Routing
+            </button>
+
             {{-- <button
                 class="inline-flex items-center  border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
                 x-bind:class="activeTab === 'profile-settings' ?
@@ -210,6 +220,14 @@
             <x-admin.configurations.config-form id="config-payment-integration-form" :action="route('admin.configurations.save-payment-integration-settings')" saveLabel="Save">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     @include('admin.configurations.partials._payment_integration_settings')
+                </div>
+            </x-admin.configurations.config-form>
+        </div>
+
+        <div x-show="activeTab === 'google-maps-settings'">
+            <x-admin.configurations.config-form id="config-google-maps-form" :action="route('admin.configurations.save-google-maps-settings')" saveLabel="Save">
+                <div class="grid grid-cols-1 gap-6">
+                    @include('admin.configurations.partials._google_maps_settings')
                 </div>
             </x-admin.configurations.config-form>
         </div>

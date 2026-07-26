@@ -6,6 +6,7 @@ use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\Iam\Personnel\User;
 use App\Models\Locations\State;
 use App\Models\Orders\Order;
+use App\Models\Stores\Store;
 use App\Services\ServiceManagement\ServiceOrderLabel;
 use App\Services\ServiceManagement\ServiceProblemLibrary;
 
@@ -99,10 +100,29 @@ trait BuildsFieldTicketFormData
             ->orderBy('truck_name')
             ->get(['id', 'truck_name', 'truck_number']);
 
+        // Active store/location records for the Departure Location selector —
+        // the canonical route origin. Each option carries its full address and
+        // stored coordinates (used directly when valid, else geocoded server-
+        // side). NO default is applied — the dispatcher must choose explicitly.
+        $departureStores = Store::query()
+            ->where('status', 'Active')
+            ->orderBy('store_name')
+            ->get(['id', 'store_name', 'address', 'city', 'state_id', 'zip_code', 'latitude', 'longitude'])
+            ->map(function (Store $store) {
+                return [
+                    'id'        => $store->id,
+                    'name'      => $store->store_name,
+                    'address'   => $store->full_address,
+                    'latitude'  => $store->latitude,
+                    'longitude' => $store->longitude,
+                ];
+            })
+            ->values();
+
         // Shared U.S. state list (canonical inclusion policy incl. DC/territories
         // lives in the states table); submitted as the two-letter abbreviation.
         $states = State::orderBy('name')->get(['id', 'name', 'abbreviation']);
 
-        return compact('orderOptions', 'problemCategories', 'problems', 'problemProfiles', 'technicians', 'employees', 'trucks', 'states');
+        return compact('orderOptions', 'problemCategories', 'problems', 'problemProfiles', 'technicians', 'employees', 'trucks', 'departureStores', 'states');
     }
 }

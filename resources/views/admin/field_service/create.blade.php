@@ -288,7 +288,16 @@
             <p class="text-xs text-gray-400 mb-4">
                 Truck, timing, tools, and instructions — optional at creation; can also be set on the Field Operations Workbench.
             </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            @php
+                // Restore the compound Departure Location selection after a
+                // validation round-trip (store:<id> | other | '').
+                $oldDep = old('departure_location_type') === 'store'
+                    ? 'store:' . old('departure_store_id')
+                    : (old('departure_location_type') === 'other' ? 'other' : '');
+            @endphp
+
+            {{-- Truck + explicit Departure Location (no default) + Departure Time --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="{{ $labelClass }}">Service Truck</label>
                     <select name="truck_id" class="{{ $inputClass }}">
@@ -299,29 +308,96 @@
                             </option>
                         @endforeach
                     </select>
+                    <p class="text-xs text-gray-400 mt-1">The truck and departure point are independent — a truck may leave from another branch or a jobsite.</p>
                 </div>
                 <div>
-                    <label class="{{ $labelClass }}">Estimated Departure</label>
-                    <input type="datetime-local" name="estimated_departure_at"
+                    {{-- Departure Location — a REQUIRED explicit decision. No
+                         default: the route origin is never assumed from the
+                         truck's home store, the service store, or the user. --}}
+                    <label class="{{ $labelClass }}">Departure Location</label>
+                    <select id="fs-dep-select" class="{{ $inputClass }}">
+                        <option value="" @selected($oldDep === '')>— Select departure location —</option>
+                        @foreach ($departureStores as $store)
+                            <option value="store:{{ $store['id'] }}" @selected($oldDep === 'store:' . $store['id'])>
+                                {{ $store['name'] }}{{ $store['address'] ? ' — ' . $store['address'] : ' — (no address on file)' }}
+                            </option>
+                        @endforeach
+                        <option value="other" @selected($oldDep === 'other')>Other</option>
+                    </select>
+                    {{-- The two fields the form actually posts, driven by the select. --}}
+                    <input type="hidden" name="departure_location_type" id="fs-dep-type" value="{{ old('departure_location_type') }}">
+                    <input type="hidden" name="departure_store_id" id="fs-dep-store" value="{{ old('departure_store_id') }}">
+                    @error('departure_location_type')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    @error('departure_store_id')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="{{ $labelClass }}">Departure Time</label>
+                    <input type="datetime-local" name="estimated_departure_at" id="fs-dep-time"
                         value="{{ old('estimated_departure_at') }}" class="{{ $inputClass }}">
                 </div>
-                <div>
-                    <label class="{{ $labelClass }}">Estimated Arrival</label>
-                    <input type="datetime-local" name="estimated_arrival_at"
-                        value="{{ old('estimated_arrival_at') }}" class="{{ $inputClass }}">
-                    @error('estimated_arrival_at')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            {{-- Other Departure Address — revealed only when "Other" is chosen;
+                 reuses the shared structured-address pattern + state list. --}}
+            <div id="fs-dep-other" class="mt-4 {{ old('departure_location_type') === 'other' ? '' : 'hidden' }}">
+                <label class="{{ $labelClass }}">Departure Address</label>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div class="sm:col-span-4">
+                        <label class="{{ $labelClass }} required">Street Address</label>
+                        <input type="text" name="departure_street" id="fs-dep-street" value="{{ old('departure_street') }}" class="{{ $inputClass }}">
+                        @error('departure_street')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="sm:col-span-4">
+                        <label class="{{ $labelClass }}">Address Line 2</label>
+                        <input type="text" name="departure_line2" id="fs-dep-line2" value="{{ old('departure_line2') }}" class="{{ $inputClass }}" placeholder="Suite, unit, gate…">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="{{ $labelClass }} required">City</label>
+                        <input type="text" name="departure_city" id="fs-dep-city" value="{{ old('departure_city') }}" class="{{ $inputClass }}">
+                        @error('departure_city')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="{{ $labelClass }} required">State</label>
+                        <select name="departure_state" id="fs-dep-state" class="{{ $inputClass }}">
+                            <option value="">Select state</option>
+                            @foreach ($states as $state)
+                                <option value="{{ $state->abbreviation }}" @selected(old('departure_state') === $state->abbreviation)>{{ $state->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('departure_state')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="{{ $labelClass }} required">ZIP Code</label>
+                        <input type="text" name="departure_zip" id="fs-dep-zip" value="{{ old('departure_zip') }}" class="{{ $inputClass }}">
+                        @error('departure_zip')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
                 </div>
-                <div class="sm:col-span-2">
+            </div>
+
+            {{-- System-calculated route result — read-only. No enabled arrival
+                 input; arrival is departure time + route duration, computed and
+                 persisted server-side. --}}
+            <div id="fs-route-box" class="mt-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 hidden">
+                <div class="flex flex-wrap gap-x-8 gap-y-1 text-sm">
+                    <div>Travel Time: <span id="fs-travel-time" class="font-medium text-gray-800">—</span></div>
+                    <div>Expected Arrival: <span id="fs-expected-arrival" class="font-medium text-gray-800">—</span></div>
+                </div>
+                <p id="fs-route-msg" class="text-xs text-amber-600 mt-1.5 hidden"></p>
+            </div>
+
+            {{-- Tools / parts / instructions --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
                     <label class="{{ $labelClass }}">Suggested Tools</label>
                     <textarea name="suggested_tools" rows="2" class="{{ $inputClass }}"
                         placeholder="Multimeter, hydraulic gauge set, jump pack…">{{ old('suggested_tools') }}</textarea>
                 </div>
-                <div class="sm:col-span-2">
+                <div>
                     <label class="{{ $labelClass }}">Suggested Parts</label>
                     <textarea name="suggested_parts" rows="2" class="{{ $inputClass }}"
                         placeholder="Battery, fuses, common wear parts…">{{ old('suggested_parts') }}</textarea>
                 </div>
-                <div class="sm:col-span-2 lg:col-span-4">
+                <div class="sm:col-span-2">
                     <label class="{{ $labelClass }}">Special Instructions</label>
                     <textarea name="special_instructions" rows="2" class="{{ $inputClass }}"
                         placeholder="Anything the technician must know before rolling…">{{ old('special_instructions') }}</textarea>
@@ -487,6 +563,130 @@ document.addEventListener('DOMContentLoaded', function () {
     onOrder(true); // restore after a validation round-trip
     applyContactSource();
     applyLocationSource();
+
+    // ── Dispatch Logistics: explicit departure location + live arrival ──
+    // The departure origin is NEVER defaulted. The visible selector drives two
+    // hidden posted fields (type + store id); "Other" reveals the structured
+    // address. Expected Arrival is computed server-side (browser → Kabba →
+    // Google) and shown read-only; it recalculates whenever the origin, the
+    // Other address, the destination, or the departure time changes.
+    const ROUTE_PREVIEW_URL = @json(route('admin.field-service.tickets.route-preview'));
+    const depSelect   = $('fs-dep-select');
+    const depType     = $('fs-dep-type');
+    const depStore    = $('fs-dep-store');
+    const depOther    = $('fs-dep-other');
+    const depTime     = $('fs-dep-time');
+    const routeBox    = $('fs-route-box');
+    const travelTime  = $('fs-travel-time');
+    const arrivalOut  = $('fs-expected-arrival');
+    const routeMsg    = $('fs-route-msg');
+    const depOtherIds = ['fs-dep-street', 'fs-dep-line2', 'fs-dep-city', 'fs-dep-state', 'fs-dep-zip'];
+
+    function clearDepartureOther() {
+        depOtherIds.forEach(function (id) { const el = $(id); if (el) el.value = ''; });
+    }
+
+    // The resolved destination mirrors the Service Location decision above:
+    // the order's delivery address, or the different address entered there.
+    function resolvedDestination() {
+        const src = (document.querySelector('.fs-loc-src:checked') || {}).value || null;
+        if (src === 'delivery') {
+            const o = currentOrder();
+            return (o && o.address && o.address.full) || '';
+        }
+        if (src === 'other') {
+            return [
+                $('fs-loc-street').value,
+                $('fs-loc-city').value,
+                ($('fs-loc-state').value + ' ' + $('fs-loc-zip').value).trim(),
+            ].filter(Boolean).join(', ');
+        }
+        return '';
+    }
+
+    function csrfToken() {
+        const t = document.querySelector('meta[name="csrf-token"]');
+        return t ? t.getAttribute('content') : '';
+    }
+
+    let routeTimer = null;
+    function requestRoutePreview() {
+        // Nothing to calculate until a departure location is explicitly chosen.
+        if (!depType.value) { routeBox.classList.add('hidden'); return; }
+
+        routeBox.classList.remove('hidden');
+        travelTime.textContent = '…';
+        arrivalOut.textContent = '…';
+        routeMsg.classList.add('hidden');
+
+        clearTimeout(routeTimer);
+        routeTimer = setTimeout(function () {
+            const body = {
+                departure_location_type: depType.value,
+                departure_store_id: depStore.value,
+                departure_street: ($('fs-dep-street') || {}).value || '',
+                departure_line2:  ($('fs-dep-line2') || {}).value || '',
+                departure_city:   ($('fs-dep-city') || {}).value || '',
+                departure_state:  ($('fs-dep-state') || {}).value || '',
+                departure_zip:    ($('fs-dep-zip') || {}).value || '',
+                destination_address: resolvedDestination(),
+                departure_at: depTime.value || '',
+            };
+            fetch(ROUTE_PREVIEW_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                body: JSON.stringify(body),
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        travelTime.textContent = data.travel_time || '—';
+                        arrivalOut.textContent = data.expected_arrival || '—';
+                        routeMsg.classList.add('hidden');
+                    } else {
+                        travelTime.textContent = '—';
+                        arrivalOut.textContent = '—';
+                        routeMsg.textContent = data.message || 'Expected arrival is unavailable.';
+                        routeMsg.classList.remove('hidden');
+                    }
+                })
+                .catch(function () {
+                    travelTime.textContent = '—';
+                    arrivalOut.textContent = '—';
+                    routeMsg.textContent = 'Could not calculate the route — try again.';
+                    routeMsg.classList.remove('hidden');
+                });
+        }, 450);
+    }
+
+    depSelect.addEventListener('change', function () {
+        const v = depSelect.value;
+        if (v.indexOf('store:') === 0) {
+            depType.value = 'store';
+            depStore.value = v.slice(6);
+            depOther.classList.add('hidden');
+            clearDepartureOther();
+        } else if (v === 'other') {
+            depType.value = 'other';
+            depStore.value = '';
+            depOther.classList.remove('hidden');
+        } else {
+            depType.value = '';
+            depStore.value = '';
+            depOther.classList.add('hidden');
+            clearDepartureOther();
+        }
+        requestRoutePreview();
+    });
+
+    // Recalculate on any input that changes origin, destination, or timing.
+    depTime.addEventListener('change', requestRoutePreview);
+    depOtherIds.forEach(function (id) { const el = $(id); if (el) el.addEventListener('input', requestRoutePreview); });
+    document.querySelectorAll('.fs-loc-src').forEach(function (r) { r.addEventListener('change', requestRoutePreview); });
+    ['fs-loc-street', 'fs-loc-city', 'fs-loc-state', 'fs-loc-zip'].forEach(function (id) { const el = $(id); if (el) el.addEventListener('input', requestRoutePreview); });
+    orderSelect.addEventListener('change', requestRoutePreview);
+
+    requestRoutePreview(); // restore the panel after a validation round-trip
 
     new Choices(orderSelect, {
         searchEnabled: true,

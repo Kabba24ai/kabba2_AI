@@ -76,7 +76,25 @@ class SaveFieldTicketRequest extends FormRequest
             // 4. Dispatch logistics (optional at creation)
             'truck_id'               => ['nullable', 'integer', 'exists:dispatch_ai_trucks,id'],
             'estimated_departure_at' => ['nullable', 'date'],
-            'estimated_arrival_at'   => ['nullable', 'date', 'after_or_equal:estimated_departure_at'],
+            // Expected Arrival is system-calculated + read-only — it is NEVER
+            // accepted from the client; the server computes and persists it.
+
+            // Departure Location — an EXPLICIT decision with no default. When a
+            // store is chosen it must be an active store; when "Other" is chosen
+            // the structured origin address is required (reuses the shared state
+            // list, same as the service-location address block).
+            'departure_location_type' => ['nullable', Rule::in(['store', 'other'])],
+            'departure_store_id'      => [
+                Rule::requiredIf(fn () => $this->input('departure_location_type') === 'store'),
+                'nullable', 'integer',
+                Rule::exists('stores', 'id')->where('status', 'Active'),
+            ],
+            'departure_street' => [Rule::requiredIf(fn () => $this->input('departure_location_type') === 'other'), 'nullable', 'string', 'max:255'],
+            'departure_line2'  => ['nullable', 'string', 'max:255'],
+            'departure_city'   => [Rule::requiredIf(fn () => $this->input('departure_location_type') === 'other'), 'nullable', 'string', 'max:255'],
+            'departure_state'  => [Rule::requiredIf(fn () => $this->input('departure_location_type') === 'other'), 'nullable', 'string', Rule::exists('states', 'abbreviation')],
+            'departure_zip'    => [Rule::requiredIf(fn () => $this->input('departure_location_type') === 'other'), 'nullable', 'string', 'max:20'],
+
             'suggested_tools'        => ['nullable', 'string', 'max:5000'],
             'suggested_parts'        => ['nullable', 'string', 'max:5000'],
             'special_instructions'   => ['nullable', 'string', 'max:5000'],
@@ -154,6 +172,14 @@ class SaveFieldTicketRequest extends FormRequest
             'loc_state.required'       => 'Select the state for the different service address.',
             'loc_state.exists'         => 'Select a valid U.S. state.',
             'loc_zip.required'         => 'Enter the ZIP for the different service address.',
+            // Departure location — explicit choice, no default.
+            'departure_store_id.required' => 'Select the departure store.',
+            'departure_store_id.exists'   => 'Select an active store as the departure location.',
+            'departure_street.required'   => 'Enter the street for the Other departure address.',
+            'departure_city.required'     => 'Enter the city for the Other departure address.',
+            'departure_state.required'    => 'Select the state for the Other departure address.',
+            'departure_state.exists'      => 'Select a valid U.S. state for the departure address.',
+            'departure_zip.required'      => 'Enter the ZIP for the Other departure address.',
         ];
     }
 

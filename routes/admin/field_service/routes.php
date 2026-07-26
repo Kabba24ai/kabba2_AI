@@ -22,6 +22,9 @@ Route::prefix('field-service')
             // surface (filter to Field). Only intake + the mission workbench
             // live here.
             Route::get('/create',           Tickets\CreateController::class)->name('create');
+            // Live Dispatch-Logistics arrival preview — Field's own module
+            // endpoint over the shared routing layer (not a generic route API).
+            Route::post('/route-preview',   Tickets\RoutePreviewController::class)->name('route-preview');
             Route::post('/',                Tickets\StoreController::class)->name('store')->middleware('permission:field_service.manage');
             Route::get('/{ticket}',         Tickets\ShowController::class)->name('show');
             Route::post('/{ticket}/status',   Tickets\StatusController::class)->name('status')->middleware('permission:field_service.manage');

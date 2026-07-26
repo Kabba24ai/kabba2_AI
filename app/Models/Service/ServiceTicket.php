@@ -49,7 +49,6 @@ class ServiceTicket extends Model
         'technician_diagnosis',
         'root_cause',
         'repair_summary',
-        'internal_notes',
         'equipment_id',
         'order_equipment_id',
         'equipment_override',

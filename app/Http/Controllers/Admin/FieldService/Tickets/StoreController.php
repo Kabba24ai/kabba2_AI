@@ -65,7 +65,7 @@ class StoreController extends Controller
             array_map('trim', $validated['custom_problems'] ?? []),
             fn ($s) => $s !== ''
         ));
-        $additional = $validated['additional_details'] ?? null;
+        $additional = $validated['customer_complaint'] ?? null;
 
         // Mission summary: every stated problem (library + Other), then details.
         $allProblemNames = array_merge($libraryNames, $customProblems);
@@ -85,7 +85,7 @@ class StoreController extends Controller
         // merge the resolved/derived values.
         $missionAttributes = collect($validated)->except([
             'contact_source', 'location_source', 'loc_street', 'loc_city', 'loc_state', 'loc_zip',
-            'complaints', 'additional_details', 'contact_name', 'contact_phone',
+            'complaints', 'customer_complaint', 'contact_name', 'contact_phone',
         ])->all();
 
         $missionAttributes = array_merge($missionAttributes, [

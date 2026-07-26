@@ -214,12 +214,14 @@
                 @error('complaints.*')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
-            {{-- Additional Details — optional context; never a diagnosis. --}}
+            {{-- Complaint Details — the canonical narrative (customer_complaint),
+                 shared contract with Standard Service. Captures what the structured
+                 complaints don't. --}}
             <div class="mt-4">
-                <label class="{{ $labelClass }}">Additional Details</label>
-                <textarea name="additional_details" rows="2" class="{{ $inputClass }}"
-                    placeholder="Anything else the customer reported…">{{ old('additional_details') }}</textarea>
-                @error('additional_details')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                <label class="{{ $labelClass }}">Complaint Details</label>
+                <textarea name="customer_complaint" rows="3" class="{{ $inputClass }}"
+                    placeholder="What the customer or employee observed, when it happens, warning codes/lights, noises, smells, leaks, operating conditions, or other details not covered by the selected complaints.">{{ old('customer_complaint') }}</textarea>
+                @error('customer_complaint')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
         </div>
 
@@ -246,9 +248,31 @@
             </div>
         </div>
 
-        {{-- ===== 3. Dispatch Assessment ===== --}}
+        {{-- ===== 3. Assigned Technician — a routing decision made AFTER the
+             complaint is understood (which specialty the problem needs). ===== --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-            <h2 class="text-sm font-semibold text-gray-800 mb-1">3 · Dispatch Assessment</h2>
+            <h2 class="text-sm font-semibold text-gray-800 mb-1">3 · Assigned Technician</h2>
+            <p class="text-xs text-gray-400 mb-4">
+                Who is best qualified for this complaint. Optional at creation — assignment can also happen on the Field Operations Workbench.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="{{ $labelClass }}">Assigned Technician</label>
+                    <select name="technician_id" class="{{ $inputClass }}">
+                        <option value="">— Not assigned yet —</option>
+                        @foreach ($technicians as $technician)
+                            <option value="{{ $technician->id }}" @selected((int) old('technician_id') === $technician->id)>
+                                {{ $technician->first_name }} {{ $technician->last_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {{-- ===== 4. Dispatch Assessment ===== --}}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+            <h2 class="text-sm font-semibold text-gray-800 mb-1">4 · Dispatch Assessment</h2>
             <p class="text-xs text-gray-400 mb-4">What the office knows about risk and site conditions right now. "Unknown" is a valid answer.</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
@@ -307,24 +331,13 @@
             </div>
         </div>
 
-        {{-- ===== 4. Dispatch Assignment ===== --}}
+        {{-- ===== 5. Dispatch Logistics ===== --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-            <h2 class="text-sm font-semibold text-gray-800 mb-1">4 · Dispatch Assignment</h2>
+            <h2 class="text-sm font-semibold text-gray-800 mb-1">5 · Dispatch Logistics</h2>
             <p class="text-xs text-gray-400 mb-4">
-                Optional at creation — assignment can also happen on the Field Operations Workbench when the mission is ready for dispatch.
+                Truck, timing, tools, and instructions — optional at creation; can also be set on the Field Operations Workbench.
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                    <label class="{{ $labelClass }}">Assigned Technician</label>
-                    <select name="technician_id" class="{{ $inputClass }}">
-                        <option value="">— Not assigned yet —</option>
-                        @foreach ($technicians as $technician)
-                            <option value="{{ $technician->id }}" @selected((int) old('technician_id') === $technician->id)>
-                                {{ $technician->first_name }} {{ $technician->last_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
                 <div>
                     <label class="{{ $labelClass }}">Service Truck</label>
                     <select name="truck_id" class="{{ $inputClass }}">
@@ -365,9 +378,9 @@
             </div>
         </div>
 
-        {{-- ===== 5. Initial Operational Expectation ===== --}}
+        {{-- ===== 6. Initial Operational Expectation ===== --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-            <h2 class="text-sm font-semibold text-gray-800 mb-1">5 · Initial Operational Expectation</h2>
+            <h2 class="text-sm font-semibold text-gray-800 mb-1">6 · Initial Operational Expectation</h2>
             <p class="text-xs text-gray-400 mb-4">
                 An estimate only — the real outcome is decided by the technician's field assessment.
             </p>

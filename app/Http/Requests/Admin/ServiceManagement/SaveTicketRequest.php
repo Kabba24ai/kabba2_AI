@@ -87,7 +87,6 @@ class SaveTicketRequest extends FormRequest
             'technician_diagnosis'     => ['nullable', 'string', 'max:5000'],
             'root_cause'               => ['nullable', 'string', 'max:5000'],
             'repair_summary'           => ['nullable', 'string', 'max:5000'],
-            'internal_notes'           => ['nullable', 'string', 'max:5000'],
 
             // Blocking context is mandatory when entering a blocked status
             'blocked_reason'           => [Rule::requiredIf(fn () => in_array($this->input('repair_status'), $blocked, true)), 'nullable', 'string', 'max:1000'],

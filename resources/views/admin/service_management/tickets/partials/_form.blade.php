@@ -178,11 +178,6 @@
                     placeholder="{{ $label }}…">{{ old($field, $ticket->{$field}) }}</textarea>
             </div>
         @endforeach
-        <div class="lg:col-span-2">
-            <label class="{{ $labelClass }}">Internal Notes</label>
-            <textarea name="internal_notes" rows="3" class="{{ $inputClass }}"
-                placeholder="Internal notes (not customer-facing)…">{{ old('internal_notes', $ticket->internal_notes) }}</textarea>
-        </div>
     </div>
 </div>
 

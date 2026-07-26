@@ -251,7 +251,7 @@ class ServiceTicketWorkbenchTest extends TestCase
     // 5. Notes: add + edit stay on the ticket with timeline events
     public function test_notes_can_be_added_and_edited(): void
     {
-        $ticket = $this->makeTicket(['internal_notes' => 'Reported at return check-in.']);
+        $ticket = $this->makeTicket();
 
         $this->post(route('admin.service-management.tickets.notes.store', $ticket), [
             'note' => 'Battery tested low. Charging now.',

@@ -164,7 +164,6 @@ class ServiceTicketIntakeTest extends TestCase
         $this->store([
             'service_store_id'   => $this->store->id,
             'customer_complaint' => 'Platform will not raise',
-            'internal_notes'     => 'Reported at return check-in',
         ])->assertRedirect(route('admin.service-management.tickets.show', ServiceTicket::first()));
 
         $this->assertDatabaseHas('service_tickets', [
@@ -183,7 +182,6 @@ class ServiceTicketIntakeTest extends TestCase
             'financial_responsibility' => FinancialResponsibility::Pending->value,
             'financial_status'         => FinancialStatus::NotBillable->value,
             'customer_complaint'       => 'Platform will not raise',
-            'internal_notes'           => 'Reported at return check-in',
             'created_by'               => $this->admin->id,
         ]);
     }

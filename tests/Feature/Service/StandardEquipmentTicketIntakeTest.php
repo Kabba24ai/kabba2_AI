@@ -188,7 +188,6 @@ class StandardEquipmentTicketIntakeTest extends TestCase
     {
         $this->storeStandard([
             'customer_complaint' => 'Auxiliary hydraulics slow',
-            'internal_notes'     => 'Found during yard check',
         ])->assertSessionHasNoErrors()
           ->assertRedirect(route('admin.service-management.tickets.show', ServiceTicket::firstOrFail()));
 
@@ -203,7 +202,6 @@ class StandardEquipmentTicketIntakeTest extends TestCase
         $this->assertFalse((bool) $ticket->equipment_override);
         $this->assertNull($ticket->equipment_override_reason);
         $this->assertSame('Auxiliary hydraulics slow', $ticket->customer_complaint);
-        $this->assertSame('Found during yard check', $ticket->internal_notes);
     }
 
     public function test_standard_ticket_requires_a_category(): void

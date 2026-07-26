@@ -349,17 +349,6 @@
                 </div>
 
                 <div class="space-y-3">
-                    @if ($ticket->internal_notes)
-                        <div class="rounded-lg border border-amber-100 bg-amber-50/60 p-3">
-                            <p class="text-xs text-gray-500 mb-1">
-                                {{ $ticket->created_at->format('M j, g:i A') }}
-                                @if ($ticket->createdBy) · {{ $ticket->createdBy->full_name }} @endif
-                                <span class="text-gray-400">· Intake</span>
-                            </p>
-                            <p class="text-sm text-gray-700 whitespace-pre-line">{{ $ticket->internal_notes }}</p>
-                        </div>
-                    @endif
-
                     @forelse ($ticket->notes as $note)
                         <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
                             <p class="text-xs text-gray-500 mb-1">
@@ -395,9 +384,7 @@
                             </details>
                         </div>
                     @empty
-                        @unless ($ticket->internal_notes)
-                            <p class="text-sm text-gray-300 italic">No notes yet.</p>
-                        @endunless
+                        <p class="text-sm text-gray-300 italic">No notes yet.</p>
                     @endforelse
                 </div>
                 <p class="text-xs text-gray-400 mt-3">General ticket documentation — diagnostic findings belong in Diagnostic Steps.</p>

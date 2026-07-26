@@ -265,70 +265,9 @@
                     </div>
                 </div>
 
-                {{-- ===== Card 3: Assigned Personnel ===== --}}
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <span class="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 text-gray-400 flex items-center justify-center shrink-0">
-                                <x-heroicon-o-user-group class="w-5 h-5" />
-                            </span>
-                            <div class="min-w-0">
-                                <h2 class="text-sm font-semibold text-gray-800">Assigned Personnel</h2>
-                                <p class="text-xs text-gray-400 truncate" id="st-crew-summary">No one assigned yet.</p>
-                            </div>
-                        </div>
-                        <button type="button" id="st-assign-toggle"
-                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-sm font-medium text-blue-700 hover:bg-blue-100 transition shrink-0">
-                            <x-heroicon-o-user-plus class="w-4 h-4" />
-                            Assign Now
-                        </button>
-                    </div>
-
-                    <div id="st-assign-panel" class="hidden mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs text-gray-500 mb-3">
-                            Check everyone working this ticket, then mark one person as <span class="font-semibold">Team Leader</span>.
-                            Employees come from HRM records.
-                        </p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            @foreach ($employees as $employee)
-                                <div class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                                    <label class="flex items-center gap-2 cursor-pointer min-w-0">
-                                        <input type="checkbox" name="personnel[]" value="{{ $employee->id }}"
-                                            class="st-crew-check text-blue-600 rounded focus:ring-blue-500"
-                                            data-name="{{ $employee->first_name }} {{ $employee->last_name }}"
-                                            @checked(in_array($employee->id, $selectedPersonnel, true))>
-                                        <span class="text-sm text-gray-700 truncate">{{ $employee->first_name }} {{ $employee->last_name }}</span>
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer shrink-0" title="Team Leader">
-                                        <input type="radio" name="team_leader_id" value="{{ $employee->id }}"
-                                            class="st-leader-radio text-amber-500 focus:ring-amber-400"
-                                            @checked((int) old('team_leader_id') === $employee->id)
-                                            @disabled(!in_array($employee->id, $selectedPersonnel, true))>
-                                        <span class="text-[11px] font-semibold text-amber-600 uppercase">Lead</span>
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                        @error('team_leader_id')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
-                        @error('personnel')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
-                    </div>
-
-                    {{-- Assigned team at a glance — avatar chips in the same style as
-                         partials/_personnel_avatars. Display only; the checkboxes above
-                         remain the editing controls and the JS keeps this in sync. --}}
-                    <div id="st-crew-display" class="hidden mt-4 pt-4 border-t border-gray-100">
-                        <div id="st-crew-lead-wrap" class="hidden mb-3">
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Lead Technician</p>
-                            <div id="st-crew-lead" class="flex flex-wrap gap-2"></div>
-                        </div>
-                        <div id="st-crew-team-wrap" class="hidden">
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Assigned Team</p>
-                            <div id="st-crew-team" class="flex flex-wrap gap-2"></div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ===== Card 4: Reported Problem — structured complaint intake ===== --}}
+                {{-- ===== Card 3: Reported Problem — structured complaint intake ===== --}}
+                {{-- Assignment is a consequence of the problem, so the complaint is
+                     defined BEFORE Assigned Personnel below. --}}
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                     <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-1">
                         <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -396,11 +335,69 @@
                         <div id="st-evidence-previews" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
                         @error('evidence.*')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
                     </div>
+                </div>
 
-                    <div class="mt-4">
-                        <label class="{{ $labelClass }}">Notes</label>
-                        <textarea name="internal_notes" rows="3" class="{{ $inputClass }}"
-                            placeholder="Internal notes (not customer-facing)…">{{ old('internal_notes') }}</textarea>
+                {{-- ===== Card 4: Assigned Personnel — a routing decision made AFTER
+                     the complaint is understood (which specialty the problem needs). ===== --}}
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 text-gray-400 flex items-center justify-center shrink-0">
+                                <x-heroicon-o-user-group class="w-5 h-5" />
+                            </span>
+                            <div class="min-w-0">
+                                <h2 class="text-sm font-semibold text-gray-800">Assigned Personnel</h2>
+                                <p class="text-xs text-gray-400 truncate" id="st-crew-summary">No one assigned yet.</p>
+                            </div>
+                        </div>
+                        <button type="button" id="st-assign-toggle"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-sm font-medium text-blue-700 hover:bg-blue-100 transition shrink-0">
+                            <x-heroicon-o-user-plus class="w-4 h-4" />
+                            Assign Now
+                        </button>
+                    </div>
+
+                    <div id="st-assign-panel" class="hidden mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500 mb-3">
+                            Check everyone working this ticket, then mark one person as <span class="font-semibold">Team Leader</span>.
+                            Employees come from HRM records.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            @foreach ($employees as $employee)
+                                <div class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                                    <label class="flex items-center gap-2 cursor-pointer min-w-0">
+                                        <input type="checkbox" name="personnel[]" value="{{ $employee->id }}"
+                                            class="st-crew-check text-blue-600 rounded focus:ring-blue-500"
+                                            data-name="{{ $employee->first_name }} {{ $employee->last_name }}"
+                                            @checked(in_array($employee->id, $selectedPersonnel, true))>
+                                        <span class="text-sm text-gray-700 truncate">{{ $employee->first_name }} {{ $employee->last_name }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer shrink-0" title="Team Leader">
+                                        <input type="radio" name="team_leader_id" value="{{ $employee->id }}"
+                                            class="st-leader-radio text-amber-500 focus:ring-amber-400"
+                                            @checked((int) old('team_leader_id') === $employee->id)
+                                            @disabled(!in_array($employee->id, $selectedPersonnel, true))>
+                                        <span class="text-[11px] font-semibold text-amber-600 uppercase">Lead</span>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        @error('team_leader_id')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
+                        @error('personnel')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
+                    </div>
+
+                    {{-- Assigned team at a glance — avatar chips in the same style as
+                         partials/_personnel_avatars. Display only; the checkboxes above
+                         remain the editing controls and the JS keeps this in sync. --}}
+                    <div id="st-crew-display" class="hidden mt-4 pt-4 border-t border-gray-100">
+                        <div id="st-crew-lead-wrap" class="hidden mb-3">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Lead Technician</p>
+                            <div id="st-crew-lead" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div id="st-crew-team-wrap" class="hidden">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Assigned Team</p>
+                            <div id="st-crew-team" class="flex flex-wrap gap-2"></div>
+                        </div>
                     </div>
                 </div>
 

@@ -51,7 +51,9 @@ class SaveFieldTicketRequest extends FormRequest
             'complaints.*'       => ['integer', 'exists:service_symptoms,id'],
             'custom_problems'    => ['nullable', 'array'],
             'custom_problems.*'  => ['string', 'max:255'],
-            'additional_details' => ['nullable', 'string', 'max:5000'],
+            // Canonical Complaint Details narrative (shared contract with Standard
+            // Service). Replaces the former `additional_details` field name.
+            'customer_complaint' => ['nullable', 'string', 'max:5000'],
 
             // 2. Media review checklist
             'photos_received'           => ['nullable', 'boolean'],
@@ -89,7 +91,7 @@ class SaveFieldTicketRequest extends FormRequest
             // A stated problem is required — a library selection, a free-text
             // "Other" problem, or additional details.
             $customProblems = array_filter(array_map('trim', (array) $this->input('custom_problems', [])), fn ($s) => $s !== '');
-            if (empty($this->input('complaints')) && empty($customProblems) && trim((string) $this->input('additional_details')) === '') {
+            if (empty($this->input('complaints')) && empty($customProblems) && trim((string) $this->input('customer_complaint')) === '') {
                 $validator->errors()->add('complaints', 'Select or enter at least one reported problem, or add details.');
             }
 

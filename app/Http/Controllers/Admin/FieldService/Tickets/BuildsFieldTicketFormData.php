@@ -39,7 +39,9 @@ trait BuildsFieldTicketFormData
             $names = $order->products->pluck('product_name')->filter()->unique()->values();
             $label = trim($order->order_number . ' — ' . ($order->customer_name ?? $order->customer?->full_name ?? 'Unknown'));
             if ($names->isNotEmpty()) {
-                $label .= ' · ' . $names->take(3)->implode(' · ')
+                // " - " separates the customer from the product list; products
+                // stay separated by " · ".
+                $label .= ' - ' . $names->take(3)->implode(' · ')
                     . ($names->count() > 3 ? ' +' . ($names->count() - 3) . ' more' : '');
             }
 

@@ -269,72 +269,7 @@
                 {{-- Assignment is a consequence of the problem, so the complaint is
                      defined BEFORE Assigned Personnel below. --}}
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                    <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-1">
-                        <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                            <x-heroicon-o-exclamation-triangle class="w-4 h-4" />
-                        </span>
-                        Reported Problem
-                    </h2>
-                    <p class="text-xs text-gray-400 mb-4">
-                        What is wrong with the machine — not how it will be fixed. Check every reported complaint;
-                        diagnosis, causes, and repairs happen on the workbench.
-                    </p>
-
-                    {{-- Applicable complaints — rendered client-side from the library,
-                         filtered by the selected equipment's product, categories, and
-                         recorded capabilities --}}
-                    <div id="st-complaint-empty" class="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
-                        <p class="text-sm text-gray-400">Select equipment to see the applicable complaints.</p>
-                    </div>
-                    {{-- Shown when the selected unit has no Reported-Problem
-                         template (and no legacy profile match). The full
-                         library still renders below as a working fallback so
-                         intake is never blocked before templates are attached. --}}
-                    <div id="st-complaint-status" class="hidden mb-3 rounded-lg border px-4 py-2.5">
-                        <p id="st-complaint-status-text" class="text-sm"></p>
-                    </div>
-                    <div id="st-complaint-list" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-                    @error('complaints')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
-                    @error('complaints.*')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
-
-                    {{-- Selected complaints as removable chips --}}
-                    <div id="st-complaint-chips-wrap" class="hidden mt-4">
-                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Selected Complaints</p>
-                        <div id="st-complaint-chips" class="flex flex-wrap gap-2"></div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="{{ $labelClass }}">Complaint Details</label>
-                        <textarea name="customer_complaint" rows="4" class="{{ $inputClass }}"
-                            placeholder="Describe what the customer or employee observed, when it happens, warning codes, noises, or additional details not covered by the selected complaints.">{{ old('customer_complaint') }}</textarea>
-                    </div>
-
-                    {{-- Complaint evidence — photos & video, uploaded with the ticket --}}
-                    <div class="mt-4">
-                        <label class="{{ $labelClass }}">Complaint Evidence</label>
-                        <div id="st-evidence-drop"
-                            class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-center transition">
-                            <p class="text-sm text-gray-500">Drag &amp; drop photos or videos here, or</p>
-                            <div class="flex items-center justify-center gap-2 mt-2">
-                                <button type="button" id="st-evidence-photo-btn"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 transition">
-                                    <x-heroicon-o-camera class="w-4 h-4" />
-                                    Upload Photos
-                                </button>
-                                <button type="button" id="st-evidence-video-btn"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 transition">
-                                    <x-heroicon-o-video-camera class="w-4 h-4" />
-                                    Upload Video
-                                </button>
-                            </div>
-                            <input type="file" name="evidence[]" id="st-evidence-photos" class="hidden"
-                                accept="image/*" capture="environment" multiple>
-                            <input type="file" name="evidence[]" id="st-evidence-videos" class="hidden"
-                                accept="video/*" multiple>
-                        </div>
-                        <div id="st-evidence-previews" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
-                        @error('evidence.*')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
-                    </div>
+                    @include('admin.service_management.problem_templates.partials._complaint_intake', ['prefix' => 'st'])
                 </div>
 
                 {{-- ===== Card 4: Assigned Personnel — a routing decision made AFTER
@@ -602,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function () {
         equipmentSelect.dataset.old = oldCustomerEquipmentId || '';
         syncOrder(true);           // rebuild equipment, restoring the old unit
         showSelectedOrder(restoreOrder);
-        syncComplaintList();
+        // initial complaint render runs when the shared intake initialises below
     })();
 
     // The hidden controls can't carry a native `required` (not focusable) —
@@ -654,30 +589,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     overrideSelect.addEventListener('change', function () {
         overrideReasonWrap.classList.toggle('hidden', !overrideSelect.value);
-        syncComplaintList(); // the override is the effective equipment — re-resolve the template
+        complaintIntake.refresh(); // the override is the effective equipment — re-resolve the template
     });
 
-    // Product → category map: still needed by the complaint symptom-profile
-    // resolution below (the category/product ORDER FILTERS themselves are
-    // gone — that context now comes from the selected order).
-    const FILTER_PRODUCTS = @json($filterProducts);
-    const PRODUCT_CATEGORIES = {};
-    FILTER_PRODUCTS.forEach(function (p) { PRODUCT_CATEGORIES[p.id] = p.category_ids || []; });
-
-    // ── Structured complaint intake (categorized symptom library) ──────
-    const SYMPTOM_CATEGORIES = @json($symptomCategories);
-    const SYMPTOMS           = @json($symptoms);
-    const SYMPTOM_PROFILES   = @json($symptomProfiles);
-    const OLD_COMPLAINTS     = @json(collect(old('complaints', []))->map(fn ($v) => (int) $v)->values());
-
-    const complaintEmpty     = document.getElementById('st-complaint-empty');
-    const complaintList      = document.getElementById('st-complaint-list');
-    const complaintChipsWrap = document.getElementById('st-complaint-chips-wrap');
-    const complaintChips     = document.getElementById('st-complaint-chips');
-
-    // Selections survive rebuilds; complaints hidden by an equipment change
-    // are dropped so an inapplicable selection can never be submitted
-    let checkedComplaints = new Set(OLD_COMPLAINTS.map(String));
+    // ── Shared complaint intake (grouped checklist + Complaint Details +
+    // Complaint Evidence), driven by the effective equipment via selectedUnit().
+    // productCategoryMap is only a legacy fallback for units without a
+    // symptom_profile_id / category_ids. init() renders immediately.
+    const complaintIntake = window.serviceComplaintIntake.init('st', selectedUnit, {
+        productCategoryMap: @json($filterProducts),
+    });
+    equipmentSelect.addEventListener('change', complaintIntake.refresh);
+    orderSelect.addEventListener('change', complaintIntake.refresh); // single-unit auto-select
 
     // ONE effective-equipment resolver (mirrors the server's override ?: order
     // rule): Equipment ID Override is authoritative when chosen; otherwise the
@@ -692,277 +615,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const order = currentOrder();
         return order ? order.equipment.find(u => String(u.id) === String(equipmentSelect.value)) : null;
     }
-
-    // Resolve the equipment's symptom profile: an exact product-level
-    // assignment wins over a broader product-category assignment. Equipment
-    // with no matching profile yet shows the full library (same "hide
-    // nothing until scoped" default the checklist has always used).
-    // Resolution precedence (Equipment problem-templates):
-    //   1. the template attached to THIS unit (service_symptom_profile_id)
-    //   2. legacy fallback — a profile targeting the unit's product, then
-    //      one targeting its product category
-    //   3. none → No Template Listed (full library shown as fallback)
-    function resolveSymptomProfile(unit) {
-        if (unit.symptom_profile_id) {
-            const attached = SYMPTOM_PROFILES.find(p => String(p.id) === String(unit.symptom_profile_id));
-            if (attached) return attached;
-        }
-
-        let profile = SYMPTOM_PROFILES.find(p => p.product_id && String(p.product_id) === String(unit.product_id));
-        if (profile) return profile;
-
-        const categories = PRODUCT_CATEGORIES[unit.product_id] || [];
-        return SYMPTOM_PROFILES.find(p => p.product_category_id
-            && categories.some(id => String(id) === String(p.product_category_id))) || null;
-    }
-
-    // The applicable symptoms, each tagged with an `_order` for rendering:
-    //   - explicit template (builder-assembled item list, no categories) →
-    //     exactly its items, in template order
-    //   - legacy profile → included categories + additions − exclusions
-    //   - no profile → the full library (fallback), in display order
-    function applicableSymptoms(unit) {
-        const profile = resolveSymptomProfile(unit);
-        if (!profile) return SYMPTOMS.map(s => ({ ...s, _order: s.display_order }));
-
-        const hasCategories = profile.category_ids && profile.category_ids.length;
-        if (!hasCategories && profile.items && profile.items.length) {
-            const order = new Map(profile.items.map((id, i) => [String(id), i]));
-            return SYMPTOMS
-                .filter(s => order.has(String(s.id)))
-                .map(s => ({ ...s, _order: order.get(String(s.id)) }));
-        }
-
-        const categoryIds = (profile.category_ids || []).map(String);
-        const additions   = (profile.additions || []).map(String);
-        const exclusions  = (profile.exclusions || []).map(String);
-
-        return SYMPTOMS.filter(function (symptom) {
-            const id = String(symptom.id);
-            if (exclusions.includes(id)) return false;
-            if (additions.includes(id)) return true;
-            return categoryIds.includes(String(symptom.category_id));
-        }).map(s => ({ ...s, _order: s.display_order }));
-    }
-
-    function syncComplaintChips() {
-        complaintChips.replaceChildren();
-        checkedComplaints.forEach(function (id) {
-            const symptom = SYMPTOMS.find(s => String(s.id) === id);
-            if (!symptom) return;
-            const chip = document.createElement('span');
-            chip.className = 'inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 pl-3 pr-1.5 py-1 text-sm font-medium text-amber-800';
-            chip.appendChild(document.createTextNode(symptom.name));
-            const remove = document.createElement('button');
-            remove.type = 'button';
-            remove.className = 'w-4 h-4 rounded-full flex items-center justify-center text-amber-500 hover:text-amber-700 hover:bg-amber-100 text-xs font-bold leading-none';
-            remove.textContent = '×';
-            remove.title = 'Remove ' + symptom.name;
-            remove.addEventListener('click', function () {
-                checkedComplaints.delete(id);
-                const box = complaintList.querySelector('input[value="' + id + '"]');
-                if (box) box.checked = false;
-                syncComplaintChips();
-            });
-            chip.appendChild(remove);
-            complaintChips.appendChild(chip);
-        });
-        complaintChipsWrap.classList.toggle('hidden', checkedComplaints.size === 0);
-    }
-
-    const complaintStatus     = document.getElementById('st-complaint-status');
-    const complaintStatusText = document.getElementById('st-complaint-status-text');
-
-    // Status banner that names the EFFECTIVE equipment (order or override) and
-    // its resolved template — never an ambiguous "this unit" when two equipment
-    // references are on screen.
-    function setComplaintStatus(unit) {
-        if (!unit) { complaintStatus.classList.add('hidden'); return; }
-        complaintStatus.classList.remove('hidden', 'border-amber-200', 'bg-amber-50', 'border-blue-200', 'bg-blue-50');
-        complaintStatusText.classList.remove('text-amber-800', 'text-blue-700');
-        const profile = resolveSymptomProfile(unit);
-        if (profile) {
-            complaintStatus.classList.add('border-blue-200', 'bg-blue-50');
-            complaintStatusText.classList.add('text-blue-700');
-            complaintStatusText.textContent = 'Template: ' + profile.name;
-        } else {
-            complaintStatus.classList.add('border-amber-200', 'bg-amber-50');
-            complaintStatusText.classList.add('text-amber-800');
-            complaintStatusText.textContent = 'No Problem Template is assigned to ' + (unit.label || 'this equipment') + ' — showing all applicable problems.';
-        }
-    }
-
-    function syncComplaintList() {
-        const unit = selectedUnit();
-        complaintEmpty.classList.toggle('hidden', !!unit);
-        complaintList.classList.toggle('hidden', !unit);
-        complaintList.replaceChildren();
-
-        if (!unit) {
-            checkedComplaints.clear();
-            syncComplaintChips();
-            setComplaintStatus(null);
-            return;
-        }
-
-        // Status banner naming the effective equipment + its resolved template
-        // (or the no-template fallback).
-        setComplaintStatus(unit);
-
-        const applicable = applicableSymptoms(unit);
-
-        // Drop selections the new equipment can no longer report
-        checkedComplaints.forEach(function (id) {
-            if (!applicable.some(s => String(s.id) === id)) checkedComplaints.delete(id);
-        });
-
-        const groups = new Map();
-        applicable.forEach(function (symptom) {
-            if (!groups.has(symptom.category_id)) {
-                const category = SYMPTOM_CATEGORIES.find(c => c.id === symptom.category_id);
-                groups.set(symptom.category_id, {
-                    label: category ? category.name : 'Other',
-                    order: category ? category.display_order : 999,
-                    symptoms: [],
-                });
-            }
-            groups.get(symptom.category_id).symptoms.push(symptom);
-        });
-
-        Array.from(groups.values()).sort((a, b) => a.order - b.order).forEach(function (group) {
-            const box = document.createElement('div');
-            box.className = 'rounded-lg border border-gray-200 bg-gray-50 p-3';
-            const heading = document.createElement('p');
-            heading.className = 'text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2';
-            heading.textContent = group.label;
-            box.appendChild(heading);
-
-            group.symptoms
-                .slice()
-                .sort((a, b) => a._order - b._order)
-                .forEach(function (symptom) {
-                    const row = document.createElement('label');
-                    row.className = 'flex items-center gap-2 py-0.5 cursor-pointer';
-                    const check = document.createElement('input');
-                    check.type = 'checkbox';
-                    check.name = 'complaints[]';
-                    check.value = symptom.id;
-                    check.className = 'st-complaint-check text-amber-600 rounded focus:ring-amber-500';
-                    check.checked = checkedComplaints.has(String(symptom.id));
-                    check.addEventListener('change', function () {
-                        check.checked ? checkedComplaints.add(String(symptom.id)) : checkedComplaints.delete(String(symptom.id));
-                        syncComplaintChips();
-                    });
-                    row.appendChild(check);
-                    const text = document.createElement('span');
-                    text.className = 'text-sm text-gray-700';
-                    text.textContent = symptom.name;
-                    row.appendChild(text);
-                    box.appendChild(row);
-                });
-            complaintList.appendChild(box);
-        });
-
-        syncComplaintChips();
-    }
-
-    equipmentSelect.addEventListener('change', syncComplaintList);
-    orderSelect.addEventListener('change', syncComplaintList); // covers single-unit auto-select
-    syncComplaintList(); // initial render (validation round-trip restores old checks)
-
-    // ── Complaint evidence: previews with remove-before-save ──────────
-    const photoInput  = document.getElementById('st-evidence-photos');
-    const videoInput  = document.getElementById('st-evidence-videos');
-    const dropZone    = document.getElementById('st-evidence-drop');
-    const previews    = document.getElementById('st-evidence-previews');
-
-    document.getElementById('st-evidence-photo-btn').addEventListener('click', () => photoInput.click());
-    document.getElementById('st-evidence-video-btn').addEventListener('click', () => videoInput.click());
-
-    function evidenceFiles() {
-        return [
-            ...Array.from(photoInput.files).map((f, i) => ({ file: f, input: photoInput, index: i })),
-            ...Array.from(videoInput.files).map((f, i) => ({ file: f, input: videoInput, index: i })),
-        ];
-    }
-
-    function removeEvidence(input, index) {
-        const keep = new DataTransfer();
-        Array.from(input.files).forEach(function (file, i) { if (i !== index) keep.items.add(file); });
-        input.files = keep.files;
-        syncEvidence();
-    }
-
-    function addEvidence(input, files) {
-        const merged = new DataTransfer();
-        Array.from(input.files).forEach(f => merged.items.add(f));
-        Array.from(files).forEach(f => merged.items.add(f));
-        input.files = merged.files;
-        syncEvidence();
-    }
-
-    function syncEvidence() {
-        previews.replaceChildren();
-        const files = evidenceFiles();
-        previews.classList.toggle('hidden', files.length === 0);
-
-        files.forEach(function (entry) {
-            const card = document.createElement('div');
-            card.className = 'rounded-lg border border-gray-200 bg-white p-2';
-
-            if (entry.file.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(entry.file);
-                img.className = 'w-full h-20 object-cover rounded-md bg-gray-50';
-                img.addEventListener('load', () => URL.revokeObjectURL(img.src));
-                card.appendChild(img);
-            } else {
-                const block = document.createElement('div');
-                block.className = 'w-full h-20 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold uppercase tracking-wide text-gray-400';
-                block.textContent = 'Video';
-                card.appendChild(block);
-            }
-
-            const row = document.createElement('div');
-            row.className = 'flex items-center justify-between gap-1 mt-1.5';
-            const name = document.createElement('p');
-            name.className = 'text-[11px] text-gray-500 truncate';
-            name.textContent = entry.file.name;
-            name.title = entry.file.name;
-            row.appendChild(name);
-            const remove = document.createElement('button');
-            remove.type = 'button';
-            remove.className = 'text-xs font-bold text-red-400 hover:text-red-600 shrink-0';
-            remove.textContent = '×';
-            remove.title = 'Remove ' + entry.file.name;
-            remove.addEventListener('click', () => removeEvidence(entry.input, entry.index));
-            row.appendChild(remove);
-            card.appendChild(row);
-
-            previews.appendChild(card);
-        });
-    }
-
-    photoInput.addEventListener('change', syncEvidence);
-    videoInput.addEventListener('change', syncEvidence);
-
-    ['dragover', 'dragenter'].forEach(function (event) {
-        dropZone.addEventListener(event, function (e) {
-            e.preventDefault();
-            dropZone.classList.add('border-amber-400', 'bg-amber-50');
-        });
-    });
-    ['dragleave', 'drop'].forEach(function (event) {
-        dropZone.addEventListener(event, function (e) {
-            e.preventDefault();
-            dropZone.classList.remove('border-amber-400', 'bg-amber-50');
-        });
-    });
-    dropZone.addEventListener('drop', function (e) {
-        const dropped = Array.from(e.dataTransfer.files);
-        addEvidence(photoInput, dropped.filter(f => !f.type.startsWith('video/')));
-        addEvidence(videoInput, dropped.filter(f => f.type.startsWith('video/')));
-    });
 
     // ── Assign Now panel + team leader rules ───────────────────────
     const panel   = document.getElementById('st-assign-panel');
@@ -1140,7 +792,7 @@ document.addEventListener('DOMContentLoaded', function () {
             stdSearch.placeholder = categorySelect.value ? 'Search by equipment name or ID…' : 'Select a category first…';
         }
 
-        syncComplaintList();
+        complaintIntake.refresh();
     }
 
     function renderStandardResults(list) {
@@ -1173,7 +825,7 @@ document.addEventListener('DOMContentLoaded', function () {
         stdResults.classList.add('hidden');
         stdSearch.value = '';
         if (stdRequiredNote) stdRequiredNote.classList.add('hidden');
-        syncComplaintList();
+        complaintIntake.refresh();
     }
 
     let stdSearchTimer = null;
@@ -1196,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const hasCat = !!categorySelect.value;
         stdSearch.disabled = !hasCat;
         stdSearch.placeholder = hasCat ? 'Search by equipment name or ID…' : 'Select a category first…';
-        syncComplaintList();
+        complaintIntake.refresh();
     });
 
     stdSearch.addEventListener('input', function () {

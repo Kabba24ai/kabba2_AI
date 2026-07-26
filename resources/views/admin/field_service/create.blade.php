@@ -68,7 +68,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('admin.field-service.tickets.store') }}">
+    <form method="POST" action="{{ route('admin.field-service.tickets.store') }}" enctype="multipart/form-data">
         @csrf
 
         {{-- ===== 1. Dispatch Information ===== --}}
@@ -201,51 +201,13 @@
                 </div>
             </div>
 
-            {{-- Reported Problems — the shared shop symptom library. --}}
-            <div class="mt-4">
-                <label class="{{ $labelClass }}">Reported Problem(s)</label>
-                <div class="relative">
-                    <input type="text" id="fs-problem-search" autocomplete="off" class="{{ $inputClass }}" placeholder="Search problem library…">
-                    <div id="fs-problem-results" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
-                </div>
-                <div id="fs-problem-selected" class="flex flex-wrap gap-2 mt-2"></div>
-                <p class="text-xs text-gray-400 mt-1">Not in the list? Type it and choose &ldquo;Add … as a problem,&rdquo; or press Enter.</p>
-                @error('complaints')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                @error('complaints.*')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-            </div>
-
-            {{-- Complaint Details — the canonical narrative (customer_complaint),
-                 shared contract with Standard Service. Captures what the structured
-                 complaints don't. --}}
-            <div class="mt-4">
-                <label class="{{ $labelClass }}">Complaint Details</label>
-                <textarea name="customer_complaint" rows="3" class="{{ $inputClass }}"
-                    placeholder="What the customer or employee observed, when it happens, warning codes/lights, noises, smells, leaks, operating conditions, or other details not covered by the selected complaints.">{{ old('customer_complaint') }}</textarea>
-                @error('customer_complaint')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-            </div>
         </div>
 
-        {{-- ===== 2. Media Review ===== --}}
+        {{-- ===== 2. Reported Problem — canonical shared complaint intake
+             (grouped checklist + Complaint Details + Complaint Evidence), the
+             SAME component Standard Service uses. ===== --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-            <h2 class="text-sm font-semibold text-gray-800 mb-1">2 · Media Review</h2>
-            <p class="text-xs text-gray-400 mb-4">
-                Pictures and video are operationally critical — confirm what we have before the truck leaves.
-            </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                @foreach ([
-                    'photos_received'           => 'Photos received',
-                    'video_received'            => 'Video received',
-                    'media_reviewed'            => 'Media reviewed',
-                    'additional_media_required' => 'More media required',
-                    'media_bypassed'            => 'Media intentionally bypassed',
-                ] as $flag => $label)
-                    <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 cursor-pointer hover:bg-gray-100 transition">
-                        <input type="checkbox" name="{{ $flag }}" value="1" @checked(old($flag))
-                            class="text-blue-600 rounded focus:ring-blue-500">
-                        <span class="text-sm text-gray-700">{{ $label }}</span>
-                    </label>
-                @endforeach
-            </div>
+            @include('admin.service_management.problem_templates.partials._complaint_intake', ['prefix' => 'fs'])
         </div>
 
         {{-- ===== 3. Assigned Technician — a routing decision made AFTER the
@@ -415,67 +377,16 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const ORDERS        = @json($orderOptions);
-    const PROBLEMS      = @json($problems);
-    const PROBLEM_CATS  = @json($problemCategories);
-    const PROFILES      = @json($problemProfiles);
-    const OLD_COMPLAINTS = @json(old('complaints', []));
-    const OLD_CUSTOM     = @json(old('custom_problems', []));
+    const ORDERS = @json($orderOptions);
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
     function $(id) { return document.getElementById(id); }
 
-    // ── Shared problem engine: equipment-profile resolution + applicable set ──
-    // Same precedence the shop intake uses (attached profile → product →
-    // product category), assembling included categories + additions − exclusions
-    // (or an explicit ordered items list). No profile → full library.
+    // Currently-selected field equipment = the EFFECTIVE equipment that drives
+    // the shared complaint intake (Reported Problem + Complaint Details +
+    // Complaint Evidence — the same component Standard Service uses).
     let currentUnit = null;
-    let applicableIds = null; // null = no scope yet → show the full library
-
-    const fieldConditionCat = PROBLEM_CATS.find(c => c.name === 'Field Conditions & Recovery');
-    const fieldConditionIds = fieldConditionCat
-        ? PROBLEMS.filter(p => String(p.category_id) === String(fieldConditionCat.id)).map(p => String(p.id))
-        : [];
-
-    function resolveProfile(unit) {
-        if (!unit) return null;
-        if (unit.symptom_profile_id) {
-            const attached = PROFILES.find(p => String(p.id) === String(unit.symptom_profile_id));
-            if (attached) return attached;
-        }
-        const byProduct = PROFILES.find(p => p.product_id && String(p.product_id) === String(unit.product_id));
-        if (byProduct) return byProduct;
-        const cats = (unit.category_ids || []).map(String);
-        return PROFILES.find(p => p.product_category_id && cats.includes(String(p.product_category_id))) || null;
-    }
-
-    function applicableSymptomIds(unit) {
-        const profile = resolveProfile(unit);
-        if (!profile) return PROBLEMS.map(s => String(s.id)); // full library fallback
-        const hasCats = profile.category_ids && profile.category_ids.length;
-        if (!hasCats && profile.items && profile.items.length) {
-            const set = new Set(profile.items.map(String));
-            return PROBLEMS.filter(s => set.has(String(s.id))).map(s => String(s.id));
-        }
-        const catIds = (profile.category_ids || []).map(String);
-        const adds   = (profile.additions || []).map(String);
-        const excl   = (profile.exclusions || []).map(String);
-        return PROBLEMS.filter(function (s) {
-            const id = String(s.id);
-            if (excl.includes(id)) return false;
-            if (adds.includes(id)) return true;
-            return catIds.includes(String(s.category_id));
-        }).map(s => String(s.id));
-    }
-
-    // Applicable set for the selected unit, ALWAYS additive with Field
-    // Conditions & Recovery (an operating-condition category, not equipment).
-    function recomputeApplicable() {
-        if (!currentUnit) { applicableIds = null; return; }
-        const ids = new Set(applicableSymptomIds(currentUnit));
-        fieldConditionIds.forEach(id => ids.add(id));
-        applicableIds = ids;
-    }
+    const complaintIntake = window.serviceComplaintIntake.init('fs', () => currentUnit);
 
     const orderSelect = $('fs-order');
     const customerBox = $('fs-customer');
@@ -493,14 +404,14 @@ document.addEventListener('DOMContentLoaded', function () {
         serialHidden.value = u.serial || '';
         eqDetail.textContent = [u.model, u.serial ? 'SN ' + u.serial : ''].filter(Boolean).join(' · ');
         currentUnit = u;
-        recomputeApplicable();
+        complaintIntake.refresh();
     }
 
     // Single equipment → read-only; multiple → a selector; none → prompt.
     function renderEquipment(order, keepId) {
         [eqSingle, eqMulti, eqEmpty].forEach(el => el.classList.add('hidden'));
         eqMulti.innerHTML = ''; eqDetail.textContent = '';
-        currentUnit = null; recomputeApplicable(); // reset problem scope until a unit is chosen
+        currentUnit = null; complaintIntake.refresh(); // reset problem scope until a unit is chosen
         const units = order ? (order.equipment || []) : [];
 
         if (!order) { eqEmpty.textContent = 'Select an order…'; eqEmpty.classList.remove('hidden'); equipHidden.value = ''; serialHidden.value = ''; return; }
@@ -584,60 +495,6 @@ document.addEventListener('DOMContentLoaded', function () {
     onOrder(true); // restore after a validation round-trip
     applyContactSource();
     applyLocationSource();
-
-    // ── Reported-problem library (search → chips → complaints[]) ────────
-    const catName = {}; PROBLEM_CATS.forEach(c => { catName[c.id] = c.name; });
-    const search = $('fs-problem-search'), results = $('fs-problem-results'), chips = $('fs-problem-selected');
-    const chosen  = new Map();   // library problems: id -> name
-    const customs = new Set();   // free-text "Other" problems
-
-    function makeChip(label, name, value, tone, onRemove) {
-        const cls = tone === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200';
-        const chip = document.createElement('span');
-        chip.className = 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ' + cls;
-        chip.innerHTML = '<input type="hidden" name="' + name + '" value="' + esc(value) + '"><span>' + esc(label) + '</span><button type="button" class="opacity-60 hover:opacity-100 leading-none">&times;</button>';
-        chip.querySelector('button').addEventListener('click', onRemove);
-        return chip;
-    }
-    function renderChips() {
-        chips.innerHTML = '';
-        chosen.forEach(function (name, id) {
-            chips.appendChild(makeChip(name, 'complaints[]', id, 'blue', function () { chosen.delete(id); renderChips(); }));
-        });
-        customs.forEach(function (text) {
-            chips.appendChild(makeChip(text + ' · Other', 'custom_problems[]', text, 'amber', function () { customs.delete(text); renderChips(); }));
-        });
-    }
-    function resetSearch() { search.value = ''; results.classList.add('hidden'); search.focus(); }
-    function addProblem(id, name) { if (!chosen.has(id)) { chosen.set(id, name); renderChips(); } resetSearch(); }
-    function addCustom(text) { text = (text || '').trim(); if (text && !customs.has(text)) { customs.add(text); renderChips(); } resetSearch(); }
-
-    function renderResults(raw) {
-        const q = raw.trim();
-        if (!q) { results.classList.add('hidden'); return; }
-        const ql = q.toLowerCase();
-        const matches = PROBLEMS.filter(p => !chosen.has(p.id)
-            && (applicableIds === null || applicableIds.has(String(p.id)))
-            && p.name.toLowerCase().includes(ql)).slice(0, 20);
-        let html = matches.map(p => '<div data-id="' + p.id + '" class="fs-lib px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"><span class="text-gray-800">' + esc(p.name) + '</span> <span class="text-gray-400 text-xs">' + esc(catName[p.category_id] || '') + '</span></div>').join('');
-        // The "Other" path — always offer to add the typed text as a problem.
-        html += '<div class="fs-other px-3 py-2 hover:bg-amber-50 cursor-pointer text-sm border-t border-gray-100 text-amber-700 font-medium">&plus; Add &ldquo;' + esc(q) + '&rdquo; as a problem</div>';
-        results.innerHTML = html;
-        results.classList.remove('hidden');
-        results.querySelectorAll('.fs-lib').forEach(function (row) {
-            row.addEventListener('click', function () { const p = matches.find(m => String(m.id) === row.dataset.id); if (p) addProblem(p.id, p.name); });
-        });
-        results.querySelector('.fs-other').addEventListener('click', function () { addCustom(q); });
-    }
-    search.addEventListener('input', function () { renderResults(search.value); });
-    // Enter adds the typed text as an "Other" problem (no forced library match).
-    search.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addCustom(search.value); } });
-    document.addEventListener('click', function (e) { if (!results.contains(e.target) && e.target !== search) results.classList.add('hidden'); });
-
-    // Restore selections after a validation round-trip.
-    (OLD_COMPLAINTS || []).forEach(function (id) { const p = PROBLEMS.find(x => String(x.id) === String(id)); if (p) chosen.set(p.id, p.name); });
-    (OLD_CUSTOM || []).forEach(function (t) { if (t && String(t).trim() !== '') customs.add(String(t).trim()); });
-    renderChips();
 
     new Choices(orderSelect, {
         searchEnabled: true,

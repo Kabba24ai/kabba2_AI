@@ -45,22 +45,16 @@ class SaveFieldTicketRequest extends FormRequest
             'loc_state'       => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', Rule::exists('states', 'abbreviation')],
             'loc_zip'         => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:20'],
 
-            // Reported problems — the shared shop symptom library, free-text
-            // "Other" problems for anything not in the library, + optional detail.
+            // Reported problems — structured selections from the shared Problem
+            // Library (canonical complaint intake, identical to Standard Service).
             'complaints'         => ['nullable', 'array'],
             'complaints.*'       => ['integer', 'exists:service_symptoms,id'],
-            'custom_problems'    => ['nullable', 'array'],
-            'custom_problems.*'  => ['string', 'max:255'],
-            // Canonical Complaint Details narrative (shared contract with Standard
-            // Service). Replaces the former `additional_details` field name.
+            // Canonical Complaint Details narrative — shared customer_complaint.
             'customer_complaint' => ['nullable', 'string', 'max:5000'],
 
-            // 2. Media review checklist
-            'photos_received'           => ['nullable', 'boolean'],
-            'video_received'            => ['nullable', 'boolean'],
-            'media_reviewed'            => ['nullable', 'boolean'],
-            'additional_media_required' => ['nullable', 'boolean'],
-            'media_bypassed'            => ['nullable', 'boolean'],
+            // Complaint Evidence — same uploader + rules as Standard Service.
+            'evidence'   => ['nullable', 'array'],
+            'evidence.*' => ['file', 'max:51200', 'mimes:jpg,jpeg,png,gif,webp,heic,mp4,mov,avi,webm'],
 
             // 3. Dispatch assessment
             'priority'       => ['required', Rule::enum(ServicePriority::class)],
@@ -88,11 +82,10 @@ class SaveFieldTicketRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // A stated problem is required — a library selection, a free-text
-            // "Other" problem, or additional details.
-            $customProblems = array_filter(array_map('trim', (array) $this->input('custom_problems', [])), fn ($s) => $s !== '');
-            if (empty($this->input('complaints')) && empty($customProblems) && trim((string) $this->input('customer_complaint')) === '') {
-                $validator->errors()->add('complaints', 'Select or enter at least one reported problem, or add details.');
+            // A stated problem is required — a structured complaint selection or
+            // Complaint Details.
+            if (empty($this->input('complaints')) && trim((string) $this->input('customer_complaint')) === '') {
+                $validator->errors()->add('complaints', 'Select at least one reported problem, or add complaint details.');
             }
 
             // Server-authoritative applicability: every selected library

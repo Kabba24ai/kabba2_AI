@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Admin\FieldService\Tickets;
 
 use App\Enums\Service\ServiceLocation;
+use App\Enums\Service\ServiceMediaCategory;
+use App\Enums\Service\ServiceMediaType;
+use App\Enums\Service\ServiceMediaWorkflowStage;
 use App\Enums\Service\ServiceType;
+use App\Helpers\MediaHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\FieldService\SaveFieldTicketRequest;
 use App\Models\FieldService\FieldServiceTicket;
@@ -44,13 +48,10 @@ class StoreController extends Controller
             ])));
         }
 
-        // Reported problems: library selections become structured complaints on
-        // the companion; free-text "Other" problems and additional details are
-        // captured as text (no forced, inaccurate library match).
-        // Defense-in-depth: build the companion complaint ids from ONLY the
-        // symptoms applicable to the selected equipment (same server-side
-        // resolver the request validates against), so nothing non-applicable
-        // can ever persist even if validation is bypassed.
+        // Structured complaints from the shared Problem Library. Defense-in-depth:
+        // keep ONLY the symptoms applicable to the selected equipment (same
+        // server resolver the request validates against). Complaint Details is
+        // the canonical narrative (customer_complaint) — shared with Standard.
         $applicableIds = ServiceProblemLibrary::applicableSymptomIdsForEquipment(
             (int) $validated['equipment_id']
         )->all();
@@ -61,31 +62,23 @@ class StoreController extends Controller
         $libraryNames = $complaintIds
             ? ServiceSymptom::whereIn('id', $complaintIds)->pluck('name')->all()
             : [];
-        $customProblems = array_values(array_filter(
-            array_map('trim', $validated['custom_problems'] ?? []),
-            fn ($s) => $s !== ''
-        ));
-        $additional = $validated['customer_complaint'] ?? null;
+        $complaintDetails = trim((string) ($validated['customer_complaint'] ?? '')) ?: null;
 
-        // Mission summary: every stated problem (library + Other), then details.
-        $allProblemNames = array_merge($libraryNames, $customProblems);
-        $problemSummary  = trim(
-            implode('; ', $allProblemNames)
-            . ($additional ? ($allProblemNames ? ' — ' : '') . $additional : '')
+        // Mission summary (backward compatible): canonical complaint names, then
+        // Complaint Details.
+        $problemSummary = trim(
+            implode('; ', $libraryNames)
+            . ($complaintDetails ? ($libraryNames ? ' — ' : '') . $complaintDetails : '')
         ) ?: 'See reported problems.';
 
-        // Companion customer complaint: the Other problems + free-text detail
-        // (library problems ride as structured complaint records).
-        $companionComplaint = trim(
-            implode('; ', $customProblems)
-            . ($additional ? ($customProblems ? ' — ' : '') . $additional : '')
-        ) ?: $problemSummary;
+        // Companion Service Ticket customer_complaint = the canonical Complaint
+        // Details (structured complaints ride as complaint records).
+        $companionComplaint = $complaintDetails ?: $problemSummary;
 
-        // Mission column values — strip the request-only routing keys, then
-        // merge the resolved/derived values.
+        // Mission column values — strip the request-only + companion-only keys.
         $missionAttributes = collect($validated)->except([
             'contact_source', 'location_source', 'loc_street', 'loc_city', 'loc_state', 'loc_zip',
-            'complaints', 'customer_complaint', 'contact_name', 'contact_phone',
+            'complaints', 'customer_complaint', 'contact_name', 'contact_phone', 'evidence',
         ])->all();
 
         $missionAttributes = array_merge($missionAttributes, [
@@ -98,14 +91,8 @@ class StoreController extends Controller
             'created_by'       => auth()->id(),
         ]);
 
-        foreach (['photos_received', 'video_received', 'media_reviewed', 'additional_media_required', 'media_bypassed'] as $flag) {
-            $missionAttributes[$flag] = $request->boolean($flag);
-        }
-
-        // Mission + companion canonical service ticket, created atomically. The
-        // companion carries the SAME structured problems (shared vocabulary) and
-        // the free-text detail as its customer complaint.
-        $ticket = DB::transaction(function () use ($missionAttributes, $complaintIds, $companionComplaint) {
+        // Mission + companion canonical service ticket, created atomically.
+        [$mission, $serviceTicket] = DB::transaction(function () use ($missionAttributes, $complaintIds, $companionComplaint) {
             $mission = FieldServiceTicket::create($missionAttributes);
 
             $serviceTicket = ServiceTicketIntakeService::create(
@@ -126,11 +113,35 @@ class StoreController extends Controller
             );
             $mission->update(['service_ticket_id' => $serviceTicket->id]);
 
-            return $mission;
+            return [$mission, $serviceTicket];
         });
 
-        flash('Field service request ' . $ticket->fresh()->ticket_number . ' created.')->success();
+        // Complaint Evidence → the companion Service Ticket (HTTP-only work, after
+        // the transaction; guarded by wasRecentlyCreated so an idempotent re-submit
+        // never re-uploads). Same media architecture as Standard Service.
+        if ($serviceTicket->wasRecentlyCreated) {
+            foreach ($request->file('evidence', []) as $file) {
+                $uploaded = MediaHelper::uploadServiceMediaFile($file, ServiceMediaWorkflowStage::Complaint, $serviceTicket);
+                if (!$uploaded) {
+                    continue;
+                }
+                $serviceTicket->media()->create([
+                    'media_type'        => ServiceMediaType::fromMime($uploaded['mime_type'], $uploaded['file_extension']),
+                    'category'          => ServiceMediaCategory::ComplaintEvidence->value,
+                    'workflow_stage'    => ServiceMediaWorkflowStage::Complaint->value,
+                    'retention_class'   => ServiceMediaWorkflowStage::Complaint->defaultRetentionClass()->value,
+                    'disk'              => 'service_media',
+                    'file_path'         => $uploaded['file_path'],
+                    'original_filename' => $uploaded['original_filename'],
+                    'mime_type'         => $uploaded['mime_type'],
+                    'file_size'         => $uploaded['file_size'],
+                    'uploaded_by'       => auth()->id(),
+                ]);
+            }
+        }
 
-        return redirect()->route('admin.field-service.tickets.show', $ticket);
+        flash('Field service request ' . $mission->fresh()->ticket_number . ' created.')->success();
+
+        return redirect()->route('admin.field-service.tickets.show', $mission);
     }
 }

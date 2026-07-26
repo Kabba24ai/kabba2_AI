@@ -58,8 +58,8 @@ Route::prefix('service-management')
             Route::delete('/{profile}',        [ProblemTemplates\TemplateController::class, 'destroy'])->name('destroy')->middleware('permission:problem_templates.manage');
             Route::post('/{profile}/items',    [ProblemTemplates\TemplateController::class, 'saveItems'])->name('save-items')->middleware('permission:problem_templates.manage');
 
-            // Library — Categories + Items taxonomy
-            Route::get('/library',                 [ProblemTemplates\LibraryController::class, 'index'])->name('library');
+            // Library — Categories + Items taxonomy (managed via the Problem
+            // Library card grid + drill-down; endpoints below).
             Route::post('/categories',             [ProblemTemplates\LibraryController::class, 'storeCategory'])->name('categories.store')->middleware('permission:problem_templates.manage');
             Route::put('/categories/{category}',   [ProblemTemplates\LibraryController::class, 'updateCategory'])->name('categories.update')->middleware('permission:problem_templates.manage');
             Route::delete('/categories/{category}',[ProblemTemplates\LibraryController::class, 'destroyCategory'])->name('categories.destroy')->middleware('permission:problem_templates.manage');

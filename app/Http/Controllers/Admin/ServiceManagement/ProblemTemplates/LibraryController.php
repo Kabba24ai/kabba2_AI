@@ -16,16 +16,6 @@ use Illuminate\Support\Facades\DB;
  */
 class LibraryController extends Controller
 {
-    public function index()
-    {
-        return view('admin.service_management.problem_templates.library', [
-            'categories' => ServiceSymptomCategory::withCount('symptoms')
-                ->orderBy('display_order')->orderBy('name')->get(),
-            'items' => ServiceSymptom::orderBy('display_order')->orderBy('name')
-                ->get(['id', 'service_symptom_category_id', 'name', 'display_order', 'is_active']),
-        ]);
-    }
-
     // ── Categories ──────────────────────────────────────────────────────
 
     public function storeCategory(Request $request)

@@ -116,26 +116,16 @@
                         from the order itself.
                     </p>
 
-                    {{-- Two search windows (same pattern as Orders): either one
-                         resolves to the ONE canonical order selection below. --}}
-                    <div id="st-order-pickers" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="{{ $labelClass }}" for="st-search-order">Search by Order #</label>
-                            <div class="relative">
-                                <input type="text" id="st-search-order" autocomplete="off" placeholder="e.g. 3151"
-                                       class="{{ $inputClass }}">
-                                <div id="st-search-order-results"
-                                     class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="{{ $labelClass }}" for="st-search-customer">Search by Customer</label>
-                            <div class="relative">
-                                <input type="text" id="st-search-customer" autocomplete="off" placeholder="Customer name…"
-                                       class="{{ $inputClass }}">
-                                <div id="st-search-customer-results"
-                                     class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
-                            </div>
+                    {{-- One consolidated order selector — searches by order ID OR
+                         customer name (server-side, all orders + soft-assigned
+                         units), resolving to the ONE canonical selection below. --}}
+                    <div id="st-order-pickers">
+                        <label class="{{ $labelClass }} required" for="st-order-search">Customer Order ID / Name</label>
+                        <div class="relative">
+                            <input type="text" id="st-order-search" autocomplete="off" placeholder="Search by order ID or customer name..."
+                                   class="{{ $inputClass }}">
+                            <div id="st-order-search-results"
+                                 class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
                         </div>
                     </div>
 
@@ -546,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedChip.classList.add('hidden');
         selectedChip.classList.remove('flex');
         pickers.classList.remove('hidden');
-        ['st-search-order', 'st-search-customer'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('st-order-search').value = '';
     });
 
     // Live, server-side order search (all orders — not a capped preload — so an
@@ -601,8 +591,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!results.contains(e.target) && e.target !== input) results.classList.add('hidden');
         });
     }
-    bindOrderSearch('st-search-order', 'st-search-order-results', 'order');
-    bindOrderSearch('st-search-customer', 'st-search-customer-results', 'customer');
+    bindOrderSearch('st-order-search', 'st-order-search-results', 'any');
 
     // Validation round-trip: restore the previously-chosen order (and its unit)
     // from the server-hydrated selection — it need not be in any preload.
@@ -637,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
             requiredNote.classList.remove('hidden');
             pickers.classList.remove('hidden');
             selectedChip.classList.add('hidden');
-            document.getElementById('st-search-order').focus();
+            document.getElementById('st-order-search').focus();
         }
     });
 
@@ -1065,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedChip.classList.remove('flex');
         pickers.classList.remove('hidden');
         requiredNote.classList.add('hidden');
-        ['st-search-order', 'st-search-customer'].forEach(function (id) {
+        ['st-order-search'].forEach(function (id) {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });

@@ -141,6 +141,23 @@ class ServiceTicketIntakeTest extends TestCase
         $this->assertStringNotContainsString('>Internal Notes<', $content);
     }
 
+    // Customer-Related intake uses ONE consolidated order selector (order ID
+    // OR customer name), not the old two split-search inputs.
+    public function test_create_page_uses_one_consolidated_order_selector(): void
+    {
+        $content = $this->get(route('admin.service-management.tickets.create'))->getContent();
+
+        $this->assertStringContainsString('Customer Order ID / Name', $content);
+        $this->assertStringContainsString('Search by order ID or customer name...', $content);
+        $this->assertStringContainsString('id="st-order-search"', $content);
+
+        // The old split-search inputs/labels are gone.
+        $this->assertStringNotContainsString('Search by Order #', $content);
+        $this->assertStringNotContainsString('Search by Customer', $content);
+        $this->assertStringNotContainsString('id="st-search-order"', $content);
+        $this->assertStringNotContainsString('id="st-search-customer"', $content);
+    }
+
     // 2 + 6 + 10. Intake stores references + safe defaults, then redirects to workbench
     public function test_intake_stores_references_and_defaults_then_redirects_to_workbench(): void
     {

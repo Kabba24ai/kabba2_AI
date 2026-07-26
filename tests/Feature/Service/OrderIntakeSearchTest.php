@@ -126,6 +126,25 @@ class OrderIntakeSearchTest extends TestCase
         $this->assertContains($this->softOrderId, $ids);
     }
 
+    // The consolidated selector (by=any, also the default) matches an order by
+    // its number OR its customer name in one field.
+    public function test_consolidated_search_matches_order_or_customer(): void
+    {
+        // By order number.
+        $byNumber = $this->searchOrders('8001', 'any');
+        $this->assertNotNull(collect($byNumber)->firstWhere('id', $this->hardOrderId));
+
+        // By customer name, same field.
+        $byName = collect($this->searchOrders('Dolly', 'any'))->pluck('id')->all();
+        $this->assertContains($this->hardOrderId, $byName);
+        $this->assertContains($this->softOrderId, $byName);
+
+        // Absent `by` defaults to the consolidated behavior (finds by customer).
+        $default = collect($this->getJson(route('admin.service-management.tickets.order-search', ['search' => 'Dolly']))
+            ->assertOk()->json('data'))->pluck('id')->all();
+        $this->assertContains($this->hardOrderId, $default);
+    }
+
     public function test_short_terms_return_nothing(): void
     {
         $this->getJson(route('admin.service-management.tickets.order-search', ['search' => 'a', 'by' => 'order']))

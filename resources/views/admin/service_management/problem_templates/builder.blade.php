@@ -68,7 +68,7 @@
                     <p class="text-sm text-gray-500 mt-0.5">Compose a reusable template from the Problem Library — categories and items stay in library order.</p>
                 </div>
                 <div class="flex items-center gap-3 shrink-0">
-                    <a href="{{ route('admin.service-management.problem-templates.index') }}" class="text-sm text-gray-500 hover:text-gray-700 hover:underline">Cancel</a>
+                    <a href="{{ route('admin.service-management.problem-templates.templates') }}" class="text-sm text-gray-500 hover:text-gray-700 hover:underline">Cancel</a>
                     <span id="tpl-status" class="text-xs text-gray-400"></span>
                     <button type="button" id="tpl-save" class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition">Save Template</button>
                 </div>

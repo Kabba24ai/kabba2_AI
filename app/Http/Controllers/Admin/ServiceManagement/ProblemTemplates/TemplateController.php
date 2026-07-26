@@ -45,6 +45,19 @@ class TemplateController extends Controller
         ]);
     }
 
+    /** Dedicated list of every Problem Template — view, edit, toggle, delete. */
+    public function templates()
+    {
+        $templates = ServiceSymptomProfile::withCount([
+                'profileSymptoms as item_count' => fn ($q) => $q->where('mode', ServiceSymptomProfileSymptomMode::Include),
+                'equipment as unit_count',
+            ])
+            ->orderBy('display_order')->orderBy('name')
+            ->get();
+
+        return view('admin.service_management.problem_templates.list', ['templates' => $templates]);
+    }
+
     /** Create a template (name/description/active) with its Include items. */
     public function store(Request $request)
     {
@@ -67,7 +80,7 @@ class TemplateController extends Controller
 
         return response()->json([
             'success'  => true,
-            'redirect' => route('admin.service-management.problem-templates.index'),
+            'redirect' => route('admin.service-management.problem-templates.templates'),
         ]);
     }
 
@@ -83,21 +96,27 @@ class TemplateController extends Controller
         return view('admin.service_management.problem_templates.builder', $this->builderData($profile));
     }
 
+    /**
+     * Partial-friendly update: the builder sends name+description+active+items;
+     * the list toggle sends is_active only. Only the submitted fields change.
+     */
     public function update(Request $request, ServiceSymptomProfile $profile)
     {
         $validated = $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:255'],
+            'name'        => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:255'],
             'is_active'   => ['sometimes', 'boolean'],
             'item_ids'    => ['sometimes', 'array'],
             'item_ids.*'  => ['integer', 'exists:service_symptoms,id'],
         ]);
 
-        $profile->update([
-            'name'        => trim($validated['name']),
-            'description' => $validated['description'] ?? null,
-            'is_active'   => $request->boolean('is_active', (bool) $profile->is_active),
-        ]);
+        $attrs = [];
+        if ($request->has('name'))        $attrs['name'] = trim($validated['name']);
+        if ($request->has('description')) $attrs['description'] = $validated['description'] ?? null;
+        if ($request->has('is_active'))   $attrs['is_active'] = $request->boolean('is_active');
+        if ($attrs) {
+            $profile->update($attrs);
+        }
 
         if ($request->has('item_ids')) {
             $this->syncItems($profile, $validated['item_ids'] ?? []);
@@ -105,7 +124,7 @@ class TemplateController extends Controller
 
         return response()->json([
             'success'  => true,
-            'redirect' => route('admin.service-management.problem-templates.index'),
+            'redirect' => route('admin.service-management.problem-templates.templates'),
         ]);
     }
 

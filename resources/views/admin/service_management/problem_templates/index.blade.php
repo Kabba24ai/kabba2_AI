@@ -70,6 +70,7 @@
                 <p class="text-sm text-gray-500 mt-0.5">Manage shared problem categories and the symptoms used across Service intake.</p>
             </div>
             <div class="flex items-center gap-4 shrink-0 pt-1">
+                <a href="{{ route('admin.service-management.problem-templates.templates') }}" class="text-sm text-blue-600 hover:underline">Templates</a>
                 <a href="{{ route('admin.service-management.problem-templates.equipment') }}" class="text-sm text-blue-600 hover:underline">Equipment Attachment</a>
                 <a href="{{ route('admin.service-management.problem-templates.create') }}"
                     class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition">

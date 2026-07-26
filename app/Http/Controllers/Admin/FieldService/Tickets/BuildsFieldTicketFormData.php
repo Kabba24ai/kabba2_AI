@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Admin\FieldService\Tickets;
 use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\Iam\Personnel\User;
 use App\Models\Orders\Order;
-use App\Models\Service\ServiceSymptom;
-use App\Models\Service\ServiceSymptomCategory;
+use App\Services\ServiceManagement\ServiceProblemLibrary;
 
 trait BuildsFieldTicketFormData
 {
@@ -23,9 +22,10 @@ trait BuildsFieldTicketFormData
                 'customer',
                 'shippingAddress',
                 // All line items so the option label can list the order's
-                // products (helps identify the right order); equipment is
-                // eager-loaded for the serviceable-unit resolution below.
-                'products' => fn ($q) => $q->with('equipment'),
+                // products (helps identify the right order); equipment +
+                // product categories are eager-loaded for serviceable-unit
+                // resolution and equipment-profile problem filtering below.
+                'products' => fn ($q) => $q->with(['equipment', 'product.categories:product_categories.id']),
             ])
             ->latest('id')
             ->limit(300)
@@ -70,24 +70,22 @@ trait BuildsFieldTicketFormData
                             . ($product->equipment->equipment_id ? ' (' . $product->equipment->equipment_id . ')' : ''),
                         'model'  => $product->equipment->equipment_name,
                         'serial' => $product->equipment->serial_number,
+                        // Problem-engine resolution keys — same anchors the shop
+                        // intake uses (attached profile → product → category).
+                        'product_id'         => $product->product_id ?? $product->equipment->assigned_product_id,
+                        'symptom_profile_id' => $product->equipment->service_symptom_profile_id,
+                        'category_ids'       => $product->product?->categories->pluck('id')->values() ?? collect(),
                     ])->unique('id')->values(),
             ];
         })->values();
 
-        // Shared shop symptom library — the Field Service Request reports
-        // problems from the SAME vocabulary the shop intake uses.
-        $problemCategories = ServiceSymptomCategory::active()
-            ->orderBy('display_order')
-            ->get(['id', 'name']);
-
-        $problems = ServiceSymptom::active()
-            ->orderBy('display_order')
-            ->get(['id', 'name', 'service_symptom_category_id'])
-            ->map(fn (ServiceSymptom $s) => [
-                'id'          => $s->id,
-                'name'        => $s->name,
-                'category_id' => $s->service_symptom_category_id,
-            ])->values();
+        // Canonical Service Problem Engine (shared with the shop intake): one
+        // repository, one category grouping, one equipment-profile applicability
+        // model. Field Service filters its problem search to the selected
+        // equipment's applicable symptoms just as the shop checklist does.
+        $problemCategories = ServiceProblemLibrary::categories();
+        $problems          = ServiceProblemLibrary::symptoms();
+        $problemProfiles   = ServiceProblemLibrary::profiles();
 
         $technicians = User::active()->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
@@ -96,6 +94,6 @@ trait BuildsFieldTicketFormData
             ->orderBy('truck_name')
             ->get(['id', 'truck_name', 'truck_number']);
 
-        return compact('orderOptions', 'problemCategories', 'problems', 'technicians', 'trucks');
+        return compact('orderOptions', 'problemCategories', 'problems', 'problemProfiles', 'technicians', 'trucks');
     }
 }

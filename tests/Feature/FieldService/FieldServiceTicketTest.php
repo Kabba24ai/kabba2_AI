@@ -12,6 +12,9 @@ use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\FieldService\FieldServiceTicket;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\Service\ServiceSymptom;
+use App\Models\Service\ServiceSymptomProfile;
+use App\Models\Service\ServiceSymptomProfileSymptom;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -277,6 +280,92 @@ class FieldServiceTicketTest extends TestCase
         ]);
         // Free-text detail rides the companion's customer complaint.
         $this->assertSame('Cranks but no fire.', $companion->customer_complaint);
+    }
+
+    /**
+     * Attach a symptom profile to the order equipment ($lift) that includes
+     * exactly one symptom, and return [applicable, nonApplicable, fieldCondition].
+     */
+    private function applicabilityScenario(): array
+    {
+        $applicable    = ServiceSymptom::where('name', 'Will not start')->firstOrFail();
+        $nonApplicable = ServiceSymptom::where('name', 'Hydraulic leak')->firstOrFail(); // active, not in profile
+        $fieldCond     = ServiceSymptom::where('name', 'Machine stuck in mud')->firstOrFail();
+
+        $profile = ServiceSymptomProfile::create(['name' => 'FS Applicability', 'is_active' => true, 'display_order' => 1]);
+        ServiceSymptomProfileSymptom::create([
+            'service_symptom_profile_id' => $profile->id,
+            'service_symptom_id'         => $applicable->id,
+            'mode'                       => 'include',
+            'sort_order'                 => 1,
+        ]);
+        $this->lift->update(['service_symptom_profile_id' => $profile->id]);
+
+        return [$applicable, $nonApplicable, $fieldCond];
+    }
+
+    // Server-side applicability: a non-applicable active symptom is rejected.
+    public function test_non_applicable_symptom_is_rejected_server_side(): void
+    {
+        [, $nonApplicable] = $this->applicabilityScenario();
+
+        $this->post(route('admin.field-service.tickets.store'), $this->payload([
+            'complaints' => [$nonApplicable->id], 'custom_problems' => [], 'additional_details' => null,
+        ]))->assertSessionHasErrors('complaints');
+
+        $this->assertSame(0, FieldServiceTicket::count());
+    }
+
+    // An applicable equipment symptom (in the resolved profile) is accepted.
+    public function test_applicable_equipment_symptom_is_accepted(): void
+    {
+        [$applicable] = $this->applicabilityScenario();
+
+        $ticket = $this->makeTicket([
+            'complaints' => [$applicable->id], 'custom_problems' => [], 'additional_details' => null,
+        ]);
+
+        $this->assertSame(1, $ticket->serviceTicket->complaints()->count());
+        $this->assertDatabaseHas('service_ticket_complaints', [
+            'service_ticket_id' => $ticket->serviceTicket->id, 'name' => 'Will not start',
+        ]);
+    }
+
+    // A Field Conditions symptom is accepted even under a restrictive profile
+    // (it is additive, not part of the equipment profile).
+    public function test_field_condition_symptom_is_accepted_under_a_restrictive_profile(): void
+    {
+        [, , $fieldCond] = $this->applicabilityScenario();
+
+        $ticket = $this->makeTicket([
+            'complaints' => [$fieldCond->id], 'custom_problems' => [], 'additional_details' => null,
+        ]);
+
+        $this->assertSame(1, $ticket->serviceTicket->complaints()->count());
+        $this->assertDatabaseHas('service_ticket_complaints', [
+            'service_ticket_id' => $ticket->serviceTicket->id, 'name' => 'Machine stuck in mud',
+        ]);
+    }
+
+    public function test_field_condition_problem_persists_as_a_companion_complaint(): void
+    {
+        // A Field Conditions & Recovery symptom is a normal service_symptoms
+        // row — selecting it persists through the SAME complaint path, no
+        // separate field problems table.
+        $stuck = \App\Models\Service\ServiceSymptom::where('name', 'Machine stuck in mud')->firstOrFail();
+
+        $ticket = $this->makeTicket([
+            'complaints'         => [$stuck->id],
+            'custom_problems'    => [],
+            'additional_details' => null,
+        ]);
+
+        $companion = $ticket->serviceTicket;
+        $this->assertSame(1, $companion->complaints()->count());
+        $this->assertDatabaseHas('service_ticket_complaints', [
+            'service_ticket_id' => $companion->id,
+            'name'              => 'Machine stuck in mud',
+        ]);
     }
 
     public function test_other_problem_not_in_the_library_is_captured_as_free_text(): void

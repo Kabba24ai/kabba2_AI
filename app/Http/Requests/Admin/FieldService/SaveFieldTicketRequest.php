@@ -89,6 +89,23 @@ class SaveFieldTicketRequest extends FormRequest
                 $validator->errors()->add('complaints', 'Select or enter at least one reported problem, or add details.');
             }
 
+            // Server-authoritative applicability: every selected library
+            // complaint must be applicable to the chosen equipment's resolved
+            // symptom profile, or belong to the additive Field Conditions
+            // category — never trust the client-side filter alone.
+            $complaints = array_map('intval', (array) $this->input('complaints', []));
+            if ($complaints && $this->input('equipment_id')) {
+                $applicable = \App\Services\ServiceManagement\ServiceProblemLibrary::applicableSymptomIdsForEquipment(
+                    (int) $this->input('equipment_id')
+                )->all();
+                foreach ($complaints as $id) {
+                    if (!in_array($id, $applicable, true)) {
+                        $validator->errors()->add('complaints', 'A selected problem is not applicable to the chosen equipment.');
+                        break;
+                    }
+                }
+            }
+
             // Deriving from the order requires the order to actually carry it —
             // otherwise the dispatcher must enter it deliberately.
             $order = $this->input('order_id')

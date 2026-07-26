@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\FieldService\SaveFieldTicketRequest;
 use App\Models\FieldService\FieldServiceTicket;
 use App\Models\Orders\Order;
 use App\Models\Service\ServiceSymptom;
+use App\Services\ServiceManagement\ServiceProblemLibrary;
 use App\Services\ServiceManagement\ServiceTicketIntakeService;
 use Illuminate\Support\Facades\DB;
 
@@ -46,7 +47,17 @@ class StoreController extends Controller
         // Reported problems: library selections become structured complaints on
         // the companion; free-text "Other" problems and additional details are
         // captured as text (no forced, inaccurate library match).
-        $complaintIds = array_map('intval', $validated['complaints'] ?? []);
+        // Defense-in-depth: build the companion complaint ids from ONLY the
+        // symptoms applicable to the selected equipment (same server-side
+        // resolver the request validates against), so nothing non-applicable
+        // can ever persist even if validation is bypassed.
+        $applicableIds = ServiceProblemLibrary::applicableSymptomIdsForEquipment(
+            (int) $validated['equipment_id']
+        )->all();
+        $complaintIds = array_values(array_intersect(
+            array_map('intval', $validated['complaints'] ?? []),
+            $applicableIds
+        ));
         $libraryNames = $complaintIds
             ? ServiceSymptom::whereIn('id', $complaintIds)->pluck('name')->all()
             : [];

@@ -24,6 +24,10 @@
         $labelClass = 'block text-sm font-medium text-gray-700 mb-1';
     @endphp
 
+    {{-- Centered working container — same discipline as the Standard Service
+         intake (max-w-4xl), heading aligned with the form cards. --}}
+    <div class="max-w-4xl mx-auto">
+
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-semibold flex items-center gap-2">
@@ -360,6 +364,7 @@
             </button>
         </div>
     </form>
+    </div>{{-- /centered container --}}
 
 @endsection
 
@@ -369,11 +374,64 @@ document.addEventListener('DOMContentLoaded', function () {
     const ORDERS        = @json($orderOptions);
     const PROBLEMS      = @json($problems);
     const PROBLEM_CATS  = @json($problemCategories);
+    const PROFILES      = @json($problemProfiles);
     const OLD_COMPLAINTS = @json(old('complaints', []));
     const OLD_CUSTOM     = @json(old('custom_problems', []));
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
     function $(id) { return document.getElementById(id); }
+
+    // ── Shared problem engine: equipment-profile resolution + applicable set ──
+    // Same precedence the shop intake uses (attached profile → product →
+    // product category), assembling included categories + additions − exclusions
+    // (or an explicit ordered items list). No profile → full library.
+    let currentUnit = null;
+    let applicableIds = null; // null = no scope yet → show the full library
+
+    const fieldConditionCat = PROBLEM_CATS.find(c => c.name === 'Field Conditions & Recovery');
+    const fieldConditionIds = fieldConditionCat
+        ? PROBLEMS.filter(p => String(p.category_id) === String(fieldConditionCat.id)).map(p => String(p.id))
+        : [];
+
+    function resolveProfile(unit) {
+        if (!unit) return null;
+        if (unit.symptom_profile_id) {
+            const attached = PROFILES.find(p => String(p.id) === String(unit.symptom_profile_id));
+            if (attached) return attached;
+        }
+        const byProduct = PROFILES.find(p => p.product_id && String(p.product_id) === String(unit.product_id));
+        if (byProduct) return byProduct;
+        const cats = (unit.category_ids || []).map(String);
+        return PROFILES.find(p => p.product_category_id && cats.includes(String(p.product_category_id))) || null;
+    }
+
+    function applicableSymptomIds(unit) {
+        const profile = resolveProfile(unit);
+        if (!profile) return PROBLEMS.map(s => String(s.id)); // full library fallback
+        const hasCats = profile.category_ids && profile.category_ids.length;
+        if (!hasCats && profile.items && profile.items.length) {
+            const set = new Set(profile.items.map(String));
+            return PROBLEMS.filter(s => set.has(String(s.id))).map(s => String(s.id));
+        }
+        const catIds = (profile.category_ids || []).map(String);
+        const adds   = (profile.additions || []).map(String);
+        const excl   = (profile.exclusions || []).map(String);
+        return PROBLEMS.filter(function (s) {
+            const id = String(s.id);
+            if (excl.includes(id)) return false;
+            if (adds.includes(id)) return true;
+            return catIds.includes(String(s.category_id));
+        }).map(s => String(s.id));
+    }
+
+    // Applicable set for the selected unit, ALWAYS additive with Field
+    // Conditions & Recovery (an operating-condition category, not equipment).
+    function recomputeApplicable() {
+        if (!currentUnit) { applicableIds = null; return; }
+        const ids = new Set(applicableSymptomIds(currentUnit));
+        fieldConditionIds.forEach(id => ids.add(id));
+        applicableIds = ids;
+    }
 
     const orderSelect = $('fs-order');
     const customerBox = $('fs-customer');
@@ -390,12 +448,15 @@ document.addEventListener('DOMContentLoaded', function () {
         equipHidden.value  = u.id;
         serialHidden.value = u.serial || '';
         eqDetail.textContent = [u.model, u.serial ? 'SN ' + u.serial : ''].filter(Boolean).join(' · ');
+        currentUnit = u;
+        recomputeApplicable();
     }
 
     // Single equipment → read-only; multiple → a selector; none → prompt.
     function renderEquipment(order, keepId) {
         [eqSingle, eqMulti, eqEmpty].forEach(el => el.classList.add('hidden'));
         eqMulti.innerHTML = ''; eqDetail.textContent = '';
+        currentUnit = null; recomputeApplicable(); // reset problem scope until a unit is chosen
         const units = order ? (order.equipment || []) : [];
 
         if (!order) { eqEmpty.textContent = 'Select an order…'; eqEmpty.classList.remove('hidden'); equipHidden.value = ''; serialHidden.value = ''; return; }
@@ -492,7 +553,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const q = raw.trim();
         if (!q) { results.classList.add('hidden'); return; }
         const ql = q.toLowerCase();
-        const matches = PROBLEMS.filter(p => !chosen.has(p.id) && p.name.toLowerCase().includes(ql)).slice(0, 20);
+        const matches = PROBLEMS.filter(p => !chosen.has(p.id)
+            && (applicableIds === null || applicableIds.has(String(p.id)))
+            && p.name.toLowerCase().includes(ql)).slice(0, 20);
         let html = matches.map(p => '<div data-id="' + p.id + '" class="fs-lib px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"><span class="text-gray-800">' + esc(p.name) + '</span> <span class="text-gray-400 text-xs">' + esc(catName[p.category_id] || '') + '</span></div>').join('');
         // The "Other" path — always offer to add the typed text as a problem.
         html += '<div class="fs-other px-3 py-2 hover:bg-amber-50 cursor-pointer text-sm border-t border-gray-100 text-amber-700 font-medium">&plus; Add &ldquo;' + esc(q) + '&rdquo; as a problem</div>';

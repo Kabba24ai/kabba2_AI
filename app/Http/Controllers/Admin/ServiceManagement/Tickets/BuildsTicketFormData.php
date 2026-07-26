@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers\Admin\ServiceManagement\Tickets;
 
-use App\Enums\Service\ServiceSymptomProfileSymptomMode;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\Order;
 use App\Models\ProductManagement\Product;
 use App\Models\ProductManagement\ProductCategory;
-use App\Models\Service\ServiceSymptom;
-use App\Models\Service\ServiceSymptomCategory;
-use App\Models\Service\ServiceSymptomProfile;
 use App\Models\Stores\Store;
 
 trait BuildsTicketFormData
@@ -86,54 +82,15 @@ trait BuildsTicketFormData
                 'product_id' => $unit->assigned_product_id,
             ])->values();
 
-        // Symptom library: reusable categories + symptoms, plus equipment
-        // symptom profiles. The client resolves the applicable profile
-        // against the selected equipment's product/category (product-level
-        // assignment wins over category-level) and assembles its checklist
-        // from the profile's included categories + additions - exclusions.
-        // Equipment with no matching profile yet sees the full library —
-        // the same "hide nothing until scoped" default the old capability
-        // gating used, and the current de facto behavior in production
-        // since no complaint was ever actually product/category-scoped.
-        $symptomCategories = ServiceSymptomCategory::active()
-            ->orderBy('display_order')
-            ->get(['id', 'name', 'display_order']);
-
-        $symptoms = ServiceSymptom::active()
-            ->orderBy('display_order')
-            ->get(['id', 'name', 'service_symptom_category_id', 'display_order'])
-            ->map(fn (ServiceSymptom $symptom) => [
-                'id'            => $symptom->id,
-                'name'          => $symptom->name,
-                'category_id'   => $symptom->service_symptom_category_id,
-                'display_order' => $symptom->display_order,
-            ])->values();
-
-        $symptomProfiles = ServiceSymptomProfile::active()
-            ->with(['profileCategories', 'profileSymptoms'])
-            ->orderBy('display_order')
-            ->get()
-            ->map(fn (ServiceSymptomProfile $profile) => [
-                'id'                   => $profile->id,
-                'name'                 => $profile->name,
-                'product_id'           => $profile->product_id,
-                'product_category_id'  => $profile->product_category_id,
-                'category_ids'         => $profile->profileCategories->pluck('service_symptom_category_id')->values(),
-                'additions'            => $profile->profileSymptoms
-                    ->where('mode', ServiceSymptomProfileSymptomMode::Include)
-                    ->pluck('service_symptom_id')->values(),
-                'exclusions'           => $profile->profileSymptoms
-                    ->where('mode', ServiceSymptomProfileSymptomMode::Exclude)
-                    ->pluck('service_symptom_id')->values(),
-                // Explicit ordered item list (Equipment problem-templates
-                // builder). Non-empty + no category_ids → the intake renders
-                // exactly these items in this order. Legacy category-include
-                // profiles leave this empty and use category_ids above.
-                'items'                => $profile->profileSymptoms
-                    ->where('mode', ServiceSymptomProfileSymptomMode::Include)
-                    ->sortBy('sort_order')
-                    ->pluck('service_symptom_id')->values(),
-            ])->values();
+        // Symptom library + equipment profiles from the canonical Service
+        // Problem Engine (shared with Field Service). The client resolves the
+        // applicable profile against the selected equipment's product/category
+        // (product-level wins over category-level) and assembles its checklist
+        // from the profile's included categories + additions − exclusions;
+        // equipment with no matching profile sees the full library.
+        $symptomCategories = \App\Services\ServiceManagement\ServiceProblemLibrary::categories();
+        $symptoms          = \App\Services\ServiceManagement\ServiceProblemLibrary::symptoms();
+        $symptomProfiles   = \App\Services\ServiceManagement\ServiceProblemLibrary::profiles();
 
         $employees = User::active()->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);

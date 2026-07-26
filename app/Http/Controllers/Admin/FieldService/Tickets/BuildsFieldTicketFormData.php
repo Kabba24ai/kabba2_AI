@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\FieldService\Tickets;
 
 use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\Iam\Personnel\User;
+use App\Models\Locations\State;
 use App\Models\Orders\Order;
 use App\Services\ServiceManagement\ServiceOrderLabel;
 use App\Services\ServiceManagement\ServiceProblemLibrary;
@@ -92,6 +93,10 @@ trait BuildsFieldTicketFormData
             ->orderBy('truck_name')
             ->get(['id', 'truck_name', 'truck_number']);
 
-        return compact('orderOptions', 'problemCategories', 'problems', 'problemProfiles', 'technicians', 'trucks');
+        // Shared U.S. state list (canonical inclusion policy incl. DC/territories
+        // lives in the states table); submitted as the two-letter abbreviation.
+        $states = State::orderBy('name')->get(['id', 'name', 'abbreviation']);
+
+        return compact('orderOptions', 'problemCategories', 'problems', 'problemProfiles', 'technicians', 'trucks', 'states');
     }
 }

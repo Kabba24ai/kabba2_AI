@@ -31,14 +31,18 @@ class SaveFieldTicketRequest extends FormRequest
             // Contact: use the order's contact, or intentionally name someone else.
             'contact_source' => ['required', Rule::in(['order', 'other'])],
             'contact_name'   => [Rule::requiredIf(fn () => $this->input('contact_source') === 'other'), 'nullable', 'string', 'max:255'],
-            'contact_phone'  => [Rule::requiredIf(fn () => $this->input('contact_source') === 'other'), 'nullable', 'string', 'max:50'],
+            // Same formatted-phone contract the rest of Kaaba enforces
+            // (client-side .masked-phone → (555) 555-5555). Server-authoritative.
+            'contact_phone'  => [Rule::requiredIf(fn () => $this->input('contact_source') === 'other'), 'nullable', 'string', 'regex:/^\(\d{3}\) \d{3}-\d{4}$/'],
 
             // Service location: the order's delivery address, or a different one
             // (entered deliberately — a technician is never sent on an assumption).
             'location_source' => ['required', Rule::in(['delivery', 'other'])],
             'loc_street'      => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:255'],
             'loc_city'        => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:255'],
-            'loc_state'       => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:255'],
+            // The shared U.S. state list (App\Models\Locations\State) — submitted
+            // as its canonical two-letter abbreviation, validated against the list.
+            'loc_state'       => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', Rule::exists('states', 'abbreviation')],
             'loc_zip'         => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:20'],
 
             // Reported problems — the shared shop symptom library, free-text
@@ -134,9 +138,11 @@ class SaveFieldTicketRequest extends FormRequest
             'location_source.required' => 'Choose the service location — Delivery Address or Different Address.',
             'contact_name.required'    => 'Enter the contact name for the person the technician should ask for.',
             'contact_phone.required'   => 'Enter the contact phone number for the person the technician should ask for.',
+            'contact_phone.regex'      => 'Contact phone must be in (555) 555-5555 format.',
             'loc_street.required'      => 'Enter the street for the different service address.',
             'loc_city.required'        => 'Enter the city for the different service address.',
-            'loc_state.required'       => 'Enter the state for the different service address.',
+            'loc_state.required'       => 'Select the state for the different service address.',
+            'loc_state.exists'         => 'Select a valid U.S. state.',
             'loc_zip.required'         => 'Enter the ZIP for the different service address.',
         ];
     }

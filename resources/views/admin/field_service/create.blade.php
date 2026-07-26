@@ -144,7 +144,8 @@
                     </div>
                     <div>
                         <label class="{{ $labelClass }} required">Phone Number</label>
-                        <input type="text" name="contact_phone" id="fs-contact-phone" value="{{ old('contact_phone') }}" class="{{ $inputClass }}">
+                        {{-- Shared Kaaba phone input: .masked-phone → IMask (555) 555-5555 (admin app.js). --}}
+                        <input type="text" inputmode="tel" name="contact_phone" id="fs-contact-phone" value="{{ old('contact_phone') }}" placeholder="(555) 555-5555" class="{{ $inputClass }} masked-phone">
                         @error('contact_phone')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -183,7 +184,13 @@
                     </div>
                     <div>
                         <label class="{{ $labelClass }} required">State</label>
-                        <input type="text" name="loc_state" id="fs-loc-state" value="{{ old('loc_state') }}" class="{{ $inputClass }}">
+                        {{-- Shared U.S. state list (App\Models\Locations\State); value = two-letter abbreviation. --}}
+                        <select name="loc_state" id="fs-loc-state" class="{{ $inputClass }}">
+                            <option value="">Select state</option>
+                            @foreach ($states as $state)
+                                <option value="{{ $state->abbreviation }}" @selected(old('loc_state') === $state->abbreviation)>{{ $state->name }}</option>
+                            @endforeach
+                        </select>
                         @error('loc_state')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>

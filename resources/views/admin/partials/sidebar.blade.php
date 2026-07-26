@@ -725,7 +725,7 @@
                                     <a href="{{ route('admin.service-management.problem-templates.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.service-management.problem-templates.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-clipboard-document-list class="h-5 w-5" /> Problem Templates
+                                        <x-heroicon-o-clipboard-document-list class="h-5 w-5" /> Problem Library
                                     </a>
                                 </li>
                                 {{-- Moved from Maintenance — logically part of Service. --}}

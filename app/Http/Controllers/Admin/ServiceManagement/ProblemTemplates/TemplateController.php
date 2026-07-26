@@ -21,14 +21,28 @@ use Illuminate\Support\Facades\DB;
  */
 class TemplateController extends Controller
 {
+    /**
+     * Problem Library — the category-card entrance. Cards carry the category's
+     * active problem count and its DISTINCT equipment-profile count (via the
+     * profile↔category pivot), in the saved display order. Drilling into a card
+     * manages that category's problem items (reusing the Library item endpoints).
+     */
     public function index()
     {
+        $totalProfiles = ServiceSymptomProfile::active()->count();
+
+        $categories = ServiceSymptomCategory::query()
+            ->withCount([
+                'symptoms as active_problem_count' => fn ($q) => $q->where('is_active', true),
+                'profiles as profile_count' => fn ($q) => $q->where('service_symptom_profiles.is_active', true),
+            ])
+            ->with(['symptoms' => fn ($q) => $q->orderBy('display_order')])
+            ->orderBy('display_order')->orderBy('name')
+            ->get();
+
         return view('admin.service_management.problem_templates.index', [
-            'templates' => ServiceSymptomProfile::withCount([
-                    'profileSymptoms as item_count' => fn ($q) => $q->where('mode', ServiceSymptomProfileSymptomMode::Include),
-                    'equipment as unit_count',
-                ])
-                ->orderBy('display_order')->orderBy('name')->get(),
+            'categories'    => $categories,
+            'totalProfiles' => $totalProfiles,
         ]);
     }
 

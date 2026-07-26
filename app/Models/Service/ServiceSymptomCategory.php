@@ -31,4 +31,19 @@ class ServiceSymptomCategory extends Model
     {
         return $this->hasMany(ServiceSymptom::class)->orderBy('display_order');
     }
+
+    /**
+     * Equipment symptom profiles this category is attached to (via the
+     * profile↔category pivot). Used for the Problem Library card's distinct
+     * equipment-profile count — one row per profile, never inflated by symptom.
+     */
+    public function profiles()
+    {
+        return $this->belongsToMany(
+            ServiceSymptomProfile::class,
+            'service_symptom_profile_categories',
+            'service_symptom_category_id',
+            'service_symptom_profile_id',
+        );
+    }
 }

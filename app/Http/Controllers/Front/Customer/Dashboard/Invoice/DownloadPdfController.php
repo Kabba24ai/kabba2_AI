@@ -4,28 +4,35 @@ namespace App\Http\Controllers\Front\Customer\Dashboard\Invoice;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Iam\Personnel\User;
-use App\Models\Customers\Customer;
 use App\Models\Orders\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 use App\Helpers\CustomHelper;
 
-use App\Models\Customers\Invoice;
 use App\Helpers\ConfigurationHelper;
 
 class DownloadPdfController extends Controller
 {
-
+    /**
+     * Download one of the AUTHENTICATED customer's own invoice PDFs.
+     *
+     * Security: the invoice is resolved through the session customer's
+     * invoices() relationship (constrained to customer_id = auth id), so
+     * another customer's invoice 404s instead of being exported.
+     */
     public function __invoke(Request $request, $unique_id)
     {
-        $invoice = Invoice::with([
+        $customer = Auth::guard('customer')->user();
+
+        $invoice = $customer->invoices()->with([
             'creator',
             'customer',
             'items.orderProduct',
         ])->where('unique_id', $unique_id)->firstOrFail();
 
-        $customer = Customer::with(
+        $customer->load(
             'orders.products',
             'orders.payments',
             'accountApprovedBy',
@@ -35,7 +42,7 @@ class DownloadPdfController extends Controller
             'shippingAddress',
             'accounts.responsibleUser',
             'media'
-        )->where('unique_id', $invoice->customer->unique_id)->firstOrFail();
+        );
 
         $order = Order::with(
             'shippingAddress',

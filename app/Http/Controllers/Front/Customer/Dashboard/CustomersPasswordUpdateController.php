@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Customers\Customer;
 
 use Illuminate\Support\Facades\Log;
 
@@ -16,17 +16,21 @@ use Illuminate\Support\Facades\Log;
 class CustomersPasswordUpdateController extends Controller
 {
     /**
-     * Reset customer password via AJAX.
+     * Reset the AUTHENTICATED customer's own password via AJAX.
+     *
+     * Security: never trust a request-supplied customer id. The password is
+     * always applied to Auth::guard('customer')->user() — the session owner —
+     * so a customer cannot set another customer's password by posting a
+     * different customer_id.
      */
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
             'password' => 'required|confirmed',
         ]);
 
         try {
-            $customer = Customer::findOrFail($validated['customer_id']);
+            $customer = Auth::guard('customer')->user();
 
             $customer->update([
                 'password' => Hash::make($validated['password']),

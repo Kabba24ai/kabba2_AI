@@ -8,6 +8,7 @@ use App\Http\Requests\Front\Customer\Dashboard\UpdateRequest;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAddress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\CustomHelper;
 use Illuminate\Support\Carbon;
@@ -15,14 +16,19 @@ use Illuminate\Support\Carbon;
 class UpdateController extends Controller
 {
     /**
-     * Handle the incoming request to update a customer.
+     * Handle the incoming request to update the AUTHENTICATED customer.
+     *
+     * Security: the profile updated is always Auth::guard('customer')->user(),
+     * never the request-supplied unique_id. This prevents a customer from
+     * overwriting another customer's contact details, login email, or address
+     * book by posting a different unique_id.
      */
     public function __invoke(UpdateRequest $request)
     {
 
         $validated = $request->validated();
 
-        $customer = Customer::where('unique_id', $validated['unique_id'])->firstOrFail();
+        $customer = Auth::guard('customer')->user();
 
         DB::beginTransaction();
         

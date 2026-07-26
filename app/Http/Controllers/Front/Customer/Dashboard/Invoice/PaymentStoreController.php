@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Front\Customer\Dashboard\Invoice;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Customers\Customer;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Customers\CustomerAccount;
@@ -21,8 +21,13 @@ class PaymentStoreController extends Controller
     public function __invoke(Request $request)
     {
         //  Validation
+        //  Security: customer_id is intentionally NOT read from the request.
+        //  The paying customer is always the authenticated session customer,
+        //  and the invoice/card are resolved through that customer's own
+        //  relationships below — a body-supplied customer_id cannot redirect
+        //  the payment, charge another customer's card, or post to another
+        //  customer's invoice/ledger.
         $validated = $request->validate([
-            'customer_id'        => 'required|exists:customers,id',
             'amount'             => 'required|string',
             'payment_type'       => 'nullable|string',
             'opaqueDataValue'    => 'nullable|string',
@@ -46,7 +51,13 @@ class PaymentStoreController extends Controller
         try {
             Log::debug('Creating new invoice paid record...');
 
-            $customer = Customer::findOrFail($validated['customer_id']);
+            $customer = Auth::guard('customer')->user();
+
+            //  Security + fail-fast: resolve the target invoice through the
+            //  authenticated customer's own invoices() BEFORE any gateway
+            //  charge. A non-owned (or unknown) invoice_number 404s here
+            //  without ever touching Authorize.Net or the ledger.
+            $invoice = $customer->invoices()->where('invoice_number', $validated['invoice_id'])->firstOrFail();
 
             // CARD ON FILE BRANCH
             if (!empty($validated['existing_card_id'])) {
@@ -80,8 +91,6 @@ class PaymentStoreController extends Controller
                     DB::rollBack();
                     return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
                 }
-
-                $invoice = Invoice::where('invoice_number', $validated['invoice_id'])->firstOrFail();
 
                 $invoice->payment_number_id  = $paymentResult['transaction_id'] ?? null;
                 $invoice->auth_code          = $paymentResult['auth_code'] ?? null;
@@ -131,13 +140,12 @@ class PaymentStoreController extends Controller
                     return back()->withInput()->with('error', $paymentResult['message'] ?? 'Payment failed.');
                 }
 
-                $invoice = Invoice::where('invoice_number', $validated['invoice_id'])->first();
-
                 // Financial Engine Phase 2.4: paid_amount/open_amount/invoice_status
                 // are now recomputed by InvoiceCalculationService after the
                 // CustomerAccount ledger row is saved below (not here — the
                 // ledger row for this payment does not exist yet at this point,
                 // and the recompute reads paid_amount from the ledger).
+                // ($invoice was resolved and ownership-checked before charging.)
 
                 $invoice->payment_number_id  = $paymentResult['transaction_id'] ?? null;
                 $invoice->auth_code          = $paymentResult['auth_code'] ?? null;

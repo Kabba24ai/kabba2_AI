@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Front\Customer\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Models\Customers\Customer;
+use Illuminate\Support\Facades\Auth;
 use App\Helpers\MediaHelper;
 use App\Helpers\CustomHelper;
 
@@ -13,18 +13,22 @@ use App\Helpers\CustomHelper;
 class TaxDocumentUploadController extends Controller
 {
     /**
-     * Handle AJAX tax document upload.
+     * Handle AJAX tax document upload for the AUTHENTICATED customer.
+     *
+     * Security: the document is always attached to Auth::guard('customer')
+     * ->user(); a request-supplied customer_id is ignored. This prevents a
+     * customer from overwriting/destroying another customer's tax document
+     * (which deletes the prior media file) by posting a different customer_id.
      */
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'tax_document' => 'required',
             'tax_document_type' => 'required',
-            'customer_id' => 'required'
         ]);
 
         try {
-            $customer = Customer::with('media')->findOrFail($validated['customer_id']);
+            $customer = Auth::guard('customer')->user()->load('media');
 
             // Remove previous media if it exists
             if (!is_null($customer->media)) {

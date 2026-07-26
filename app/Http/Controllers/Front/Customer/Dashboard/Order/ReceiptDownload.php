@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front\Customer\Dashboard\Order;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Iam\Personnel\User;
 use App\Models\Customers\Customer;
 use App\Models\Customers\Receipt;
@@ -11,27 +12,33 @@ use App\Services\ReceiptService;
 
 
 
-use App\Models\Orders\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 use App\Helpers\CustomHelper;
-
-use App\Models\Customers\Invoice;
 
 use App\Helpers\ConfigurationHelper;
 
 class ReceiptDownload extends Controller
 {
-
+    /**
+     * Download the receipt PDF for one of the AUTHENTICATED customer's own
+     * orders.
+     *
+     * Security: the order is resolved through the session customer's orders()
+     * morph relationship (created_by), so another customer's order 404s
+     * instead of exposing its receipt (and triggering a Receipt row creation).
+     */
     public function __invoke(Request $request, $unique_id)
     {
-        $order = Order::with(
-            'shippingAddress',
-            'products.product.categories',
-            'lastPayment',
-            'products.deliverySignatureMedia',
-            'products.returnSignatureMedia'
-        )->where('unique_id', $unique_id)->firstOrFail();
+        $order = Auth::guard('customer')->user()
+            ->orders()
+            ->with(
+                'shippingAddress',
+                'products.product.categories',
+                'lastPayment',
+                'products.deliverySignatureMedia',
+                'products.returnSignatureMedia'
+            )->where('unique_id', $unique_id)->firstOrFail();
 
         $customer = Customer::with(
             'orders.products',

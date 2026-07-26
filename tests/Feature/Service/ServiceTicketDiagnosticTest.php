@@ -16,11 +16,13 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Service\ServiceTicket;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\ResolvesResponsibilityDecisions;
 use Tests\TestCase;
 
 class ServiceTicketDiagnosticTest extends TestCase
 {
     use RefreshDatabase;
+    use ResolvesResponsibilityDecisions;
 
     private User $admin;
     private Equipment $equipment;
@@ -135,29 +137,30 @@ class ServiceTicketDiagnosticTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::CustomerPay->value,
+                'responsibility_decision' => $this->responsibilityDecisionId(ResponsibilityDecision::CustomerPay->value),
             ])
             ->assertRedirect();
 
         // Not completed → decision unchanged
-        $this->assertSame(ResponsibilityDecision::Pending, $ticket->fresh()->responsibility_decision);
+        $this->assertFalse($ticket->fresh()->isResponsibilityDecided());
 
         $ticket->fresh()->completeDiagnostic();
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::CustomerPay->value,
+                'responsibility_decision' => $this->responsibilityDecisionId(ResponsibilityDecision::CustomerPay->value),
             ]);
 
         $fresh = $ticket->fresh();
-        $this->assertSame(ResponsibilityDecision::CustomerPay, $fresh->responsibility_decision);
+        $this->assertTrue($fresh->isResponsibilityDecided());
+        $this->assertSame('customer_pay', $fresh->responsibilityDecision->key);
         $this->assertNotNull($fresh->responsibility_decided_at);
         $this->assertSame($this->admin->id, $fresh->responsibility_decided_by);
 
-        // Pending itself can never be chosen as a decision
+        // A non-existent / inactive decision can never be chosen
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::Pending->value,
+                'responsibility_decision' => 999999,
             ])
             ->assertSessionHasErrors('responsibility_decision');
     }
@@ -170,7 +173,7 @@ class ServiceTicketDiagnosticTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::CustomerPay->value,
+                'responsibility_decision' => $this->responsibilityDecisionId(ResponsibilityDecision::CustomerPay->value),
             ]);
 
         $fresh = $ticket->fresh();
@@ -192,7 +195,7 @@ class ServiceTicketDiagnosticTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::OemWarranty->value,
+                'responsibility_decision' => $this->responsibilityDecisionId(ResponsibilityDecision::OemWarranty->value),
             ]);
 
         $fresh = $ticket->fresh();
@@ -216,7 +219,7 @@ class ServiceTicketDiagnosticTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::InternalExpense->value,
+                'responsibility_decision' => $this->responsibilityDecisionId(ResponsibilityDecision::InternalExpense->value),
             ]);
 
         $fresh = $ticket->fresh();
@@ -234,11 +237,11 @@ class ServiceTicketDiagnosticTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::NoProblemFound->value,
+                'responsibility_decision' => $this->responsibilityDecisionId(ResponsibilityDecision::NoProblemFound->value),
             ]);
 
         $fresh = $ticket->fresh();
-        $this->assertSame(ResponsibilityDecision::NoProblemFound, $fresh->responsibility_decision);
+        $this->assertSame('no_problem_found', $fresh->responsibilityDecision->key);
         $this->assertSame(FinancialResponsibility::Pending, $fresh->financial_responsibility);
 
         // Ticket can still be closed
@@ -293,7 +296,7 @@ class ServiceTicketDiagnosticTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.service-management.tickets.responsibility.decide', $ticket), [
-                'responsibility_decision' => ResponsibilityDecision::Goodwill->value,
+                'responsibility_decision' => $this->responsibilityDecisionId(ResponsibilityDecision::Goodwill->value),
             ]);
 
         $event = $ticket->events()

@@ -31,7 +31,6 @@
         use App\Enums\Service\DiagnosticStatus;
         use App\Enums\Service\FinancialResponsibility;
         use App\Enums\Service\RepairStatus;
-        use App\Enums\Service\ResponsibilityDecision;
 
         $isBlocked  = $ticket->is_blocked;
         $isFinished = !in_array($ticket->repair_status->value, RepairStatus::notFinished(), true);
@@ -657,8 +656,8 @@
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center {{ $stageLabels['responsibility']['state'] === 'complete' ? 'bg-green-100 text-green-700' : ($currentStage === 'responsibility' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400') }}">{{ $stageNumbers['responsibility'] }}</span>
                         <h2 class="text-sm font-semibold text-gray-800">Responsibility</h2>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $ticket->responsibility_decision->color() }}">
-                            {{ $ticket->responsibility_decision === ResponsibilityDecision::Pending ? 'Pending' : $ticket->responsibility_decision->label() }}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $ticket->responsibilityDecision?->color ?? 'bg-gray-100 text-gray-500' }}">
+                            {{ $ticket->responsibilityDecision?->name ?? 'Pending' }}
                         </span>
                     </div>
                     <x-heroicon-o-chevron-down class="wb-chevron w-4 h-4 text-gray-400 transition-transform" />
@@ -677,9 +676,8 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-500 mb-1">Responsibility Decision</label>
                                 <select name="responsibility_decision" required class="border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
-                                    @foreach (ResponsibilityDecision::cases() as $decision)
-                                        @continue($decision === ResponsibilityDecision::Pending)
-                                        <option value="{{ $decision->value }}" @selected($ticket->responsibility_decision === $decision)>{{ $decision->label() }}</option>
+                                    @foreach ($responsibilityOptions as $decision)
+                                        <option value="{{ $decision->id }}" @selected($ticket->responsibility_decision_id === $decision->id)>{{ $decision->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -889,7 +887,7 @@
                     @php
                         $gates = [
                             'Diagnostic completed'   => $ticket->diagnostic_status->allowsResponsibilityDecision(),
-                            'Responsibility decided' => $ticket->responsibility_decision !== ResponsibilityDecision::Pending,
+                            'Responsibility decided' => $ticket->isResponsibilityDecided(),
                             'Approval'               => $ticket->approval_status->satisfied(),
                             'Parts deposit'          => $ticket->depositSatisfied(),
                         ];
@@ -1491,7 +1489,7 @@
                             @endif
                         </dl>
                         <p class="text-xs text-gray-400 mt-3">Preparation only — no customer charges are created from this page.</p>
-                        @if ($ticket->responsibility_decision === ResponsibilityDecision::CustomerPay && !$activeSettlement)
+                        @if ($ticket->financial_responsibility === FinancialResponsibility::CustomerPay && !$activeSettlement)
                             <a href="{{ route('admin.service-management.tickets.settlement.preview', $ticket) }}"
                                 class="mt-3 block w-full text-center px-3 py-2 rounded-lg text-sm font-semibold border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
                                 Open Settlement Preview

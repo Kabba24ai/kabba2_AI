@@ -15,6 +15,7 @@ use App\Models\Service\ServiceTicket;
 use App\Models\Stores\Store;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\ResolvesResponsibilityDecisions;
 use Tests\TestCase;
 
 /**
@@ -26,6 +27,7 @@ use Tests\TestCase;
 class ServiceTicketWorkbenchTest extends TestCase
 {
     use RefreshDatabase;
+    use ResolvesResponsibilityDecisions;
 
     private User $admin;
     private User $lead;
@@ -134,7 +136,7 @@ class ServiceTicketWorkbenchTest extends TestCase
         $ticket->fresh()->completeDiagnostic();
         $this->assertSame('responsibility', $ticket->fresh()->currentStageKey());
 
-        $ticket->fresh()->decideResponsibility(ResponsibilityDecision::CustomerPay);
+        $ticket->fresh()->decideResponsibility($this->responsibilityDecision(ResponsibilityDecision::CustomerPay->value));
         $this->assertSame('approval', $ticket->fresh()->currentStageKey());
 
         $ticket->fresh()->approveEstimate('Customer Smith');
@@ -165,7 +167,7 @@ class ServiceTicketWorkbenchTest extends TestCase
         $ticket = $this->makeTicket();
         $ticket->startDiagnostic();
         $ticket->fresh()->completeDiagnostic();
-        $ticket->fresh()->decideResponsibility(ResponsibilityDecision::InternalExpense);
+        $ticket->fresh()->decideResponsibility($this->responsibilityDecision(ResponsibilityDecision::InternalExpense->value));
         $ticket->fresh()->approveEstimate(notes: 'Internal authorization'); // internal path still needs sign-off
         $fresh = $ticket->fresh();
         $fresh->authorizeRepair();
@@ -186,7 +188,7 @@ class ServiceTicketWorkbenchTest extends TestCase
         $ticket = $this->makeTicket();
         $ticket->startDiagnostic();
         $ticket->fresh()->completeDiagnostic();
-        $ticket->fresh()->decideResponsibility(ResponsibilityDecision::CustomerPay);
+        $ticket->fresh()->decideResponsibility($this->responsibilityDecision(ResponsibilityDecision::CustomerPay->value));
 
         $this->get(route('admin.service-management.tickets.show', $ticket))
             ->assertOk()

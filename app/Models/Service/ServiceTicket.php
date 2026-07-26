@@ -8,7 +8,6 @@ use App\Enums\Service\DiagnosticStatus;
 use App\Enums\Service\FinancialResponsibility;
 use App\Enums\Service\FinancialStatus;
 use App\Enums\Service\RepairStatus;
-use App\Enums\Service\ResponsibilityDecision;
 use App\Enums\Service\ServiceLocation;
 use App\Enums\Service\ServicePriority;
 use App\Enums\Service\ServiceTicketEventType;
@@ -77,6 +76,7 @@ class ServiceTicket extends Model
         'estimated_parts_total',
         'estimated_repair_total',
         'responsibility_decision',
+        'responsibility_decision_id',
         'responsibility_decided_at',
         'responsibility_decided_by',
         'approval_status',
@@ -139,7 +139,9 @@ class ServiceTicket extends Model
         'estimated_labor_hours'    => 'decimal:2',
         'estimated_parts_total'    => 'decimal:2',
         'estimated_repair_total'   => 'decimal:2',
-        'responsibility_decision'  => ResponsibilityDecision::class,
+        // Legacy string key snapshot — retained during the staged retirement of
+        // the enum. The canonical decision is the responsibility_decision_id FK
+        // → ServiceResponsibilityDecision; read it via responsibilityDecision().
         'responsibility_decided_at' => 'datetime',
         'approval_status'          => ApprovalStatus::class,
         'approval_type'            => ApprovalType::class,
@@ -209,12 +211,13 @@ class ServiceTicket extends Model
                 }
             }
 
-            if ($ticket->wasChanged('responsibility_decision')) {
+            if ($ticket->wasChanged('responsibility_decision_id')) {
+                $oldDecisionId = $ticket->getOriginal('responsibility_decision_id');
                 ServiceTicketEvent::record(
                     $ticket->id,
                     ServiceTicketEventType::ResponsibilityDecisionChanged,
-                    $ticket->getOriginal('responsibility_decision')?->label(),
-                    $ticket->responsibility_decision->label(),
+                    $oldDecisionId ? ServiceResponsibilityDecision::find($oldDecisionId)?->name : 'Pending',
+                    $ticket->responsibilityDecision?->name ?? 'Pending',
                 );
             }
 
@@ -465,6 +468,18 @@ class ServiceTicket extends Model
         return $this->belongsTo(User::class, 'responsibility_decided_by');
     }
 
+    /** The chosen Responsibility Decision master record (null = Pending/undecided). */
+    public function responsibilityDecision()
+    {
+        return $this->belongsTo(ServiceResponsibilityDecision::class, 'responsibility_decision_id');
+    }
+
+    /** Has a responsibility decision been made yet? (Pending = no decision.) */
+    public function isResponsibilityDecided(): bool
+    {
+        return $this->responsibility_decision_id !== null;
+    }
+
     public function approvedByUser()
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
@@ -573,12 +588,17 @@ class ServiceTicket extends Model
 
     /**
      * Record the responsibility decision made after diagnosis and map it onto
-     * financial_responsibility. No Problem Found / Not Repairable have no
-     * payer path and leave financial responsibility untouched.
+     * financial_responsibility via the master record's financial_path. A
+     * decision with no financial_path (No Problem Found / Not Repairable) has
+     * no payer path and leaves financial responsibility untouched.
+     *
+     * The canonical decision is the FK; the legacy string column is kept in
+     * sync as a historical key snapshot during the staged enum retirement.
      */
-    public function decideResponsibility(ResponsibilityDecision $decision): void
+    public function decideResponsibility(ServiceResponsibilityDecision $decision): void
     {
-        $this->responsibility_decision    = $decision;
+        $this->responsibility_decision_id = $decision->id;
+        $this->responsibility_decision    = $decision->key; // legacy key snapshot
         $this->responsibility_decided_at  = now();
         $this->responsibility_decided_by  = auth()->id();
 
@@ -587,8 +607,9 @@ class ServiceTicket extends Model
         }
 
         // Every payer path needs its approval before repair authorization;
-        // No Problem Found / Not Repairable need none.
-        if ($requiredApproval = ApprovalType::forDecision($decision)) {
+        // decisions with no approval_type (No Problem Found / Not Repairable)
+        // need none.
+        if ($requiredApproval = $decision->approvalTypeEnum()) {
             $this->approval_type   = $requiredApproval;
             $this->approval_status = $this->approval_status->satisfied() && $this->approval_status !== ApprovalStatus::NotRequired
                 ? $this->approval_status
@@ -606,7 +627,7 @@ class ServiceTicket extends Model
     public function sendEstimate(): void
     {
         $this->approval_status  = ApprovalStatus::EstimateSent;
-        $this->approval_type  ??= ApprovalType::forDecision($this->responsibility_decision);
+        $this->approval_type  ??= $this->responsibilityDecision?->approvalTypeEnum();
         $this->estimate_sent_at = now();
         $this->save();
     }
@@ -614,7 +635,7 @@ class ServiceTicket extends Model
     public function approveEstimate(?string $customerName = null, ?string $notes = null): void
     {
         $this->approval_status            = ApprovalStatus::Approved;
-        $this->approval_type            ??= ApprovalType::forDecision($this->responsibility_decision);
+        $this->approval_type            ??= $this->responsibilityDecision?->approvalTypeEnum();
         $this->estimate_approved_at       = now();
         $this->approved_by_customer_name  = $customerName ?? $this->approved_by_customer_name;
         $this->approved_by_user_id        = auth()->id();
@@ -666,7 +687,7 @@ class ServiceTicket extends Model
         if (!$this->diagnostic_status->allowsResponsibilityDecision()) {
             $blockers->push('Diagnostic not completed');
         }
-        if ($this->responsibility_decision === ResponsibilityDecision::Pending) {
+        if (!$this->isResponsibilityDecided()) {
             $blockers->push('Responsibility decision pending');
         }
         if (!$this->approval_status->satisfied()) {
@@ -791,8 +812,10 @@ class ServiceTicket extends Model
         if (!in_array($this->repair_status, [RepairStatus::Completed, RepairStatus::Closed], true)) {
             $blockers->push('Repair not completed');
         }
-        if ($this->responsibility_decision !== ResponsibilityDecision::CustomerPay
-            || $this->financial_responsibility !== FinancialResponsibility::CustomerPay) {
+        // Only a Customer Pay disposition reaches customer billing. This reads
+        // the mapped financial_responsibility (set from the master's
+        // financial_path) rather than the decision itself — one source of truth.
+        if ($this->financial_responsibility !== FinancialResponsibility::CustomerPay) {
             $blockers->push('Responsibility is not Customer Pay');
         }
         if (!$this->repairExecutionAllowed()) {
@@ -863,9 +886,14 @@ class ServiceTicket extends Model
             default => [],
         };
 
-        $settlementApplicable = $this->responsibility_decision === ResponsibilityDecision::Pending
-            || $this->responsibility_decision === ResponsibilityDecision::CustomerPay;
+        // Settlement applies while the decision is still open (could become
+        // Customer Pay) or when it resolved to Customer Pay. Keyed off the
+        // decided-ness helper + mapped financial_responsibility — no enum.
+        $decided = $this->isResponsibilityDecided();
+        $settlementApplicable = !$decided
+            || $this->financial_responsibility === FinancialResponsibility::CustomerPay;
         $settlement = $this->activeSettlement();
+        $responsibilityLabel = $this->responsibilityDecision?->name;
 
         $stages = [
             ['key' => 'intake', 'label' => 'Intake',
@@ -878,26 +906,24 @@ class ServiceTicket extends Model
                     $fmt($this->diagnostic_completed_at ?? $this->diagnostic_started_at),
                 ])],
             ['key' => 'responsibility', 'label' => 'Responsibility',
-                'complete' => $this->responsibility_decision !== ResponsibilityDecision::Pending,
-                'meta' => $this->responsibility_decision === ResponsibilityDecision::Pending
-                    ? ['Pending']
-                    : array_filter([$this->responsibility_decision->label(), $fmt($this->responsibility_decided_at)])],
+                'complete' => $decided,
+                'meta' => $decided
+                    ? array_filter([$responsibilityLabel, $fmt($this->responsibility_decided_at)])
+                    : ['Pending']],
             // Approval and deposit only arm after the responsibility decision —
             // until then they read Pending rather than a misleading green check
             ['key' => 'approval', 'label' => 'Approval',
-                'complete' => $this->responsibility_decision !== ResponsibilityDecision::Pending
-                    && $this->approval_status->satisfied(),
-                'meta' => $this->responsibility_decision === ResponsibilityDecision::Pending
-                    ? ['Pending']
-                    : array_filter([
+                'complete' => $decided && $this->approval_status->satisfied(),
+                'meta' => $decided
+                    ? array_filter([
                         $this->approval_status->label(),
                         $fmt($this->estimate_approved_at ?? $this->estimate_declined_at ?? $this->estimate_sent_at),
-                    ])],
+                    ])
+                    : ['Pending']],
             ['key' => 'deposit', 'label' => 'Parts Deposit',
-                'complete' => $this->responsibility_decision !== ResponsibilityDecision::Pending
-                    && $this->depositSatisfied(),
+                'complete' => $decided && $this->depositSatisfied(),
                 'meta' => match (true) {
-                    !$this->parts_deposit_required => [$this->responsibility_decision === ResponsibilityDecision::Pending ? 'Pending' : 'Not Required'],
+                    !$this->parts_deposit_required => [$decided ? 'Not Required' : 'Pending'],
                     (bool) $this->parts_deposit_paid => array_filter(['Paid', $fmt($this->parts_deposit_paid_at)]),
                     (bool) $this->deposit_override => ['Overridden'],
                     default => ['Awaiting Payment'],
@@ -966,7 +992,7 @@ class ServiceTicket extends Model
         if ($this->diagnostic_status === DiagnosticStatus::InProgress) {
             return ['Diagnostic In Progress', 'bg-sky-100 text-sky-700 border border-sky-200'];
         }
-        if ($this->responsibility_decision === ResponsibilityDecision::Pending) {
+        if (!$this->isResponsibilityDecided()) {
             return ['Awaiting Responsibility Decision', 'bg-gray-100 text-gray-600 border border-gray-200'];
         }
         if (!$this->approval_status->satisfied()) {
@@ -1061,8 +1087,12 @@ class ServiceTicket extends Model
     public function getInternalCostTotalAttribute(): float
     {
         return match ($this->financial_responsibility) {
+            // Damage Waiver mirrors Internal Expense's cost treatment (company
+            // absorbs the repair) but stays a distinct financial identity — its
+            // costs are captured here yet reportable separately by financial_path.
             FinancialResponsibility::InternalExpense,
-            FinancialResponsibility::Goodwill => round($this->labor_total + $this->charge_line_total, 2),
+            FinancialResponsibility::Goodwill,
+            FinancialResponsibility::DamageWaiver => round($this->labor_total + $this->charge_line_total, 2),
             default => $this->non_billable_total,
         };
     }

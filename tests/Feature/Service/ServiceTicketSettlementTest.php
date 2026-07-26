@@ -16,11 +16,13 @@ use App\Models\Service\ServiceTicket;
 use App\Services\ServiceManagement\SettlementPackage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\ResolvesResponsibilityDecisions;
 use Tests\TestCase;
 
 class ServiceTicketSettlementTest extends TestCase
 {
     use RefreshDatabase;
+    use ResolvesResponsibilityDecisions;
 
     private User $admin;
     private Equipment $equipment;
@@ -71,7 +73,7 @@ class ServiceTicketSettlementTest extends TestCase
         ]);
 
         $ticket->completeDiagnostic();
-        $ticket->decideResponsibility(ResponsibilityDecision::CustomerPay);
+        $ticket->decideResponsibility($this->responsibilityDecision(ResponsibilityDecision::CustomerPay->value));
         $ticket = $ticket->fresh();
         $ticket->approveEstimate('Mike Harrison');
         $ticket->fresh()->authorizeRepair();
@@ -234,7 +236,7 @@ class ServiceTicketSettlementTest extends TestCase
     public function test_warranty_ticket_cannot_create_customer_charge(): void
     {
         $ticket = $this->makeSettleableTicket();
-        $ticket->fresh()->decideResponsibility(ResponsibilityDecision::OemWarranty);
+        $ticket->fresh()->decideResponsibility($this->responsibilityDecision(ResponsibilityDecision::OemWarranty->value));
 
         $this->assertFalse($ticket->fresh()->canCreateCustomerCharge());
         $this->post(route('admin.service-management.tickets.settlement.store', $ticket));

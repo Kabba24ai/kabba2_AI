@@ -1322,6 +1322,17 @@ function serviceMaster() {
                     </svg>
                     <span class="font-medium">Settings</span>
                 </button>
+
+                <button
+                    @click="activeTab = 'responsibility'"
+                    :class="activeTab === 'responsibility' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'"
+                    class="flex items-center gap-2 pb-3 border-b-2 transition-colors"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-medium">Responsibility Decisions</span>
+                </button>
             </div>
         </div>
 
@@ -1340,6 +1351,10 @@ function serviceMaster() {
 
         <div x-show="activeTab === 'settings'" x-cloak>
             @include('admin.maintenance_management.service_master.partials._settings_tab')
+        </div>
+
+        <div x-show="activeTab === 'responsibility'" x-cloak>
+            @include('admin.maintenance_management.service_master.partials._responsibility_decisions_tab')
         </div>
     </div>
 </div>

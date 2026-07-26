@@ -32,6 +32,11 @@ use App\Http\Controllers\Admin\MaintenanceManagement\ServiceMaster\Preset\Destro
 // Settings Controllers
 use App\Http\Controllers\Admin\MaintenanceManagement\ServiceMaster\Settings\UpdateController as SettingsUpdateController;
 
+// Responsibility Decision Controllers
+use App\Http\Controllers\Admin\MaintenanceManagement\ServiceMaster\ResponsibilityDecision\StoreController as ResponsibilityDecisionStoreController;
+use App\Http\Controllers\Admin\MaintenanceManagement\ServiceMaster\ResponsibilityDecision\UpdateController as ResponsibilityDecisionUpdateController;
+use App\Http\Controllers\Admin\MaintenanceManagement\ServiceMaster\ResponsibilityDecision\DestroyController as ResponsibilityDecisionDestroyController;
+
 Route::prefix('service-master')->name('service-master.')->group(function () {
 
 // Main service master page
@@ -76,6 +81,13 @@ Route::prefix('presets')->name('presets.')->group(function () {
 // Settings
 Route::prefix('settings')->name('settings.')->group(function () {
     Route::put('/', SettingsUpdateController::class)->name('update');
+});
+
+// Responsibility Decisions (Service Ticket master data)
+Route::prefix('responsibility-decisions')->name('responsibility-decisions.')->group(function () {
+    Route::post('/', ResponsibilityDecisionStoreController::class)->name('store');
+    Route::put('/{id}', ResponsibilityDecisionUpdateController::class)->name('update');
+    Route::delete('/{id}', ResponsibilityDecisionDestroyController::class)->name('destroy');
 });
 
 }); // End of service-master group

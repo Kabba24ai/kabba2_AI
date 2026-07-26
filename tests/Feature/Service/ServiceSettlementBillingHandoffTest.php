@@ -19,6 +19,7 @@ use App\Models\Service\ServiceTicket;
 use App\Models\Service\ServiceTicketSettlement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\ResolvesResponsibilityDecisions;
 use Tests\TestCase;
 
 /**
@@ -29,6 +30,7 @@ use Tests\TestCase;
 class ServiceSettlementBillingHandoffTest extends TestCase
 {
     use RefreshDatabase;
+    use ResolvesResponsibilityDecisions;
 
     private User $admin;
     private Equipment $equipment;
@@ -75,7 +77,7 @@ class ServiceSettlementBillingHandoffTest extends TestCase
         ]);
 
         $ticket->completeDiagnostic();
-        $ticket->decideResponsibility(ResponsibilityDecision::CustomerPay);
+        $ticket->decideResponsibility($this->responsibilityDecision(ResponsibilityDecision::CustomerPay->value));
         $ticket = $ticket->fresh();
         $ticket->approveEstimate('Mike Harrison');
         $ticket->fresh()->authorizeRepair();

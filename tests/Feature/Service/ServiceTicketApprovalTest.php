@@ -16,11 +16,13 @@ use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Service\ServiceTicket;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\ResolvesResponsibilityDecisions;
 use Tests\TestCase;
 
 class ServiceTicketApprovalTest extends TestCase
 {
     use RefreshDatabase;
+    use ResolvesResponsibilityDecisions;
 
     private User $admin;
     private Equipment $equipment;
@@ -59,7 +61,7 @@ class ServiceTicketApprovalTest extends TestCase
 
         $ticket->startDiagnostic();
         $ticket->completeDiagnostic();
-        $ticket->decideResponsibility($decision);
+        $ticket->decideResponsibility($this->responsibilityDecision($decision->value));
 
         return $ticket->fresh();
     }

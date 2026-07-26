@@ -14,11 +14,13 @@ use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Service\ServiceTicket;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ResolvesResponsibilityDecisions;
 use Tests\TestCase;
 
 class ServiceTicketAuthorizationEnforcementTest extends TestCase
 {
     use RefreshDatabase;
+    use ResolvesResponsibilityDecisions;
 
     private User $admin;
     private Equipment $equipment;
@@ -56,7 +58,7 @@ class ServiceTicketAuthorizationEnforcementTest extends TestCase
         ]);
 
         $ticket->completeDiagnostic();
-        $ticket->decideResponsibility(ResponsibilityDecision::CustomerPay);
+        $ticket->decideResponsibility($this->responsibilityDecision(ResponsibilityDecision::CustomerPay->value));
 
         return $ticket->fresh();
     }

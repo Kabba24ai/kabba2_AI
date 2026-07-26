@@ -5,6 +5,17 @@
 @push('css')
 <style>
     main { background-color: #f8fafc; flex: 1 1 auto; }
+    /* Two-option segmented decision control — self-contained CSS so it renders
+       correctly in production without an asset rebuild (deploys don't rebuild
+       assets). Neither segment is active until a radio inside is :checked. */
+    .fs-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    .fs-seg-group { display:inline-flex; border:1px solid #d1d5db; border-radius:0.5rem; overflow:hidden; background:#fff; }
+    .fs-seg { display:inline-flex; align-items:center; justify-content:center; min-width:9.5rem; padding:0.5rem 1rem; font-size:0.875rem; font-weight:500; color:#4b5563; background:#fff; cursor:pointer; user-select:none; transition:background-color .15s ease,color .15s ease; }
+    .fs-seg:hover { background:#f9fafb; }
+    .fs-seg + .fs-seg { border-left:1px solid #d1d5db; }
+    .fs-seg:has(input:checked) { background:#2563eb; color:#fff; }
+    .fs-seg:has(input:checked):hover { background:#1d4ed8; }
+    .fs-seg:focus-within { outline:2px solid #60a5fa; outline-offset:-2px; }
 </style>
 @endpush
 
@@ -61,7 +72,6 @@
         @csrf
 
         {{-- ===== 1. Dispatch Information ===== --}}
-        @php $oldContactSource = old('contact_source', 'order'); $oldLocationSource = old('location_source', 'delivery'); @endphp
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
             <h2 class="text-sm font-semibold text-gray-800 mb-1">1 · Dispatch Information</h2>
             <p class="text-xs text-gray-400 mb-4">
@@ -101,70 +111,82 @@
                 </div>
             </div>
 
-            {{-- Contact Person — order contact, or someone else (deliberate). --}}
+            {{-- Contact Person — a REQUIRED, explicit decision. No default: the
+                 ticket must never instruct a technician to ask for someone the
+                 dispatcher did not consciously confirm. --}}
             <div class="mt-4">
-                <label class="{{ $labelClass }}">Who should the technician ask for?</label>
-                <div class="flex flex-wrap gap-4 mb-2">
-                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                        <input type="radio" name="contact_source" value="order" class="fs-contact-src" @checked($oldContactSource === 'order')> Order Contact
+                <label class="{{ $labelClass }} required">Who should the technician ask for?</label>
+                <div class="fs-seg-group" role="radiogroup" aria-label="Who should the technician ask for?">
+                    <label class="fs-seg">
+                        <input type="radio" name="contact_source" value="order" class="fs-sr fs-contact-src" @checked(old('contact_source') === 'order')>
+                        <span>Order Contact</span>
                     </label>
-                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                        <input type="radio" name="contact_source" value="other" class="fs-contact-src" @checked($oldContactSource === 'other')> Someone Else
+                    <label class="fs-seg">
+                        <input type="radio" name="contact_source" value="other" class="fs-sr fs-contact-src" @checked(old('contact_source') === 'other')>
+                        <span>Someone Else</span>
                     </label>
                 </div>
+                <p id="fs-contact-hint" class="text-xs text-gray-400 mt-1.5">Confirm who to ask for before dispatching — this becomes the technician's instruction.</p>
                 @error('contact_source')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                {{-- Order contact (read-only display) --}}
-                <div id="fs-contact-order" class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm">
+                {{-- Order contact (read-only display) — shown only after "Order Contact". --}}
+                <div id="fs-contact-order" class="hidden mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm">
                     <div id="fs-contact-order-name" class="font-medium text-gray-800">—</div>
                     <div id="fs-contact-order-phone" class="text-gray-500">—</div>
                 </div>
-                {{-- Someone else (intentional entry) --}}
-                <div id="fs-contact-other" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Someone else (intentional entry) — shown only after "Someone Else". --}}
+                <div id="fs-contact-other" class="hidden mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="{{ $labelClass }} required">Contact Name</label>
-                        <input type="text" name="contact_name" value="{{ old('contact_name') }}" class="{{ $inputClass }}">
+                        <input type="text" name="contact_name" id="fs-contact-name" value="{{ old('contact_name') }}" class="{{ $inputClass }}">
                         @error('contact_name')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="{{ $labelClass }} required">Phone Number</label>
-                        <input type="text" name="contact_phone" value="{{ old('contact_phone') }}" class="{{ $inputClass }}">
+                        <input type="text" name="contact_phone" id="fs-contact-phone" value="{{ old('contact_phone') }}" class="{{ $inputClass }}">
                         @error('contact_phone')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
             </div>
 
-            {{-- Service Location — delivery address, or a different one (deliberate). --}}
+            {{-- Service Location — a REQUIRED, explicit decision. No default: a
+                 technician is never sent to an address the dispatcher did not
+                 consciously confirm; the billing address is never a fallback. --}}
             <div class="mt-4">
-                <label class="{{ $labelClass }}">Service Location</label>
-                <div class="flex flex-wrap gap-4 mb-2">
-                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                        <input type="radio" name="location_source" value="delivery" class="fs-loc-src" @checked($oldLocationSource === 'delivery')> Delivery Address
+                <label class="{{ $labelClass }} required">Service Location</label>
+                <div class="fs-seg-group" role="radiogroup" aria-label="Service Location">
+                    <label class="fs-seg">
+                        <input type="radio" name="location_source" value="delivery" class="fs-sr fs-loc-src" @checked(old('location_source') === 'delivery')>
+                        <span>Delivery Address</span>
                     </label>
-                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                        <input type="radio" name="location_source" value="other" class="fs-loc-src" @checked($oldLocationSource === 'other')> Different Address
+                    <label class="fs-seg">
+                        <input type="radio" name="location_source" value="other" class="fs-sr fs-loc-src" @checked(old('location_source') === 'other')>
+                        <span>Different Address</span>
                     </label>
                 </div>
+                <p id="fs-loc-hint" class="text-xs text-gray-400 mt-1.5">Confirm where the technician is going before dispatching — never assume the delivery address.</p>
                 @error('location_source')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                <div id="fs-loc-delivery" class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-800">—</div>
-                <div id="fs-loc-other" class="hidden grid grid-cols-1 sm:grid-cols-4 gap-4">
+                {{-- Delivery address (read-only) — shown only after "Delivery Address". --}}
+                <div id="fs-loc-delivery" class="hidden mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-800">—</div>
+                {{-- Different address (intentional entry) — shown only after "Different Address". --}}
+                <div id="fs-loc-other" class="hidden mt-2 grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div class="sm:col-span-4">
                         <label class="{{ $labelClass }} required">Street</label>
-                        <input type="text" name="loc_street" value="{{ old('loc_street') }}" class="{{ $inputClass }}">
+                        <input type="text" name="loc_street" id="fs-loc-street" value="{{ old('loc_street') }}" class="{{ $inputClass }}">
                         @error('loc_street')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div class="sm:col-span-2">
                         <label class="{{ $labelClass }} required">City</label>
-                        <input type="text" name="loc_city" value="{{ old('loc_city') }}" class="{{ $inputClass }}">
+                        <input type="text" name="loc_city" id="fs-loc-city" value="{{ old('loc_city') }}" class="{{ $inputClass }}">
                         @error('loc_city')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="{{ $labelClass }} required">State</label>
-                        <input type="text" name="loc_state" value="{{ old('loc_state') }}" class="{{ $inputClass }}">
+                        <input type="text" name="loc_state" id="fs-loc-state" value="{{ old('loc_state') }}" class="{{ $inputClass }}">
                         @error('loc_state')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="{{ $labelClass }} required">ZIP</label>
-                        <input type="text" name="loc_zip" value="{{ old('loc_zip') }}" class="{{ $inputClass }}">
+                        <input type="text" name="loc_zip" id="fs-loc-zip" value="{{ old('loc_zip') }}" class="{{ $inputClass }}">
                         @error('loc_zip')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -483,31 +505,50 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!matched) { equipHidden.value = ''; serialHidden.value = ''; eqDetail.textContent = 'Select the machine on site.'; }
     }
 
-    // ── Contact + location radios ──────────────────────────────────────
-    const contactOrder = $('fs-contact-order'), contactOther = $('fs-contact-other');
+    // ── Contact + location: REQUIRED explicit decisions (no default) ───
+    // Neither box shows until the dispatcher makes a choice; the prompt hides
+    // once a decision is made. Order-derived values are populated but stay
+    // hidden until "Order Contact" / "Delivery Address" is chosen.
+    const contactOrder = $('fs-contact-order'), contactOther = $('fs-contact-other'), contactHint = $('fs-contact-hint');
     function syncContactDisplay(order) {
         const c = (order && order.contact) || {};
         $('fs-contact-order-name').textContent  = c.name  || '—';
         $('fs-contact-order-phone').textContent = c.phone || '—';
     }
     function applyContactSource() {
-        const src = (document.querySelector('.fs-contact-src:checked') || {}).value || 'order';
+        const src = (document.querySelector('.fs-contact-src:checked') || {}).value || null;
         contactOrder.classList.toggle('hidden', src !== 'order');
         contactOther.classList.toggle('hidden', src !== 'other');
+        if (contactHint) contactHint.classList.toggle('hidden', src !== null); // hide the prompt once decided
+    }
+    function clearContactOther() {
+        const n = $('fs-contact-name'), p = $('fs-contact-phone');
+        if (n) n.value = ''; if (p) p.value = '';
     }
 
-    const locDelivery = $('fs-loc-delivery'), locOther = $('fs-loc-other');
+    const locDelivery = $('fs-loc-delivery'), locOther = $('fs-loc-other'), locHint = $('fs-loc-hint');
     function syncLocationDisplay(order) {
         locDelivery.textContent = (order && order.address && order.address.full) || 'No delivery address on this order';
     }
     function applyLocationSource() {
-        const src = (document.querySelector('.fs-loc-src:checked') || {}).value || 'delivery';
+        const src = (document.querySelector('.fs-loc-src:checked') || {}).value || null;
         locDelivery.classList.toggle('hidden', src !== 'delivery');
         locOther.classList.toggle('hidden', src !== 'other');
+        if (locHint) locHint.classList.toggle('hidden', src !== null);
+    }
+    function clearLocationOther() {
+        ['fs-loc-street', 'fs-loc-city', 'fs-loc-state', 'fs-loc-zip'].forEach(function (id) { const el = $(id); if (el) el.value = ''; });
     }
 
-    document.querySelectorAll('.fs-contact-src').forEach(r => r.addEventListener('change', applyContactSource));
-    document.querySelectorAll('.fs-loc-src').forEach(r => r.addEventListener('change', applyLocationSource));
+    // On a user-driven change, update visibility and — when switching BACK to the
+    // order-derived option — clear the now-unused alternate inputs so stray values
+    // can never accidentally persist.
+    document.querySelectorAll('.fs-contact-src').forEach(function (r) {
+        r.addEventListener('change', function () { applyContactSource(); if (r.value === 'order') clearContactOther(); });
+    });
+    document.querySelectorAll('.fs-loc-src').forEach(function (r) {
+        r.addEventListener('change', function () { applyLocationSource(); if (r.value === 'delivery') clearLocationOther(); });
+    });
 
     // ── Order orchestration ────────────────────────────────────────────
     function onOrder(preserveEquip) {

@@ -125,6 +125,22 @@ class SaveFieldTicketRequest extends FormRequest
         });
     }
 
+    public function messages(): array
+    {
+        return [
+            // The two explicit dispatch decisions must be made deliberately —
+            // there is no default, so a missing choice is a hard failure.
+            'contact_source.required'  => 'Choose who the technician should ask for — Order Contact or Someone Else.',
+            'location_source.required' => 'Choose the service location — Delivery Address or Different Address.',
+            'contact_name.required'    => 'Enter the contact name for the person the technician should ask for.',
+            'contact_phone.required'   => 'Enter the contact phone number for the person the technician should ask for.',
+            'loc_street.required'      => 'Enter the street for the different service address.',
+            'loc_city.required'        => 'Enter the city for the different service address.',
+            'loc_state.required'       => 'Enter the state for the different service address.',
+            'loc_zip.required'         => 'Enter the ZIP for the different service address.',
+        ];
+    }
+
     public function attributes(): array
     {
         return [

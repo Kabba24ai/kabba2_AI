@@ -34,10 +34,9 @@
             Calls Log Report
         </button>
 
-        {{-- Fuel management moved to the Fuel Charge Workspace (Billing
-             Charge Operations Commonization) — the legacy Fuel Charge
-             Alerts tab is retired; this link-tab preserves the habit path. --}}
-        <a href="{{ route('admin.reports.fuel-charge-workspace.index') }}"
+        {{-- Fuel management moved to Task Manager → Billing Operations →
+             Fuel Charge Resolution; this link-tab preserves the habit path. --}}
+        <a href="{{ route('admin.tasks.billing.fuel-charges.index') }}"
             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border transition-all
                    bg-white text-gray-600 border-gray-300 hover:bg-gray-50">
             <x-heroicon-o-fire class="w-4 h-4" />

@@ -1,22 +1,23 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Fuel Charge Workspace')
+@section('title', 'Fuel Charge Resolution')
 
 @section('content')
 
     @include('flash::message')
     @include('admin.partials.formErrors')
 
-    {{-- Dashboard V2 Phase 1A — the Fuel Charge operational workspace.
-         Centered container: compact mini-dashboard, filters, then the
-         full-width queue. All actions post to the canonical dashboard
-         endpoints; metrics come from the same ChargeAlertQueue service
-         the dashboard card consumes, so the two always reconcile. --}}
+    {{-- Task Manager → Billing Operations → Fuel Charge Resolution.
+         Relocated from Reports; behavior unchanged. Centered container:
+         compact mini-dashboard, filters, then the full-width queue. All
+         actions post to the canonical dashboard/Billing Engine endpoints;
+         metrics come from the same ChargeAlertQueue service the dashboard
+         card consumes, so the two always reconcile. --}}
     <div class="max-w-6xl mx-auto px-4 py-6">
 
         <div class="flex items-center justify-between mb-5">
             <div>
-                <h1 class="text-xl font-bold text-gray-900">Fuel Charge Workspace</h1>
+                <h1 class="text-xl font-bold text-gray-900">Fuel Charge Resolution</h1>
                 <p class="text-sm text-gray-500 mt-0.5">Review, adjust, collect, and resolve fuel charge alerts.</p>
             </div>
             <div class="flex items-center gap-4">
@@ -31,7 +32,7 @@
 
         {{-- Mini dashboard (compact — operational awareness only) --}}
         <div class="mb-5" data-summary-wrap>
-            @include('admin.reports.fuel_charge_workspace.partials._summary', ['summary' => $summary])
+            @include('admin.tasks.billing.partials._summary', ['summary' => $summary])
         </div>
 
         {{-- Filters --}}
@@ -56,7 +57,7 @@
 
         {{-- Queue --}}
         <div class="bg-white border border-gray-200 rounded-xl p-4" data-queue-wrap>
-            @include('admin.reports.fuel_charge_workspace.partials._queue', ['alerts' => $alerts])
+            @include('admin.tasks.billing.partials._queue', ['alerts' => $alerts, 'chargeType' => 'fuel'])
         </div>
     </div>
 

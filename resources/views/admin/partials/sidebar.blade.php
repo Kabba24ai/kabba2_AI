@@ -65,6 +65,8 @@
                         'admin.resolution-center.*',
                     ]);
 
+                    $tasksActive = Route::is(['admin.tasks.*']);
+
                 @endphp
 
                 <ul class="mb-6 flex flex-col gap-4">
@@ -82,14 +84,70 @@
 
                     <!-- Tasks -->
                     @if (Route::has('admin.tasks.index'))
-                    <li>
-                        <a href="{{ route('admin.tasks.index') }}"
-                            class="menu-item group flex items-center gap-3 {{ Route::is('admin.tasks.*') ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <span class="w-6 h-6 flex items-center justify-center {{ Route::is('admin.tasks.*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
+                    <li x-data="{ open: {{ $tasksActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $tasksActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <span class="w-6 h-6 flex items-center justify-center {{ $tasksActive ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}">
                                 <x-heroicon-o-check-circle class="w-6 h-6" />
                             </span>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Task Mgr</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ? 'lg:hidden' : '']">
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
                         </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.tasks.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ (Route::is('admin.tasks.*') && ! Route::is('admin.tasks.billing.*')) ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-check-circle class="h-5 w-5" /> Task Center
+                                    </a>
+                                </li>
+
+                                {{-- Billing Operations --}}
+                                <li class="mt-2 mb-0.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400"
+                                    :class="sidebarToggle ? 'lg:hidden' : ''">
+                                    Billing Operations
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.tasks.billing.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.tasks.billing.index') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-squares-2x2 class="h-5 w-5" /> Overview
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.tasks.billing.fuel-charges.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.tasks.billing.fuel-charges.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-fire class="h-5 w-5" /> Fuel Charges
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.tasks.billing.damage-charges.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.tasks.billing.damage-charges.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-wrench class="h-5 w-5" /> Damage Charges
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.tasks.billing.settings.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.tasks.billing.settings.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-cog-6-tooth class="h-5 w-5" /> Settings
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                     @endif
 
@@ -425,14 +483,6 @@
                                         {{ Route::is('admin.reports.calls-log.*') || Route::is('admin.reports.new-damage-alerts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
                                         <x-heroicon-o-bell-alert class="w-6 h-6" />
                                         Dash Reports
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('admin.reports.fuel-charge-workspace.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.reports.fuel-charge-workspace.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-fire class="w-6 h-6" />
-                                        Fuel Charges
                                     </a>
                                 </li>
                                 <li>

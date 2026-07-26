@@ -1,6 +1,7 @@
-{{-- Dashboard V2 Phase 1A — compact operational mini-dashboard. Values come
-     from ChargeAlertQueue::summarize() — the identical calculation behind
-     the dashboard Fuel card, so these numbers always match it. --}}
+{{-- Billing Operations — compact operational mini-dashboard, shared by the
+     Fuel and Damage charge workspaces. Values come from
+     ChargeAlertQueue::summarize() — the identical calculation behind the
+     dashboard alert card — so these numbers always match it. --}}
 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
     <div class="rounded-xl border border-orange-200 bg-orange-50/60 p-4">
         <div class="text-2xl font-bold text-orange-700" data-metric="outstanding">{{ $summary['outstanding'] }}</div>

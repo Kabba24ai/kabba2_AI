@@ -9,8 +9,9 @@
 
 @php
     $originStyles = [
-        'checklist' => ['label' => 'Checklist', 'classes' => 'bg-indigo-50 text-indigo-700 border-indigo-200'],
-        'manual'    => ['label' => 'Manual',    'classes' => 'bg-blue-50 text-blue-700 border-blue-200'],
+        'checklist' => ['label' => 'Checklist',      'classes' => 'bg-indigo-50 text-indigo-700 border-indigo-200'],
+        'manual'    => ['label' => 'Manual',         'classes' => 'bg-blue-50 text-blue-700 border-blue-200'],
+        'service'   => ['label' => 'Service Ticket', 'classes' => 'bg-purple-50 text-purple-700 border-purple-200'],
     ];
     $style = $originStyles[$origin] ?? null;
 @endphp

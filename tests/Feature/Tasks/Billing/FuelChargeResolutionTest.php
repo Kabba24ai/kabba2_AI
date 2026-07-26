@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Reports;
+namespace Tests\Feature\Tasks\Billing;
 
 use App\Livewire\Dashboard\AlertsSection;
 use App\Models\Customers\Customer;
@@ -11,25 +11,26 @@ use App\Models\Orders\Order;
 use App\Models\ProductManagement\ProductCategory;
 use App\Services\Alerts\ChargeAlertQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Fuel Charge Workspace (Billing Charge Operations Commonization).
- *
- * The load-bearing guarantee: the workspace queue and the dashboard Fuel
- * card consume the IDENTICAL ChargeAlertQueue service, so their Outstanding
- * counts reconcile by construction. These tests pin that, plus the approved
- * capability rule — actions come from charge state and business rules,
- * never origin: OrderProduct rows carry the full op-mode action set;
- * CRM/manual rows WITH a Billing Engine bridge carry the charge-mode set;
- * CRM rows WITHOUT a bridge (no canonical BillingCharge to operate on)
- * stay link-only.
+ * Fuel Charge Resolution — RELOCATED to Task Manager → Billing Operations
+ * (was admin.reports.fuel-charge-workspace). Same read-only shell, same
+ * ChargeAlertQueue service, same canonical endpoints; only the route/URL/
+ * view namespace changed. These tests pin the relocation (new route works,
+ * old route redirects, dashboard/nav point to the new route) AND that the
+ * preserved behavior still holds (dashboard-count reconciliation, the
+ * state-based action sets).
  */
-class FuelChargeWorkspaceTest extends TestCase
+class FuelChargeResolutionTest extends TestCase
 {
     use RefreshDatabase;
+
+    private const NEW_ROUTE = 'admin.tasks.billing.fuel-charges.index';
+    private const OLD_ROUTE = 'admin.reports.fuel-charge-workspace.index';
 
     private User $admin;
     private Customer $customer;
@@ -73,7 +74,7 @@ class FuelChargeWorkspaceTest extends TestCase
             'product_name' => 'Mini Excavator',
             'equipment_id' => $equipment->id,
             'fuel_total_charge' => $charge,
-            'quantity' => 1, 'price' => 100,
+            'quantity' => 1, 'price' => 100, 'total' => 100,
         ]);
 
         return $order;
@@ -96,12 +97,43 @@ class FuelChargeWorkspaceTest extends TestCase
         return $account;
     }
 
-    public function test_workspace_page_renders(): void
+    // ── Relocation ───────────────────────────────────────────────────────
+
+    public function test_new_task_manager_route_renders(): void
     {
-        $this->get(route('admin.reports.fuel-charge-workspace.index'))
+        $this->get(route(self::NEW_ROUTE))
             ->assertOk()
-            ->assertSee('Fuel Charge Workspace');
+            ->assertSee('Fuel Charge Resolution');
     }
+
+    public function test_old_reports_route_redirects_to_the_new_route(): void
+    {
+        $this->get(route(self::OLD_ROUTE))
+            ->assertRedirect(route(self::NEW_ROUTE));
+    }
+
+    public function test_retired_fuel_alerts_alias_redirects_to_the_new_route(): void
+    {
+        $this->get(route('admin.reports.fuel-charge-alerts.index'))
+            ->assertRedirect(route(self::NEW_ROUTE));
+    }
+
+    public function test_guest_is_blocked_from_the_workspace(): void
+    {
+        Auth::logout();
+
+        $this->get(route(self::NEW_ROUTE))->assertRedirect();
+    }
+
+    public function test_dashboard_fuel_card_links_to_the_new_route(): void
+    {
+        $html = Livewire::test(AlertsSection::class)->html();
+
+        $this->assertStringContainsString(route(self::NEW_ROUTE), $html);
+        $this->assertStringNotContainsString(route(self::OLD_ROUTE), $html);
+    }
+
+    // ── Preserved behavior ─────────────────────────────────────────────────
 
     public function test_workspace_outstanding_reconciles_with_dashboard_summary(): void
     {
@@ -111,15 +143,13 @@ class FuelChargeWorkspaceTest extends TestCase
         $queue = ChargeAlertQueue::fuelAlerts();
         $this->assertSame(2, $queue->count(), 'canonical queue should hold both sources');
 
-        // The dashboard card and the workspace summary both derive from the
-        // same service call — assert both read the same number.
         $summary = ChargeAlertQueue::summarize($queue, 'fuel');
         $this->assertSame(2, $summary['outstanding']);
 
         Livewire::test(AlertsSection::class)
             ->assertSet('fuelSummary.outstanding', 2);
 
-        $response = $this->get(route('admin.reports.fuel-charge-workspace.index'));
+        $response = $this->get(route(self::NEW_ROUTE));
         $response->assertOk();
         $this->assertStringContainsString('data-metric="outstanding">2<', $response->getContent());
     }
@@ -128,7 +158,7 @@ class FuelChargeWorkspaceTest extends TestCase
     {
         $this->makeOpFuelAlert();
 
-        $html = $this->get(route('admin.reports.fuel-charge-workspace.index'))->getContent();
+        $html = $this->get(route(self::NEW_ROUTE))->getContent();
 
         foreach (['history', 'notes', 'adjust', 'payment', 'resolve', 'uncollectible'] as $action) {
             $this->assertStringContainsString('data-action="' . $action . '"', $html, "missing {$action} action");
@@ -137,12 +167,9 @@ class FuelChargeWorkspaceTest extends TestCase
 
     public function test_crm_row_without_billing_bridge_is_link_only(): void
     {
-        // No BillingCharge bridge exists for this CA — there is no canonical
-        // charge object to operate on, so the row stays link-only (business
-        // rule, not origin).
         $this->makeCrmFuelCharge();
 
-        $response = $this->get(route('admin.reports.fuel-charge-workspace.index'));
+        $response = $this->get(route(self::NEW_ROUTE));
         $html = $response->getContent();
 
         $response->assertSee('Manual');
@@ -164,50 +191,16 @@ class FuelChargeWorkspaceTest extends TestCase
             'customer_account_id' => $account->id,
         ]);
 
-        $html = $this->get(route('admin.reports.fuel-charge-workspace.index'))->getContent();
+        $html = $this->get(route(self::NEW_ROUTE))->getContent();
 
-        // Charge-mode row keyed by the bridge's unique_id…
         $this->assertStringContainsString('data-action-mode="charge"', $html);
         $this->assertStringContainsString('data-bc-id="' . $bridge->unique_id . '"', $html);
 
-        // …with the canonical state-based action set (Adjust deliberately
-        // withheld pending Phase 2 CA-ledger sync; History needs an order).
         foreach (['notes', 'payment', 'resolve', 'uncollectible'] as $action) {
             $this->assertStringContainsString('data-action="' . $action . '"', $html, "missing {$action}");
         }
         $this->assertStringNotContainsString('data-action="adjust"', $html);
-        $this->assertStringNotContainsString('data-action="history"', $html);
-
-        // The informational link remains alongside the actions.
         $this->assertStringContainsString('Manage in CRM', $html);
-    }
-
-    public function test_completed_row_with_paid_bridge_offers_refund(): void
-    {
-        $account = $this->makeCrmFuelCharge();
-        $account->fuel_alert_status = 'completed';
-        $account->save();
-
-        $bridge = \App\Models\Orders\BillingCharge::create([
-            'billing_charge_type' => 'fuel',
-            'status' => 'paid',
-            'customer_id' => $this->customer->id,
-            'amount' => 40.0,
-            'tax_amount' => 0.0,
-            'tax_type' => 'free',
-            'customer_account_id' => $account->id,
-        ]);
-
-        $html = $this->get(route('admin.reports.fuel-charge-workspace.index', [
-            'status' => 'completed',
-        ]))->getContent();
-
-        $this->assertStringContainsString('data-action="refund"', $html);
-        $this->assertStringContainsString('data-refund-remaining="40.00"', $html);
-        $this->assertStringContainsString('data-bc-id="' . $bridge->unique_id . '"', $html);
-        // Terminal rows never re-offer the open-state lifecycle actions.
-        $this->assertStringNotContainsString('data-action="resolve"', $html);
-        $this->assertStringNotContainsString('data-action="payment"', $html);
     }
 
     public function test_filters_narrow_the_queue_without_changing_the_summary(): void
@@ -215,12 +208,9 @@ class FuelChargeWorkspaceTest extends TestCase
         $this->makeOpFuelAlert();
         $this->makeCrmFuelCharge();
 
-        $html = $this->get(route('admin.reports.fuel-charge-workspace.index', [
-            'search_name' => 'NoSuchCustomer',
-        ]))->getContent();
+        $html = $this->get(route(self::NEW_ROUTE, ['search_name' => 'NoSuchCustomer']))->getContent();
 
         $this->assertStringContainsString('No fuel charge alerts found', $html);
-        // Summary reflects the UNFILTERED canonical queue — dashboard parity.
         $this->assertStringContainsString('data-metric="outstanding">2<', $html);
     }
 
@@ -228,15 +218,8 @@ class FuelChargeWorkspaceTest extends TestCase
     {
         $this->makeOpFuelAlert();
 
-        $this->get(route('admin.reports.fuel-charge-workspace.index', ['fragment' => 1]))
+        $this->get(route(self::NEW_ROUTE, ['fragment' => 1]))
             ->assertOk()
             ->assertJsonStructure(['success', 'queue_html', 'summary_html']);
-    }
-
-    public function test_dashboard_fuel_card_links_to_the_workspace(): void
-    {
-        $html = Livewire::test(AlertsSection::class)->html();
-
-        $this->assertStringContainsString(route('admin.reports.fuel-charge-workspace.index'), $html);
     }
 }

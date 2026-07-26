@@ -8,5 +8,5 @@ use Illuminate\Support\Facades\Route;
 // client hitting the old endpoint lands there. The route name is kept so
 // nothing referencing it can break a deploy.
 Route::prefix('fuel-charge-alerts')->name('fuel-charge-alerts.')->group(function () {
-    Route::get('/', fn () => redirect()->route('admin.reports.fuel-charge-workspace.index'))->name('index');
+    Route::get('/', fn () => redirect()->route('admin.tasks.billing.fuel-charges.index'))->name('index');
 });

@@ -35,7 +35,32 @@ class SettingSeeder extends Seeder
         $this->addPriceSettings();
         $this->addPrivacyPolicySettings();
         $this->addTermsConditionsSettings();
+        $this->addBillingOperationsSettings();
 
+    }
+
+    /**
+     * Task Manager → Billing Operations settings.
+     *
+     * primary_billing_admin_id holds the users.id of the single designated
+     * Primary Billing Admin (an FK-in-a-setting, exactly like site_logo holds
+     * a Media id). No default_value → the row is created empty (unset state),
+     * and PrimaryBillingAdminResolver returns null until an active employee
+     * is designated. Registering it here means the per-type delete-unlisted
+     * sweep in run() preserves it rather than wiping it.
+     */
+    private function addBillingOperationsSettings()
+    {
+        $sortOrder = 1;
+
+        $this->settings['Billing Settings'] = [
+            [
+                'value_type'   => 'text',
+                'setting_name' => 'primary_billing_admin_id',
+                'setting_title' => 'Primary Billing Admin',
+                'sort_order'   => $sortOrder++,
+            ],
+        ];
     }
 
     private function addDefaultSalesFunnelSettings()

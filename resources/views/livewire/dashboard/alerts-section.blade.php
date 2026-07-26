@@ -16,7 +16,7 @@
         accent-hex="#f97316"
         chart-id="fuel-charge-donut"
         action-class="bg-orange-500 hover:bg-orange-600"
-        :href="route('admin.reports.fuel-charge-workspace.index')"
+        :href="route('admin.tasks.billing.fuel-charges.index')"
         action-label="Resolve Fuel Charges"
         secondary-label="New Fuel Charge"
         secondary-id="fuel-new-charge-btn"

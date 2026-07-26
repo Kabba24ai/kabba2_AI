@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Controllers\Admin\Reports\FuelChargeWorkspace\IndexController;
 use Illuminate\Support\Facades\Route;
 
-// Dashboard V2 Phase 1A — the Fuel Charge operational workspace. The one
-// GET endpoint serves both the full page and (with ?fragment=1) the
-// queue + summary fragments for AJAX refresh after filters/actions.
+// RELOCATED — the Fuel Charge Workspace now lives in Task Manager →
+// Billing Operations (admin.tasks.billing.fuel-charges.index). This legacy
+// URL is kept as a permanent redirect so existing bookmarks and older links
+// do not fail. The route NAME is also preserved so any missed reference
+// still resolves; there is no second copy of the page.
 Route::prefix('fuel-charge-workspace')->name('fuel-charge-workspace.')->group(function () {
-    Route::get('/', IndexController::class)->name('index');
+    Route::get('/', fn () => redirect()->route('admin.tasks.billing.fuel-charges.index'))->name('index');
 });

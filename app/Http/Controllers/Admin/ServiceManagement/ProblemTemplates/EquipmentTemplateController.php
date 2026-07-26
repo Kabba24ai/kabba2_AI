@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\ServiceManagement\ProblemTemplates;
 
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceManagement\Equipment;
+use App\Models\ProductManagement\ProductCategory;
 use App\Models\Service\ServiceSymptomProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,33 +18,38 @@ use Illuminate\Support\Facades\DB;
  */
 class EquipmentTemplateController extends Controller
 {
-    private const PER_PAGE = 25;
-
+    /**
+     * Category-first assignment workbench: pick an equipment category, see only
+     * that category's units, then bulk-apply a template (or override per row).
+     * The filtered set loads in full (no pagination) so "Select All Shown" is
+     * unambiguous.
+     */
     public function index(Request $request)
     {
-        $query = Equipment::with('symptomProfile:id,name')
-            ->orderBy('equipment_name');
+        $categories = ProductCategory::whereHas('equipments')->orderBy('title')->get(['id', 'title']);
 
-        if ($request->filled('search')) {
-            $needle = $request->search;
-            $query->where(function ($q) use ($needle) {
-                $q->where('equipment_name', 'like', "%{$needle}%")
-                    ->orWhere('equipment_id', 'like', "%{$needle}%");
-            });
-        }
+        $selected  = (string) $request->input('category', '');
+        $equipment = collect();
 
-        if ($request->filled('template')) {
-            $request->template === 'none'
-                ? $query->whereNull('service_symptom_profile_id')
-                : $query->where('service_symptom_profile_id', (int) $request->template);
+        if ($selected === 'all') {
+            $equipment = $this->equipmentQuery()->get();
+        } elseif (ctype_digit($selected)) {
+            $equipment = $this->equipmentQuery()->where('product_category_id', (int) $selected)->get();
         }
 
         return view('admin.service_management.problem_templates.equipment', [
-            'equipment' => $query->paginate(self::PER_PAGE)->withQueryString(),
-            'templates' => ServiceSymptomProfile::active()->orderBy('name')->get(['id', 'name']),
-            'search'    => $request->input('search'),
-            'filter'    => $request->input('template'),
+            'categories'       => $categories,
+            'equipment'        => $equipment,
+            'templates'        => ServiceSymptomProfile::active()->orderBy('name')->get(['id', 'name']),
+            'selectedCategory' => $selected,
         ]);
+    }
+
+    private function equipmentQuery()
+    {
+        return Equipment::with('symptomProfile:id,name')
+            ->orderBy('equipment_name')
+            ->select(['id', 'equipment_name', 'equipment_id', 'product_category_id', 'service_symptom_profile_id']);
     }
 
     /** Set or clear one unit's template (template_id null = detach). */
@@ -75,11 +81,6 @@ class EquipmentTemplateController extends Controller
                 ->update(['service_symptom_profile_id' => $validated['template_id'] ?: null]);
         });
 
-        return response()->json([
-            'success' => true,
-            'message' => $validated['template_id']
-                ? "Template applied to {$count} unit(s)."
-                : "Template cleared from {$count} unit(s).",
-        ]);
+        return response()->json(['success' => true, 'count' => $count]);
     }
 }

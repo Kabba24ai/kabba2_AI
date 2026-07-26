@@ -75,11 +75,14 @@ trait BuildsTicketFormData
         // search aids narrow this list too (categories come from the
         // product→category map already shipped in filterProducts).
         $overrideEquipment = Equipment::orderBy('equipment_name')
-            ->get(['id', 'equipment_name', 'equipment_id', 'assigned_product_id'])
+            ->get(['id', 'equipment_name', 'equipment_id', 'assigned_product_id', 'service_symptom_profile_id'])
             ->map(fn (Equipment $unit) => [
-                'id'         => $unit->id,
-                'label'      => $unit->equipment_name . ($unit->equipment_id ? ' (' . $unit->equipment_id . ')' : ''),
-                'product_id' => $unit->assigned_product_id,
+                'id'                 => $unit->id,
+                'label'              => $unit->equipment_name . ($unit->equipment_id ? ' (' . $unit->equipment_id . ')' : ''),
+                'product_id'         => $unit->assigned_product_id,
+                // The override unit's OWN attached template drives the Problem
+                // Engine when it is chosen (override is the effective equipment).
+                'symptom_profile_id' => $unit->service_symptom_profile_id,
             ])->values();
 
         // Symptom library + equipment profiles from the canonical Service

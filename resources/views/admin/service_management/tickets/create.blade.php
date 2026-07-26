@@ -290,8 +290,8 @@
                          template (and no legacy profile match). The full
                          library still renders below as a working fallback so
                          intake is never blocked before templates are attached. --}}
-                    <div id="st-complaint-no-template" class="hidden mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
-                        <p class="text-sm text-amber-800"><span class="font-semibold">No Template Listed</span> for this unit — showing all symptoms. Attach a template on the equipment record for a focused list.</p>
+                    <div id="st-complaint-status" class="hidden mb-3 rounded-lg border px-4 py-2.5">
+                        <p id="st-complaint-status-text" class="text-sm"></p>
                     </div>
                     <div id="st-complaint-list" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                     @error('complaints')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
@@ -645,8 +645,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     overrideSelect.choicesInstance = overrideChoices;
 
+    // Override units, keyed by id, carrying their OWN template-resolution keys
+    // (symptom_profile_id / product_id) so the override can drive the Problem
+    // Engine when chosen.
+    const OVERRIDE_EQUIPMENT = @json($overrideEquipment);
+    const OVERRIDE_BY_ID = {};
+    OVERRIDE_EQUIPMENT.forEach(function (u) { OVERRIDE_BY_ID[String(u.id)] = u; });
+
     overrideSelect.addEventListener('change', function () {
         overrideReasonWrap.classList.toggle('hidden', !overrideSelect.value);
+        syncComplaintList(); // the override is the effective equipment — re-resolve the template
     });
 
     // Product → category map: still needed by the complaint symptom-profile
@@ -671,9 +679,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // are dropped so an inapplicable selection can never be submitted
     let checkedComplaints = new Set(OLD_COMPLAINTS.map(String));
 
+    // ONE effective-equipment resolver (mirrors the server's override ?: order
+    // rule): Equipment ID Override is authoritative when chosen; otherwise the
+    // order-linked unit (or the standard unit on the standard path).
     function selectedUnit() {
         if (currentSource === 'standard') {
             return standardUnit;
+        }
+        if (overrideSelect && overrideSelect.value && OVERRIDE_BY_ID[String(overrideSelect.value)]) {
+            return OVERRIDE_BY_ID[String(overrideSelect.value)];
         }
         const order = currentOrder();
         return order ? order.equipment.find(u => String(u.id) === String(equipmentSelect.value)) : null;
@@ -756,7 +770,27 @@ document.addEventListener('DOMContentLoaded', function () {
         complaintChipsWrap.classList.toggle('hidden', checkedComplaints.size === 0);
     }
 
-    const complaintNoTemplate = document.getElementById('st-complaint-no-template');
+    const complaintStatus     = document.getElementById('st-complaint-status');
+    const complaintStatusText = document.getElementById('st-complaint-status-text');
+
+    // Status banner that names the EFFECTIVE equipment (order or override) and
+    // its resolved template — never an ambiguous "this unit" when two equipment
+    // references are on screen.
+    function setComplaintStatus(unit) {
+        if (!unit) { complaintStatus.classList.add('hidden'); return; }
+        complaintStatus.classList.remove('hidden', 'border-amber-200', 'bg-amber-50', 'border-blue-200', 'bg-blue-50');
+        complaintStatusText.classList.remove('text-amber-800', 'text-blue-700');
+        const profile = resolveSymptomProfile(unit);
+        if (profile) {
+            complaintStatus.classList.add('border-blue-200', 'bg-blue-50');
+            complaintStatusText.classList.add('text-blue-700');
+            complaintStatusText.textContent = 'Template: ' + profile.name;
+        } else {
+            complaintStatus.classList.add('border-amber-200', 'bg-amber-50');
+            complaintStatusText.classList.add('text-amber-800');
+            complaintStatusText.textContent = 'No Problem Template is assigned to ' + (unit.label || 'this equipment') + ' — showing all applicable problems.';
+        }
+    }
 
     function syncComplaintList() {
         const unit = selectedUnit();
@@ -767,13 +801,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!unit) {
             checkedComplaints.clear();
             syncComplaintChips();
-            complaintNoTemplate.classList.add('hidden');
+            setComplaintStatus(null);
             return;
         }
 
-        // No Template Listed (spec decision 5): shown when the unit has no
-        // attached template and no legacy profile match.
-        complaintNoTemplate.classList.toggle('hidden', !!resolveSymptomProfile(unit));
+        // Status banner naming the effective equipment + its resolved template
+        // (or the no-template fallback).
+        setComplaintStatus(unit);
 
         const applicable = applicableSymptoms(unit);
 

@@ -104,6 +104,24 @@ class SaveTicketRequest extends FormRequest
                 $validator->errors()->add('team_leader_id', 'The team leader must be one of the assigned personnel.');
             }
 
+            // Complaints must be applicable to the EFFECTIVE equipment — the
+            // Equipment ID Override when one is chosen, otherwise the order /
+            // standard unit. Same server resolver the intake JS mirrors, so a
+            // stale or manipulated set can't submit problems for the wrong
+            // machine. (An unresolved/invalid equipment falls back to the full
+            // library, so this never double-flags a bad-equipment request.)
+            $effectiveEquipmentId = (int) ($this->input('equipment_override_id') ?: $this->input('equipment_id'));
+            $complaints = array_map('intval', (array) $this->input('complaints', []));
+            if ($effectiveEquipmentId && $complaints) {
+                $applicable = \App\Services\ServiceManagement\ServiceProblemLibrary::applicableSymptomIdsForEquipment($effectiveEquipmentId)->all();
+                foreach ($complaints as $complaintId) {
+                    if (!in_array($complaintId, $applicable, true)) {
+                        $validator->errors()->add('complaints', 'A selected problem is not applicable to the selected equipment.');
+                        break;
+                    }
+                }
+            }
+
             // Standard Equipment path — enforce the isolation rules on the
             // server (never trust hidden browser fields): the unit must belong
             // to the chosen category, and no order/customer/override may ride

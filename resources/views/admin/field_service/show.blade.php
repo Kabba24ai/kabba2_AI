@@ -61,10 +61,10 @@
                 @if ($ticket->createdBy) by {{ $ticket->createdBy->first_name }} {{ $ticket->createdBy->last_name }} @endif
             </p>
         </div>
-        <a href="{{ route('admin.field-service.tickets.index') }}"
+        <a href="{{ route('admin.service-management.board') }}"
             class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-600 hover:bg-gray-50 transition">
             <x-heroicon-o-arrow-left class="w-4 h-4" />
-            Back to Field Service
+            Back to Board
         </a>
     </div>
 

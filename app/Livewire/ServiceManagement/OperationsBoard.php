@@ -31,6 +31,8 @@ class OperationsBoard extends Component
     public ?string $kpiFilter = null;        // open | emergency | blocked | bill
     public string $statusFilter = 'All';
     public string $priorityFilter = 'All';   // All | Emergency | Normal
+    public string $technicianFilter = 'All'; // All | <user id> | unassigned
+    public string $search = '';              // free text: ticket #, equipment, customer
     public bool $emergencyOnly = false;
     public bool $aging = false;
 
@@ -125,10 +127,11 @@ class OperationsBoard extends Component
 
     public function clearFilters(): void
     {
-        $this->reset(['typeFilter', 'kpiFilter', 'statusFilter', 'priorityFilter', 'emergencyOnly', 'aging']);
+        $this->reset(['typeFilter', 'kpiFilter', 'statusFilter', 'priorityFilter', 'technicianFilter', 'search', 'emergencyOnly', 'aging']);
         $this->typeFilter = 'All';
         $this->statusFilter = 'All';
         $this->priorityFilter = 'All';
+        $this->technicianFilter = 'All';
     }
 
     // ── mapping helpers ────────────────────────────────────────────────
@@ -195,10 +198,46 @@ class OperationsBoard extends Component
         };
     }
 
+    private function matchesTechnician(ServiceTicket $c): bool
+    {
+        if ($this->technicianFilter === 'All') {
+            return true;
+        }
+        $leaderId = $c->teamLeader()?->id;
+        if ($this->technicianFilter === 'unassigned') {
+            return $leaderId === null;
+        }
+        return (string) $leaderId === $this->technicianFilter;
+    }
+
+    private function matchesSearch(ServiceTicket $c): bool
+    {
+        $q = trim($this->search);
+        if ($q === '') {
+            return true;
+        }
+        $q = mb_strtolower($q);
+        $haystacks = array_filter([
+            $c->ticket_number,
+            $c->equipment?->equipment_name,
+            $c->equipment?->equipment_id,
+            $c->customer?->full_name,
+            $c->order?->customer_name,
+        ]);
+        foreach ($haystacks as $h) {
+            if (str_contains(mb_strtolower((string) $h), $q)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private function passes(ServiceTicket $c): bool
     {
         return $this->matchesType($c, $this->typeFilter)
             && $this->matchesKpi($c)
+            && $this->matchesTechnician($c)
+            && $this->matchesSearch($c)
             && ($this->statusFilter === 'All' || $c->repair_status->value === $this->statusFilter)
             && ($this->priorityFilter === 'All'
                 || ($this->priorityFilter === 'Emergency'
@@ -223,6 +262,8 @@ class OperationsBoard extends Component
         $customer = $c->customer?->full_name
             ?: ($c->order?->customer_name ?: 'Internal – Yard');
 
+        $isBlocked = in_array($c->repair_status->value, RepairStatus::blocked(), true);
+
         return [
             'id'          => $c->id,
             'ordinal'     => $ordinal,
@@ -243,8 +284,24 @@ class OperationsBoard extends Component
             'emergency'   => $c->priority === ServicePriority::Emergency,
             'field'       => $type === ServiceType::FieldServiceCall,
             'warranty'    => $type === ServiceType::OemWarrantyRepair,
-            'showUrl'     => route('admin.service-management.tickets.show', $c),
+            'blocked'     => $isBlocked,
+            'waitingLabel' => $isBlocked ? 'Waiting on ' . $c->repair_status->waitingOnLabel() : null,
+            'showUrl'     => $this->workbenchUrl($c),
         ];
+    }
+
+    /**
+     * The correct workbench for a card. Field Service work is a canonical
+     * service_ticket with a companion field_service_ticket — its card opens
+     * the specialized FIELD workbench (dispatch/route/on-site), resolved
+     * through the companion. Everything else opens the shop workbench.
+     */
+    private function workbenchUrl(ServiceTicket $c): string
+    {
+        if ($c->service_type === ServiceType::FieldServiceCall && $c->fieldServiceTicket) {
+            return route('admin.field-service.tickets.show', $c->fieldServiceTicket);
+        }
+        return route('admin.service-management.tickets.show', $c);
     }
 
     public function render()
@@ -254,6 +311,7 @@ class OperationsBoard extends Component
             'personnel:id,first_name,last_name',
             'customer:id,first_name,last_name',
             'order:id,order_number,customer_name',
+            'fieldServiceTicket:id,service_ticket_id',
         ])
             ->whereIn('repair_status', RepairStatus::notFinished())
             ->get();
@@ -309,14 +367,27 @@ class OperationsBoard extends Component
             ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()])
             ->all();
 
+        // Technician filter options — team leaders currently holding open work,
+        // plus an Unassigned bucket. Sorted by first name.
+        $technicianOptions = collect([['All', 'All Technicians']]);
+        $leaders = $tickets->map(fn ($c) => $c->teamLeader())->filter()->unique('id')
+            ->sortBy('first_name')
+            ->map(fn ($u) => [(string) $u->id, trim($u->first_name . ' ' . $u->last_name)]);
+        $technicianOptions = $technicianOptions->concat($leaders);
+        if ($tickets->contains(fn ($c) => $c->teamLeader() === null)) {
+            $technicianOptions->push(['unassigned', 'Unassigned']);
+        }
+
         return view('livewire.service-management.operations-board', [
-            'lanes'         => $lanes,
-            'kpiCounts'     => $kpiCounts,
-            'typeCounts'    => $typeCounts,
-            'statusOptions' => $statusOptions,
-            'cardStatuses'  => $cardStatuses,
-            'anyFilter'     => $this->typeFilter !== 'All' || $this->kpiFilter !== null
+            'lanes'             => $lanes,
+            'kpiCounts'         => $kpiCounts,
+            'typeCounts'        => $typeCounts,
+            'statusOptions'     => $statusOptions,
+            'cardStatuses'      => $cardStatuses,
+            'technicianOptions' => $technicianOptions->all(),
+            'anyFilter'         => $this->typeFilter !== 'All' || $this->kpiFilter !== null
                 || $this->statusFilter !== 'All' || $this->priorityFilter !== 'All'
+                || $this->technicianFilter !== 'All' || trim($this->search) !== ''
                 || $this->emergencyOnly || $this->aging,
         ]);
     }

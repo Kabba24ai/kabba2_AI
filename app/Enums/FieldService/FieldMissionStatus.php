@@ -2,6 +2,8 @@
 
 namespace App\Enums\FieldService;
 
+use App\Enums\Service\RepairStatus;
+
 /**
  * Mission status for a Field Service Ticket. Field Service manages an
  * in-field mission (dispatch → arrival → assessment), not an in-shop
@@ -90,6 +92,24 @@ enum FieldMissionStatus: string
     public function isTerminal(): bool
     {
         return $this === self::Completed || $this === self::Cancelled;
+    }
+
+    /**
+     * Coarse mapping onto the shop RepairStatus for the companion service
+     * ticket that carries this mission onto the Operations Board. The mission
+     * keeps its own detailed status; the companion only needs enough state for
+     * the board to show it (open → in progress) and to drop it when the
+     * mission ends (completed/cancelled leave the board via notFinished()).
+     */
+    public function toRepairStatus(): RepairStatus
+    {
+        return match ($this) {
+            self::Draft, self::ReadyForDispatch, self::Assigned => RepairStatus::Open,
+            self::EnRoute, self::OnSite, self::FieldAssessment,
+            self::AssessmentComplete, self::OperationalDecision  => RepairStatus::InProgress,
+            self::Completed                                      => RepairStatus::Completed,
+            self::Cancelled                                      => RepairStatus::Cancelled,
+        };
     }
 
     /** Timestamp column stamped when this status is entered (null = none). */

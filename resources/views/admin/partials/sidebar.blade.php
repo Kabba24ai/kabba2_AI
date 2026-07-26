@@ -640,25 +640,15 @@
                         <div x-show="open" x-transition>
                             <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
                                 :class="sidebarToggle ? 'lg:hidden' : ''">
+                                {{-- Service Operations Board — THE canonical hub: launch,
+                                     workload, assignment, and return destination for all
+                                     service work. Stays highlighted across the ticket
+                                     workbench. --}}
                                 <li>
                                     <a href="{{ route('admin.service-management.board') }}"
                                         class="menu-dropdown-item group
-                                        {{ Route::is('admin.service-management.board') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-view-columns class="h-5 w-5" /> Operations Board
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('admin.service-management.overview') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.service-management.overview') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-squares-2x2 class="h-5 w-5" /> Overview
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('admin.service-management.tickets.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.service-management.tickets.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-ticket class="h-5 w-5" /> Tickets
+                                        {{ Route::is('admin.service-management.board') || Route::is('admin.service-management.tickets.*') || Route::is('admin.field-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-view-columns class="h-5 w-5" /> Service Operations
                                     </a>
                                 </li>
                                 <li>
@@ -668,15 +658,10 @@
                                         <x-heroicon-o-exclamation-triangle class="h-5 w-5" /> Customer Damage
                                     </a>
                                 </li>
-                                @if (Route::has('admin.field-service.tickets.index'))
-                                    <li>
-                                        <a href="{{ route('admin.field-service.tickets.index') }}"
-                                            class="menu-dropdown-item group
-                                            {{ Route::is('admin.field-service.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                            <x-heroicon-o-truck class="h-5 w-5" /> Field Service
-                                        </a>
-                                    </li>
-                                @endif
+                                {{-- Field Service has no standalone workload list — field
+                                     missions live on the board (filter: Field) and launch from
+                                     "New Service Work". Only the specialized mission workbench
+                                     remains, reached from a board card. --}}
                                 @if (Route::has('admin.warranty.claims.index'))
                                     <li>
                                         <a href="{{ route('admin.warranty.claims.index') }}"

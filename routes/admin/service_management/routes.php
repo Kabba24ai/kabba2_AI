@@ -10,7 +10,6 @@ use App\Http\Controllers\Admin\ServiceManagement\Notes;
 use App\Http\Controllers\Admin\ServiceManagement\LaborEntries;
 use App\Http\Controllers\Admin\ServiceManagement\Media;
 use App\Http\Controllers\Admin\ServiceManagement\BoardController;
-use App\Http\Controllers\Admin\ServiceManagement\OverviewController;
 use App\Http\Controllers\Admin\ServiceManagement\Parts;
 use App\Http\Controllers\Admin\ServiceManagement\ProblemTemplates;
 use App\Http\Controllers\Admin\ServiceManagement\RepairAuthorization;
@@ -27,12 +26,10 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('service-management')
     ->name('service-management.')
     ->group(function () {
-        Route::get('/', OverviewController::class)->name('overview')->middleware('permission:service_tickets.view');
-
-        // Service Operations Board — consolidated technician-swimlane dashboard
-        // (Livewire). Non-destructive alongside the overview until it becomes
-        // the default Service Operations view.
-        Route::get('/board', BoardController::class)->name('board')->middleware('permission:service_tickets.view');
+        // Service Operations Board — THE canonical Service entry point, launch
+        // surface, and return destination for all service work. Lives at the
+        // module root; the legacy Overview page has been removed.
+        Route::get('/', BoardController::class)->name('board')->middleware('permission:service_tickets.view');
 
         // Customer Damage Staging — the review bridge between the return
         // checklist and disposition (No Action / Charge / Service Ticket).
@@ -79,7 +76,8 @@ Route::prefix('service-management')
         });
 
         Route::prefix('tickets')->name('tickets.')->middleware('permission:service_tickets.view')->group(function () {
-            Route::get('/',                 Tickets\IndexController::class)->name('index');
+            // No ticket index — the Operations Board IS the ticket list. Only
+            // intake + the individual workbench live here.
             Route::get('/create',           Tickets\CreateController::class)->name('create');
             // Intake lookups — static paths, declared before /{ticket} so
             // route-model binding never claims them.

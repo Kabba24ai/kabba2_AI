@@ -474,6 +474,16 @@ class ServiceTicket extends Model
         return $this->belongsTo(ServiceResponsibilityDecision::class, 'responsibility_decision_id');
     }
 
+    /**
+     * Companion Field Service mission (present only for FieldServiceCall
+     * tickets). The board resolves a field card's specialized workbench
+     * through this relation.
+     */
+    public function fieldServiceTicket()
+    {
+        return $this->hasOne(\App\Models\FieldService\FieldServiceTicket::class, 'service_ticket_id');
+    }
+
     /** Has a responsibility decision been made yet? (Pending = no decision.) */
     public function isResponsibilityDecided(): bool
     {

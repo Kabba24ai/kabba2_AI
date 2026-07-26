@@ -45,6 +45,9 @@ class FieldServiceTicket extends Model
     protected $fillable = [
         'ticket_number',
         'mission_status',
+        // Companion canonical service_tickets row that carries this mission
+        // onto the Operations Board (set by intake; see StoreController).
+        'service_ticket_id',
         'order_id',
         'customer_id',
         'equipment_id',
@@ -123,6 +126,54 @@ class FieldServiceTicket extends Model
                 new: $ticket->mission_status->label(),
             );
         });
+
+        // Keep the companion service ticket (the board card) in step whenever
+        // the mission's status or assigned technician changes.
+        static::updated(function (self $ticket) {
+            if ($ticket->service_ticket_id && $ticket->wasChanged(['mission_status', 'technician_id'])) {
+                $ticket->syncCompanionServiceTicket();
+            }
+        });
+    }
+
+    /**
+     * Push mission state onto the companion service ticket so the Operations
+     * Board reflects it: the assigned technician becomes the ticket's team
+     * leader (its board lane), and the mission status maps onto repair_status
+     * (which also drops the card off the board when the mission ends).
+     *
+     * repair_status is set directly rather than through transitionTo() — a
+     * field mission has its own gating (transitionBlockers) and must not be
+     * subject to the shop's repair-authorization gate.
+     */
+    public function syncCompanionServiceTicket(): void
+    {
+        $st = $this->serviceTicket;
+        if (!$st) {
+            return;
+        }
+
+        if ($this->technician_id) {
+            \Illuminate\Support\Facades\DB::table('service_ticket_personnel')
+                ->where('service_ticket_id', $st->id)->update(['is_team_leader' => 0]);
+            if ($st->personnel()->where('users.id', $this->technician_id)->exists()) {
+                \Illuminate\Support\Facades\DB::table('service_ticket_personnel')
+                    ->where('service_ticket_id', $st->id)
+                    ->where('employee_id', $this->technician_id)
+                    ->update(['is_team_leader' => 1]);
+            } else {
+                $st->personnel()->attach($this->technician_id, ['is_team_leader' => true]);
+            }
+        }
+
+        $target = $this->mission_status->toRepairStatus();
+        if ($st->repair_status !== $target) {
+            $st->repair_status = $target;
+            if ($target === \App\Enums\Service\RepairStatus::Completed && $st->completed_at === null) {
+                $st->completed_at = now();
+            }
+            $st->save();
+        }
     }
 
     // ── Relations ────────────────────────────────────────────────────
@@ -130,6 +181,12 @@ class FieldServiceTicket extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /** Companion canonical service ticket — this mission's Operations Board card. */
+    public function serviceTicket()
+    {
+        return $this->belongsTo(\App\Models\Service\ServiceTicket::class, 'service_ticket_id');
     }
 
     public function customer()

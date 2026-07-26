@@ -33,10 +33,10 @@
                 Start the service intake. Diagnosis, approval, parts, labor, and final resolution continue on the ticket workbench.
             </p>
         </div>
-        <a href="{{ route('admin.service-management.tickets.index') }}"
+        <a href="{{ route('admin.service-management.board') }}"
             class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-600 hover:bg-gray-50 transition">
             <x-heroicon-o-arrow-left class="w-4 h-4" />
-            Back to Tickets
+            Back to Board
         </a>
     </div>
 
@@ -415,7 +415,7 @@
                 </div>
 
                 <div class="flex justify-end items-center gap-3">
-                    <a href="{{ route('admin.service-management.tickets.index') }}"
+                    <a href="{{ route('admin.service-management.board') }}"
                         class="px-6 py-3 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                         Cancel
                     </a>

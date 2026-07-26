@@ -35,10 +35,10 @@
                 One question drives this form — <span class="font-medium text-gray-600">what does the technician need before leaving the shop?</span>
             </p>
         </div>
-        <a href="{{ route('admin.field-service.tickets.index') }}"
+        <a href="{{ route('admin.service-management.board') }}"
             class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-600 hover:bg-gray-50 transition">
             <x-heroicon-o-arrow-left class="w-4 h-4" />
-            Back to Field Service
+            Back to Board
         </a>
     </div>
 
@@ -294,7 +294,7 @@
 
         <div class="flex justify-end items-center gap-3">
             <span class="text-xs text-gray-400 mr-auto">The mission continues on the Field Operations Workbench after creation.</span>
-            <a href="{{ route('admin.field-service.tickets.index') }}"
+            <a href="{{ route('admin.service-management.board') }}"
                 class="px-6 py-3 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
                 Cancel
             </a>

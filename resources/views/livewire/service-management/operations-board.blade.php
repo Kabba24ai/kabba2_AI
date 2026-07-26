@@ -32,6 +32,13 @@
 
     {{-- Filter row --}}
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;">
+        <input type="search" wire:model.live.debounce.300ms="search" placeholder="Search ticket #, equipment, customer…"
+               style="background: #fff; border: 1px solid #e2e8f0; border-radius: 9px; padding: 9px 12px; font-size: 13px; color: #475569; font-family: inherit; min-width: 240px;">
+        <select wire:model.live="technicianFilter" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 9px; padding: 9px 12px; font-size: 13px; color: #475569; cursor: pointer; font-family: inherit;">
+            @foreach ($technicianOptions as $o)
+                <option value="{{ $o[0] }}">{{ $o[1] }}</option>
+            @endforeach
+        </select>
         <select wire:model.live="statusFilter" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 9px; padding: 9px 12px; font-size: 13px; color: #475569; cursor: pointer; font-family: inherit;">
             @foreach ($statusOptions as $o)
                 <option value="{{ $o[0] }}">{{ $o[1] }}</option>
@@ -110,6 +117,9 @@
                                         <span style="font-size: 10px; font-weight: 700; color: #7c3aed; background: #f3e8ff; border-radius: 5px; padding: 2px 6px;">◈ Field</span>
                                     @elseif ($card['warranty'])
                                         <span style="font-size: 10px; font-weight: 700; color: #4f46e5; background: #e0e7ff; border-radius: 5px; padding: 2px 6px;">OEM</span>
+                                    @endif
+                                    @if ($card['blocked'])
+                                        <span title="{{ $card['waitingLabel'] }}" style="font-size: 10px; font-weight: 700; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; border-radius: 5px; padding: 2px 6px;">⏸ {{ $card['waitingLabel'] }}</span>
                                     @endif
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #64748b;">

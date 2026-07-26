@@ -18,7 +18,9 @@ Route::prefix('field-service')
         Route::prefix('tickets')->name('tickets.')
             ->middleware('permission:field_service.view')
             ->group(function () {
-            Route::get('/',                 Tickets\IndexController::class)->name('index');
+            // No field index — the Operations Board is the single workload
+            // surface (filter to Field). Only intake + the mission workbench
+            // live here.
             Route::get('/create',           Tickets\CreateController::class)->name('create');
             Route::post('/',                Tickets\StoreController::class)->name('store')->middleware('permission:field_service.manage');
             Route::get('/{ticket}',         Tickets\ShowController::class)->name('show');

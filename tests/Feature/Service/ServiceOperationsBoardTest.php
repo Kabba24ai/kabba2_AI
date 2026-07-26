@@ -118,6 +118,47 @@ class ServiceOperationsBoardTest extends TestCase
             ->assertSee('OEM Warranty');
     }
 
+    // ── Consolidation: board is the single hub ──────────────────────────
+
+    public function test_search_filters_by_ticket_number(): void
+    {
+        $a = $this->makeTicket([], [$this->tech->id], $this->tech->id);
+        $b = $this->makeTicket([], [$this->tech->id], $this->tech->id);
+
+        Livewire::test(OperationsBoard::class)
+            ->set('search', $a->ticket_number)
+            ->assertSee($a->ticket_number)
+            ->assertDontSee($b->ticket_number);
+    }
+
+    public function test_technician_filter_shows_only_that_technicians_lane(): void
+    {
+        $other = User::create(['first_name' => 'Mona', 'last_name' => 'Ortiz', 'email' => 'mona@test.local', 'status' => 'Active']);
+        $mine   = $this->makeTicket([], [$this->tech->id], $this->tech->id);
+        $theirs = $this->makeTicket([], [$other->id], $other->id);
+
+        Livewire::test(OperationsBoard::class)
+            ->set('technicianFilter', (string) $this->tech->id)
+            ->assertSee($mine->ticket_number)
+            ->assertDontSee($theirs->ticket_number);
+    }
+
+    public function test_board_page_offers_the_new_service_work_launcher(): void
+    {
+        $this->get(route('admin.service-management.board'))
+            ->assertOk()
+            ->assertSee('New Service Work')
+            ->assertSee('Shop Repair')
+            ->assertSee('Field Service');
+    }
+
+    public function test_legacy_overview_and_index_routes_are_removed(): void
+    {
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.service-management.overview'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.service-management.tickets.index'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.field-service.tickets.index'));
+    }
+
     public function test_completed_and_closed_tickets_are_excluded(): void
     {
         $this->makeTicket(['repair_status' => RepairStatus::Closed->value], [$this->tech->id], $this->tech->id);

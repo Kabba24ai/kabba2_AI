@@ -5,12 +5,16 @@ namespace Tests\Feature\FieldService;
 use App\Enums\FieldService\FieldMissionStatus;
 use App\Enums\FieldService\FieldOperationalOutcome;
 use App\Enums\FieldService\FieldTicketEventType;
+use App\Enums\Service\RepairStatus;
+use App\Enums\Service\ServiceType;
+use App\Livewire\ServiceManagement\OperationsBoard;
 use App\Models\Dispatch\DispatchAiTruck;
 use App\Models\FieldService\FieldServiceTicket;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -481,26 +485,48 @@ class FieldServiceTicketTest extends TestCase
 
     // ── Index ────────────────────────────────────────────────────────
 
-    public function test_index_lists_active_missions_and_hides_closed_by_default(): void
+    // ── Consolidation: field missions live on the Operations Board ──────
+    // The standalone field index is gone; a field mission now creates a
+    // companion canonical service ticket that carries it onto the board.
+
+    public function test_field_mission_creates_a_board_visible_companion_ticket(): void
     {
-        $active = $this->makeTicket();
-        $closed = $this->makeTicket(['problem_summary' => 'Closed mission problem']);
-        $this->advanceTo($closed, FieldMissionStatus::OperationalDecision);
-        $this->assertTrue($closed->fresh()->recordOperationalDecision(FieldOperationalOutcome::NoRepairRequired));
-        $this->assertTrue($closed->fresh()->transitionTo(FieldMissionStatus::Completed));
-        $this->assertSame(FieldMissionStatus::Completed, $closed->fresh()->mission_status);
+        $ticket = $this->makeTicket();
+        $st = $ticket->serviceTicket;
 
-        $this->get(route('admin.field-service.tickets.index'))
-            ->assertOk()
-            ->assertSee($active->ticket_number)
-            ->assertDontSee($closed->ticket_number);
+        $this->assertNotNull($st, 'A field mission must create a companion service ticket.');
+        $this->assertSame(ServiceType::FieldServiceCall, $st->service_type);
+        $this->assertSame($this->lift->id, $st->equipment_id);
 
-        $this->get(route('admin.field-service.tickets.index', ['include_closed' => 1]))
-            ->assertSee($active->ticket_number)
-            ->assertSee($closed->ticket_number);
+        // It appears on the board, and its card opens the FIELD workbench
+        // (not the shop workbench).
+        Livewire::test(OperationsBoard::class)
+            ->assertSee($st->ticket_number)
+            ->assertSeeHtml(route('admin.field-service.tickets.show', $ticket));
+    }
 
-        $this->get(route('admin.field-service.tickets.index', ['mission_status' => 'completed']))
-            ->assertSee($closed->ticket_number)
-            ->assertDontSee($active->ticket_number);
+    public function test_dispatching_a_technician_makes_them_the_board_lane_leader(): void
+    {
+        $ticket = $this->makeTicket();
+
+        // Assigning the technician on the mission syncs the companion's team
+        // leader → it lands in that technician's board lane.
+        $ticket->update(['technician_id' => $this->tech->id, 'mission_status' => FieldMissionStatus::Assigned]);
+
+        $this->assertSame($this->tech->id, $ticket->fresh()->serviceTicket->teamLeader()?->id);
+    }
+
+    public function test_completing_a_mission_drops_its_companion_off_the_board(): void
+    {
+        $ticket = $this->makeTicket();
+        $st = $ticket->serviceTicket;
+
+        $this->advanceTo($ticket, FieldMissionStatus::OperationalDecision);
+        $this->assertTrue($ticket->fresh()->recordOperationalDecision(FieldOperationalOutcome::NoRepairRequired));
+        $this->assertTrue($ticket->fresh()->transitionTo(FieldMissionStatus::Completed));
+
+        // Companion is Completed → excluded from the board (notFinished()).
+        $this->assertSame(RepairStatus::Completed, $st->fresh()->repair_status);
+        Livewire::test(OperationsBoard::class)->assertDontSee($st->ticket_number);
     }
 }

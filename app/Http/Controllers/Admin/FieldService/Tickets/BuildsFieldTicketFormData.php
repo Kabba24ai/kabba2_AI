@@ -22,7 +22,10 @@ trait BuildsFieldTicketFormData
         $orders = Order::with([
                 'customer',
                 'shippingAddress',
-                'products' => fn ($q) => $q->whereNotNull('equipment_id')->with('equipment'),
+                // All line items so the option label can list the order's
+                // products (helps identify the right order); equipment is
+                // eager-loaded for the serviceable-unit resolution below.
+                'products' => fn ($q) => $q->with('equipment'),
             ])
             ->latest('id')
             ->limit(300)
@@ -31,9 +34,18 @@ trait BuildsFieldTicketFormData
         $orderOptions = $orders->map(function (Order $order) {
             $ship = $order->shippingAddress;
 
+            // Append the order's product names so the searchable dropdown is
+            // identifiable at a glance (first few, then "+N more").
+            $names = $order->products->pluck('product_name')->filter()->unique()->values();
+            $label = trim($order->order_number . ' — ' . ($order->customer_name ?? $order->customer?->full_name ?? 'Unknown'));
+            if ($names->isNotEmpty()) {
+                $label .= ' · ' . $names->take(3)->implode(' · ')
+                    . ($names->count() > 3 ? ' +' . ($names->count() - 3) . ' more' : '');
+            }
+
             return [
                 'id'       => $order->id,
-                'label'    => trim($order->order_number . ' — ' . ($order->customer_name ?? $order->customer?->full_name ?? 'Unknown')),
+                'label'    => $label,
                 'customer' => $order->customer_name ?? $order->customer?->full_name,
                 // Derived contact — the shipping-address recipient, else the order customer.
                 'contact'  => [

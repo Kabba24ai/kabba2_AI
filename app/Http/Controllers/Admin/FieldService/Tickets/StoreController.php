@@ -75,10 +75,21 @@ class StoreController extends Controller
         // Details (structured complaints ride as complaint records).
         $companionComplaint = $complaintDetails ?: $problemSummary;
 
+        // Assigned Personnel — the canonical multi-crew + one-lead contract
+        // (shared component with the Standard Service intake). The mission's
+        // single lead-technician column (dispatch gating, board lane, status
+        // transitions) is DERIVED here — never a second UI: the marked Team
+        // Leader, else the first person selected. The full crew + the marked
+        // leader flow to the companion ticket unchanged, exactly as Standard.
+        $personnelIds = array_values(array_unique(array_map('intval', $validated['personnel'] ?? [])));
+        $teamLeaderId = isset($validated['team_leader_id']) ? (int) $validated['team_leader_id'] : null;
+        $leadTechnicianId = $teamLeaderId ?: ($personnelIds[0] ?? null);
+
         // Mission column values — strip the request-only + companion-only keys.
         $missionAttributes = collect($validated)->except([
             'contact_source', 'location_source', 'loc_street', 'loc_city', 'loc_state', 'loc_zip',
             'complaints', 'customer_complaint', 'contact_name', 'contact_phone', 'evidence',
+            'personnel', 'team_leader_id',
         ])->all();
 
         $missionAttributes = array_merge($missionAttributes, [
@@ -88,11 +99,12 @@ class StoreController extends Controller
             'job_site_address' => $jobSiteAddress,
             'reported_at'      => now(),           // server timestamp is the truth
             'problem_summary'  => $problemSummary,
+            'technician_id'    => $leadTechnicianId,   // derived lead, not a second control
             'created_by'       => auth()->id(),
         ]);
 
         // Mission + companion canonical service ticket, created atomically.
-        [$mission, $serviceTicket] = DB::transaction(function () use ($missionAttributes, $complaintIds, $companionComplaint) {
+        [$mission, $serviceTicket] = DB::transaction(function () use ($missionAttributes, $complaintIds, $companionComplaint, $personnelIds, $teamLeaderId) {
             $mission = FieldServiceTicket::create($missionAttributes);
 
             $serviceTicket = ServiceTicketIntakeService::create(
@@ -107,8 +119,8 @@ class StoreController extends Controller
                     'opened_at'          => now(),
                 ],
                 complaintSymptomIds: $complaintIds,
-                personnelIds: $mission->technician_id ? [$mission->technician_id] : [],
-                teamLeaderId: $mission->technician_id,
+                personnelIds: $personnelIds,
+                teamLeaderId: $teamLeaderId,
                 idempotencyKey: 'field_service_ticket:' . $mission->id,
             );
             $mission->update(['service_ticket_id' => $serviceTicket->id]);

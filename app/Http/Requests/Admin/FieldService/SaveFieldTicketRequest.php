@@ -65,8 +65,15 @@ class SaveFieldTicketRequest extends FormRequest
             'site_access'    => ['required', Rule::enum(FieldSiteAccess::class)],
             'site_notes'     => ['nullable', 'string', 'max:5000'],
 
-            // 4. Dispatch assignment (optional at creation)
-            'technician_id'          => ['nullable', 'integer', 'exists:users,id'],
+            // 3. Assigned Personnel — the canonical multi-crew + one-lead contract,
+            // identical to the Standard Service intake (shared component). The
+            // mission's single lead-technician column is derived from these in the
+            // controller. Optional at creation.
+            'personnel'      => ['nullable', 'array'],
+            'personnel.*'    => ['integer', 'exists:users,id'],
+            'team_leader_id' => ['nullable', 'integer', 'exists:users,id'],
+
+            // 4. Dispatch logistics (optional at creation)
             'truck_id'               => ['nullable', 'integer', 'exists:dispatch_ai_trucks,id'],
             'estimated_departure_at' => ['nullable', 'date'],
             'estimated_arrival_at'   => ['nullable', 'date', 'after_or_equal:estimated_departure_at'],
@@ -82,6 +89,14 @@ class SaveFieldTicketRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            // Team leader must be one of the assigned personnel (same canonical
+            // rule the Standard Service intake enforces).
+            $leaderId  = $this->input('team_leader_id');
+            $personnel = array_map('intval', (array) $this->input('personnel', []));
+            if ($leaderId !== null && !in_array((int) $leaderId, $personnel, true)) {
+                $validator->errors()->add('team_leader_id', 'The team leader must be one of the assigned personnel.');
+            }
+
             // A stated problem is required — a structured complaint selection or
             // Complaint Details.
             if (empty($this->input('complaints')) && trim((string) $this->input('customer_complaint')) === '') {
@@ -147,7 +162,6 @@ class SaveFieldTicketRequest extends FormRequest
         return [
             'order_id'      => 'related rental order',
             'equipment_id'  => 'equipment',
-            'technician_id' => 'assigned technician',
             'truck_id'      => 'service truck',
             'complaints'    => 'reported problems',
         ];

@@ -89,6 +89,12 @@ trait BuildsFieldTicketFormData
         $technicians = User::active()->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
 
+        // Assigned Personnel crew list for the shared _personnel_assignment
+        // component (the SAME source the Standard Service intake uses). Kept
+        // distinct from $technicians so the Field Operations Workbench dispatch
+        // form (single lead select) is unaffected.
+        $employees = $technicians;
+
         $trucks = DispatchAiTruck::where('is_active', true)
             ->orderBy('truck_name')
             ->get(['id', 'truck_name', 'truck_number']);
@@ -97,6 +103,6 @@ trait BuildsFieldTicketFormData
         // lives in the states table); submitted as the two-letter abbreviation.
         $states = State::orderBy('name')->get(['id', 'name', 'abbreviation']);
 
-        return compact('orderOptions', 'problemCategories', 'problems', 'problemProfiles', 'technicians', 'trucks', 'states');
+        return compact('orderOptions', 'problemCategories', 'problems', 'problemProfiles', 'technicians', 'employees', 'trucks', 'states');
     }
 }

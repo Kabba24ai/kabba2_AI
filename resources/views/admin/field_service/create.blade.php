@@ -210,26 +210,15 @@
             @include('admin.service_management.problem_templates.partials._complaint_intake', ['prefix' => 'fs'])
         </div>
 
-        {{-- ===== 3. Assigned Technician — a routing decision made AFTER the
-             complaint is understood (which specialty the problem needs). ===== --}}
+        {{-- ===== 3. Assigned Personnel — a routing decision made AFTER the
+             complaint is understood (which specialty the problem needs). The SAME
+             shared assignment component New Service Ticket uses: multiple crew, one
+             optional Team Leader. Optional at creation — assignment can also happen
+             on the Field Operations Workbench. The mission's single lead technician
+             is derived server-side from the marked Team Leader (or the first person
+             selected) so the dispatch workflow keeps its one-lead reference. ===== --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-            <h2 class="text-sm font-semibold text-gray-800 mb-1">3 · Assigned Technician</h2>
-            <p class="text-xs text-gray-400 mb-4">
-                Who is best qualified for this complaint. Optional at creation — assignment can also happen on the Field Operations Workbench.
-            </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="{{ $labelClass }}">Assigned Technician</label>
-                    <select name="technician_id" class="{{ $inputClass }}">
-                        <option value="">— Not assigned yet —</option>
-                        @foreach ($technicians as $technician)
-                            <option value="{{ $technician->id }}" @selected((int) old('technician_id') === $technician->id)>
-                                {{ $technician->first_name }} {{ $technician->last_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
+            @include('admin.service_management.partials._personnel_assignment', ['prefix' => 'fs'])
         </div>
 
         {{-- ===== 4. Dispatch Assessment ===== --}}
@@ -387,6 +376,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Complaint Evidence — the same component Standard Service uses).
     let currentUnit = null;
     const complaintIntake = window.serviceComplaintIntake.init('fs', () => currentUnit);
+
+    // Assigned Personnel — shared component (same engine New Service Ticket uses).
+    window.servicePersonnelAssignment.init('fs');
 
     const orderSelect = $('fs-order');
     const customerBox = $('fs-customer');

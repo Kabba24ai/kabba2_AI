@@ -53,10 +53,10 @@ Route::prefix('service-management')
             // Template list + builder
             Route::get('/',                    [ProblemTemplates\TemplateController::class, 'index'])->name('index');
             Route::post('/',                   [ProblemTemplates\TemplateController::class, 'store'])->name('store')->middleware('permission:problem_templates.manage');
+            Route::get('/create',              [ProblemTemplates\TemplateController::class, 'create'])->name('create')->middleware('permission:problem_templates.manage');
             Route::get('/{profile}/builder',   [ProblemTemplates\TemplateController::class, 'builder'])->name('builder');
             Route::put('/{profile}',           [ProblemTemplates\TemplateController::class, 'update'])->name('update')->middleware('permission:problem_templates.manage');
             Route::delete('/{profile}',        [ProblemTemplates\TemplateController::class, 'destroy'])->name('destroy')->middleware('permission:problem_templates.manage');
-            Route::post('/{profile}/items',    [ProblemTemplates\TemplateController::class, 'saveItems'])->name('save-items')->middleware('permission:problem_templates.manage');
 
             // Library — Categories + Items taxonomy (managed via the Problem
             // Library card grid + drill-down; endpoints below).

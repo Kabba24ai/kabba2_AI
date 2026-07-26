@@ -1,56 +1,132 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Template Builder')
+@section('title', $template ? 'Edit Problem Template' : 'Create Problem Template')
+
+@push('css')
+<style>
+    .tpl-cols { display:grid; grid-template-columns:1fr; gap:1rem; align-items:start; }
+    @media (min-width:1024px){ .tpl-cols{ grid-template-columns:minmax(0,25fr) minmax(0,30fr) minmax(0,45fr); } }
+    .tpl-scroll { max-height:calc(100vh - 235px); overflow-y:auto; }
+    .tpl-cat { display:flex; flex-direction:column; align-items:center; text-align:center; gap:.3rem; padding:.85rem .5rem;
+        border:1px solid #e5e7eb; border-radius:.6rem; background:#fff; cursor:pointer; transition:border-color .12s ease, background .12s ease; }
+    .tpl-cat:hover { border-color:#c7d2fe; background:#f8faff; }
+    .tpl-cat.is-selected { border-color:#4f46e5; background:#eef2ff; box-shadow:inset 0 0 0 1px #4f46e5; }
+    .tpl-cat-name { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em; color:#111827; line-height:1.2; }
+    .tpl-cat-icon { color:#4f46e5; }
+    .tpl-cat-meta { font-size:.66rem; color:#6b7280; line-height:1.35; }
+    .tpl-avail-item, .tpl-tpl-item { display:flex; align-items:center; gap:.5rem; padding:.5rem .65rem; border:1px solid #e5e7eb;
+        border-radius:.5rem; background:#fff; font-size:.83rem; color:#374151; }
+    .tpl-avail-item { cursor:pointer; }
+    .tpl-avail-item:hover { border-color:#c7d2fe; background:#f8faff; }
+    .tpl-avail-item.is-added { opacity:.5; cursor:default; background:#f9fafb; }
+    .tpl-avail-item.is-added:hover { border-color:#e5e7eb; background:#f9fafb; }
+    .tpl-drag-ghost { opacity:.35; }
+    .tpl-cat-heading { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:#4f46e5; margin:.85rem 0 .45rem; }
+    .tpl-cat-heading:first-child { margin-top:0; }
+</style>
+@endpush
 
 @section('content')
     @include('flash::message')
 
-    <div class="max-w-6xl mx-auto px-4 py-6">
-        <div class="flex items-center justify-between mb-5">
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">{{ $template->name }}</h1>
-                <p class="text-sm text-gray-500 mt-0.5">{{ $template->description ?: 'Assemble this template — add items from any category, order them, reuse freely.' }}</p>
+    @php
+        $iconFor = function (string $name): string {
+            $n = strtolower($name);
+            return match (true) {
+                str_contains($n, 'engine') || str_contains($n, 'start')                        => 'heroicon-o-fire',
+                str_contains($n, 'fuel')                                                        => 'heroicon-o-fire',
+                str_contains($n, 'hydraul')                                                     => 'heroicon-o-adjustments-horizontal',
+                str_contains($n, 'electric') || str_contains($n, 'charg') || str_contains($n, 'batter') => 'heroicon-o-bolt',
+                str_contains($n, 'track') || str_contains($n, 'undercarriage')                  => 'heroicon-o-cog-6-tooth',
+                str_contains($n, 'transmiss') || str_contains($n, 'drivetrain') || str_contains($n, 'drive') => 'heroicon-o-cog-8-tooth',
+                str_contains($n, 'damage') || str_contains($n, 'physical') || str_contains($n, 'body') => 'heroicon-o-exclamation-triangle',
+                str_contains($n, 'control')                                                     => 'heroicon-o-cursor-arrow-rays',
+                str_contains($n, 'steer')                                                       => 'heroicon-o-arrow-path',
+                str_contains($n, 'brake')                                                       => 'heroicon-o-hand-raised',
+                str_contains($n, 'boom') || str_contains($n, 'lift')                            => 'heroicon-o-arrows-up-down',
+                str_contains($n, 'attach')                                                      => 'heroicon-o-wrench',
+                str_contains($n, 'field') || str_contains($n, 'recovery')                       => 'heroicon-o-lifebuoy',
+                str_contains($n, 'safety')                                                      => 'heroicon-o-shield-check',
+                str_contains($n, 'cool')                                                        => 'heroicon-o-sun',
+                default                                                                         => 'heroicon-o-wrench-screwdriver',
+            };
+        };
+        $catData = $categories->map(fn ($c) => [
+            'id'    => $c->id,
+            'name'  => $c->name,
+            'items' => $c->symptoms->map(fn ($s) => ['id' => $s->id, 'name' => $s->name])->values(),
+        ])->values();
+    @endphp
+
+    <div class="max-w-7xl mx-auto px-4 pb-6">
+
+        {{-- Sticky header + metadata + Save --}}
+        <div class="sticky top-0 z-20 -mx-4 px-4 py-4 bg-white border-b border-gray-200 shadow-sm mb-5">
+            <div class="flex items-start justify-between gap-4 mb-3">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">{{ $template ? 'Edit Problem Template' : 'Create Problem Template' }}</h1>
+                    <p class="text-sm text-gray-500 mt-0.5">Compose a reusable template from the Problem Library — categories and items stay in library order.</p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <a href="{{ route('admin.service-management.problem-templates.index') }}" class="text-sm text-gray-500 hover:text-gray-700 hover:underline">Cancel</a>
+                    <span id="tpl-status" class="text-xs text-gray-400"></span>
+                    <button type="button" id="tpl-save" class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition">Save Template</button>
+                </div>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('admin.service-management.problem-templates.index') }}" class="text-sm text-blue-600 hover:underline">← Templates</a>
-                <span id="bld-status" class="text-xs text-gray-400"></span>
-                <button type="button" id="bld-save" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40">Save Template</button>
+            <div class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Template Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="tpl-name" maxlength="255" value="{{ $template->name ?? '' }}"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-400" placeholder="e.g. Skid Steer">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                    <input type="text" id="tpl-desc" maxlength="255" value="{{ $template->description ?? '' }}"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-400" placeholder="Optional">
+                </div>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 pb-2 whitespace-nowrap">
+                    <input type="checkbox" id="tpl-active" class="rounded text-blue-600 focus:ring-blue-500" @checked($template ? $template->is_active : true)>
+                    Active
+                </label>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {{-- Library (add from) --}}
-            <div class="bg-white border border-gray-200 rounded-xl p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-sm font-semibold text-gray-800">Library</h2>
-                    <input type="text" id="bld-search" placeholder="Filter items…" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm w-40">
-                </div>
-                <div id="bld-library" class="space-y-3 max-h-[32rem] overflow-y-auto">
-                    @foreach ($categories as $category)
-                        @php $catItems = $items->where('service_symptom_category_id', $category->id); @endphp
-                        @if ($catItems->isNotEmpty())
-                            <div data-cat-group>
-                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{{ $category->name }}</p>
-                                <div class="space-y-1">
-                                    @foreach ($catItems as $item)
-                                        <button type="button" data-add-item="{{ $item->id }}" data-name="{{ $item->name }}"
-                                                class="w-full text-left flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-gray-200 text-sm text-gray-700 hover:bg-blue-50 hover:border-blue-200">
-                                            <x-heroicon-o-plus class="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                            <span class="truncate">{{ $item->name }}</span>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
+        <div class="tpl-cols">
+            {{-- LEFT — categories (library order, read-only) --}}
+            <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Problem Categories</p>
+                <div id="tpl-cats" class="tpl-scroll grid grid-cols-2 lg:grid-cols-1 gap-2 pr-1">
+                    @foreach ($categories as $cat)
+                        <div class="tpl-cat" data-cat-id="{{ $cat->id }}" role="button" tabindex="0">
+                            <span class="tpl-cat-icon"><x-dynamic-component :component="$iconFor($cat->name)" class="w-6 h-6" /></span>
+                            <span class="tpl-cat-name">{{ $cat->name }}</span>
+                            <span class="tpl-cat-meta">{{ $cat->active_problem_count }} {{ $cat->active_problem_count === 1 ? 'problem' : 'problems' }}</span>
+                            <span class="tpl-cat-meta">
+                                @if ($totalProfiles > 0 && (int) $cat->profile_count === $totalProfiles)
+                                    All Equipment Profiles
+                                @else
+                                    {{ $cat->profile_count }} {{ (int) $cat->profile_count === 1 ? 'profile' : 'profiles' }}
+                                @endif
+                            </span>
+                        </div>
                     @endforeach
                 </div>
             </div>
 
-            {{-- Selected (this template, ordered) --}}
-            <div class="bg-white border border-gray-200 rounded-xl p-5">
-                <h2 class="text-sm font-semibold text-gray-800 mb-3">In this template <span id="bld-count" class="text-gray-400 font-normal"></span></h2>
-                <div id="bld-selected" class="space-y-1 max-h-[32rem] overflow-y-auto"></div>
-                <p id="bld-empty" class="text-sm text-gray-400 py-8 text-center hidden">No items yet — add them from the library.</p>
+            {{-- CENTER — available items for the selected category --}}
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <h2 id="tpl-avail-title" class="text-sm font-semibold text-gray-800 truncate">Available Problems</h2>
+                    <button type="button" id="tpl-add-all" class="text-xs font-semibold text-blue-600 hover:underline shrink-0">Add All</button>
+                </div>
+                <div id="tpl-avail-list" class="tpl-scroll space-y-1.5 pr-1"></div>
+            </div>
+
+            {{-- RIGHT — template composition (grouped, library order) --}}
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <h2 class="text-sm font-semibold text-gray-800 mb-3">Template <span id="tpl-count" class="text-gray-400 font-normal"></span></h2>
+                <p id="tpl-empty" class="text-sm text-gray-400 py-10 text-center">Drag problem items here or use <span class="font-medium">Add All</span>.</p>
+                <div id="tpl-list" class="tpl-scroll pr-1" style="min-height:6rem;"></div>
             </div>
         </div>
     </div>
@@ -58,104 +134,127 @@
 
 @push('js')
 <script>
-(function () {
-    'use strict';
-    const CSRF = document.querySelector('meta[name="csrf-token"]').content;
-    const SAVE_URL = @json(route('admin.service-management.problem-templates.save-items', $template));
-    const ITEMS = @json($items->map(fn ($i) => ['id' => $i->id, 'name' => $i->name])->keyBy('id'));
-    let selected = @json($selectedItemIds); // ordered array of ids
+document.addEventListener('DOMContentLoaded', function () {
+    const CSRF = @json(csrf_token());
+    const CATS = @json($catData);
+    const MODE = @json($template ? 'edit' : 'create');
+    const SAVE_URL = @json($template
+        ? route('admin.service-management.problem-templates.update', $template)
+        : route('admin.service-management.problem-templates.store'));
+    const SAVE_METHOD = @json($template ? 'PUT' : 'POST');
+    const INDEX_URL = @json(route('admin.service-management.problem-templates.index'));
 
-    const $ = (id) => document.getElementById(id);
-    const box = $('bld-selected');
-    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    const byId = {}; CATS.forEach(c => { byId[c.id] = c; });
+    const selected = new Set((@json($selectedItemIds) || []).map(Number));
+    let currentCatId = CATS.length ? CATS[0].id : null;
 
-    function nameOf(id) { return (ITEMS[id] && ITEMS[id].name) || ('#' + id); }
+    const $ = id => document.getElementById(id);
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
-    function render() {
-        box.replaceChildren();
-        $('bld-empty').classList.toggle('hidden', selected.length > 0);
-        $('bld-count').textContent = selected.length ? '(' + selected.length + ')' : '';
-        selected.forEach(function (id, i) {
+    // ── Left: category selection ──
+    const catsWrap = $('tpl-cats');
+    function selectCategory(id) {
+        currentCatId = id;
+        catsWrap.querySelectorAll('.tpl-cat').forEach(el => el.classList.toggle('is-selected', parseInt(el.dataset.catId, 10) === id));
+        renderAvailable();
+    }
+    catsWrap.addEventListener('click', function (e) {
+        const card = e.target.closest('.tpl-cat'); if (!card) return;
+        selectCategory(parseInt(card.dataset.catId, 10));
+    });
+
+    // ── Center: available items ──
+    function renderAvailable() {
+        const cat = byId[currentCatId];
+        $('tpl-avail-title').textContent = cat ? cat.name : 'Available Problems';
+        const list = $('tpl-avail-list'); list.innerHTML = '';
+        if (!cat) return;
+        if (!cat.items.length) { list.innerHTML = '<p class="text-sm text-gray-300 italic px-1">No problems in this category.</p>'; return; }
+        cat.items.forEach(function (it) {
+            const added = selected.has(it.id);
             const row = document.createElement('div');
-            row.className = 'flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-gray-200 bg-gray-50';
-            row.innerHTML =
-                '<div class="flex flex-col shrink-0">'
-                + '<button type="button" data-move="up" class="text-gray-400 hover:text-gray-700 leading-none ' + (i === 0 ? 'invisible' : '') + '">▲</button>'
-                + '<button type="button" data-move="down" class="text-gray-400 hover:text-gray-700 leading-none ' + (i === selected.length - 1 ? 'invisible' : '') + '">▼</button>'
-                + '</div>'
-                + '<span class="flex-1 min-w-0 text-sm text-gray-800 truncate">' + esc(nameOf(id)) + '</span>'
-                + '<button type="button" data-remove class="text-red-400 hover:text-red-600 text-sm font-bold shrink-0">×</button>';
-            row.dataset.id = id;
-            box.appendChild(row);
-        });
-        // Dim library items already in the template
-        document.querySelectorAll('[data-add-item]').forEach(function (btn) {
-            const inUse = selected.includes(Number(btn.dataset.addItem));
-            btn.classList.toggle('opacity-40', inUse);
-            btn.classList.toggle('pointer-events-none', inUse);
+            row.className = 'tpl-avail-item' + (added ? ' is-added' : '');
+            row.dataset.id = it.id;
+            row.innerHTML = (added ? '<span class="text-green-500 font-bold">✓</span>' : '<span class="text-blue-500 font-bold">+</span>')
+                + '<span class="flex-1 truncate">' + esc(it.name) + '</span>'
+                + (added ? '<span class="text-xs text-gray-400">Added</span>' : '');
+            list.appendChild(row);
         });
     }
-
-    document.getElementById('bld-library').addEventListener('click', function (e) {
-        const btn = e.target.closest('[data-add-item]'); if (!btn) return;
-        const id = Number(btn.dataset.addItem);
-        if (!selected.includes(id)) { selected.push(id); render(); markDirty(); }
+    $('tpl-avail-list').addEventListener('click', function (e) {
+        const row = e.target.closest('.tpl-avail-item'); if (!row || row.classList.contains('is-added')) return;
+        addItem(parseInt(row.dataset.id, 10));
+    });
+    $('tpl-add-all').addEventListener('click', function () {
+        const cat = byId[currentCatId]; if (!cat) return;
+        cat.items.forEach(i => selected.add(i.id));
+        renderAvailable(); renderTemplate();
     });
 
-    box.addEventListener('click', function (e) {
-        const row = e.target.closest('[data-id]'); if (!row) return;
-        const id = Number(row.dataset.id);
-        if (e.target.matches('[data-remove]')) {
-            selected = selected.filter(x => x !== id); render(); markDirty();
-        } else if (e.target.closest('[data-move]')) {
-            const dir = e.target.closest('[data-move]').dataset.move;
-            const i = selected.indexOf(id), j = dir === 'up' ? i - 1 : i + 1;
-            if (j < 0 || j >= selected.length) return;
-            [selected[i], selected[j]] = [selected[j], selected[i]]; render(); markDirty();
-        }
-    });
-
-    $('bld-search').addEventListener('input', function () {
-        const q = this.value.trim().toLowerCase();
-        document.querySelectorAll('#bld-library [data-cat-group]').forEach(function (group) {
-            let anyVisible = false;
-            group.querySelectorAll('[data-add-item]').forEach(function (btn) {
-                const show = btn.dataset.name.toLowerCase().includes(q);
-                btn.classList.toggle('hidden', !show);
-                if (show) anyVisible = true;
+    // ── Right: template composition (grouped, canonical order) ──
+    function renderTemplate() {
+        const wrap = $('tpl-list'); wrap.innerHTML = '';
+        $('tpl-empty').classList.toggle('hidden', selected.size > 0);
+        $('tpl-count').textContent = selected.size ? '(' + selected.size + ')' : '';
+        CATS.forEach(function (cat) {
+            const items = cat.items.filter(i => selected.has(i.id));
+            if (!items.length) return;
+            const section = document.createElement('div');
+            let html = '<p class="tpl-cat-heading">' + esc(cat.name) + '</p>';
+            items.forEach(function (it) {
+                html += '<div class="tpl-tpl-item bg-gray-50 mb-1" data-id="' + it.id + '">'
+                    + '<span class="flex-1 truncate text-gray-800">' + esc(it.name) + '</span>'
+                    + '<button type="button" class="tpl-remove text-red-400 hover:text-red-600 font-bold shrink-0" title="Remove">&times;</button></div>';
             });
-            group.classList.toggle('hidden', !anyVisible);
+            section.innerHTML = html;
+            wrap.appendChild(section);
         });
+    }
+    $('tpl-list').addEventListener('click', function (e) {
+        if (!e.target.classList.contains('tpl-remove')) return;
+        const row = e.target.closest('[data-id]'); if (!row) return;
+        removeItem(parseInt(row.dataset.id, 10));
     });
 
-    let dirty = false;
-    function markDirty() { dirty = true; $('bld-status').textContent = 'Unsaved changes'; }
+    function addItem(id) { selected.add(id); renderAvailable(); renderTemplate(); markDirty(); }
+    function removeItem(id) { selected.delete(id); renderAvailable(); renderTemplate(); markDirty(); }
 
-    $('bld-save').addEventListener('click', async function () {
-        $('bld-save').disabled = true;
-        $('bld-status').textContent = 'Saving…';
+    // ── Drag: available → template (membership only; re-renders in library order) ──
+    if (window.Sortable) {
+        window.Sortable.create($('tpl-avail-list'), { group: { name: 'tpl', pull: 'clone', put: false }, sort: false, filter: '.is-added', ghostClass: 'tpl-drag-ghost' });
+        window.Sortable.create($('tpl-list'), { group: { name: 'tpl', pull: false, put: true }, sort: false, ghostClass: 'tpl-drag-ghost',
+            onAdd: function (evt) { const id = parseInt(evt.item.dataset.id, 10); if (id) addItem(id); else renderTemplate(); } });
+    }
+
+    // ── Save ──
+    let dirty = false;
+    function markDirty() { dirty = true; $('tpl-status').textContent = 'Unsaved changes'; }
+    $('tpl-save').addEventListener('click', async function () {
+        const name = $('tpl-name').value.trim();
+        if (!name) { $('tpl-name').focus(); $('tpl-status').textContent = 'Template name is required.'; return; }
+        const item_ids = [];
+        CATS.forEach(c => c.items.forEach(i => { if (selected.has(i.id)) item_ids.push(i.id); }));
+        $('tpl-save').disabled = true; $('tpl-status').textContent = 'Saving…';
         try {
             const res = await fetch(SAVE_URL, {
-                method: 'POST',
+                method: SAVE_METHOD,
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
-                body: JSON.stringify({ item_ids: selected }),
+                body: JSON.stringify({ name, description: $('tpl-desc').value.trim() || null, is_active: $('tpl-active').checked, item_ids }),
             });
             const data = await res.json().catch(() => ({}));
-            if (!res.ok || data.success === false) throw new Error(data.message || 'Save failed.');
+            if (!res.ok || data.success === false) throw new Error(data.message || Object.values(data.errors || {}).flat().join(' ') || 'Save failed.');
             dirty = false;
-            $('bld-status').textContent = 'Saved';
-            if (window.notyf) notyf.success('Template saved (' + data.count + ' items).');
+            window.location.href = data.redirect || INDEX_URL;
         } catch (e) {
-            $('bld-status').textContent = '';
+            $('tpl-status').textContent = ''; $('tpl-save').disabled = false;
             if (window.notyf) notyf.error(e.message); else alert(e.message);
-        } finally {
-            $('bld-save').disabled = false;
         }
     });
-
     window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
-    render();
-})();
+    // Init — auto-select first category.
+    if (currentCatId !== null) selectCategory(currentCatId);
+    renderTemplate();
+});
 </script>
 @endpush

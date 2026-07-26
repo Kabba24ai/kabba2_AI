@@ -6,10 +6,13 @@ use App\Enums\Service\RepairStatus;
 use App\Enums\Service\ServicePriority;
 use App\Enums\Service\ServiceType;
 use App\Enums\Service\FinancialStatus;
+use App\Enums\Service\ServiceTicketEventType;
 use App\Models\Iam\Personnel\User;
 use App\Models\Service\ServiceTicket;
+use App\Models\Service\ServiceTicketEvent;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 /**
@@ -57,44 +60,103 @@ class OperationsBoard extends Component
     }
 
     /**
-     * Persist a drag: move ticket $ticketId into lane $laneKey and rewrite the
-     * priority order of that lane from $orderedIds (its cards after the drop,
-     * left-to-right). $laneKey is a team-leader user id, or 'unassigned'.
-     *
-     *  - Reassign: the lane owner is the ticket's Team Leader. Moving to a tech
-     *    lane makes that tech the team leader (added to the crew if absent);
-     *    moving to Unassigned clears the team-leader flag (crew is untouched).
-     *  - Reorder: board_position is set to the 1-based index within the lane.
-     *    Positions are only ever compared within a lane, so reusing 1..n per
-     *    lane is correct; the source lane keeps its remaining order.
+     * SAME-LANE reorder only: rewrite the priority order of a lane from
+     * $orderedIds (its cards after the drop, left-to-right). Never touches
+     * assignment — the lane owner is unchanged, so a same-lane drag is a pure
+     * priority change. Cross-lane moves go through reassignCard() after an
+     * explicit confirmation (see the board's drag handler).
      */
     public function moveCard(int $ticketId, string $laneKey, array $orderedIds): void
     {
-        $ticket = ServiceTicket::find($ticketId);
+        $this->applyLanePositions($orderedIds);
+    }
+
+    /**
+     * CROSS-LANE move = an assignment change (the lane IS the canonical team
+     * leader). Confirmed on the client before this runs. Reassigns the team
+     * leader on service_ticket_personnel, keeps the Field Service companion
+     * technician in step, records an audit event, and persists the new lane
+     * order — all atomically, so the canonical record and the board can never
+     * drift. $laneKey is the target technician's user id, or 'unassigned'.
+     */
+    public function reassignCard(int $ticketId, string $laneKey, array $orderedIds): void
+    {
+        // Server-authoritative guard — a manipulated request cannot reassign
+        // work without an authenticated, authorized operator. (The manage
+        // permission is inert under the module-wide Gate bypass today, but the
+        // check is in place for when enforcement is switched on.)
+        abort_unless(auth()->check(), 403);
+        abort_if(Gate::denies('service_tickets.manage'), 403);
+
+        $ticket = ServiceTicket::with(['personnel', 'fieldServiceTicket'])->find($ticketId);
         if ($ticket === null) {
             return;
         }
 
-        // Clear any existing team-leader flag on this ticket's crew.
-        DB::table('service_ticket_personnel')
-            ->where('service_ticket_id', $ticket->id)
-            ->update(['is_team_leader' => 0]);
+        $currentLeader = $ticket->teamLeader();
+        $newLeaderId   = $laneKey === 'unassigned' ? null : ((int) $laneKey ?: null);
 
-        if ($laneKey !== 'unassigned') {
-            $techId = (int) $laneKey;
-            if ($techId > 0 && User::whereKey($techId)->exists()) {
-                if ($ticket->personnel()->where('users.id', $techId)->exists()) {
-                    DB::table('service_ticket_personnel')
-                        ->where('service_ticket_id', $ticket->id)
-                        ->where('employee_id', $techId)
-                        ->update(['is_team_leader' => 1]);
-                } else {
-                    $ticket->personnel()->attach($techId, ['is_team_leader' => true]);
-                }
-            }
+        if ($newLeaderId !== null && !User::whereKey($newLeaderId)->exists()) {
+            return; // unknown technician — reject
         }
 
-        // Rewrite the target lane's priority order (1-based, left to right).
+        // No actual ownership change (e.g. a stray cross-lane event that
+        // resolves to the same leader) → treat as a pure reorder.
+        if (($currentLeader?->id) === $newLeaderId) {
+            $this->applyLanePositions($orderedIds);
+            return;
+        }
+
+        DB::transaction(function () use ($ticket, $currentLeader, $newLeaderId, $orderedIds) {
+            // Reassign the team leader on the canonical crew pivot. Other crew
+            // members are preserved — only the is_team_leader flag moves.
+            DB::table('service_ticket_personnel')
+                ->where('service_ticket_id', $ticket->id)
+                ->update(['is_team_leader' => 0]);
+
+            if ($newLeaderId !== null) {
+                if ($ticket->personnel()->where('users.id', $newLeaderId)->exists()) {
+                    DB::table('service_ticket_personnel')
+                        ->where('service_ticket_id', $ticket->id)
+                        ->where('employee_id', $newLeaderId)
+                        ->update(['is_team_leader' => 1]);
+                } else {
+                    $ticket->personnel()->attach($newLeaderId, ['is_team_leader' => true]);
+                }
+            }
+
+            // Field Service companion: keep its technician in step with the
+            // canonical assignment. updateQuietly avoids the field→companion
+            // sync hook (we just set the companion leader directly above).
+            if ($ticket->service_type === ServiceType::FieldServiceCall && $ticket->fieldServiceTicket) {
+                $ticket->fieldServiceTicket->updateQuietly(['technician_id' => $newLeaderId]);
+            }
+
+            ServiceTicketEvent::record(
+                $ticket->id,
+                ServiceTicketEventType::TechnicianReassigned,
+                old: $currentLeader?->full_name ?? 'Unassigned',
+                new: $newLeaderId ? (User::find($newLeaderId)?->full_name ?? "user #{$newLeaderId}") : 'Unassigned',
+                notes: 'Reassigned via Service Operations Board drag-and-drop.',
+                metadata: [
+                    'previous_technician_id' => $currentLeader?->id,
+                    'new_technician_id'      => $newLeaderId,
+                    'source'                 => 'operations_board_dnd',
+                ],
+            );
+
+            // Destination lane: honor the drop order the client sent.
+            $this->applyLanePositions($orderedIds);
+
+            // Source lane: the card left a gap — renumber its remaining cards so
+            // both lanes stay sequential and deterministic after the move.
+            $this->normalizeLane($currentLeader?->id);
+        });
+    }
+
+    /** Rewrite a lane's priority order (1-based, left to right). */
+    private function applyLanePositions(array $orderedIds): void
+    {
         $position = 1;
         foreach ($orderedIds as $id) {
             $id = (int) $id;
@@ -103,6 +165,34 @@ class OperationsBoard extends Component
                 $position++;
             }
         }
+    }
+
+    /**
+     * Resequence a whole lane (1..n) from its current on-board order — the same
+     * board_position-then-age ordering the board renders with. $leaderId is the
+     * lane's team leader, or null for the Unassigned lane. Used to close the
+     * gap the moved card left in its source lane.
+     */
+    private function normalizeLane(?int $leaderId): void
+    {
+        $query = ServiceTicket::whereIn('repair_status', RepairStatus::notFinished());
+
+        if ($leaderId !== null) {
+            $query->whereHas('personnel', fn ($p) => $p
+                ->where('users.id', $leaderId)
+                ->where('service_ticket_personnel.is_team_leader', true));
+        } else {
+            $query->whereDoesntHave('personnel', fn ($p) => $p
+                ->where('service_ticket_personnel.is_team_leader', true));
+        }
+
+        $ids = $query
+            ->orderByRaw('board_position IS NULL, board_position ASC')
+            ->orderBy('opened_at')
+            ->pluck('id')
+            ->all();
+
+        $this->applyLanePositions($ids);
     }
 
     public function setType(string $type): void

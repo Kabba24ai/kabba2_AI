@@ -44,6 +44,7 @@ enum ServiceTicketEventType: string
     case NoteAdded              = 'note_added';
     case NoteUpdated            = 'note_updated';
     case EquipmentOverride      = 'equipment_override';
+    case TechnicianReassigned   = 'technician_reassigned';
 
     public function label(): string
     {
@@ -88,6 +89,7 @@ enum ServiceTicketEventType: string
             self::NoteAdded              => 'Note Added',
             self::NoteUpdated            => 'Note Updated',
             self::EquipmentOverride      => 'Equipment Override Applied',
+            self::TechnicianReassigned   => 'Technician Reassigned',
         };
     }
 
@@ -102,6 +104,7 @@ enum ServiceTicketEventType: string
             self::StatusChanged                                       => 'bg-sky-400',
             self::FinancialStatusChanged                              => 'bg-emerald-400',
             self::PersonnelAdded, self::PersonnelRemoved              => 'bg-indigo-400',
+            self::TechnicianReassigned                                => 'bg-indigo-600',
             self::LaborAdded, self::LaborRemoved                      => 'bg-purple-400',
             self::ChargeLineAdded, self::ChargeLineRemoved            => 'bg-teal-400',
             self::PartAdded, self::PartRemoved                        => 'bg-orange-400',

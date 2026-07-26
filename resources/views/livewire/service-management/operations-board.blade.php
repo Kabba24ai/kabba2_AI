@@ -3,6 +3,38 @@
      reorder/reassign persistence lands in Phase 2. --}}
 <div wire:poll.{{ $this->pollSeconds() }}s style="font-family: inherit;">
 
+    {{-- Reassignment confirmation — a cross-lane drag is an ownership change, so
+         it is NEVER persisted silently. The drag handler reverts the card to its
+         origin and fires svc-reassign-request; only Reassign calls the server.
+         On Cancel the card stays where it was (no DB change). --}}
+    <div x-data="{ open: false, d: {} }"
+         x-on:svc-reassign-request.window="d = $event.detail; open = true"
+         x-show="open" x-cloak
+         style="position: fixed; inset: 0; z-index: 9999; background: rgba(15,23,42,.5); display: flex; align-items: center; justify-content: center; padding: 16px;"
+         @keydown.escape.window="open = false">
+        <div @click.outside="open = false" style="background: #fff; border-radius: 14px; width: 100%; max-width: 460px; box-shadow: 0 20px 50px rgba(15,23,42,.25); overflow: hidden;">
+            <div style="padding: 20px 22px 8px;">
+                <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 8px;"
+                    x-text="d.toKey === 'unassigned' ? 'Remove Technician Assignment?' : 'Reassign Service Work?'"></h3>
+                <p x-show="d.toKey !== 'unassigned'" style="font-size: 14px; color: #475569; line-height: 1.5; margin: 0;">
+                    <span x-text="d.ticketNumber"></span> is currently assigned to <strong x-text="d.fromName"></strong>.
+                    Moving it to <strong x-text="d.toName"></strong>'s lane will make <strong x-text="d.toName"></strong> the technician responsible for this work.
+                </p>
+                <p x-show="d.toKey === 'unassigned'" style="font-size: 14px; color: #475569; line-height: 1.5; margin: 0;">
+                    This will remove <strong x-text="d.fromName"></strong> as the technician responsible for <span x-text="d.ticketNumber"></span> and return it to the Unassigned lane.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px 20px;">
+                <button type="button" @click="open = false"
+                        style="padding: 9px 16px; border-radius: 9px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit;">Cancel</button>
+                <button type="button"
+                        @click="$wire.reassignCard(d.ticketId, d.toKey, d.orderedIds); open = false"
+                        style="padding: 9px 16px; border-radius: 9px; border: none; background: #0d9488; color: #fff; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit;"
+                        x-text="d.toKey === 'unassigned' ? 'Remove Assignment' : ('Reassign to ' + ((d.toName || '').split(' ')[0]))"></button>
+            </div>
+        </div>
+    </div>
+
     {{-- KPI tiles --}}
     @php
         $kpis = [
@@ -90,10 +122,10 @@
                 </div>
 
                 {{-- Card strip (SortableJS target — see the drag script below) --}}
-                <div data-svc-lane="{{ $lane['key'] }}" wire:key="lane-strip-{{ $lane['key'] }}"
+                <div data-svc-lane="{{ $lane['key'] }}" data-lane-name="{{ $lane['name'] }}" wire:key="lane-strip-{{ $lane['key'] }}"
                     style="flex: 1; min-width: 0; display: flex; align-items: stretch; gap: 12px; padding: 16px; overflow-x: auto;">
                     @foreach ($lane['cards'] as $card)
-                        <div data-svc-card data-id="{{ $card['id'] }}" wire:key="card-{{ $card['id'] }}"
+                        <div data-svc-card data-id="{{ $card['id'] }}" data-ticket-number="{{ $card['ticket'] }}" wire:key="card-{{ $card['id'] }}"
                             style="width: 258px; flex: 0 0 auto; background: #fff; border: 1px solid #e9edf2; border-radius: 13px; box-shadow: 0 1px 3px rgba(15,23,42,.06); overflow: hidden; display: flex; flex-direction: column;">
                             @if ($card['emergency'])
                                 <div style="background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-align: center; padding: 4px;">EMERGENCY</div>
@@ -169,17 +201,44 @@
                         animation: 150,
                         ghostClass: 'svc-ghost',
                         onEnd: function (evt) {
-                            const target = evt.to;
+                            const fromLane = evt.from;
+                            const toLane = evt.to;
                             const item = evt.item;
-                            if (!target || !item) return;
-                            const laneKey = target.getAttribute('data-svc-lane');
+                            if (!toLane || !item) return;
+                            const toKey = toLane.getAttribute('data-svc-lane');
+                            const fromKey = fromLane ? fromLane.getAttribute('data-svc-lane') : toKey;
                             const ticketId = parseInt(item.getAttribute('data-id') || '', 10);
-                            if (!laneKey || isNaN(ticketId)) return;
-                            const orderedIds = Array.prototype.slice
-                                .call(target.querySelectorAll('[data-svc-card]'))
-                                .map(function (el) { return parseInt(el.getAttribute('data-id') || '', 10); })
-                                .filter(function (n) { return !isNaN(n); });
-                            $wire.moveCard(ticketId, laneKey, orderedIds);
+                            if (!toKey || isNaN(ticketId)) return;
+
+                            const idsIn = function (lane) {
+                                return Array.prototype.slice
+                                    .call(lane.querySelectorAll('[data-svc-card]'))
+                                    .map(function (el) { return parseInt(el.getAttribute('data-id') || '', 10); })
+                                    .filter(function (n) { return !isNaN(n); });
+                            };
+
+                            // Same lane → pure priority reorder, no assignment change.
+                            if (fromKey === toKey) {
+                                $wire.moveCard(ticketId, toKey, idsIn(toLane));
+                                return;
+                            }
+
+                            // Cross-lane = an ownership change. Capture the intended
+                            // target order, REVERT the card to its origin, and ask
+                            // for confirmation — the server is the only authority on
+                            // the actual move (Livewire re-render places it on success).
+                            const targetOrder = idsIn(toLane);
+                            const before = fromLane.children[evt.oldIndex] || null;
+                            fromLane.insertBefore(item, before);
+
+                            window.dispatchEvent(new CustomEvent('svc-reassign-request', { detail: {
+                                ticketId: ticketId,
+                                toKey: toKey,
+                                toName: toLane.getAttribute('data-lane-name') || '',
+                                fromName: (fromLane.getAttribute('data-lane-name') || '').replace(' · Intake', ''),
+                                ticketNumber: item.getAttribute('data-ticket-number') || '',
+                                orderedIds: targetOrder,
+                            }}));
                         },
                     }));
                 });

@@ -25,6 +25,8 @@ use Database\Seeders\Locations\StateSeeder;
 use Database\Seeders\MaintenanceManagement\SupplierSeeder;
 use Database\Seeders\Stores\StoreSeeder;
 use Database\Seeders\TermsAndConditions\TermsSeeder;
+use Database\Seeders\Credit\SystemActorSeeder;
+use Database\Seeders\Credit\AiRuleSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -49,5 +51,8 @@ class DatabaseSeeder extends Seeder
         $this->call(VacationHourSeeder::class); // fourth to create settings
         $this->call(AchievementGoalSeeder::class); // fourth to create settings
         $this->call(VacationRequestHoursSeeder::class); // fourth to create settings
+
+        $this->call(SystemActorSeeder::class); // isolated automation actor for system-created tasks
+        $this->call(AiRuleSeeder::class); // canonical AI Rules repository + first approved rule
     }
 }

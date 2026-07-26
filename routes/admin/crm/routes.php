@@ -33,4 +33,7 @@ Route::prefix('crm')
 
     require base_path('routes/admin/crm/kabba_ai_customers/routes.php');
 
+    // AI Rules repository (governed rulebook for employees + future AI)
+    require base_path('routes/admin/crm/ai_rules/routes.php');
+
 });

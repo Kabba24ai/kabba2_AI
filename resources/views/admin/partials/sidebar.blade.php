@@ -431,6 +431,14 @@
                                     </a>
                                 </li>
 
+                                <li>
+                                    <a href="{{ route('admin.crm.ai-rules.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.crm.ai-rules.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-cpu-chip class="w-5 h-5 mr-1" /> AI Rules
+                                    </a>
+                                </li>
+
                             </ul>
                         </div>
                     </li>

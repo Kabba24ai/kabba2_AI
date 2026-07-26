@@ -13,6 +13,8 @@ use Symfony\Component\Mime\DraftEmail;
 use App\Models\Customers\Invoice;
 use Illuminate\Support\Facades\Log;
 use App\Services\InvoiceCalculationService;
+use App\Services\Credit\CreditThresholdMonitor;
+use App\Enums\Credit\CreditThresholdSourceType;
 
 
 class CustomHelper
@@ -482,6 +484,21 @@ class CustomHelper
 
                     $customer->available_credit_balance = $newBalance;
                     $customer->save();
+
+                    // Credit Threshold Exception observation (advisory, never a
+                    // ceiling). Fires only for approved credit accounts on genuine
+                    // new exposure that crosses/extends beyond the limit; deferred
+                    // past commit and fully guarded so it can never affect this
+                    // financial posting. See CreditThresholdMonitor.
+                    CreditThresholdMonitor::observe(
+                        $customer,
+                        (float) $currentBalance,
+                        (float) $newBalance,
+                        $record,
+                        $record->type === 'order'
+                            ? CreditThresholdSourceType::OrderOnAccount
+                            : CreditThresholdSourceType::AccountCharge,
+                    );
                 });
 
                 break; // If transaction succeeds, exit retry loop

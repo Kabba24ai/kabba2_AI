@@ -6,6 +6,8 @@ use App\Http\DataObjects\TaxBreakdown;
 use App\Models\Configurations\Setting;
 use App\Models\Customers\Customer;
 use App\Models\Customers\CustomerAccount;
+use App\Services\Credit\CreditThresholdMonitor;
+use App\Enums\Credit\CreditThresholdSourceType;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -318,6 +320,19 @@ class LedgerBalanceService
 
                     $customer->available_credit_balance = $newBalance;
                     $customer->save();
+
+                    // Credit Threshold Exception observation — see the identical
+                    // hook in CustomHelper::updateCreditBalance(). Advisory only;
+                    // deferred past commit and fully guarded.
+                    CreditThresholdMonitor::observe(
+                        $customer,
+                        (float) $currentBalance,
+                        (float) $newBalance,
+                        $record,
+                        $record->type === self::TYPE_ORDER
+                            ? CreditThresholdSourceType::OrderOnAccount
+                            : CreditThresholdSourceType::AccountCharge,
+                    );
                 });
 
                 break;

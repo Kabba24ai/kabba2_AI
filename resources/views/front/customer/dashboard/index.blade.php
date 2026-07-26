@@ -418,7 +418,9 @@
         const creditUsed = {{ $customer->available_credit_balance ?? 0  }};
         const creditLimit = {{  $customer->credit_limit ?? 0 }};
         const available = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer) }};
-        const percentUsed = (creditUsed / creditLimit) * 100;
+        // Cap at 100% and guard divide-by-zero: an over-limit account fills the
+        // bar without overflowing, and a $0 limit reads as 0% not NaN.
+        const percentUsed = creditLimit > 0 ? Math.min((creditUsed / creditLimit) * 100, 100) : 0;
 
         document.getElementById("usedAmount").textContent =
             `{{ config('app.currency.code') }}${creditUsed.toLocaleString()}`;

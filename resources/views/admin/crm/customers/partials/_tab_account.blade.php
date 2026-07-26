@@ -805,8 +805,10 @@
             <div class="static-view">
                @php
                $climit = $customer->credit_limit ?? 0;
-               $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
-               $per = $climit > 0 ? (($climit - $available) / $climit) * 100 : 0;
+               // Utilization = outstanding balance / credit limit, capped at
+               // 100% (an over-limit account fills the bar, never exceeds it).
+               $outstanding = (float) ($customer->available_credit_balance ?? 0);
+               $per = $climit > 0 ? min(($outstanding / $climit) * 100, 100) : 0;
                @endphp
                <div class="flex justify-between text-xs text-gray-500 mb-1">
                   <label class="text-gray-700 mb-1 text-xs">Credit Utilization</label>

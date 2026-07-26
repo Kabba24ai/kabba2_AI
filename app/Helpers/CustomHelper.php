@@ -96,72 +96,39 @@ class CustomHelper
         return config('app.currency.code') . number_format($value, 2);
     }
 
+    /**
+     * Remaining available credit for an authorized credit customer.
+     *
+     *     Available Credit = max(0, credit_limit − outstanding A/R balance)
+     *
+     * DERIVED from the ONE canonical outstanding balance
+     * (customers.available_credit_balance — the same value shown as "Current
+     * Balance", maintained by updateCreditBalance()), never re-summed from the
+     * ledger. This guarantees Available Credit, Credit Utilization, and Current
+     * Balance are always internally consistent, and that an existing A/R
+     * balance immediately consumes part of a newly-approved limit.
+     *
+     * Clamped at 0 so an over-limit customer shows $0 available while the true
+     * outstanding remains visible in available_credit_balance (over-limit
+     * status stays detectable). A non-authorized customer (no credit account or
+     * no positive limit) has no purchasing credit → 0.
+     *
+     * Previously this re-derived the balance by re-summing $customer->accounts
+     * with its own tax arithmetic (divergent from updateCreditBalance — see
+     * FINANCIAL_TRUTH_TABLE.md §3b) and hard-returned 0 on the authorization
+     * gate, which is why a customer with prior A/R showed $0 / fully-used
+     * available credit after approval.
+     */
     public static function getAvailableCredit($customer)
     {
-        if (!(($customer->credit_limit ?? 0) > 0) || ($customer->is_credit_account ?? 0) != 1) {
+        if (($customer->is_credit_account ?? 0) != 1 || ($customer->credit_limit ?? 0) <= 0) {
             return 0;
         }
 
-        $creditLimit = $customer->credit_limit ?? 0;
-        $accounts = $customer->accounts ?? [];
+        $creditLimit = (float) $customer->credit_limit;
+        $outstanding = (float) ($customer->available_credit_balance ?? 0);
 
-        $salesTaxSetting = Setting::where('setting_name', 'sales_tax')->first();
-        $salesTaxRate = (float) ($salesTaxSetting?->setting_value ?? 0.0);
-
-        $balanceAdjustment = 0;
-
-        foreach ($accounts as $account) {
-            $type = strtolower($account->type);
-            $amount = $account->amount;
-            $taxable = $customer->getTaxStatus() === 'Taxable';
-            $tax = 0;
-
-            switch ($type) {
-                case 'payment':
-                    $tax = $taxable ? 0 : 0; // payments have no tax added in available credit
-                    $balanceAdjustment += $amount; // payment increases available credit
-                    break;
-
-                case 'refund':
-                    $tax = $taxable ? $salesTaxRate : 0;
-                    $amountWithTax = $amount + $amount * $tax;
-                    $balanceAdjustment += $amountWithTax; // refund increases available credit
-                    break;
-
-                case 'discount':
-                    // $balanceAdjustment += $amount; // discount increases available credit
-                    // break;
-
-
-                     $tax = $taxable ? $salesTaxRate : 0;
-                    $amountWithTax = $amount + $amount * $tax;
-                    $balanceAdjustment += $amountWithTax; // refund increases available credit
-                    break;
-
-
-                case 'charge':
-                    if ($account->sales_tax_type === 'add') {
-                        $tax = $salesTaxRate;
-                        $amountWithTax = $amount + $amount * $tax;
-                    } elseif ($account->sales_tax_type === 'reverse') {
-                        $tax = $salesTaxRate;
-                        $amountWithTax = $amount; // tax was already included
-                    } else {
-                        $amountWithTax = $amount;
-                    }
-
-                    $balanceAdjustment -= $amountWithTax; // charge decreases available credit
-                    break;
-
-                case 'order':
-                    $tax = $account->sales_tax ?? 0;
-                    $amountWithTax = $amount + $amount * $tax;
-                    $balanceAdjustment -= $amountWithTax; // order decreases available credit
-                    break;
-            }
-        }
-
-        return $creditLimit + $balanceAdjustment;
+        return max(0.0, round($creditLimit - $outstanding, 2));
     }
 
     public static function isBadDebitCustomer($customer): bool
@@ -604,140 +571,88 @@ class CustomHelper
         $customer->save();
     }
 
+    /**
+     * Recompute the canonical outstanding A/R balance from the ledger and
+     * write it back to customers.available_credit_balance (plus each
+     * customer_accounts row's running `balance` snapshot).
+     *
+     * The outstanding debt is the SAME regardless of credit authorization, so
+     * this always forward-accumulates it from the ledger (oldest → newest),
+     * mirroring updateCreditBalance()'s incremental logic — charge/order add
+     * amount(+tax), payment/refund/discount subtract. Available credit is
+     * DERIVED from this figure by getAvailableCredit(), so this method must
+     * NOT call getAvailableCredit() (that would be circular now that the helper
+     * reads available_credit_balance). This decoupling replaced the former
+     * credit-account branch that seeded the running balance from
+     * `credit_limit − getAvailableCredit()`.
+     */
     public static function fixTheRunningBalance(int $customerId): void
     {
         DB::transaction(function () use ($customerId) {
 
             $customer = Customer::lockForUpdate()->findOrFail($customerId);
 
-            $creditLimit = (float) ($customer->credit_limit ?? 0);
-            $availableCredit = (float) self::getAvailableCredit($customer);
-
-            // This is your correct final balance
-            $currentBalance = $creditLimit - $availableCredit;
-
-
-            $isCreditAccount = ($customer->credit_limit > 0) && ($customer->is_credit_account == 1);
-
-
-            // =========================
-            // NO CREDIT ACCOUNT
-            // =========================
-            if (!$isCreditAccount) {
-
-                //       Log::info('current logic', [
-                //     'this is my new logic'
-                // ]);
-
-                $accounts = CustomerAccount::where('customer_id', $customerId)
-                    ->orderBy('id') // oldest → newest
-                    ->get();
-
-                $runningBalance = 0;
-
-                foreach ($accounts as $account) {
-
-                    $amount = (float) $account->amount;
-                    $taxRate = (float) ($account->sales_tax ?? 0);
-
-                    $totalWithTax = $amount;
-
-                    if ($taxRate > 0 &&
-                        !(
-                            $account->type === 'payment' ||
-                            // ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
-                            (in_array($account->type, ['charge', 'discount']) && $account->sales_tax_type === 'reverse')
-                        )
-                    ) {
-                        $totalWithTax += ($amount * $taxRate);
-                    }
-
-                    // FORWARD CALCULATION
-                    switch ($account->type) {
-                        case 'charge':
-                        case 'order':
-                            $runningBalance += $totalWithTax;
-                            break;
-
-                        case 'payment':
-                        case 'refund':
-                        case 'discount':
-                            $runningBalance -= $totalWithTax;
-                            break;
-                    }
-
-                    $account->balance = $runningBalance;
-                    $account->save();
-                }
-
-                $customer->available_credit_balance = $runningBalance;
-                $customer->save();
-
-                return; //
-            }
-
-            // =========================
-            //  CREDIT ACCOUNT (YOUR CURRENT LOGIC)
-            // =========================
-
-            // Log::info('current logic', [
-            //     'this is my old logic'
-            // ]);
-
-            // Get accounts newest → oldest
             $accounts = CustomerAccount::where('customer_id', $customerId)
-                ->orderByDesc('id')
+                ->orderBy('id') // oldest → newest
                 ->get();
 
-            if ($accounts->isEmpty()) {
-                return;
-            }
-
-            $runningBalance = $currentBalance;
+            $runningBalance = 0.0;
 
             foreach ($accounts as $account) {
-
-                // Set this row balance first
+                $runningBalance = round($runningBalance + self::ledgerRowDelta($account), 2);
                 $account->balance = $runningBalance;
                 $account->save();
-
-                // Calculate balance change (same logic you use in table)
-                $amount = (float) $account->amount;
-                $taxRate = (float) ($account->sales_tax ?? 0);
-
-                $totalWithTax = $amount;
-
-                if ($taxRate > 0 &&
-                    !(
-                        $account->type === 'payment' ||
-                        // ($account->type === 'charge' && $account->sales_tax_type === 'reverse')
-                        (in_array($account->type, ['charge', 'discount']) && $account->sales_tax_type === 'reverse')
-                    )
-                ) {
-                    $totalWithTax += ($amount * $taxRate);
-                }
-
-                // Reverse calculation
-                switch ($account->type) {
-                    case 'charge':
-                    case 'order':
-                        $runningBalance -= $totalWithTax;
-                        break;
-
-                    case 'payment':
-                    case 'refund':
-                    case 'discount':
-                        $runningBalance += $totalWithTax;
-                        break;
-                }
-
-
             }
 
-            // Finally update customer stored balance
-            $customer->available_credit_balance = $currentBalance;
+            $customer->available_credit_balance = $runningBalance;
             $customer->save();
         });
+    }
+
+    /**
+     * Signed contribution of ONE ledger row to the outstanding A/R balance:
+     * charge/order INCREASE the debt (+), payment/refund/discount REDUCE it (−),
+     * tax-aware (tax added except for payments and reverse-taxed charge/discount
+     * rows, whose amount is already tax-inclusive). The single canonical
+     * per-row rule shared by fixTheRunningBalance() and
+     * recomputeOutstandingBalance() so the repair preview and the write agree.
+     */
+    public static function ledgerRowDelta(CustomerAccount $account): float
+    {
+        $amount  = (float) $account->amount;
+        $taxRate = (float) ($account->sales_tax ?? 0);
+
+        $totalWithTax = $amount;
+        if ($taxRate > 0 &&
+            !(
+                $account->type === 'payment' ||
+                (in_array($account->type, ['charge', 'discount'], true) && $account->sales_tax_type === 'reverse')
+            )
+        ) {
+            $totalWithTax += ($amount * $taxRate);
+        }
+
+        return match ($account->type) {
+            'charge', 'order'               => $totalWithTax,
+            'payment', 'refund', 'discount' => -$totalWithTax,
+            default                         => 0.0,
+        };
+    }
+
+    /**
+     * Read-only recompute of a customer's canonical outstanding A/R balance
+     * from the ledger (no writes) — the value fixTheRunningBalance() would
+     * persist. Used by the credit-balance repair command's dry-run to detect
+     * drift between the stored available_credit_balance and the ledger.
+     */
+    public static function recomputeOutstandingBalance(int $customerId): float
+    {
+        $total = CustomerAccount::where('customer_id', $customerId)
+            ->orderBy('id')
+            ->get()
+            ->reduce(fn ($carry, $account) => round($carry + self::ledgerRowDelta($account), 2), 0.0);
+
+        return (float) $total;
     }
 
     /**

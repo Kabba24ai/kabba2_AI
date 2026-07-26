@@ -598,9 +598,11 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const availableCredit = {{ \App\Helpers\CustomHelper::getAvailableCredit($customer)}};
         const creditLimit = {{ $customer->credit_limit ?? 0 }};
-        const usedCredit = creditLimit - availableCredit;
+        // Used = the actual outstanding A/R balance (the same "Current Balance"
+        // figure), so an over-limit customer shows their real outstanding while
+        // the bar caps at 100%. Available = max(0, limit − outstanding).
+        const usedCredit = {{ $customer->available_credit_balance ?? 0 }};
 
         const percentUsed = creditLimit > 0 ? Math.min((usedCredit / creditLimit) * 100, 100) : 0;
 

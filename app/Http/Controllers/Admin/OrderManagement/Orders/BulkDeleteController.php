@@ -116,10 +116,13 @@ class BulkDeleteController extends Controller
 
                 if ($extensionCharge) {
 
-                    if (
-                        ExtensionTransactionService::requiresDisposition($extensionCharge, $order)
-                        && !$extensionDisposition
-                    ) {
+                    // Consistency Initiative Phase 10: EVERY extension delete
+                    // requires a verified-employee disposition, so a bulk
+                    // selection can only remove an extension when the
+                    // disposition fields were supplied. Without one, the
+                    // extension is skipped and reported — it must be deleted
+                    // through the single-delete flow (which collects the PIN).
+                    if (!$extensionDisposition) {
                         $blockedExtensions[] = $order->order_number;
                         continue;
                     }
@@ -357,7 +360,7 @@ class BulkDeleteController extends Controller
                         'success'              => false,
                         'requires_disposition' => true,
                         'blocked_orders'       => $blockedExtensions,
-                        'message'              => "Extension {$blockedList} is paid with no recorded refund or void. Deleting it requires an administrative disposition (verified employee and reason).",
+                        'message'              => "Deleting extension {$blockedList} requires an administrative disposition (verified employee, Employee ID, and reason). Delete it individually.",
                     ], 422);
                 }
 
@@ -365,7 +368,7 @@ class BulkDeleteController extends Controller
                     'success'              => true,
                     'requires_disposition' => true,
                     'blocked_orders'       => $blockedExtensions,
-                    'message'              => "Order(s) deleted. Skipped paid extension(s) {$blockedList} — delete those individually with an administrative disposition.",
+                    'message'              => "Order(s) deleted. Skipped extension(s) {$blockedList} — delete those individually with an administrative disposition (verified employee, Employee ID, and reason).",
                 ], 200);
             }
 

@@ -38,12 +38,13 @@
                 Deletion is permanent and may affect financial history. This action cannot be undone from the interface.
             </div>
 
-            {{-- Administrative disposition — required for paid transactions
-                 with no Kabba-recorded refund or void --}}
+            {{-- Administrative disposition — required for EVERY extension
+                 delete (Consistency Initiative Phase 10): a verified employee,
+                 Employee ID (PIN), and reason are always mandatory. --}}
             <div id="extDeleteDisposition" class="hidden flex-col gap-3 border-t border-gray-100 pt-4">
                 <div class="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                    This extension is <span class="font-bold">paid</span> with no refund or void recorded in Kabba.
-                    Confirm how the money was handled before deleting.
+                    Deleting an extension permanently removes the child order and its charge.
+                    Confirm a <span class="font-bold">responsible employee, Employee ID, and reason</span> to proceed.
                 </div>
 
                 <div>
@@ -166,8 +167,11 @@
             errorBox.classList.remove('hidden');
         }
 
+        // Consistency Initiative Phase 10: every extension delete requires the
+        // verified-employee disposition, regardless of payment state. The
+        // payment-state chip above is now purely informational.
         function needsDisposition() {
-            return current && current.paystate === 'paid_unresolved';
+            return true;
         }
 
         reasonSel.addEventListener('change', function () {
@@ -281,9 +285,10 @@
                     payState.classList.add('hidden');
                 }
 
-                const showDisposition = cfg.paystate === 'paid_unresolved';
-                disposition.classList.toggle('hidden', !showDisposition);
-                disposition.classList.toggle('flex', showDisposition);
+                // Always show the disposition fields — every extension delete
+                // requires a verified employee + Employee ID + reason.
+                disposition.classList.remove('hidden');
+                disposition.classList.add('flex');
 
                 reasonSel.value = '';
                 otherWrap.classList.add('hidden');

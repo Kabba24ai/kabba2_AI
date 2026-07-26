@@ -25,23 +25,16 @@ class DeleteController extends Controller
             ? Order::withTrashed()->find($charge->child_order_id)
             : null;
 
-        // Paid extension with no Kabba refund/void: never silently delete —
-        // require the administrative disposition (verified employee + reason).
-        $disposition = null;
-        if (ExtensionTransactionService::requiresDisposition($charge, $child)) {
-            if (!$request->filled('processed_by')) {
-                return response()->json([
-                    'success'              => false,
-                    'requires_disposition' => true,
-                    'message'              => 'This extension is paid with no recorded refund or void. Deleting it requires an administrative disposition (verified employee and reason).',
-                ], 422);
-            }
-
-            // Resolving the FormRequest runs its validation (422 on failure)
-            $disposition = ExtensionTransactionService::buildDisposition(
-                app(DeleteExtensionTransactionRequest::class)->validated()
-            );
-        }
+        // Consistency Initiative Phase 10: EVERY extension delete now requires
+        // an administrative disposition (verified employee + PIN + reason) —
+        // no longer only paid-with-no-refund/void. Resolving the FormRequest
+        // runs its validation (422 on missing/invalid processed_by /
+        // employee_code / reason) before anything is deleted. The payment
+        // state is still recorded in history for audit, it just no longer
+        // gates whether authorization is required.
+        $disposition = ExtensionTransactionService::buildDisposition(
+            app(DeleteExtensionTransactionRequest::class)->validated()
+        );
 
         $result = ExtensionTransactionService::delete(
             $child,

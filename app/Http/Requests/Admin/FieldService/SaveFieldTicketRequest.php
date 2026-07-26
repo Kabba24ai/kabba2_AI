@@ -41,9 +41,12 @@ class SaveFieldTicketRequest extends FormRequest
             'loc_state'       => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:255'],
             'loc_zip'         => [Rule::requiredIf(fn () => $this->input('location_source') === 'other'), 'nullable', 'string', 'max:20'],
 
-            // Reported problems — the shared shop symptom library + optional detail.
+            // Reported problems — the shared shop symptom library, free-text
+            // "Other" problems for anything not in the library, + optional detail.
             'complaints'         => ['nullable', 'array'],
             'complaints.*'       => ['integer', 'exists:service_symptoms,id'],
+            'custom_problems'    => ['nullable', 'array'],
+            'custom_problems.*'  => ['string', 'max:255'],
             'additional_details' => ['nullable', 'string', 'max:5000'],
 
             // 2. Media review checklist
@@ -79,9 +82,11 @@ class SaveFieldTicketRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // A stated problem is required — a library selection or free-text detail.
-            if (empty($this->input('complaints')) && trim((string) $this->input('additional_details')) === '') {
-                $validator->errors()->add('complaints', 'Select at least one reported problem, or add details.');
+            // A stated problem is required — a library selection, a free-text
+            // "Other" problem, or additional details.
+            $customProblems = array_filter(array_map('trim', (array) $this->input('custom_problems', [])), fn ($s) => $s !== '');
+            if (empty($this->input('complaints')) && empty($customProblems) && trim((string) $this->input('additional_details')) === '') {
+                $validator->errors()->add('complaints', 'Select or enter at least one reported problem, or add details.');
             }
 
             // Deriving from the order requires the order to actually carry it —

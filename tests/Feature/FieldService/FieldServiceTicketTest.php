@@ -279,6 +279,22 @@ class FieldServiceTicketTest extends TestCase
         $this->assertSame('Cranks but no fire.', $companion->customer_complaint);
     }
 
+    public function test_other_problem_not_in_the_library_is_captured_as_free_text(): void
+    {
+        $ticket = $this->makeTicket([
+            'complaints'         => [],
+            'custom_problems'    => ['Undocumented hydraulic whine'],
+            'additional_details' => null,
+        ]);
+
+        // A custom "Other" problem satisfies the required-problem rule and is
+        // preserved verbatim — never forced into an inaccurate library match.
+        $this->assertStringContainsString('Undocumented hydraulic whine', $ticket->problem_summary);
+        $this->assertStringContainsString('Undocumented hydraulic whine', $ticket->serviceTicket->customer_complaint);
+        // No library complaint records were fabricated for it.
+        $this->assertSame(0, $ticket->serviceTicket->complaints()->count());
+    }
+
     // ── Workbench ────────────────────────────────────────────────────
 
     public function test_workbench_shows_mission_context_ribbon_and_current_step(): void

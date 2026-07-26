@@ -174,6 +174,7 @@
                     <div id="fs-problem-results" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"></div>
                 </div>
                 <div id="fs-problem-selected" class="flex flex-wrap gap-2 mt-2"></div>
+                <p class="text-xs text-gray-400 mt-1">Not in the list? Type it and choose &ldquo;Add … as a problem,&rdquo; or press Enter.</p>
                 @error('complaints')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                 @error('complaints.*')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
@@ -369,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const PROBLEMS      = @json($problems);
     const PROBLEM_CATS  = @json($problemCategories);
     const OLD_COMPLAINTS = @json(old('complaints', []));
+    const OLD_CUSTOM     = @json(old('custom_problems', []));
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
     function $(id) { return document.getElementById(id); }
@@ -462,42 +464,53 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Reported-problem library (search → chips → complaints[]) ────────
     const catName = {}; PROBLEM_CATS.forEach(c => { catName[c.id] = c.name; });
     const search = $('fs-problem-search'), results = $('fs-problem-results'), chips = $('fs-problem-selected');
-    const chosen = new Map();
+    const chosen  = new Map();   // library problems: id -> name
+    const customs = new Set();   // free-text "Other" problems
 
+    function makeChip(label, name, value, tone, onRemove) {
+        const cls = tone === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200';
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ' + cls;
+        chip.innerHTML = '<input type="hidden" name="' + name + '" value="' + esc(value) + '"><span>' + esc(label) + '</span><button type="button" class="opacity-60 hover:opacity-100 leading-none">&times;</button>';
+        chip.querySelector('button').addEventListener('click', onRemove);
+        return chip;
+    }
     function renderChips() {
         chips.innerHTML = '';
         chosen.forEach(function (name, id) {
-            const chip = document.createElement('span');
-            chip.className = 'inline-flex items-center gap-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 text-xs font-medium';
-            chip.innerHTML = '<input type="hidden" name="complaints[]" value="' + id + '"><span>' + esc(name) + '</span><button type="button" class="text-blue-400 hover:text-blue-700 leading-none">&times;</button>';
-            chip.querySelector('button').addEventListener('click', function () { chosen.delete(id); renderChips(); });
-            chips.appendChild(chip);
+            chips.appendChild(makeChip(name, 'complaints[]', id, 'blue', function () { chosen.delete(id); renderChips(); }));
+        });
+        customs.forEach(function (text) {
+            chips.appendChild(makeChip(text + ' · Other', 'custom_problems[]', text, 'amber', function () { customs.delete(text); renderChips(); }));
         });
     }
-    function addProblem(id, name) { if (!chosen.has(id)) { chosen.set(id, name); renderChips(); } search.value = ''; results.classList.add('hidden'); search.focus(); }
+    function resetSearch() { search.value = ''; results.classList.add('hidden'); search.focus(); }
+    function addProblem(id, name) { if (!chosen.has(id)) { chosen.set(id, name); renderChips(); } resetSearch(); }
+    function addCustom(text) { text = (text || '').trim(); if (text && !customs.has(text)) { customs.add(text); renderChips(); } resetSearch(); }
 
-    function renderResults(q) {
-        q = q.trim().toLowerCase();
+    function renderResults(raw) {
+        const q = raw.trim();
         if (!q) { results.classList.add('hidden'); return; }
-        const matches = PROBLEMS.filter(p => !chosen.has(p.id) && p.name.toLowerCase().includes(q)).slice(0, 30);
-        if (!matches.length) { results.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">No matching problem</div>'; results.classList.remove('hidden'); return; }
-        results.innerHTML = matches.map(p => '<div data-id="' + p.id + '" class="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"><span class="text-gray-800">' + esc(p.name) + '</span> <span class="text-gray-400 text-xs">' + esc(catName[p.category_id] || '') + '</span></div>').join('');
+        const ql = q.toLowerCase();
+        const matches = PROBLEMS.filter(p => !chosen.has(p.id) && p.name.toLowerCase().includes(ql)).slice(0, 20);
+        let html = matches.map(p => '<div data-id="' + p.id + '" class="fs-lib px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"><span class="text-gray-800">' + esc(p.name) + '</span> <span class="text-gray-400 text-xs">' + esc(catName[p.category_id] || '') + '</span></div>').join('');
+        // The "Other" path — always offer to add the typed text as a problem.
+        html += '<div class="fs-other px-3 py-2 hover:bg-amber-50 cursor-pointer text-sm border-t border-gray-100 text-amber-700 font-medium">&plus; Add &ldquo;' + esc(q) + '&rdquo; as a problem</div>';
+        results.innerHTML = html;
         results.classList.remove('hidden');
-        results.querySelectorAll('[data-id]').forEach(function (row) {
-            row.addEventListener('click', function () {
-                const p = matches.find(m => String(m.id) === row.dataset.id);
-                if (p) addProblem(p.id, p.name);
-            });
+        results.querySelectorAll('.fs-lib').forEach(function (row) {
+            row.addEventListener('click', function () { const p = matches.find(m => String(m.id) === row.dataset.id); if (p) addProblem(p.id, p.name); });
         });
+        results.querySelector('.fs-other').addEventListener('click', function () { addCustom(q); });
     }
     search.addEventListener('input', function () { renderResults(search.value); });
+    // Enter adds the typed text as an "Other" problem (no forced library match).
+    search.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addCustom(search.value); } });
     document.addEventListener('click', function (e) { if (!results.contains(e.target) && e.target !== search) results.classList.add('hidden'); });
 
-    // Restore previously-selected problems after a validation round-trip.
-    (OLD_COMPLAINTS || []).forEach(function (id) {
-        const p = PROBLEMS.find(x => String(x.id) === String(id));
-        if (p) chosen.set(p.id, p.name);
-    });
+    // Restore selections after a validation round-trip.
+    (OLD_COMPLAINTS || []).forEach(function (id) { const p = PROBLEMS.find(x => String(x.id) === String(id)); if (p) chosen.set(p.id, p.name); });
+    (OLD_CUSTOM || []).forEach(function (t) { if (t && String(t).trim() !== '') customs.add(String(t).trim()); });
     renderChips();
 
     new Choices(orderSelect, {

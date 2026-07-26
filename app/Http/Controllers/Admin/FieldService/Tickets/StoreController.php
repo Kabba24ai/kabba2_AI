@@ -43,18 +43,32 @@ class StoreController extends Controller
             ])));
         }
 
-        // Reported problems come from the shared symptom library; compose a
-        // readable summary for the mission record, keep the structured ids for
-        // the companion service ticket's complaint records.
+        // Reported problems: library selections become structured complaints on
+        // the companion; free-text "Other" problems and additional details are
+        // captured as text (no forced, inaccurate library match).
         $complaintIds = array_map('intval', $validated['complaints'] ?? []);
-        $problemNames = $complaintIds
+        $libraryNames = $complaintIds
             ? ServiceSymptom::whereIn('id', $complaintIds)->pluck('name')->all()
             : [];
-        $additional     = $validated['additional_details'] ?? null;
-        $problemSummary = trim(
-            implode('; ', $problemNames)
-            . ($additional ? ($problemNames ? ' — ' : '') . $additional : '')
+        $customProblems = array_values(array_filter(
+            array_map('trim', $validated['custom_problems'] ?? []),
+            fn ($s) => $s !== ''
+        ));
+        $additional = $validated['additional_details'] ?? null;
+
+        // Mission summary: every stated problem (library + Other), then details.
+        $allProblemNames = array_merge($libraryNames, $customProblems);
+        $problemSummary  = trim(
+            implode('; ', $allProblemNames)
+            . ($additional ? ($allProblemNames ? ' — ' : '') . $additional : '')
         ) ?: 'See reported problems.';
+
+        // Companion customer complaint: the Other problems + free-text detail
+        // (library problems ride as structured complaint records).
+        $companionComplaint = trim(
+            implode('; ', $customProblems)
+            . ($additional ? ($customProblems ? ' — ' : '') . $additional : '')
+        ) ?: $problemSummary;
 
         // Mission column values — strip the request-only routing keys, then
         // merge the resolved/derived values.
@@ -80,7 +94,7 @@ class StoreController extends Controller
         // Mission + companion canonical service ticket, created atomically. The
         // companion carries the SAME structured problems (shared vocabulary) and
         // the free-text detail as its customer complaint.
-        $ticket = DB::transaction(function () use ($missionAttributes, $complaintIds, $additional, $order) {
+        $ticket = DB::transaction(function () use ($missionAttributes, $complaintIds, $companionComplaint) {
             $mission = FieldServiceTicket::create($missionAttributes);
 
             $serviceTicket = ServiceTicketIntakeService::create(
@@ -91,7 +105,7 @@ class StoreController extends Controller
                     'order_id'           => $mission->order_id,
                     'customer_id'        => $mission->customer_id,
                     'priority'           => $mission->priority->value,
-                    'customer_complaint' => $additional ?: $mission->problem_summary,
+                    'customer_complaint' => $companionComplaint,
                     'opened_at'          => now(),
                 ],
                 complaintSymptomIds: $complaintIds,

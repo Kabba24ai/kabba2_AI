@@ -701,13 +701,6 @@
                                         <x-heroicon-o-view-columns class="h-5 w-5" /> Service Operations
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('admin.service-management.customer-damage.index') }}"
-                                        class="menu-dropdown-item group
-                                        {{ Route::is('admin.service-management.customer-damage.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
-                                        <x-heroicon-o-exclamation-triangle class="h-5 w-5" /> Customer Damage
-                                    </a>
-                                </li>
                                 {{-- Field Service has no standalone workload list — field
                                      missions live on the board (filter: Field) and launch from
                                      "New Service Work". Only the specialized mission workbench

@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\ServiceManagement\Approvals;
 use App\Http\Controllers\Admin\ServiceManagement\ChargeLines;
-use App\Http\Controllers\Admin\ServiceManagement\CustomerDamage;
 use App\Http\Controllers\Admin\ServiceManagement\Deposit;
 use App\Http\Controllers\Admin\ServiceManagement\DiagnosticSteps;
 use App\Http\Controllers\Admin\ServiceManagement\Diagnostics;
@@ -31,18 +30,13 @@ Route::prefix('service-management')
         // module root; the legacy Overview page has been removed.
         Route::get('/', BoardController::class)->name('board')->middleware('permission:service_tickets.view');
 
-        // Customer Damage Staging — the review bridge between the return
-        // checklist and disposition (No Action / Charge / Service Ticket).
-        // INERT permission annotations (Gate::before bypass) like the rest of
-        // the module: view = read the queue; manage = create/dispose.
-        Route::prefix('customer-damage')->name('customer-damage.')
-            ->middleware('permission:customer_damage.view')
-            ->group(function () {
-            Route::get('/',                        CustomerDamage\IndexController::class)->name('index');
-            Route::get('/order-products',          CustomerDamage\OrderProductLookupController::class)->name('order-products');
-            Route::post('/',                       CustomerDamage\StoreController::class)->name('store')->middleware('permission:customer_damage.manage');
-            Route::post('/{uniqueId}/disposition', CustomerDamage\DispositionController::class)->name('disposition')->middleware('permission:customer_damage.manage');
-        });
+        // Customer Damage standalone workspace RETIRED — customer damage is now a
+        // Service Ticket type (ServiceType::CustomerDamageRepair) managed on the
+        // Operations Board. Old workspace URL redirects there so bookmarks survive.
+        // The staging pipeline (CustomerDamageStaging + service, fed by the return
+        // checklist) is intentionally retained; only the operational UI is gone.
+        Route::get('customer-damage', fn () => redirect()->route('admin.service-management.board'))
+            ->name('customer-damage.index');
 
         // Equipment Reported-Problem templates (Equipment problem-templates)
         // — the taxonomy library, template builder, and per-unit attachment.

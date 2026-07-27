@@ -117,6 +117,16 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Mirrors api_logs (service_name 'admin_app') to disk — one file per
+        // day, auto-pruned after 30 days. See LogAdminAppApiMiddleware.
+        'admin_app_api' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/admin-app-api/admin-app-api.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_ADMIN_APP_API_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
         'equipment_status' => [
             'driver' => 'daily',
             'path' => storage_path('logs/equipment-status.log'),

@@ -486,6 +486,14 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('admin.reports.authorize-net-reconciliation.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.reports.authorize-net-reconciliation.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-scale class="w-6 h-6" />
+                                        Authorize.Net Reconciliation
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('admin.reports.calls-log.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.reports.calls-log.*') || Route::is('admin.reports.new-damage-alerts.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">

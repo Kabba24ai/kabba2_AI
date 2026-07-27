@@ -23,6 +23,9 @@ Route::prefix('reports')
     // sales reports (Pure Sales Summary + future reports)
     require base_path('routes/admin/reports/sales_reports/routes.php');
 
+    // payment reconciliation (gateway vs Kabba, read-only export)
+    require base_path('routes/admin/reports/payment_reconciliation/routes.php');
+
     // calls log
     require base_path('routes/admin/reports/calls_log/routes.php');
 

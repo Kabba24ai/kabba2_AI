@@ -54,7 +54,7 @@
 
         {{-- Single form carries the params + optional gateway file; the Run,
              filter-chip, and Download buttons re-submit it via formaction. --}}
-        <form method="POST" action="{{ route('admin.reports.payment-reconciliation.index') }}"
+        <form method="POST" action="{{ route('admin.reports.authorize-net-reconciliation.index') }}"
               enctype="multipart/form-data" id="anr-form">
             @csrf
             <input type="hidden" name="date_range" value="custom">
@@ -85,17 +85,17 @@
                 </div>
                 <div class="flex flex-wrap justify-end gap-3 mt-4">
                     <button type="submit" name="filter" value="{{ $activeFilter }}"
-                        formaction="{{ route('admin.reports.payment-reconciliation.index') }}"
+                        formaction="{{ route('admin.reports.authorize-net-reconciliation.index') }}"
                         class="px-5 py-2.5 rounded-lg font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
                         Run Reconciliation
                     </button>
                     <button type="submit"
-                        formaction="{{ route('admin.reports.payment-reconciliation.export') }}"
+                        formaction="{{ route('admin.reports.authorize-net-reconciliation.export') }}"
                         class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">
                         Download Full CSV
                     </button>
                     <button type="submit" name="exceptions" value="1"
-                        formaction="{{ route('admin.reports.payment-reconciliation.export') }}"
+                        formaction="{{ route('admin.reports.authorize-net-reconciliation.export') }}"
                         class="px-5 py-2.5 rounded-lg font-medium text-sm border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100">
                         Download Exceptions Only
                     </button>
@@ -127,7 +127,7 @@
                 <div class="flex flex-wrap gap-2 mb-4">
                     @foreach ($filterOptions as $key => $label)
                         <button type="submit" name="filter" value="{{ $key }}"
-                            formaction="{{ route('admin.reports.payment-reconciliation.index') }}"
+                            formaction="{{ route('admin.reports.authorize-net-reconciliation.index') }}"
                             class="anr-chip {{ $activeFilter === $key ? 'active' : '' }}">{{ $label }}</button>
                     @endforeach
                 </div>

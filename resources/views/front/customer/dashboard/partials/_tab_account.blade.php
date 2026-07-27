@@ -655,19 +655,21 @@ $defaultAddresses = [
             </div>
 
             @php
-            $climit = $customer->credit_limit ?? 0;
-            $available = \App\Helpers\CustomHelper::getAvailableCredit($customer);
-
-
-            $per = $climit > 0 ? ((($climit - $available) / $climit) * 100) : 0;
+                // Canonical utilization (Stage B read model). Fixes DISP-1: the
+                // former inline formula was gate-sensitive and uncapped, showing
+                // 100% for a non-approved/over-limit customer even at a $0
+                // balance. utilizationDisplayPercent() returns the true
+                // balance ÷ limit % clamped to [0,100], or null when the account
+                // has no calculable utilization.
+                $utilPercent = \App\Services\Credit\CreditAccountSummary::for($customer)->utilizationDisplayPercent();
             @endphp
 
             <div class="flex justify-between text-xs text-gray-500 mb-1">
                 <label class="text-xs text-gray-500 font-medium">Credit Utilization</label>
-                <div class="text-right text-xs text-gray-500 mt-0.5">{{round($per)}}%</div>
+                <div class="text-right text-xs text-gray-500 mt-0.5">{{ $utilPercent !== null ? round($utilPercent) . '%' : 'N/A' }}</div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                <div class="bg-blue-500 h-2 rounded-full" style="width:{{round($per)}}%; max-width: 100%;"></div>
+                <div class="bg-blue-500 h-2 rounded-full" style="width:{{ round($utilPercent ?? 0) }}%; max-width: 100%;"></div>
             </div>
         </div>
     </div>

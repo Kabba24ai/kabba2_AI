@@ -529,9 +529,18 @@ class CustomHelper
                 break;
 
             case 'refund':
-                $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
-
-                $adjustedBalance += $record->amount + $salesTaxAmount;
+                // Mirror the charge/discount reverse handling (LED-2). A
+                // reverse-tax refund's `amount` is already tax-inclusive and the
+                // posting subtracted exactly `amount`, so the reversal must add
+                // back exactly `amount` — NOT amount + amount×rate (which
+                // over-restored the balance). Free-form taxable refunds keep the
+                // rate-additive restore to match their posting.
+                if ($record->sales_tax_type === 'reverse') {
+                    $adjustedBalance += $record->amount;
+                } else {
+                    $salesTaxAmount = $record->sales_tax > 0 ? $record->amount * $record->sales_tax : 0;
+                    $adjustedBalance += $record->amount + $salesTaxAmount;
+                }
                 break;
 
             case 'discount':
@@ -643,7 +652,14 @@ class CustomHelper
         if ($taxRate > 0 &&
             !(
                 $account->type === 'payment' ||
-                (in_array($account->type, ['charge', 'discount'], true) && $account->sales_tax_type === 'reverse')
+                // Reverse-taxed rows store an ALREADY tax-inclusive `amount`, so
+                // the rate must NOT be re-applied. This holds for charge and
+                // discount AND for refund — a linked reverse-tax refund
+                // (RefundStoreController::storeLinkedRefund) stores the full
+                // tax-inclusive credit as `amount` with sales_tax_type='reverse'.
+                // Omitting 'refund' here was LED-1: recompute re-added amount×rate,
+                // over-reducing A/R and corrupting balances on any repair/recompute.
+                (in_array($account->type, ['charge', 'discount', 'refund'], true) && $account->sales_tax_type === 'reverse')
             )
         ) {
             $totalWithTax += ($amount * $taxRate);

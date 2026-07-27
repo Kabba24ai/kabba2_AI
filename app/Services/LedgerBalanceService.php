@@ -24,13 +24,26 @@ use Illuminate\Support\Facades\DB;
  * or (b) an explicit refusal to guess, for every transaction type the Truth
  * Table marks as Pending Business Decision, Undefined, or out of scope.
  *
- * As of Phase 2.7, this class has ZERO production callers. It exists to be
- * built and validated in isolation, exactly as `TaxCalculationService`
- * was in Phase 2.1 — no controller, model observer, or job may call it yet.
- * `CustomHelper::updateCreditBalance()` remains the production-serving
- * implementation, untouched, until a future phase (2.8+) migrates callers
- * onto this class after the conditions in `PHASE_2_5A_LEDGER_READINESS_REVIEW.md`
- * §10 / `FINANCIAL_TRUTH_TABLE.md` §7 are met.
+ * DOCUMENTATION CORRECTION (Credit Account Foundation audit, 2026-07-26): the
+ * previous claim that this class "has ZERO production callers" is FALSE and has
+ * been corrected. `applyTransaction()` is a LIVE co-equal A/R balance writer
+ * alongside `CustomHelper::updateCreditBalance()` (the "dual-writer" LED-5
+ * finding). As of this correction its production callers are:
+ *   - Admin\Crm\Customers\CustomerAccount\PaymentStoreController  (account payment)
+ *   - Admin\Crm\Customers\Invoice\PaymentStoreController          (invoice payment)
+ *   - Admin\Dashboard\PaymentStoreController                      (dashboard payment)
+ *   - Admin\OrderManagement\Orders\AddToAccountPaymentController  (order→account)
+ *   - Front\Checkout\PostController                               (on-account checkout)
+ *   - Front\Customer\Dashboard\Invoice\PaymentStoreController     (portal invoice payment)
+ *   - Services\ChargeService                                      (fuel/damage collection)
+ * The split in practice: payments + on-account ORDER postings flow through this
+ * service; charges/discounts/refunds + CRM manual charge flow through
+ * `updateCreditBalance()`. The two implementations compute identically for the
+ * three overlapping types (payment/charge/order) today, but they are separately
+ * maintained — convergence behind one shared delta primitive is recommended (a
+ * governed migration, not a big-bang rewrite; see the phase delivery report).
+ * Until that convergence, treat BOTH as canonical and keep their per-type math
+ * in lock-step.
  *
  * Phase 2.7 added {@see self::applyTransaction()}, the database-write
  * wrapper around {@see self::amountWithTax()} — structurally mirroring

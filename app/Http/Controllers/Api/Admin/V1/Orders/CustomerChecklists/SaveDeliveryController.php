@@ -79,7 +79,7 @@ class SaveDeliveryController extends BaseController
                 );
             }
 
-            if($equipment && $equipment->current_status->isRented()){
+            if($equipment && $equipment->current_status->isRented() && (int) $orderProduct->equipment_id !== (int) $equipment->id){
                 return response()->json(
                     [
                         'success' => false,

@@ -33,28 +33,12 @@ class IndexController extends BaseController
             ->with(['notes' => fn($q) => $q
                 ->with('user')
             , 'billingAddress.state', 'shippingAddress.state'])
-            ->orderByRaw("
-                CASE
-                    -- BAD DEBT: credit rule
-                    WHEN (
-                        is_credit_account != 1
-                        AND (credit_limit IS NULL OR credit_limit = '')
-                        AND available_credit_balance > 0
-                    ) THEN 1
-
-                    -- BAD DEBT: payment rule (60+ days since last payment)
-                    WHEN (
-                        SELECT DATEDIFF(CURDATE(), MAX(date))
-                        FROM customer_accounts
-                        WHERE customer_accounts.customer_id = customers.id
-                        AND customer_accounts.type = 'payment'
-                    ) >= 60 THEN 1
-
-                    -- GOOD STANDING
-                    ELSE 0
-                END ASC,
-                CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
-            ");
+            // Bad Debt sort via the single canonical rule (Customer::badDebtSqlCondition):
+            // outstanding_balance > 0 AND oldest_outstanding_age_days >= 60.
+            // Credit-limit configuration is no longer part of Bad Debt.
+            ->orderByRaw('CASE WHEN ' . Customer::badDebtSqlCondition() . ' THEN 1 ELSE 0 END ASC,
+                CONCAT_WS(\' \', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
+            ');
 
         if (!empty($validatedData['search_name'])) {
             $customersQuery->where(function ($query) use ($validatedData) {

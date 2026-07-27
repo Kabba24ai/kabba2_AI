@@ -50,12 +50,15 @@ class CreditAccountSummary
     ];
 
     /**
-     * Centralized bad-debt aging threshold (days). The audit found FOUR
-     * disagreeing definitions: aging {>45} vs {>=60} and credit-rule {OR +
-     * limit<=0} vs {AND + null}. This layer standardizes on the
-     * getCustomerAccountStatus semantics (>=60, AND, unapproved-with-balance)
-     * because that helper already drives the most surfaces (CRM tabs + checkout
-     * gate). The rule is NOT yet business-approved — see badDebt()['rule_approved'].
+     * Canonical, business-APPROVED Bad Debt aging threshold (calendar days).
+     *
+     *     Bad Debt = outstanding_balance > 0 AND oldest_outstanding_age_days >= 60
+     *
+     * Credit-limit configuration is intentionally NOT part of Bad Debt — a $0,
+     * negative, or null credit limit describes account configuration, not bad
+     * debt. This replaced the four divergent legacy definitions (aging >45 vs
+     * >=60; credit-rule OR/limit<=0 vs AND/null). Over-limit and past-due are
+     * separate facts (isOverLimit()/amountOverLimit(); agingBucket()).
      */
     public const BAD_DEBT_AGING_DAYS = 60;
 
@@ -236,32 +239,53 @@ class CreditAccountSummary
         return '91+ days';
     }
 
-    // ── Bad debt (facts vs classification kept separate; rule unapproved) ────
+    // ── Oldest outstanding exposure age (the Bad Debt aging basis) ───────────
 
     /**
+     * Age (calendar days) of the OLDEST outstanding account exposure — the
+     * canonical basis for Bad Debt. Without invoice/FIFO reconciliation (out of
+     * scope), "oldest outstanding exposure" is proxied by the oldest account
+     * DEBIT posting (charge/order) while the account carries a positive balance
+     * — the Phase 2A methodology, preserved and documented. Null when there is
+     * no positive outstanding balance or no debit posting.
+     */
+    public function oldestOutstandingAgeDays(): ?int
+    {
+        if ($this->outstandingBalance() <= 0) {
+            return null;
+        }
+
+        $date = $this->oldestOutstandingActivityDate();
+
+        return $date
+            ? (int) $date->copy()->startOfDay()->diffInDays(Carbon::now()->startOfDay())
+            : null;
+    }
+
+    // ── Bad debt (canonical, business-approved; separate from over-limit) ────
+
+    /**
+     * Canonical Bad Debt classification — the single authority for the whole
+     * app. Credit-limit configuration is NOT consulted.
+     *
+     *     is_bad_debt = outstanding_balance > 0 AND oldest_outstanding_age_days >= 60
+     *
      * @return array{
-     *   is_bad_debt: bool, rule: string, rule_approved: bool,
-     *   aging_days: ?int, alternate_rule_note: string
+     *   is_bad_debt: bool, rule_approved: bool, threshold_days: int,
+     *   oldest_outstanding_age_days: ?int, outstanding_balance: float
      * }
      */
     public function badDebt(): array
     {
-        $days = $this->daysSinceLastActivity();
-        $unapprovedWithBalance = (! $this->isCreditAccount() || ($this->creditLimit() ?? 0) <= 0)
-            && $this->outstandingBalance() > 0;
-
-        $isBadDebt = $days !== null
-            && $days >= self::BAD_DEBT_AGING_DAYS
-            && $unapprovedWithBalance;
+        $balance = $this->outstandingBalance();
+        $age = $this->oldestOutstandingAgeDays();
 
         return [
-            'is_bad_debt' => $isBadDebt,
-            'rule' => 'aging_days >= ' . self::BAD_DEBT_AGING_DAYS . ' AND unapproved-credit-with-balance',
-            'rule_approved' => false, // audit found 4 divergent defs; awaiting business sign-off
-            'aging_days' => $days,
-            'alternate_rule_note' => 'Billing Summary + isBadDebitCustomer use >45 days with OR/limit<=0; '
-                . 'getCustomerAccountStatus + Customers index use >=60 days with AND/null. Standardized here on '
-                . 'the >=60/AND semantics; final threshold requires business approval.',
+            'is_bad_debt' => $balance > 0 && $age !== null && $age >= self::BAD_DEBT_AGING_DAYS,
+            'rule_approved' => true,
+            'threshold_days' => self::BAD_DEBT_AGING_DAYS,
+            'oldest_outstanding_age_days' => $age,
+            'outstanding_balance' => $balance,
         ];
     }
 
@@ -280,6 +304,7 @@ class CreditAccountSummary
             'store_credit_balance' => $this->storeCreditBalance(),
             'aging_days' => $this->daysSinceLastActivity(),
             'aging_bucket' => $this->agingBucket(),
+            'oldest_outstanding_age_days' => $this->oldestOutstandingAgeDays(),
             'bad_debt' => $this->badDebt(),
         ];
     }

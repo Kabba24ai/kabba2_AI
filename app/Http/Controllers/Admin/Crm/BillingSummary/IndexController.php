@@ -152,13 +152,10 @@ class IndexController extends Controller
                             })
                             ->select('customers.*')
                             ->selectRaw('DATEDIFF(NOW(), last_payment.last_payment_date) as days_since_last_payment_sql')
-                            ->where(function ($q) {
-                                $q->whereRaw('DATEDIFF(NOW(), last_payment.last_payment_date) > 45')->orWhere(function ($q2) {
-                                    $q2->where(function ($q3) {
-                                        $q3->where('credit_limit', '<=', 0)->orWhereNull('credit_limit')->orWhere('is_credit_account', '=', 0);
-                                    })->where('available_credit_balance', '>', 0);
-                                });
-                            })
+                            // Canonical Bad Debt filter (Customer::scopeBadDebt):
+                            // outstanding_balance > 0 AND oldest_outstanding_age_days >= 60.
+                            // Replaced the former >45-day OR credit-limit predicate.
+                            ->badDebt()
                             ->orderByRaw('ROUND(available_credit_balance, 2) DESC')->orderByRaw("
         CONCAT_WS(' ', TRIM(first_name), TRIM(last_name)) COLLATE utf8mb4_unicode_ci ASC
     ");

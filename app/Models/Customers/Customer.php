@@ -247,6 +247,41 @@ class Customer extends Authenticatable
         return $this->tax_status ?? 'Taxable';
     }
 
+    /**
+     * Canonical Bad Debt SQL condition — the single query-level definition of
+     * the business-approved rule, mirroring CreditAccountSummary::badDebt():
+     *
+     *     outstanding_balance > 0 AND oldest_outstanding_age_days >= 60
+     *
+     * Credit-limit configuration is NOT part of Bad Debt. Uses the oldest
+     * non-deleted account DEBIT (charge/order) posting as the outstanding-age
+     * basis, matching the PHP read model (incl. the deleted_at exclusion).
+     * Threshold is sourced from the read-model constant so there is one number.
+     */
+    public static function badDebtSqlCondition(): string
+    {
+        $threshold = \App\Services\Credit\CreditAccountSummary::BAD_DEBT_AGING_DAYS;
+
+        // Anchor the age cutoff to PHP "now" (config app timezone) — the SAME
+        // reference the read model uses — rather than MySQL CURDATE(), so the
+        // SQL and PHP classifications cannot disagree at the boundary because of
+        // an app-vs-DB timezone skew. Oldest debit on/before the cutoff date is
+        // >= threshold days old. DATE() strips any time component for a clean
+        // calendar-day comparison.
+        $cutoff = now()->subDays($threshold)->toDateString();
+
+        return '(customers.available_credit_balance > 0 AND ('
+            . 'SELECT MIN(DATE(cad.date)) FROM customer_accounts cad '
+            . "WHERE cad.customer_id = customers.id AND cad.type IN ('charge','order') AND cad.deleted_at IS NULL"
+            . ") <= '" . $cutoff . "')";
+    }
+
+    /** Restrict to Bad Debt customers using the canonical condition. */
+    public function scopeBadDebt($query)
+    {
+        return $query->whereRaw(self::badDebtSqlCondition());
+    }
+
     public function getLastPaymentAttribute()
     {
         return $this->accounts()->where('type', 'payment')->orderByDesc('date')->first();

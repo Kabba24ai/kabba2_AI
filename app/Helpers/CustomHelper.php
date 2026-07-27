@@ -133,22 +133,20 @@ class CustomHelper
         return max(0.0, round($creditLimit - $outstanding, 2));
     }
 
+    /**
+     * Canonical Bad Debt predicate — delegates to the single authority
+     * (CreditAccountSummary). Business-approved rule: positive outstanding
+     * balance AND oldest outstanding exposure >= 60 days. Credit-limit
+     * configuration is deliberately NOT part of this classification (the former
+     * >45-day / credit_limit<=0 / not-a-credit-account logic was removed).
+     */
     public static function isBadDebitCustomer($customer): bool
     {
-        //  >45 days since last payment (danger)
-        if (isset($customer->payment_status_badge) && $customer->payment_status_badge === 'danger') {
-            return true;
+        if (! $customer instanceof Customer) {
+            return false;
         }
 
-        //  Credit problems (credit_limit <= 0 OR NULL OR not a credit account)
-        //    BUT only considered bad debt if available_credit_balance > 0
-        $creditIssue = $customer->credit_limit <= 0 || is_null($customer->credit_limit) || $customer->is_credit_account == 0;
-
-        if ($creditIssue && $customer->available_credit_balance > 0) {
-            return true;
-        }
-
-        return false;
+        return \App\Services\Credit\CreditAccountSummary::for($customer)->badDebt()['is_bad_debt'];
     }
 
     public static function formatDate($date, $format = null)
@@ -695,19 +693,6 @@ class CustomHelper
     {
         $days = $customer->days_since_last_payment;
 
-        // Credit conditions
-        $notApproved = $customer->is_credit_account != 1;
-        $noCreditLimit = empty($customer->credit_limit);
-        $hasAvailableBalance = ($customer->available_credit_balance ?? 0) > 0;
-
-        // Defaults
-        $status = 'Good Standing';
-        $badge = [
-            'label' => 'Good Standing',
-            'bg' => 'bg-green-100',
-            'text' => 'text-green-800',
-        ];
-
         $alert = [
             'show' => false,
             'color' => null,
@@ -715,10 +700,14 @@ class CustomHelper
         ];
 
         /**
-         * RULE 1:
-         * Bad Debt if NOT approved + NO credit limit + available balance
+         * Bad Debt — canonical, business-approved rule via the single authority
+         * (isBadDebitCustomer → CreditAccountSummary): positive outstanding
+         * balance AND oldest outstanding exposure >= 60 days. Credit-limit
+         * configuration is NOT consulted (the former "not approved + no credit
+         * limit + balance" Rule 1 and the "days_since_last_payment >= 60" Rule 2
+         * were removed). Bad Debt is deliberately independent of over-limit.
          */
-        if ($notApproved && $noCreditLimit && $hasAvailableBalance) {
+        if (self::isBadDebitCustomer($customer)) {
             return [
                 'status' => 'Bad Debt',
                 'badge' => [
@@ -726,32 +715,19 @@ class CustomHelper
                     'bg' => 'bg-red-100',
                     'text' => 'text-red-800',
                 ],
-                'alert' => $alert,
+                'alert' => [
+                    'show' => true,
+                    'color' => 'red',
+                    'days' => $days,
+                ],
             ];
         }
 
         /**
-         * RULE 2:
-         * Payment aging
+         * Past-due alert coloring (DISPLAY only — NOT Bad Debt) based on days
+         * since last account payment. Preserved unchanged.
          */
         if ($days !== null) {
-            if ($days >= 60) {
-                // 60+ days → Bad Debt
-                return [
-                    'status' => 'Bad Debt',
-                    'badge' => [
-                        'label' => 'Bad Debt',
-                        'bg' => 'bg-red-100',
-                        'text' => 'text-red-800',
-                    ],
-                    'alert' => [
-                        'show' => true,
-                        'color' => 'red',
-                        'days' => $days,
-                    ],
-                ];
-            }
-
             if ($days > 45) {
                 $alert = ['show' => true, 'color' => 'red', 'days' => $days];
             } elseif ($days > 30) {
@@ -762,8 +738,12 @@ class CustomHelper
         }
 
         return [
-            'status' => $status,
-            'badge' => $badge,
+            'status' => 'Good Standing',
+            'badge' => [
+                'label' => 'Good Standing',
+                'bg' => 'bg-green-100',
+                'text' => 'text-green-800',
+            ],
             'alert' => $alert,
         ];
     }

@@ -36,10 +36,20 @@ class CreditAccountSummaryTest extends TestCase
 
     private function ledgerPayment(Customer $c, float $amount, $date): void
     {
+        $this->ledgerRow($c, $amount, 'payment', $date);
+    }
+
+    private function ledgerDebit(Customer $c, float $amount, $date): void
+    {
+        $this->ledgerRow($c, $amount, 'charge', $date);
+    }
+
+    private function ledgerRow(Customer $c, float $amount, string $type, $date): void
+    {
         $row = new CustomerAccount();
         $row->customer_id = $c->id;
         $row->amount = $amount;
-        $row->type = 'payment';
+        $row->type = $type;
         $row->sales_tax = 0;
         $row->sales_tax_type = 'free';
         $row->date = $date;
@@ -126,19 +136,23 @@ class CreditAccountSummaryTest extends TestCase
         $this->assertEquals('61–90 days', $s->agingBucket());
     }
 
-    public function test_bad_debt_is_structured_and_flagged_unapproved(): void
+    public function test_bad_debt_is_canonical_and_approved(): void
     {
-        // Unapproved credit + outstanding balance + aged >= 60d → bad debt.
-        $c = $this->customer(['is_credit_account' => 0, 'credit_limit' => null, 'available_credit_balance' => 500]);
-        $this->ledgerPayment($c, 10, now()->subDays(75));
+        // Positive balance + oldest outstanding exposure >= 60d → bad debt,
+        // regardless of credit-limit configuration.
+        $c = $this->customer(['is_credit_account' => 1, 'credit_limit' => 1000, 'available_credit_balance' => 500]);
+        $this->ledgerDebit($c, 500, now()->subDays(75));
 
         $bad = CreditAccountSummary::for($c)->badDebt();
         $this->assertTrue($bad['is_bad_debt']);
-        $this->assertFalse($bad['rule_approved'], 'rule ambiguity surfaced, not hidden');
-        $this->assertNotEmpty($bad['alternate_rule_note']);
+        $this->assertTrue($bad['rule_approved']);
+        $this->assertEquals(60, $bad['threshold_days']);
+        $this->assertEqualsWithDelta(75, $bad['oldest_outstanding_age_days'], 1);
+        $this->assertEquals(500, $bad['outstanding_balance']);
 
-        // Approved credit account under limit → not bad debt.
+        // Approved credit account, recent exposure → not bad debt.
         $good = $this->customer(['is_credit_account' => 1, 'credit_limit' => 1000, 'available_credit_balance' => 200]);
+        $this->ledgerDebit($good, 200, now()->subDays(5));
         $this->assertFalse(CreditAccountSummary::for($good)->badDebt()['is_bad_debt']);
     }
 

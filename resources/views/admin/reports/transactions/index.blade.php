@@ -34,11 +34,13 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="tr-label">Start Date</label>
-                    <input type="date" name="start_date" value="{{ $filters['start_date'] }}" class="tr-input">
+                    <input type="text" name="start_date" value="{{ $filters['start_date'] }}"
+                           class="tr-input datepicker" autocomplete="off" placeholder="MM/DD/YYYY">
                 </div>
                 <div>
                     <label class="tr-label">End Date</label>
-                    <input type="date" name="end_date" value="{{ $filters['end_date'] }}" class="tr-input">
+                    <input type="text" name="end_date" value="{{ $filters['end_date'] }}"
+                           class="tr-input datepicker" autocomplete="off" placeholder="MM/DD/YYYY">
                 </div>
                 <div>
                     <label class="tr-label">Store (optional)</label>
@@ -89,3 +91,11 @@
         @endif
     </div>
 @endsection
+
+@push('js')
+<script>
+    // Drives the shared air-datepicker (.datepicker) date format — same as the
+    // other reports. Must be set before the global picker init (DOMContentLoaded).
+    window.APP_DATE_FORMAT = @json(config('app.aire_datepicker_format', 'MM/dd/yyyy'));
+</script>
+@endpush

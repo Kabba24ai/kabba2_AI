@@ -1,0 +1,122 @@
+<?php
+
+namespace App\Services\Dispatch;
+
+/**
+ * Pure (DB-free) ordering logic for the Dispatch drag-and-drop board.
+ *
+ * A driver's schedule is ONE unified activity sequence spanning both legs
+ * (deliveries and returns interleaved) — this is what the driver's mobile app
+ * shows as a single-column route. It is physically stored across two columns on
+ * `order_products` (`delivery_priority` for delivery-leg cards, `pickup_priority`
+ * for return-leg cards), but read as a single ordered list.
+ *
+ * The Combined board view edits that unified sequence directly. The Separate
+ * board view edits one leg's column at a time, so a leg reorder has to be
+ * reconciled back into the unified sequence while the OTHER leg's cards keep
+ * their positions — that reconciliation lives in {@see reconcileSeparate()}.
+ *
+ * This class holds NO database access on purpose so the sequencing rules can be
+ * unit-tested without a MySQL server; persistence lives in ReorderController.
+ *
+ * An "item" throughout is an associative array: ['uid' => string, 'leg' => 'delivery'|'return'].
+ */
+class DispatchReorderService
+{
+    /**
+     * Reconcile a Separate-view leg reorder into the driver's full unified order.
+     *
+     * @param  array       $currentUnified  The driver's current unified order (pre-move),
+     *                                       as [['uid','leg'], ...]. For an arrival this does
+     *                                       NOT yet include the moved card; for a departure it
+     *                                       still includes it.
+     * @param  string[]    $newLegOrder     The post-move order of the dragged leg's column
+     *                                       (uids only). For an arrival this includes the moved
+     *                                       card; for a departure it excludes it.
+     * @param  string      $leg             The dragged leg ('delivery' or 'return').
+     * @param  string|null $arrivingUid     UID that arrived from another driver (cross-driver
+     *                                       drop), or null.
+     * @param  string|null $departingUid    UID that left for another driver, or null.
+     * @return array                        New unified order as [['uid','leg'], ...].
+     */
+    public function reconcileSeparate(
+        array $currentUnified,
+        array $newLegOrder,
+        string $leg,
+        ?string $arrivingUid = null,
+        ?string $departingUid = null
+    ): array {
+        $unified = array_values($currentUnified);
+
+        // A card that left this driver is dropped from the sequence entirely.
+        if ($departingUid !== null) {
+            $unified = array_values(array_filter(
+                $unified,
+                fn ($it) => ($it['uid'] ?? null) !== $departingUid
+            ));
+        }
+
+        // A card that arrived is inserted adjacent to its neighbour in the new leg
+        // order: right after the leg-card that now precedes it, or at the front if
+        // it is first in the leg order. Its exact position relative to the OTHER
+        // leg is inherently ambiguous in Separate view (the dispatcher only
+        // expressed its order among same-leg cards) — Combined view is the tool for
+        // precise cross-leg placement.
+        if ($arrivingUid !== null) {
+            $insertAt = 0;
+            $k = array_search($arrivingUid, $newLegOrder, true);
+            if ($k !== false && $k > 0) {
+                $predUid = $newLegOrder[$k - 1];
+                foreach ($unified as $i => $it) {
+                    if (($it['uid'] ?? null) === $predUid) {
+                        $insertAt = $i + 1;
+                        break;
+                    }
+                }
+            }
+            array_splice($unified, $insertAt, 0, [['uid' => $arrivingUid, 'leg' => $leg]]);
+        }
+
+        // Replace the dragged leg's slots, in unified order, with the new leg order.
+        // Other-leg cards are pinned exactly where they are. Slot count now matches
+        // the new leg order length by construction (departing removed / arriving
+        // inserted above), but we fall back to the existing uid if it ever doesn't.
+        $queue = array_values($newLegOrder);
+        $qi = 0;
+        $result = [];
+        foreach ($unified as $it) {
+            if (($it['leg'] ?? null) === $leg) {
+                $uid = $queue[$qi] ?? ($it['uid'] ?? null);
+                $qi++;
+                if ($uid !== null) {
+                    $result[] = ['uid' => $uid, 'leg' => $leg];
+                }
+            } else {
+                $result[] = $it;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Map a unified order to contiguous 1..N positions per item.
+     *
+     * @param  array $unified  [['uid','leg'], ...]
+     * @return array           [['uid','leg','priority'], ...] with priority = 1-based position.
+     */
+    public function positions(array $unified): array
+    {
+        $out = [];
+        $pos = 0;
+        foreach ($unified as $it) {
+            if (!isset($it['uid'], $it['leg'])) {
+                continue;
+            }
+            $pos++;
+            $out[] = ['uid' => $it['uid'], 'leg' => $it['leg'], 'priority' => $pos];
+        }
+
+        return $out;
+    }
+}

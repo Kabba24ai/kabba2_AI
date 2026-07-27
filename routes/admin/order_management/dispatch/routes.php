@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\OrderManagement\Dispatch\IndexController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\ShowController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\DriverSummaryController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\PriorityController;
+use App\Http\Controllers\Admin\OrderManagement\Dispatch\ReorderController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\AiRulesController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SaveSettingsController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SaveDriverCapabilityController;
@@ -31,6 +32,10 @@ Route::prefix('dispatch')
     Route::get('/', IndexController::class)->name('index');
     Route::get('/driver-cards', [IndexController::class, 'driverCards'])->name('driver-cards');
     Route::get('/drivers', DriverSummaryController::class)->name('drivers');
+
+    // Drag-and-drop board: atomic reorder / cross-driver reassign. Literal path,
+    // declared before the /{unique_id} catch-all below.
+    Route::post('/reorder', ReorderController::class)->name('reorder');
 
     // AI Rules — must be before /{unique_id} catch-all
     Route::get('/ai-rules', AiRulesController::class)->name('ai-rules.index');

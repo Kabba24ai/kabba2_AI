@@ -696,6 +696,8 @@
                         // Re-apply the current card view mode after the DOM is replaced
                         const mode = targetMode || localStorage.getItem('driver_card_view') || 'separate';
                         applyDriverCardMode(mode);
+                        // Re-attach drag-and-drop to the freshly injected cards
+                        if (typeof window.initDispatchDnD === 'function') window.initDispatchDnD();
                     }
                 })
                 .finally(() => wrapper.classList.remove('opacity-50'));
@@ -1706,5 +1708,202 @@
     document.addEventListener('equipmentStoreUpdated', function () {
         if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
     });
+    </script>
+
+    {{-- ===== Drag-and-drop dispatch board ===== --}}
+    <style>
+        .dc-drag-handle { touch-action: none; line-height: 0; }
+        .dc-drag-ghost  { opacity: .35; }
+        .dc-drag-chosen { background: #eff6ff; border-radius: .5rem; }
+        .dc-drop-active { outline: 2px dashed #93c5fd; outline-offset: 2px; border-radius: .5rem; }
+        .dc-idle-drop.dc-drop-active { outline-color: #6ee7b7; background: #ecfdf5; }
+    </style>
+    <script>
+    (function () {
+        const REORDER_URL = '{{ route("admin.order-management.dispatch.reorder") }}';
+        let sortables = [];
+
+        function csrf() { return document.querySelector('meta[name="csrf-token"]')?.content; }
+
+        // Read a list section's entries as [{uid, leg}] in DOM order (unified order).
+        function itemsFromSection(section) {
+            return Array.from(section.querySelectorAll('.dispatch-priority-badge'))
+                .map(b => ({ uid: b.dataset.uid, leg: b.dataset.type }));
+        }
+        // Read a single-leg column's entries as [uid] in DOM order.
+        function legOrderFromSection(section) {
+            return Array.from(section.querySelectorAll('.dispatch-priority-badge')).map(b => b.dataset.uid);
+        }
+        // The driver's current unified order lives in the (possibly hidden) Combined
+        // section of the same card — Sortable never touches it during a Separate-view
+        // drag, so it is the pre-move snapshot the server needs to reconcile against.
+        function currentUnifiedForCard(sectionEl) {
+            const card = sectionEl.closest('[data-driver-card]');
+            if (!card) return [];
+            const comb = card.querySelector('.driver-card-combined .dc-scroll-section');
+            return comb ? itemsFromSection(comb) : [];
+        }
+        function driverIdOf(el) {
+            const card = el.closest('[data-driver-card]');
+            return card ? parseInt(card.dataset.driverId, 10) : null;
+        }
+
+        // Visible number = position in the list, per the unified-route-sequence design.
+        function relabel(section) {
+            let pos = 0;
+            section.querySelectorAll('.dc-entry').forEach(entry => {
+                const badge = entry.querySelector('.dispatch-priority-badge');
+                if (!badge || badge.querySelector('input')) return; // don't clobber the inline editor
+                pos += 1;
+                badge.textContent = String(pos);
+            });
+        }
+        function relabelAll() {
+            document.querySelectorAll('.dc-scroll-section[data-leg]').forEach(relabel);
+        }
+
+        function destroyDnD() {
+            sortables.forEach(s => { try { s.destroy(); } catch (e) { /* node already gone */ } });
+            sortables = [];
+        }
+
+        function highlight(sourceLeg, on) {
+            document.querySelectorAll('.dc-scroll-section[data-leg="' + sourceLeg + '"]').forEach(el => {
+                el.classList.toggle('dc-drop-active', on);
+            });
+            document.querySelectorAll('.dc-idle-drop').forEach(el => el.classList.toggle('dc-drop-active', on));
+        }
+
+        function persist(payload) {
+            const wrapper = document.getElementById('driver-cards-wrapper');
+            if (wrapper) wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+            const finish = () => {
+                // Server is authoritative: re-render from the DB. On success this shows
+                // the new order; on failure (transaction rolled back) it restores the
+                // original order — the card's own snap-back.
+                if (typeof window.refreshDriverCards === 'function') window.refreshDriverCards();
+                if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
+            };
+
+            fetch(REORDER_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf(),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(r => r.json().then(d => ({ ok: r.ok, d })))
+            .then(({ ok, d }) => {
+                if (ok && d && d.success) {
+                    window.notyf?.success?.('Dispatch order updated.');
+                } else {
+                    window.notyf?.error?.((d && d.message) || 'Could not update the dispatch order.');
+                }
+            })
+            .catch(() => {
+                window.notyf?.error?.('A network error occurred. The dispatch order was not changed.');
+            })
+            .finally(finish);
+        }
+
+        function onDrop(evt) {
+            highlight(evt.from.dataset.leg, false);
+
+            const badge = evt.item.querySelector('.dispatch-priority-badge');
+            if (!badge) return;
+
+            const movedUid = badge.dataset.uid;
+            const movedLeg = badge.dataset.type;
+
+            const fromSection = evt.from;
+            const toSection   = evt.to;
+            const idleEl      = toSection.closest('[data-idle-driver-id]');
+            const destIdle    = !!idleEl;
+
+            const view      = fromSection.dataset.leg === 'combined' ? 'combined' : 'separate';
+            const srcDriver = driverIdOf(fromSection);
+            const dstDriver = destIdle ? parseInt(idleEl.dataset.idleDriverId, 10) : driverIdOf(toSection);
+
+            // No-op (dropped back where it started, or a type-mismatch snap-back).
+            if (evt.from === evt.to && evt.oldIndex === evt.newIndex) { relabelAll(); return; }
+            if (srcDriver === null || dstDriver === null || isNaN(dstDriver)) { relabelAll(); return; }
+
+            const crossDriver = srcDriver !== dstDriver;
+
+            const payload = {
+                view: view,
+                leg: movedLeg,
+                moved_uid: movedUid,
+                source_driver_id: srcDriver,
+                dest_driver_id: dstDriver,
+                dest_idle: destIdle,
+            };
+
+            if (view === 'combined') {
+                payload.dest_order = destIdle ? [{ uid: movedUid, leg: movedLeg }] : itemsFromSection(toSection);
+                if (crossDriver) payload.source_order = itemsFromSection(fromSection);
+            } else {
+                if (!destIdle) {
+                    payload.dest_leg_order = legOrderFromSection(toSection);
+                    payload.dest_current_unified = currentUnifiedForCard(toSection);
+                }
+                if (crossDriver) {
+                    payload.source_leg_order = legOrderFromSection(fromSection);
+                    payload.source_current_unified = currentUnifiedForCard(fromSection);
+                }
+            }
+
+            relabelAll(); // instant positional feedback before the authoritative refresh
+            persist(payload);
+        }
+
+        function groupFor(leg) {
+            if (leg === 'combined') return { name: 'disp-combined', pull: true, put: ['disp-combined'] };
+            if (leg === 'delivery') return { name: 'disp-delivery', pull: true, put: ['disp-delivery'] };
+            return { name: 'disp-return', pull: true, put: ['disp-return'] };
+        }
+
+        window.initDispatchDnD = function () {
+            // Graceful degradation: without SortableJS the inline editor + Update
+            // button remain the working fallback.
+            if (!window.Sortable) return;
+            destroyDnD();
+
+            document.querySelectorAll('.dc-scroll-section[data-leg]').forEach(section => {
+                sortables.push(new Sortable(section, {
+                    group: groupFor(section.dataset.leg),
+                    handle: '.dc-drag-handle',
+                    draggable: '.dc-entry',
+                    animation: 150,
+                    ghostClass: 'dc-drag-ghost',
+                    chosenClass: 'dc-drag-chosen',
+                    onStart: e => highlight(e.from.dataset.leg, true),
+                    onEnd: onDrop,
+                }));
+            });
+
+            // Idle drivers accept deliveries, returns, or combined cards — a first drop
+            // assigns the job and creates its first priority position (handled server-side).
+            document.querySelectorAll('.dc-idle-drop').forEach(zone => {
+                sortables.push(new Sortable(zone, {
+                    group: { name: 'disp-idle', pull: false, put: ['disp-delivery', 'disp-return', 'disp-combined'] },
+                    draggable: '.dc-entry',
+                    animation: 150,
+                    // onEnd on the SOURCE list handles persistence; this instance only
+                    // needs to accept the drop.
+                }));
+            });
+
+            relabelAll();
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            window.initDispatchDnD();
+        });
+    })();
     </script>
 @endpush

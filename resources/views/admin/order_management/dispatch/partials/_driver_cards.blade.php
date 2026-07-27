@@ -23,8 +23,10 @@
                     ->when($driver->cdl_a, fn($c) => $c->push('CDL A'))
                     ->when($driver->cdl_b, fn($c) => $c->push('CDL B'));
             @endphp
-            <div class="shrink-0 flex items-center gap-2 px-2.5 py-1.5 bg-white rounded-lg border border-gray-200"
-                 style="min-width: 150px; max-width: 150px;">
+            <div class="dc-idle-drop shrink-0 flex items-center gap-2 px-2.5 py-1.5 bg-white rounded-lg border border-gray-200"
+                 style="min-width: 150px; max-width: 150px;"
+                 data-idle-driver-id="{{ $driver->id }}"
+                 title="Drop a job here to assign it to {{ $driver->full_name }}">
                 <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 text-[9px] font-bold flex items-center justify-center shrink-0">
                     {{ $initials }}
                 </div>
@@ -60,6 +62,7 @@
         @endphp
         <div class="bg-white rounded-xl border shadow-sm flex flex-col"
              data-driver-card
+             data-driver-id="{{ $driver->id }}"
              data-total-jobs="{{ $totalJobs }}"
              data-expanded="false">
 
@@ -103,7 +106,7 @@
                         Deliveries
                         <span class="ml-auto text-gray-400 font-normal normal-case tracking-normal">{{ $driver->delivery_jobs->count() }}</span>
                     </p>
-                    <div class="dc-scroll-section space-y-4 overflow-y-auto" style="max-height: 13rem;">
+                    <div class="dc-scroll-section space-y-4 overflow-y-auto" style="max-height: 13rem;" data-leg="delivery">
                         @forelse ($driver->delivery_jobs as $job)
                         @php
                             $addr = $job->order?->shippingAddress;
@@ -112,7 +115,11 @@
                             $isEarly   = $job->dispatch_delivery_date && $job->delivery_date
                                          && \Carbon\Carbon::parse($job->dispatch_delivery_date)->lt(\Carbon\Carbon::parse($job->delivery_date));
                         @endphp
-                        <div class="flex items-start gap-2">
+                        <div class="dc-entry flex items-start gap-2">
+                            {{-- Drag handle (reorder / reassign) --}}
+                            <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
+                                <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
+                            </span>
                             {{-- Editable priority circle --}}
                             <button type="button"
                                 class="dispatch-priority-badge shrink-0 w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center leading-none mt-0.5 {{ $job->delivery_priority ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600' }}"
@@ -153,7 +160,7 @@
                         Returns
                         <span class="ml-auto text-gray-400 font-normal normal-case tracking-normal">{{ $driver->return_jobs->count() }}</span>
                     </p>
-                    <div class="dc-scroll-section space-y-4 overflow-y-auto" style="max-height: 13rem;">
+                    <div class="dc-scroll-section space-y-4 overflow-y-auto" style="max-height: 13rem;" data-leg="return">
                         @forelse ($driver->return_jobs as $job)
                         @php
                             $addr = $job->order?->shippingAddress;
@@ -162,7 +169,11 @@
                             $isLatePickup = $job->dispatch_return_date && $job->pickup_date
                                             && \Carbon\Carbon::parse($job->dispatch_return_date)->gt(\Carbon\Carbon::parse($job->pickup_date));
                         @endphp
-                        <div class="flex items-start gap-2">
+                        <div class="dc-entry flex items-start gap-2">
+                            {{-- Drag handle (reorder / reassign) --}}
+                            <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
+                                <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
+                            </span>
                             {{-- Editable priority circle --}}
                             <button type="button"
                                 class="dispatch-priority-badge shrink-0 w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center leading-none mt-0.5 {{ $job->pickup_priority ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-gray-100 text-gray-400 hover:bg-purple-100 hover:text-purple-600' }}"
@@ -205,7 +216,7 @@
                     Full Day Workflow
                     <span class="ml-auto text-gray-400 font-normal normal-case tracking-normal">{{ $driver->combined_jobs->count() }} jobs</span>
                 </p>
-                <div class="dc-scroll-section space-y-3 overflow-y-auto" style="max-height: 13rem;">
+                <div class="dc-scroll-section space-y-3 overflow-y-auto" style="max-height: 13rem;" data-leg="combined">
                     @forelse ($driver->combined_jobs as $job)
                     @php
                         $isDelivery      = $job->getAttribute('_slot') === 'delivery';
@@ -221,7 +232,11 @@
                         $isLatePickup    = !$isDelivery && $job->dispatch_return_date && $job->pickup_date
                                            && \Carbon\Carbon::parse($job->dispatch_return_date)->gt(\Carbon\Carbon::parse($job->pickup_date));
                     @endphp
-                    <div class="flex items-start gap-2">
+                    <div class="dc-entry flex items-start gap-2">
+                        {{-- Drag handle (reorder / reassign) --}}
+                        <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
+                            <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
+                        </span>
                         {{-- Editable priority badge --}}
                         <button type="button"
                             class="dispatch-priority-badge shrink-0 w-7 h-7 rounded-full text-[10px] font-bold flex items-center justify-center leading-none mt-0.5

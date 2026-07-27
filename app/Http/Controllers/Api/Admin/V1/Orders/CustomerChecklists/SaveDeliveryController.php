@@ -101,7 +101,7 @@ class SaveDeliveryController extends BaseController
             // equipment's own current_status in the meantime. Mirrors
             // SaveReturnController's own already-submitted guard (409, same translation
             // key). See docs/checklist-system-audit/P3_10_BUG4_DUPLICATE_DELIVERY_GUARD.md.
-            if ($orderProduct->is_delivered && !$orderProduct->is_returned) {
+            if ($orderProduct->is_delivered && !$orderProduct->is_returned && (int) $orderProduct->equipment_id !== (int) $equipment->id) {
                 return response()->json(
                     [
                         'success' => false,

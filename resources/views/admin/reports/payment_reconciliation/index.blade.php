@@ -7,6 +7,7 @@
     main { background-color: #f8fafc; flex: 1 1 auto; }
     .anr-input { width: 100%; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; background: #fff; }
     .anr-label { display:block; font-size: 0.78rem; font-weight: 600; color:#374151; margin-bottom: 0.25rem; }
+    .anr-step { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#2563eb; margin-bottom:0.35rem; }
     .anr-tile { border:1px solid #e5e7eb; border-radius:0.75rem; background:#fff; padding:0.75rem 1rem; }
     .anr-tile .n { font-size:1.35rem; font-weight:700; color:#111827; }
     .anr-tile .l { font-size:0.72rem; color:#6b7280; text-transform:uppercase; letter-spacing:.03em; }
@@ -31,13 +32,10 @@
     @include('flash::message')
 
     @php
-        // Status → badge palette (green clean, red hard problem, yellow warning).
         $badge = function (string $s): string {
-            $red    = ['Amount Mismatch','Missing in Kabba','Missing in Authorize.Net','Duplicate Transaction','Refund Mismatch'];
-            $yellow = ['Tax Difference','Parent/Child Conflict','Deleted Extension','Manual Review Required','Unclassified'];
+            $red = ['Amount Mismatch','Missing in Kabba','Missing in Authorize.Net','Duplicate Transaction','Refund Mismatch'];
             if ($s === 'Exact Match') return 'anr-b-green';
             if (in_array($s, $red, true)) return 'anr-b-red';
-            if (in_array($s, $yellow, true)) return 'anr-b-yellow';
             return 'anr-b-yellow';
         };
     @endphp
@@ -46,69 +44,89 @@
         <div class="mb-5">
             <h1 class="text-2xl font-semibold text-gray-900">Authorize.Net Reconciliation</h1>
             <p class="text-sm text-gray-500 mt-1">
-                Reconciles Kabba payment records against the Authorize.Net gateway. The export's leading columns match
-                the Authorize.Net transaction download exactly. Upload an Authorize.Net export to cross-match
-                transaction-by-transaction. This report is read-only.
+                Compare an uploaded Authorize.Net settlement export against Kabba transactions. Upload the settlement
+                file, choose the Kabba date range, then run. To view Kabba transactions on their own, use the
+                Transaction Report instead.
             </p>
         </div>
 
-        {{-- Single form carries the params + optional gateway file; the Run,
-             filter-chip, and Download buttons re-submit it via formaction. --}}
+        @if (session('error'))
+            <div class="anr-banner anr-red mb-4">{{ session('error') }}</div>
+        @endif
+
         <form method="POST" action="{{ route('admin.reports.authorize-net-reconciliation.index') }}"
               enctype="multipart/form-data" id="anr-form">
             @csrf
-            <input type="hidden" name="date_range" value="custom">
+            {{-- Round-trips the uploaded settlement file so filtering/exporting
+                 the results never requires re-uploading. --}}
+            <input type="hidden" name="recon_token" value="{{ $reconToken }}">
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-5">
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {{-- Step 1 — settlement file (required) --}}
                     <div>
-                        <label class="anr-label">Start Date</label>
-                        <input type="date" name="start_date" value="{{ $filters['start_date'] }}" class="anr-input">
+                        <div class="anr-step">Step 1 — Settlement File (required)</div>
+                        @if ($hasFile)
+                            <div class="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 mb-2">
+                                ✓ Settlement file loaded. Upload a different file below to replace it.
+                            </div>
+                        @endif
+                        <input type="file" name="gateway_file" accept=".txt,.csv,.tsv"
+                               class="anr-input" @if(!$hasFile) required @endif>
+                        <p class="text-xs text-gray-400 mt-1">The standard Authorize.Net transaction download (tab-delimited).</p>
                     </div>
+
+                    {{-- Step 2 — Kabba date range --}}
                     <div>
-                        <label class="anr-label">End Date</label>
-                        <input type="date" name="end_date" value="{{ $filters['end_date'] }}" class="anr-input">
-                    </div>
-                    <div>
-                        <label class="anr-label">Store (optional)</label>
-                        <select name="store" class="anr-input">
-                            <option value="">All stores</option>
-                            @foreach ($stores as $store)
-                                <option value="{{ $store->id }}" @selected((string) $filters['store'] === (string) $store->id)>{{ $store->store_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="anr-label">Authorize.Net Export (optional)</label>
-                        <input type="file" name="gateway_file" accept=".txt,.csv,.tsv" class="anr-input">
+                        <div class="anr-step">Step 2 — Kabba Date Range</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="anr-label">Start Date</label>
+                                <input type="date" name="start_date" value="{{ $filters['start_date'] }}" class="anr-input">
+                            </div>
+                            <div>
+                                <label class="anr-label">End Date</label>
+                                <input type="date" name="end_date" value="{{ $filters['end_date'] }}" class="anr-input">
+                            </div>
+                            <div>
+                                <label class="anr-label">Store</label>
+                                <select name="store" class="anr-input">
+                                    <option value="">All</option>
+                                    @foreach ($stores as $store)
+                                        <option value="{{ $store->id }}" @selected((string) $filters['store'] === (string) $store->id)>{{ $store->store_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="flex flex-wrap justify-end gap-3 mt-4">
                     <button type="submit" name="filter" value="{{ $activeFilter }}"
                         formaction="{{ route('admin.reports.authorize-net-reconciliation.index') }}"
                         class="px-5 py-2.5 rounded-lg font-medium text-sm bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
                         Run Reconciliation
                     </button>
-                    <button type="submit"
-                        formaction="{{ route('admin.reports.authorize-net-reconciliation.export') }}"
-                        class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">
-                        Download Full CSV
-                    </button>
-                    <button type="submit" name="exceptions" value="1"
-                        formaction="{{ route('admin.reports.authorize-net-reconciliation.export') }}"
-                        class="px-5 py-2.5 rounded-lg font-medium text-sm border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100">
-                        Download Exceptions Only
-                    </button>
+                    @if ($ran)
+                        <button type="submit"
+                            formaction="{{ route('admin.reports.authorize-net-reconciliation.export') }}"
+                            class="px-5 py-2.5 rounded-lg font-medium text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">
+                            Download Full CSV
+                        </button>
+                        <button type="submit" name="exceptions" value="1"
+                            formaction="{{ route('admin.reports.authorize-net-reconciliation.export') }}"
+                            class="px-5 py-2.5 rounded-lg font-medium text-sm border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100">
+                            Download Exceptions Only
+                        </button>
+                    @endif
                 </div>
             </div>
 
-            @if ($hasRun)
-                {{-- Health banner --}}
+            @if ($ran)
                 <div class="anr-banner anr-{{ $summary['health'] }} mb-4">
                     Authorize.Net Reconciliation Status — {{ $summary['banner'] }}
                 </div>
 
-                {{-- Dashboard summary (card border tinted by health) --}}
                 <div class="rounded-xl border p-4 mb-5 {{ $summary['health'] === 'red' ? 'border-red-200 bg-red-50/40' : ($summary['health'] === 'yellow' ? 'border-amber-200 bg-amber-50/40' : 'border-emerald-200 bg-emerald-50/40') }}">
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                         <div class="anr-tile"><div class="n">{{ number_format($summary['total_gateway']) }}</div><div class="l">Gateway Transactions</div></div>
@@ -123,7 +141,6 @@
                     </div>
                 </div>
 
-                {{-- Quick filters (each re-submits the form with its filter key) --}}
                 <div class="flex flex-wrap gap-2 mb-4">
                     @foreach ($filterOptions as $key => $label)
                         <button type="submit" name="filter" value="{{ $key }}"
@@ -132,7 +149,6 @@
                     @endforeach
                 </div>
 
-                {{-- Results table (compact; full detail is in the CSV) --}}
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-2 anr-scroll">
                     <table class="anr-table">
                         <thead>
@@ -165,8 +181,12 @@
                 </div>
             @else
                 <div class="bg-white rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
-                    Choose a date range (and optionally upload an Authorize.Net export) and click
-                    <span class="font-medium text-gray-700">Run Reconciliation</span>.
+                    @if (!$hasFile)
+                        Upload an Authorize.Net settlement file (Step 1) to begin.
+                    @else
+                        Settlement file loaded — choose a Kabba date range (Step 2) and click
+                        <span class="font-medium text-gray-700">Run Reconciliation</span>.
+                    @endif
                 </div>
             @endif
         </form>

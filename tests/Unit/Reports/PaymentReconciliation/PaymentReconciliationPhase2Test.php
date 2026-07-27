@@ -7,6 +7,7 @@ use App\Services\Reports\PaymentReconciliation\PaymentReconciliationExport;
 use App\Services\Reports\PaymentReconciliation\PaymentReconciliationMatcher;
 use App\Services\Reports\PaymentReconciliation\PaymentReconciliationSummary;
 use App\Services\Reports\SalesReportingService;
+use App\Services\Reports\Transactions\TransactionEnumerator;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\TestCase;
 
@@ -23,7 +24,7 @@ class PaymentReconciliationPhase2Test extends TestCase
     protected function setUp(): void
     {
         $parser = new AuthorizeNetTransactionParser();
-        $this->export = new PaymentReconciliationExport(new SalesReportingService(), $parser, new PaymentReconciliationMatcher());
+        $this->export = new PaymentReconciliationExport(new TransactionEnumerator(new SalesReportingService()), $parser, new PaymentReconciliationMatcher());
         $this->summary = new PaymentReconciliationSummary();
 
         $raw = file_get_contents(dirname(__DIR__, 3) . '/Fixtures/PaymentReconciliation/authnet_sample.txt');
@@ -63,7 +64,7 @@ class PaymentReconciliationPhase2Test extends TestCase
         // Built lazily inside the test via a fresh instance would be ideal, but
         // dataProviders run before setUp — so build rows here with local deps.
         $p = new AuthorizeNetTransactionParser();
-        $exp = new PaymentReconciliationExport(new SalesReportingService(), $p, new PaymentReconciliationMatcher());
+        $exp = new PaymentReconciliationExport(new TransactionEnumerator(new SalesReportingService()), $p, new PaymentReconciliationMatcher());
         $raw = file_get_contents(dirname(__DIR__, 3) . '/Fixtures/PaymentReconciliation/authnet_sample.txt');
         $g = $p->indexByTransactionId($p->parse($raw))['byId'];
         $k = fn (array $o = []) => array_merge([

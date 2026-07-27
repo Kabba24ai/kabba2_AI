@@ -486,6 +486,14 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('admin.reports.transactions.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.reports.transactions.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-banknotes class="w-6 h-6" />
+                                        Transaction Report
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('admin.reports.authorize-net-reconciliation.index') }}"
                                         class="menu-dropdown-item group
                                         {{ Route::is('admin.reports.authorize-net-reconciliation.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">

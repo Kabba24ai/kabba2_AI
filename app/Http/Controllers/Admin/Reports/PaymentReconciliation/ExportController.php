@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin\Reports\PaymentReconciliation;
 use App\Http\Controllers\Controller;
 use App\Services\Reports\PaymentReconciliation\PaymentReconciliationExport;
 use App\Services\Reports\PaymentReconciliation\ReconciliationColumns;
+use App\Services\Reports\PaymentReconciliation\ReconciliationFileStore;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -19,23 +21,33 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ExportController extends Controller
 {
-    public function __construct(private PaymentReconciliationExport $export) {}
+    public function __construct(
+        private PaymentReconciliationExport $export,
+        private ReconciliationFileStore $files,
+    ) {}
 
-    public function __invoke(Request $request): StreamedResponse
+    public function __invoke(Request $request): StreamedResponse|RedirectResponse
     {
         $filters = [
-            'date_range' => $request->input('date_range', 'mtd'),
+            'date_range' => 'custom',
             'start_date' => $request->input('start_date'),
             'end_date'   => $request->input('end_date'),
-            'month'      => $request->input('month') ? (int) $request->input('month') : null,
-            'year'       => $request->input('year') ? (int) $request->input('year') : null,
             'store'      => $request->input('store'),
         ];
 
-        // Optional authoritative gateway export for cross-matching.
+        // The settlement file is mandatory — reconciliation output is only
+        // meaningful against a real Authorize.Net export. Accept a fresh upload
+        // or a prior upload referenced by token.
         $gatewayContents = null;
         if ($request->hasFile('gateway_file')) {
             $gatewayContents = file_get_contents($request->file('gateway_file')->getRealPath()) ?: null;
+        } else {
+            $gatewayContents = $this->files->retrieve($request->input('recon_token'));
+        }
+
+        if ($gatewayContents === null) {
+            return redirect()->route('admin.reports.authorize-net-reconciliation.index')
+                ->with('error', 'Upload an Authorize.Net settlement file before exporting the reconciliation.');
         }
 
         $columns = ReconciliationColumns::all();

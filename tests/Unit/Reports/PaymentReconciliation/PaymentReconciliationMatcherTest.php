@@ -7,6 +7,7 @@ use App\Services\Reports\PaymentReconciliation\PaymentReconciliationExport;
 use App\Services\Reports\PaymentReconciliation\PaymentReconciliationMatcher;
 use App\Services\Reports\PaymentReconciliation\ReconciliationColumns;
 use App\Services\Reports\SalesReportingService;
+use App\Services\Reports\Transactions\TransactionEnumerator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -23,7 +24,7 @@ class PaymentReconciliationMatcherTest extends TestCase
     protected function setUp(): void
     {
         $parser = new AuthorizeNetTransactionParser();
-        $this->export = new PaymentReconciliationExport(new SalesReportingService(), $parser, new PaymentReconciliationMatcher());
+        $this->export = new PaymentReconciliationExport(new TransactionEnumerator(new SalesReportingService()), $parser, new PaymentReconciliationMatcher());
 
         $raw = file_get_contents(dirname(__DIR__, 3) . '/Fixtures/PaymentReconciliation/authnet_sample.txt');
         $this->gatewayById = $parser->indexByTransactionId($parser->parse($raw))['byId'];

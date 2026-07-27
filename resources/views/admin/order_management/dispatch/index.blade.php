@@ -680,6 +680,31 @@
                 setTimeout(() => applyDriverCardMode(localStorage.getItem('driver_card_view') || 'separate'), 0);
             }
 
+            // Per-driver "View All" expansion is a deliberate user choice — remember it
+            // so an auto-refresh (e.g. after a drag reorder) restores it instead of
+            // collapsing every card back down. Session-scoped (resets on a full reload).
+            const expandedDrivers = new Set();
+
+            function setCardExpanded(card, expanded) {
+                const sections = card.querySelectorAll('.dc-scroll-section');
+                const btn = card.querySelector('.dc-view-all-btn');
+                if (expanded) {
+                    sections.forEach(s => { s.style.maxHeight = ''; s.style.overflowY = ''; });
+                    card.dataset.expanded = 'true';
+                    if (btn) btn.textContent = 'Collapse';
+                } else {
+                    sections.forEach(s => { s.style.maxHeight = '13rem'; s.style.overflowY = 'auto'; });
+                    card.dataset.expanded = 'false';
+                    if (btn) btn.textContent = 'View All';
+                }
+            }
+
+            function applyExpandedState() {
+                document.querySelectorAll('[data-driver-card]').forEach(card => {
+                    if (expandedDrivers.has(card.dataset.driverId)) setCardExpanded(card, true);
+                });
+            }
+
             // Refresh driver workload cards without reloading the page
             window.refreshDriverCards = function (targetMode) {
                 const wrapper = document.getElementById('driver-cards-wrapper');
@@ -698,6 +723,8 @@
                         applyDriverCardMode(mode);
                         // Re-attach drag-and-drop to the freshly injected cards
                         if (typeof window.initDispatchDnD === 'function') window.initDispatchDnD();
+                        // Restore the user's per-card View All choices after the DOM swap
+                        applyExpandedState();
                     }
                 })
                 .finally(() => wrapper.classList.remove('opacity-50'));
@@ -789,61 +816,18 @@
                     return;
                 }
 
-                // View All / Collapse for driver cards
+                // View All / Collapse for driver cards — remember the choice per driver
+                // so it survives the card refresh after a drag reorder.
                 const viewAllBtn = e.target.closest('.dc-view-all-btn');
                 if (viewAllBtn) {
                     const card = viewAllBtn.closest('[data-driver-card]');
                     if (!card) return;
-                    const sections   = card.querySelectorAll('.dc-scroll-section');
-                    const isExpanded = card.dataset.expanded === 'true';
-                    if (isExpanded) {
-                        sections.forEach(s => { s.style.maxHeight = '13rem'; s.style.overflowY = 'auto'; });
-                        card.dataset.expanded  = 'false';
-                        viewAllBtn.textContent = 'View All';
-                    } else {
-                        sections.forEach(s => { s.style.maxHeight = ''; s.style.overflowY = ''; });
-                        card.dataset.expanded  = 'true';
-                        viewAllBtn.textContent = 'Collapse';
-                    }
+                    const expand = card.dataset.expanded !== 'true';
+                    setCardExpanded(card, expand);
+                    if (expand) expandedDrivers.add(card.dataset.driverId);
+                    else        expandedDrivers.delete(card.dataset.driverId);
                     return;
                 }
-
-                // Update button: sort both delivery and return columns of this card by priority
-                const updateBtn = e.target.closest('.dispatch-card-update-btn');
-                if (!updateBtn) return;
-
-                const card = updateBtn.closest('.bg-white.rounded-xl');
-                if (!card) return;
-
-                const separateView = card.querySelector('.driver-card-separate');
-                if (!separateView) return;
-
-                separateView.querySelectorAll('.flex-1.p-4').forEach(column => {
-                    // Job entries live inside the .dc-scroll-section wrapper
-                    const scrollSection = column.querySelector('.dc-scroll-section');
-                    const container     = scrollSection || column;
-                    const entries       = Array.from(container.children).filter(el => el.tagName === 'DIV');
-                    if (entries.length < 2) return;
-
-                    entries.sort((a, b) => {
-                        const ba = a.querySelector('.dispatch-priority-badge');
-                        const bb = b.querySelector('.dispatch-priority-badge');
-                        const pa = (ba && ba.dataset.priority !== '') ? parseInt(ba.dataset.priority) : 9999;
-                        const pb = (bb && bb.dataset.priority !== '') ? parseInt(bb.dataset.priority) : 9999;
-                        return pa - pb;
-                    });
-
-                    entries.forEach(el => container.appendChild(el));
-                });
-
-                // Brief success feedback on the button
-                const orig = updateBtn.textContent;
-                updateBtn.textContent = '✓ Sorted';
-                updateBtn.classList.replace('bg-blue-600', 'bg-green-600');
-                setTimeout(() => {
-                    updateBtn.textContent = orig;
-                    updateBtn.classList.replace('bg-green-600', 'bg-blue-600');
-                }, 1500);
             });
 
             function fetchDispatch(page = 1, perPage = 30) {

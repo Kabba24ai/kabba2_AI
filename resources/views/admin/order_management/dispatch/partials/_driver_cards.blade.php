@@ -85,10 +85,6 @@
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="text-[10px] text-gray-400 leading-tight flex-1 min-w-0 truncate">{{ $cdlLabels->implode(' | ') }}</span>
                         <button type="button"
-                            class="dispatch-card-update-btn shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-                            Update
-                        </button>
-                        <button type="button"
                             class="dc-view-all-btn shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
                             View All
                         </button>

@@ -58,6 +58,12 @@ class SaveDeliveryController extends BaseController
                 );
             }
 
+            Log::channel('api_errors')->info('SaveDeliveryController: processing delivery checklist save', [
+                'order_id'         => $orderProduct->order_id,
+                'order_product_id' => $orderProduct->id,
+                'equipment_unique_id' => $uniqueId,
+            ]);
+
             $equipment = Equipment::query()
                 ->with(['checklistMaster.customerAdminTemplate.templateQuestions.question.answers','checklistMaster.customerAdminTemplate.templateQuestions.question.category'])
                 ->where('unique_id', $uniqueId)
@@ -297,6 +303,12 @@ class SaveDeliveryController extends BaseController
                 'requested_data' => $orderProductData,
                 'order_product' => $orderProduct->toArray(),
             ]));
+
+            Log::channel('api_errors')->info('SaveDeliveryController: delivery checklist saved successfully', [
+                'order_id'         => $orderProduct->order_id,
+                'order_product_id' => $orderProduct->id,
+                'equipment_id'     => $equipment->id,
+            ]);
 
             return response()->json([
                 'success' => true,

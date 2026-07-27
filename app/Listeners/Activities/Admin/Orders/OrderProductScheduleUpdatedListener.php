@@ -27,6 +27,17 @@ class OrderProductScheduleUpdatedListener
         $field = str_replace('_', ' ', ucfirst($field));
         $message = "{$user?->full_name} updated product schedule ({$field}) for {$data['order_product']['product_name']}.";
 
+        // The order_product snapshot carries full equipment/checklist/product
+        // relation data (assigned equipment's rental-ready checklist tree,
+        // product category HTML, etc.) baked into product_data/equipment_details
+        // by the callers that build this event's payload. None of that is read
+        // back anywhere for this history entry — drop it so a single delivery
+        // status flip on equipment with a large checklist template doesn't
+        // overflow the extras column (was: SQLSTATE[22001] truncation).
+        $data['order_product'] = collect($data['order_product'])
+            ->except(['product_data', 'equipment_details', 'dispatch_checklist'])
+            ->all();
+
         $order->history()->create([
             'customer_id' => null,
             'user_id' => $user?->id,

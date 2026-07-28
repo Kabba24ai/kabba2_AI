@@ -373,8 +373,25 @@
                             $optionGroups = $productDetail->options->flatMap->groups->where('status', 'Active');
                         @endphp
                         @foreach ($optionGroups as $group)
+                            @php
+                                $groupChoices = $group->items->map(function ($item) use ($productVariant) {
+                                    $price = match ($productVariant) {
+                                        'daily' => $item->daily,
+                                        'weekend' => $item->weekend,
+                                        'weekly' => $item->weekly,
+                                        'monthly' => $item->monthly,
+                                        default => $item->retail_price,
+                                    };
+                                    return [
+                                        'unique_id' => $item->unique_id,
+                                        'label' => $item->label,
+                                        'price' => App\Helpers\CustomHelper::formatCurrency($price),
+                                    ];
+                                })->values();
+                            @endphp
                             <div class="option-group-source hidden" data-group-id="{{ $group->id }}"
-                                data-image="{{ $group->image_url }}">{!! $group->message !!}</div>
+                                data-image="{{ $group->image_url }}"
+                                data-items='@json($groupChoices)'>{!! $group->message !!}</div>
                         @endforeach
 
                         @if (
@@ -488,6 +505,7 @@
                         </div>
                         <div class="flex-1 text-center md:text-left">
                             <div id="optionGroupAlertMessage" class="text-gray-700 mb-4"></div>
+                            <div id="optionGroupAlertChoices" class="space-y-2 mb-4 text-left"></div>
                             <div class="flex justify-center md:justify-end">
                                 <button type="button" id="optionGroupAlertCloseBtn"
                                     class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">

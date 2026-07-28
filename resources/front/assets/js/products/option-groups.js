@@ -6,6 +6,7 @@ export function initProductOptionGroups() {
     const optionGrid = document.getElementById('optionDiv');
     const modal = document.getElementById('modalOptionGroupAlert');
     const closeBtn = document.getElementById('optionGroupAlertCloseBtn');
+    const choicesBox = document.getElementById('optionGroupAlertChoices');
 
     if (!optionGrid) return;
 
@@ -13,6 +14,14 @@ export function initProductOptionGroups() {
         return (checkbox.dataset.groupIds || '')
             .split(',')
             .filter(Boolean);
+    }
+
+    function resolveGroupIds(groupIds) {
+        groupIds.forEach(groupId => {
+            if (modal && !modal.classList.contains('hidden') && modal.dataset.groupId === groupId) {
+                modal.classList.add('hidden');
+            }
+        });
     }
 
     optionGrid.addEventListener('change', function(e) {
@@ -31,10 +40,23 @@ export function initProductOptionGroups() {
         });
 
         // If the modal is currently showing this group's alert, close it now that it's resolved.
-        if (modal && !modal.classList.contains('hidden') && groupIds.includes(modal.dataset.groupId)) {
-            modal.classList.add('hidden');
-        }
+        resolveGroupIds(groupIds);
     });
+
+    // Picking a choice directly inside the modal checks the matching page
+    // checkbox (triggering the same mutual-exclusion above) and closes.
+    if (choicesBox) {
+        choicesBox.addEventListener('click', (e) => {
+            const choice = e.target.closest('.option-group-choice');
+            if (!choice) return;
+
+            const checkbox = document.getElementById(`options_${choice.dataset.uniqueId}`);
+            if (!checkbox) return;
+
+            checkbox.checked = true;
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    }
 
     function closeModal() {
         if (modal) modal.classList.add('hidden');
@@ -54,8 +76,9 @@ export function initProductOptionGroups() {
 /**
  * Checks every option group with at least one rendered member for a required
  * selection. If any group has none checked, shows the shared alert modal
- * (with that group's message/image) and returns the list of unresolved group
- * ids; returns an empty array when every group is satisfied.
+ * (with that group's message/image, plus its selectable choices so the
+ * customer can pick right from the dialog) and returns the list of
+ * unresolved group ids; returns an empty array when every group is satisfied.
  */
 export function validateRequiredOptionGroups() {
     const unresolvedGroupIds = [];
@@ -76,11 +99,31 @@ export function validateRequiredOptionGroups() {
         const modal = document.getElementById('modalOptionGroupAlert');
         const modalImage = document.getElementById('optionGroupAlertImage');
         const modalMessage = document.getElementById('optionGroupAlertMessage');
+        const choicesBox = document.getElementById('optionGroupAlertChoices');
 
-        if (source && modal && modalImage && modalMessage) {
+        if (source && modal && modalImage && modalMessage && choicesBox) {
             modal.dataset.groupId = unresolvedGroupIds[0];
             modalImage.src = source.dataset.image || '';
             modalMessage.innerHTML = source.innerHTML;
+
+            let choices = [];
+            try {
+                choices = JSON.parse(source.dataset.items || '[]');
+            } catch (e) {
+                choices = [];
+            }
+
+            const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+            }[c]));
+
+            choicesBox.innerHTML = choices.map(choice => `
+                <button type="button" class="option-group-choice w-full flex items-center justify-between gap-3 px-3 py-2 border border-gray-300 rounded-lg hover:border-yellow-400 hover:bg-yellow-50 transition-colors" data-unique-id="${escapeHtml(choice.unique_id)}">
+                    <span class="text-gray-800">${escapeHtml(choice.label)}</span>
+                    <span class="font-medium text-gray-700">+ ${escapeHtml(choice.price)}</span>
+                </button>
+            `).join('');
+
             modal.classList.remove('hidden');
         }
     }

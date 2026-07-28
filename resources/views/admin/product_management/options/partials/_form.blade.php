@@ -569,7 +569,7 @@
                 const group = index !== null ? groups[index] : {
                     id: null,
                     name: '',
-                    message: '<p>Please select one of the available options above before adding this item to your cart.</p>',
+                    message: '<p>Please choose one of the options below before adding this item to your cart.</p>',
                     image_url: null,
                     item_row_keys: [],
                     imageFile: null,

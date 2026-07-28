@@ -183,7 +183,14 @@
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Effective Date</label>
-                    {!! html()->date('effective_date', old('effective_date'))->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm') !!}
+                    {{-- Shared air-datepicker (click-to-select calendar), never a bare type-it-in field.
+                         data-format is read first by resources/shared/js/air-datepicker.js, so this works
+                         regardless of the page-level window.APP_DATE_FORMAT. --}}
+                    {!! html()->text('effective_date', old('effective_date'))->attributes([
+                        'placeholder' => 'MM/DD/YYYY',
+                        'autocomplete' => 'off',
+                        'data-format' => 'MM/dd/yyyy',
+                    ])->class('w-full border border-gray-300 rounded-md px-3 py-3 text-sm datepicker') !!}
                     <p class="text-xs text-gray-400 mt-1">Informational only — does not change ledger ordering.</p>
                 </div>
 

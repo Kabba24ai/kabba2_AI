@@ -111,6 +111,25 @@ class SaveDeliveryController extends BaseController
                 );
             }
 
+            // Resubmission of the SAME cycle with the SAME equipment (retry after a
+            // slow/dropped response, double-tap, etc.) — nothing to reconcile, so
+            // short-circuit with the identical success response instead of replaying
+            // the checklist rebuild, media upload, equipment status transition, and
+            // event dispatch a second time (that replay is what produced the
+            // queue_line_items unique-constraint 500 on a duplicate submit).
+            if ($orderProduct->is_delivered && !$orderProduct->is_returned && (int) $orderProduct->equipment_id === (int) $equipment->id) {
+                Log::channel('api_errors')->info('SaveDeliveryController: duplicate delivery submission short-circuited', [
+                    'order_id'         => $orderProduct->order_id,
+                    'order_product_id' => $orderProduct->id,
+                    'equipment_id'     => $equipment->id,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => trans('messages.api.admin.v1.orders.checklist_saved_successfully'),
+                ]);
+            }
+
             // Queue Line staging is informational, not restrictive (2026-07-23):
             // the in-store handoff / truck-path completion is never blocked for
             // lacking staging/fuel verification. A never-staged handoff is a

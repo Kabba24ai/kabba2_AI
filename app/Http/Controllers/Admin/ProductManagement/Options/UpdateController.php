@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\ProductManagement\Options;
 
+use App\Http\Controllers\Admin\ProductManagement\Options\Concerns\PersistsProductOptionGroups;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductManagement\Options\UpdateRequest;
 
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateController extends Controller
 {
+    use PersistsProductOptionGroups;
+
     /**
      * Handle the incoming request to update a product option.
      *
@@ -33,7 +36,7 @@ class UpdateController extends Controller
         ]);
 
         // Sync or re-save options (you may want to delete/recreate or update existing related rows)
-        DB::transaction(function () use ($productOption, $validated) {
+        DB::transaction(function () use ($productOption, $validated, $request) {
             $submittedOptions = collect($validated['options']);
 
             // Get all existing item IDs from DB
@@ -41,6 +44,7 @@ class UpdateController extends Controller
 
             // Keep track of processed IDs
             $submittedIds = [];
+            $rowKeyToItemId = [];
 
             foreach ($submittedOptions as $option) {
                 $id = $option['id'] ?? null;
@@ -65,9 +69,15 @@ class UpdateController extends Controller
                     // Update existing
                     $existingItems[$id]->update($attributes);
                     $submittedIds[] = $id;
+                    $item = $existingItems[$id];
                 } else {
                     // Create new
-                    $productOption->items()->create($attributes);
+                    $item = $productOption->items()->create($attributes);
+                    $submittedIds[] = $item->id;
+                }
+
+                if (!empty($option['row_key'])) {
+                    $rowKeyToItemId[$option['row_key']] = $item->id;
                 }
             }
 
@@ -77,6 +87,12 @@ class UpdateController extends Controller
                 ->whereIn('id', $existingItems->keys()) // only from originally loaded items
                 ->whereNotIn('id', $submittedIds)
                 ->delete();
+
+            if (!empty($validated['groups'])) {
+                $this->saveProductOptionGroups($productOption, $validated['groups'], $rowKeyToItemId, $request);
+            } else {
+                $productOption->groups()->delete();
+            }
         });
 
         flash('Product Option updated successfully.')->success();

@@ -17,7 +17,7 @@ class EditController extends Controller
     public function __invoke(string $unique_id): View
     {
         // Load main option with related pricing options if applicable
-        $objProductOption = ProductOption::with('items')->where('unique_id', $unique_id)->firstOrFail();
+        $objProductOption = ProductOption::with(['items', 'groups.items', 'groups.media'])->where('unique_id', $unique_id)->firstOrFail();
 
         return view('admin.product_management.options.edit', [
             'objProductOption' => $objProductOption,

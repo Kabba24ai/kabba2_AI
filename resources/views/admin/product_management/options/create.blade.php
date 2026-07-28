@@ -22,7 +22,7 @@
                 'autocomplete' => 'off',
                 'data-parsley-validate' => true,
                 'class' => 'space-y-8',
-            ])->open() }}
+            ])->acceptsFiles()->open() }}
         @include('admin.product_management.options.partials._form')
 
         <div class="mt-6 flex justify-end gap-4">
@@ -60,3 +60,7 @@
         {{ html()->form()->close() }}
     </div>
 @endsection
+
+@push('js')
+    <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+@endpush

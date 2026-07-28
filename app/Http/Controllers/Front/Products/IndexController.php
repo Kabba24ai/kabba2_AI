@@ -21,7 +21,7 @@ class IndexController extends Controller
      */
     public function __invoke($slug, $productVariant, Request $request)
     {
-        $productDetail = Product::published()->with('categories', 'options.items', 'relatedProducts', 'mediaChildren.media')->where('slug', $slug)->firstOrFail();
+        $productDetail = Product::published()->with('categories', 'options.items.groups', 'options.groups.media', 'relatedProducts', 'mediaChildren.media')->where('slug', $slug)->firstOrFail();
 
         $stores = Store::active()->with('state')->get();
 

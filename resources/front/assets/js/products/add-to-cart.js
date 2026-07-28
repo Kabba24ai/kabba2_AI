@@ -1,4 +1,5 @@
 import { getConfirmedCustomSelection, openCustomDeliveryModal } from './custom-delivery';
+import { validateRequiredOptionGroups } from './option-groups';
 
 export function initAddToCart(context) {
     const addToCartBtn = document.getElementById('addToCart');
@@ -103,7 +104,12 @@ export function initAddToCart(context) {
             }
         }
 
-        if (customIncomplete || (context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') || (context.productType === 'Rental' && !scheduleDate) || !qty) {
+        const unresolvedGroups = validateRequiredOptionGroups();
+        if (unresolvedGroups.length) {
+            errorMsg = 'Please select one of the required options before adding to cart.';
+        }
+
+        if (customIncomplete || (context.productType === 'Rental' && !storeId && serviceOption !== 'Delivery + Pickup') || (context.productType === 'Rental' && !scheduleDate) || !qty || unresolvedGroups.length) {
             if (loader) loader.classList.add('hidden');
             addToCartBtn.disabled = false;
             addToCartBtn.classList.remove('opacity-60', 'cursor-not-allowed');

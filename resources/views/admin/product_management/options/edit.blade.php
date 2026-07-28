@@ -56,6 +56,7 @@
 @endsection
 
 @push('js')
+<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

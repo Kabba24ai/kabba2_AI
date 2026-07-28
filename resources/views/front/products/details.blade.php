@@ -343,7 +343,8 @@
                                             data-discard="{{ $item->decline_label }}"
                                             data-message="{{ $item->comment }}"
                                             data-unique_id="{{ $item->unique_id }}"
-                                            data-charged="{{ $item->charged ?? null }}" />
+                                            data-charged="{{ $item->charged ?? null }}"
+                                            data-group-ids="{{ $item->groups->where('status', 'Active')->pluck('id')->implode(',') }}" />
                                         <span>{{ $item->label }}
                                             <span class="font-medium">+
                                                 @php
@@ -366,6 +367,14 @@
                                     </label>
                                 @endforeach
                             @endif
+                        @endforeach
+
+                        @php
+                            $optionGroups = $productDetail->options->flatMap->groups->where('status', 'Active');
+                        @endphp
+                        @foreach ($optionGroups as $group)
+                            <div class="option-group-source hidden" data-group-id="{{ $group->id }}"
+                                data-image="{{ $group->image_url }}">{!! $group->message !!}</div>
                         @endforeach
 
                         @if (
@@ -469,6 +478,25 @@
                         @endif
                     </div>
                 @endif
+
+                <!-- Required Option Group Alert Modal -->
+                <div id="modalOptionGroupAlert" role="dialog" aria-modal="true" aria-labelledby="optionGroupAlertMessage"
+                    class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
+                    <div class="bg-white rounded-lg shadow-lg w-full md:max-w-lg p-6 relative max-w-[95%] flex flex-col md:flex-row items-center gap-6">
+                        <div class="w-full md:w-1/3 flex justify-center">
+                            <img id="optionGroupAlertImage" src="" alt="" class="max-h-40 object-contain">
+                        </div>
+                        <div class="flex-1 text-center md:text-left">
+                            <div id="optionGroupAlertMessage" class="text-gray-700 mb-4"></div>
+                            <div class="flex justify-center md:justify-end">
+                                <button type="button" id="optionGroupAlertCloseBtn"
+                                    class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                    OK, Let Me Choose
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="flex justify-end">
                     <button type="button" id="addToCart"

@@ -46,6 +46,19 @@
         $formErrors = $errors->getMessages();
 
         $selectedType = old('type', isset($objProductOption) ? $objProductOption->type : 'Rental');
+
+        $formGroups = old(
+            'groups',
+            isset($objProductOption) && $objProductOption->groups
+                ? $objProductOption->groups->map(fn ($group) => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                    'message' => $group->message,
+                    'image_url' => $group->image_url,
+                    'item_row_keys' => $group->items->pluck('id')->map(fn ($id) => (string) $id)->all(),
+                ])->all()
+                : [],
+        );
     @endphp
 
     <!-- Type Selector -->
@@ -79,8 +92,8 @@
 
 <!-- Options Table -->
 <div id="options-wrapper" class="border border-gray-200 dark:border-gray-800 rounded-md overflow-x-auto mt-6"
-    data-options='@json($formOptions)' data-errors='@json($formErrors)'
-    data-type="{{ $selectedType }}">
+    data-options='@json($formOptions)' data-errors='@json($formErrors)' data-groups='@json($formGroups)'
+    data-type="{{ $selectedType }}" data-default-image="{{ asset('storage/front/images/option-image.png') }}">
 
     <div class="p-4">
         <h4 class="font-medium text-gray-800 dark:text-white mb-1">Options</h4>
@@ -97,12 +110,38 @@
             + Add new row
         </button>
     </div>
+
+    <div class="border-t border-gray-200 dark:border-gray-800 p-4">
+        <div class="flex items-center justify-between mb-2">
+            <div>
+                <h4 class="font-medium text-gray-800 dark:text-white">Options Groups</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Group options together to require the customer to pick exactly one choice before adding this
+                    product to cart.
+                </p>
+            </div>
+            <button type="button" id="add-group"
+                class="shrink-0 inline-flex items-center px-3 py-1.5 rounded-md border border-red-500 text-red-600 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950">
+                Create Options Group
+            </button>
+        </div>
+
+        <div id="groups-list" class="space-y-2"></div>
+    </div>
 </div>
 
 <!-- Comment Modal -->
 <div id="comment-modal"
     class="fixed inset-0 hidden z-[99999] flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-10">
     <div id="modal-content"
+        class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-lg p-6 space-y-5 border border-gray-200 dark:border-gray-700">
+    </div>
+</div>
+
+<!-- Group Modal -->
+<div id="group-modal"
+    class="fixed inset-0 hidden z-[99999] flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-10">
+    <div id="group-modal-content"
         class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-lg p-6 space-y-5 border border-gray-200 dark:border-gray-700">
     </div>
 </div>
@@ -119,6 +158,12 @@
             const modalContent = document.getElementById('modal-content');
             const typeSelect = document.getElementById('type');
             const dataErrors = JSON.parse(wrapper.dataset.errors || '{}');
+
+            const groupsList = document.getElementById('groups-list');
+            const addGroupBtn = document.getElementById('add-group');
+            const groupModal = document.getElementById('group-modal');
+            const groupModalContent = document.getElementById('group-modal-content');
+            const defaultGroupImage = wrapper.dataset.defaultImage;
 
             if (Object.keys(dataErrors).length > 0) {
                 Object.entries(dataErrors).forEach(([field, messages]) => {
@@ -140,12 +185,27 @@
             const errors = JSON.parse(wrapper.dataset.errors || '{}');
             let selectedType = wrapper.dataset.type;
             let currentIndex = null;
+            let currentGroupIndex = null;
 
             if (!options.length) {
                 for (let i = 0; i < 4; i++) {
                     options.push(createBlankOption());
                 }
             }
+
+            function rowKey(opt) {
+                return String(opt.id ?? opt.key);
+            }
+
+            let groups = JSON.parse(wrapper.dataset.groups || '[]').map(g => ({
+                id: g.id ?? null,
+                name: g.name || '',
+                message: g.message || '',
+                image_url: g.image_url || null,
+                item_row_keys: (g.item_row_keys || []).map(String),
+                imageFile: null,
+                useDefaultImage: false,
+            }));
 
             typeSelect.addEventListener('change', (e) => {
                 selectedType = e.target.value;
@@ -246,6 +306,7 @@
                     ${index + 1}
                     <input type="hidden" name="options[${index}][id]" value="${opt.id ?? ''}">
                     <input type="hidden" name="options[${index}][sort_order]" value="${index}">
+                    <input type="hidden" name="options[${index}][row_key]" value="${rowKey(opt)}">
                 </td>
 
                 <td class="px-3 py-2 text-center cursor-move">⋮⋮</td>
@@ -297,6 +358,9 @@
                 });
 
                 attachEventListeners();
+                if (typeof renderGroups === 'function') {
+                    renderGroups();
+                }
             }
 
             function getError(path) {
@@ -430,6 +494,239 @@
                 modal.classList.remove('hidden');
             }
 
+            function escapeHtml(str) {
+                return String(str ?? '').replace(/[&<>"']/g, c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;',
+                }[c]));
+            }
+
+            function renderGroups() {
+                syncInputsToOptions();
+                const existingRowKeys = new Set(options.map(rowKey));
+
+                groupsList.innerHTML = '';
+
+                groups.forEach((group, index) => {
+                    const validRowKeys = group.item_row_keys.filter(k => existingRowKeys.has(k));
+
+                    const card = document.createElement('div');
+                    card.className = 'border border-gray-200 dark:border-gray-700 rounded-md p-3 flex items-center justify-between gap-3';
+                    card.innerHTML = `
+                <div>
+                    <p class="font-medium text-gray-800 dark:text-white">${escapeHtml(group.name)}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">${validRowKeys.length} option(s) selected &middot; customer must choose one</p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <button type="button" class="edit-group-btn text-blue-600 hover:text-blue-800 text-sm font-medium" data-index="${index}">Edit</button>
+                    <button type="button" class="remove-group-btn text-red-600 hover:text-red-800" data-index="${index}">&#10005;</button>
+                </div>
+                <input type="hidden" name="groups[${index}][id]" value="${group.id ?? ''}">
+                <input type="hidden" name="groups[${index}][name]" value="${escapeHtml(group.name)}">
+                <input type="hidden" name="groups[${index}][message]" value="${escapeHtml(group.message)}">
+                <input type="hidden" name="groups[${index}][use_default_image]" value="${group.useDefaultImage ? 1 : 0}">
+                ${validRowKeys.map(k => `<input type="hidden" name="groups[${index}][item_row_keys][]" value="${escapeHtml(k)}">`).join('')}
+            `;
+
+                    if (group.imageFile) {
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.name = `groups[${index}][image]`;
+                        fileInput.className = 'hidden';
+                        const dt = new DataTransfer();
+                        dt.items.add(group.imageFile);
+                        fileInput.files = dt.files;
+                        card.appendChild(fileInput);
+                    }
+
+                    groupsList.appendChild(card);
+                });
+
+                groupsList.querySelectorAll('.edit-group-btn').forEach(btn => {
+                    btn.addEventListener('click', () => openGroupModal(parseInt(btn.dataset.index)));
+                });
+                groupsList.querySelectorAll('.remove-group-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        groups.splice(parseInt(btn.dataset.index), 1);
+                        renderGroups();
+                    });
+                });
+            }
+
+            function closeGroupModal() {
+                if (window.tinymce && tinymce.get('group-message-editor')) {
+                    tinymce.get('group-message-editor').remove();
+                }
+                groupModal.classList.add('hidden');
+            }
+
+            function openGroupModal(index) {
+                syncInputsToOptions();
+                currentGroupIndex = index;
+                const group = index !== null ? groups[index] : {
+                    id: null,
+                    name: '',
+                    message: '<p>Please select one of the available options above before adding this item to your cart.</p>',
+                    image_url: null,
+                    item_row_keys: [],
+                    imageFile: null,
+                    useDefaultImage: false,
+                };
+
+                const checkboxesHtml = options.map(opt => `
+            <label class="flex items-center gap-2 py-1">
+                <input type="checkbox" class="group-item-checkbox" value="${escapeHtml(rowKey(opt))}"
+                    ${group.item_row_keys.includes(rowKey(opt)) ? 'checked' : ''}>
+                <span>${escapeHtml(opt.label || '(untitled option)')}</span>
+            </label>
+        `).join('');
+
+                const previewSrc = group.imageFile
+                    ? URL.createObjectURL(group.imageFile)
+                    : (group.image_url || defaultGroupImage);
+                const isDefaultImage = !group.imageFile && (!group.image_url || group.image_url === defaultGroupImage);
+
+                groupModalContent.innerHTML = `
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">${index !== null ? 'Edit' : 'Create'} Options Group</h3>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Group Name</label>
+                <input type="text" id="group-name" class="w-full rounded-md border px-3 py-2 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white" value="${escapeHtml(group.name)}" placeholder="e.g. Bucket Type">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Options (customer must choose exactly one)</label>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-md p-3 max-h-40 overflow-y-auto">
+                    ${checkboxesHtml || '<p class="text-sm text-gray-500">Add some options first.</p>'}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+                <textarea id="group-message-editor" rows="4" class="w-full rounded-md border px-3 py-2 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white">${group.message ?? ''}</textarea>
+                <p class="text-xs text-gray-500 mt-1">Shown to the customer if they try to add this product to cart without picking one of the selected options.</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image Upload or Use Default Image</label>
+                <div class="flex items-center gap-4">
+                    <div class="flex flex-col items-center gap-1 shrink-0">
+                        <img id="group-image-preview" src="${previewSrc}" class="w-16 h-16 object-cover rounded border border-gray-200 dark:border-gray-700">
+                        <span id="group-image-caption" class="text-xs text-gray-500 dark:text-gray-400">${isDefaultImage ? 'Default Image' : 'Custom Image'}</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label for="group-image-input"
+                            class="cursor-pointer inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-md border border-gray-300 bg-white dark:bg-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600">
+                            Choose New Image
+                        </label>
+                        <input type="file" id="group-image-input" accept="image/*" class="hidden">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">The default image is used unless you choose a new one.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" id="group-modal-cancel" class="px-4 py-2 text-sm rounded border border-gray-300 bg-white dark:bg-gray-700 dark:text-white">Cancel</button>
+                <button type="button" id="group-modal-save" class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">Save Group</button>
+            </div>
+        `;
+
+                let pendingImageFile = group.imageFile || null;
+
+                if (window.tinymce) {
+                    tinymce.init({
+                        selector: '#group-message-editor',
+                        height: 250,
+                        menubar: false,
+                        plugins: 'link table lists code',
+                        toolbar: 'underline bold italic | alignleft aligncenter alignright | bullist numlist | link table | code',
+                        skin_url: '/tinymce/skins/ui/oxide',
+                        content_css: [
+                            '/tinymce/skins/content/default/content.css',
+                            document.querySelector('meta[name="vite-app-css"]')?.content || ''
+                        ],
+                        block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6',
+                        content_style: `
+                            ul, ol { margin:.5rem 0 .75rem; padding-left:2.25rem; }
+                            ul { list-style: disc; } ol { list-style: decimal; } li { margin:.25rem 0; }
+
+                            h1{font-size:1.875rem; line-height:2.25rem; font-weight:700; margin:1rem 0 .75rem;}
+                            h2{font-size:1.5rem;   line-height:2rem;    font-weight:700; margin:1rem 0 .75rem;}
+                            h3{font-size:1.25rem;  line-height:1.75rem; font-weight:600; margin:.75rem 0 .5rem;}
+                            h4{font-size:1.125rem; line-height:1.75rem; font-weight:600; margin:.75rem 0 .5rem;}
+                            h5{font-weight:600; margin:.5rem 0;}
+                            h6{font-weight:600; text-transform:uppercase; letter-spacing:.02em; margin:.5rem 0;}
+                        `,
+                        extended_valid_elements: `
+                            span[style|class], p[style|class], a[href|title|class|style],
+                            table[style|border|cellpadding|cellspacing|width|class],
+                            thead,tbody,tfoot,tr,
+                            th[style|colspan|rowspan|width|class],
+                            td[style|colspan|rowspan|width|class],
+                            ul,ol,li[style|class]
+                        `,
+                        valid_styles: {
+                            '*': 'width,height,color,background-color,border,border-color,border-style,border-width,text-align,margin,margin-left,margin-right,padding,padding-left,padding-right,text-decoration,text-underline-offset,text-decoration-thickness,font-size,font-family,line-height,letter-spacing,font-weight,font-style'
+                        },
+                        license_key: 'gpl',
+                    });
+                }
+
+                groupModalContent.querySelector('#group-image-input').addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    pendingImageFile = file;
+                    groupModalContent.querySelector('#group-image-preview').src = URL.createObjectURL(file);
+                    groupModalContent.querySelector('#group-image-caption').textContent = 'Custom Image';
+                });
+
+                groupModalContent.querySelector('#group-modal-cancel').onclick = () => closeGroupModal();
+
+                groupModalContent.querySelector('#group-modal-save').onclick = () => {
+                    const name = groupModalContent.querySelector('#group-name').value.trim();
+                    const selectedKeys = Array.from(groupModalContent.querySelectorAll('.group-item-checkbox:checked'))
+                        .map(cb => cb.value);
+
+                    if (!name) {
+                        notyf.error('Group Name is required.');
+                        return;
+                    }
+                    if (!selectedKeys.length) {
+                        notyf.error('Select at least one option for the group.');
+                        return;
+                    }
+
+                    const message = window.tinymce && tinymce.get('group-message-editor')
+                        ? tinymce.get('group-message-editor').getContent()
+                        : groupModalContent.querySelector('#group-message-editor').value;
+
+                    const savedGroup = {
+                        id: group.id,
+                        name,
+                        message,
+                        image_url: group.image_url,
+                        item_row_keys: selectedKeys,
+                        imageFile: pendingImageFile,
+                        useDefaultImage: !pendingImageFile,
+                    };
+
+                    if (currentGroupIndex !== null) {
+                        groups[currentGroupIndex] = savedGroup;
+                    } else {
+                        groups.push(savedGroup);
+                    }
+
+                    closeGroupModal();
+                    renderGroups();
+                };
+
+                groupModal.classList.remove('hidden');
+            }
+
+            addGroupBtn.addEventListener('click', () => openGroupModal(null));
 
             addBtn.addEventListener('click', () => {
                 syncInputsToOptions();

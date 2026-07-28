@@ -21,7 +21,7 @@ class UpdateRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $input = PurifyHelper::purify($this->all());
+        $input = PurifyHelper::purify($this->all(), ['message']);
 
         // Filter out options with empty or null labels
         if (isset($input['options']) && is_array($input['options'])) {
@@ -49,6 +49,7 @@ class UpdateRequest extends FormRequest
 
             'options' => ['required', 'array', 'min:1'],
             'options.*.id' => ['nullable', 'integer', 'exists:product_option_items,id'],
+            'options.*.row_key' => ['nullable', 'string'],
             'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
             'options.*.label' => ['required', 'string', 'max:255'],
             'options.*.daily' => ['nullable', 'numeric', 'min:0'],
@@ -61,6 +62,15 @@ class UpdateRequest extends FormRequest
             'options.*.comment' => ['nullable', 'string'],
             'options.*.accept_label' => ['nullable', 'string', 'max:255'],
             'options.*.decline_label' => ['nullable', 'string', 'max:255'],
+
+            // Validate the option groups array
+            'groups' => ['nullable', 'array'],
+            'groups.*.id' => ['nullable', 'integer', 'exists:product_option_groups,id'],
+            'groups.*.name' => ['required', 'string', 'max:240'],
+            'groups.*.message' => ['nullable', 'string'],
+            'groups.*.image' => ['nullable', 'image', 'max:5120'],
+            'groups.*.use_default_image' => ['nullable', 'boolean'],
+            'groups.*.item_row_keys' => ['required', 'array', 'min:1'],
         ];
     }
 

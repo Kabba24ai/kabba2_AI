@@ -23,6 +23,11 @@ class ProductOption extends Model
         return $this->hasMany(ProductOptionItem::class)->orderBy('sort_order');
     }
 
+    public function groups()
+    {
+        return $this->hasMany(ProductOptionGroup::class)->orderBy('sort_order');
+    }
+
     public static function boot()
     {
         parent::boot();

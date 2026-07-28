@@ -32,6 +32,11 @@ class ProductOptionItem extends Model
         return $this->belongsTo(ProductOption::class);
     }
 
+    public function groups()
+    {
+        return $this->belongsToMany(ProductOptionGroup::class, 'product_option_group_items')->withTimestamps();
+    }
+
     public static function boot()
     {
         parent::boot();

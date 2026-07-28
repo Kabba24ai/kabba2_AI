@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\ProductManagement\Options;
 
+use App\Http\Controllers\Admin\ProductManagement\Options\Concerns\PersistsProductOptionGroups;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductManagement\Options\StoreRequest;
 use App\Models\ProductManagement\ProductOption;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class StoreController extends Controller
 {
+    use PersistsProductOptionGroups;
+
     /**
      * Handle the incoming request.
      */
@@ -40,8 +43,9 @@ class StoreController extends Controller
             ]);
 
             // Store each option item
+            $rowKeyToItemId = [];
             foreach ($validated['options'] as $option) {
-                ProductOptionItem::create([
+                $item = ProductOptionItem::create([
                     'product_option_id' => $productOption->id,
                     'label' => $option['label'],
                     'daily' => $option['daily'] ?? 0,
@@ -55,6 +59,14 @@ class StoreController extends Controller
                     'accept_label' => $option['accept_label'] ?? null,
                     'decline_label' => $option['decline_label'] ?? null,
                 ]);
+
+                if (!empty($option['row_key'])) {
+                    $rowKeyToItemId[$option['row_key']] = $item->id;
+                }
+            }
+
+            if (!empty($validated['groups'])) {
+                $this->saveProductOptionGroups($productOption, $validated['groups'], $rowKeyToItemId, $request);
             }
 
             DB::commit();

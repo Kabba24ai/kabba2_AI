@@ -2,6 +2,7 @@ import { updateDeliveryPrices, toggleServiceMethod } from './delivery-ui';
 import { initDatepicker } from './datepicker';
 import { changeQty } from './quantity';
 import { initProductOptions } from './product-options';
+import { initProductOptionGroups } from './option-groups';
 import { initAddToCart } from './add-to-cart';
 import {
     initCustomDelivery,
@@ -205,6 +206,7 @@ const initDynamicDetailsUI = () => {
     // Datepicker, option grid modal, add to cart, custom delivery popup
     initDatepicker();
     initProductOptions();
+    initProductOptionGroups();
     initAddToCart(context);
     initCustomDelivery(context);
 

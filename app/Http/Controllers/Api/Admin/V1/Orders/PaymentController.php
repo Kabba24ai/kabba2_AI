@@ -212,44 +212,19 @@ class PaymentController extends BaseController
             } else {
 
                 // ── Cash / Cheque / Other / new canonical methods ──
+                // Store Credit is NO LONGER a tender (it is a pre-tax discount
+                // via the discount engine) and is excluded from the payment
+                // enums, so it can never reach this branch; its former
+                // redemption+payment code has been removed.
                 $orderPaymentMethod = match ($paymentMethod) {
                     'Cash'         => OrderPaymentMethod::Cash->value,
                     'Cheque'       => OrderPaymentMethod::Cheque->value,
                     'TapToPay'     => OrderPaymentMethod::TapToPay->value,
-                    'StoreCredit'  => OrderPaymentMethod::StoreCredit->value,
                     'GiftCard'     => OrderPaymentMethod::GiftCard->value,
                     'ZelleVenmo'   => OrderPaymentMethod::ZelleVenmo->value,
                     'Other'        => OrderPaymentMethod::Other->value,
                     default        => null,
                 };
-
-                // Store Credit actually deducts from the customer's real
-                // credit balance — never just a label. Same rule as the
-                // admin Receive Payment flow.
-                $storeCreditRedemption = null;
-                if ($orderPaymentMethod === OrderPaymentMethod::StoreCredit->value) {
-                    // Callers should send a client-generated idempotency_token
-                    // per distinct payment attempt so a network retry of the
-                    // same request is recognized rather than redeemed twice.
-                    $idempotencyKey = !empty($validated['idempotency_token'])
-                        ? "api-payment:{$order->id}:{$validated['idempotency_token']}"
-                        : null;
-
-                    try {
-                        $storeCreditRedemption = \App\Services\CustomerCreditService::redeem(
-                            customerId: $customer->id,
-                            amount: $amount,
-                            reason: "Applied to Order {$order->order_number}",
-                            responsibleUserId: $responsibleUser?->id,
-                            idempotencyKey: $idempotencyKey,
-                            orderId: $order->id,
-                        );
-                    } catch (\RuntimeException $e) {
-                        DB::rollBack();
-
-                        return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-                    }
-                }
 
                 $payment = $order->payments()->create([
                     'payment_datetime'   => now(),
@@ -269,10 +244,6 @@ class PaymentController extends BaseController
                     'created_by_id'      => $responsibleUser->id,
                     'created_by_type'    => User::class,
                 ]);
-
-                if ($storeCreditRedemption) {
-                    $storeCreditRedemption->update(['order_payment_id' => $payment->id]);
-                }
             }
 
             // Same cross-method settlement fix as the admin Receive Payment

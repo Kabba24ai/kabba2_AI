@@ -21,6 +21,15 @@ enum OrderPaymentMethod : string
     case Cheque = 'Cheque';
     case Other = 'Other';
     case TapToPay = 'TapToPay';
+    /**
+     * @deprecated Store Credit is NO LONGER a payment/tender — it is a pre-tax
+     * product discount applied through the canonical discount engine. Excluded
+     * from canonical() and every payment-collection dropdown + validation rule
+     * so no new Store Credit payment can be selected. It DOES remain in
+     * filterOptions() as a read-only FILTER value so historical orders paid
+     * with the retired Store Credit tender stay findable; the case + label()
+     * are likewise kept only so legacy stored payment rows still render.
+     */
     case StoreCredit = 'StoreCredit';
     case GiftCard = 'GiftCard';
     case ZelleVenmo = 'ZelleVenmo';
@@ -62,7 +71,7 @@ enum OrderPaymentMethod : string
     {
         return array_values(array_filter(
             self::cases(),
-            fn (self $case) => !in_array($case, [self::COD, self::Account, self::Online], true),
+            fn (self $case) => !in_array($case, [self::COD, self::Account, self::Online, self::StoreCredit], true),
         ));
     }
 
@@ -70,13 +79,17 @@ enum OrderPaymentMethod : string
      * Method options for a FILTER dropdown: the approved canonical() methods
      * plus the two operational markers a filter must be able to isolate —
      * COD (pay-on-delivery orders) and Account (orders on the customer's
-     * credit account). The one canonical provider every payment-method
-     * filter should build from, replacing hand-rolled array_merge([COD], …)
-     * lists. Online/Bank Transfer stays out (retired, never selectable).
+     * credit account) — PLUS Store Credit. Store Credit is retired as a
+     * tender (removed from canonical(), so it never appears in a payment
+     * dropdown) but historical orders were paid with it, and a filter must
+     * still be able to isolate those legacy rows — so it is admitted HERE and
+     * only here. The one canonical provider every payment-method filter should
+     * build from, replacing hand-rolled array_merge([COD], …) lists.
+     * Online/Bank Transfer stays out (retired, never recorded).
      */
     public static function filterOptions(): array
     {
-        return [self::COD, self::Account, ...self::canonical()];
+        return [self::COD, self::Account, ...self::canonical(), self::StoreCredit];
     }
 
     public static function getValues(): array

@@ -110,6 +110,10 @@ Route::prefix('orders')
         // Extension Charges
         Route::post('/{unique_id}/extension/store', ExtensionStoreController::class)->name('extension.store');
 
+        // Store Credit DISCOUNT (pre-tax, not a payment) — apply / remove on a POD order.
+        Route::post('/{unique_id}/store-credit-discount', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\ApplyController::class)->name('store-credit-discount.apply');
+        Route::delete('/{unique_id}/store-credit-discount/{discountId}', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\RemoveController::class)->name('store-credit-discount.remove')->whereNumber('discountId');
+
         // POD Payment Link — manual resend
         Route::post('/{unique_id}/resend-pod-payment-link', ResendPodPaymentLinkController::class)->name('resend-pod-payment-link');
 

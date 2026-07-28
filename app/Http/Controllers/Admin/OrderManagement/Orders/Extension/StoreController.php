@@ -64,7 +64,36 @@ class StoreController extends Controller
             // Calculate amounts
             $baseAmount = round((float) $validated['base_amount'], 2);
             $salesTaxRate = (float) (ConfigurationHelper::getSettings(null, 'sales_tax') ?? 0);
-            $taxAmount    = $validated['add_tax'] ? round($baseAmount * $salesTaxRate, 2) : 0.00;
+
+            // Optional PRE-TAX Store Credit discount, applied AT creation time
+            // (extensions have no post-creation pre-posting window). Reduce the
+            // base BEFORE tax so the child order, pending placeholder and Billing
+            // Engine bridge all inherit the discounted values — inside this same
+            // transaction, so the redemption and the extension roll back together.
+            $scDiscountPending = null;
+            $scRequested = round((float) ($validated['store_credit_discount'] ?? 0), 2);
+            if ($scRequested > 0) {
+                $discountSvc = app(\App\Services\Discounts\DiscountApplicationService::class);
+                $scKey = 'ext_scd:' . ($validated['request_uuid'] ?? (string) \Illuminate\Support\Str::uuid());
+                if ($discountSvc->existingCreationDiscount($scKey)) {
+                    DB::rollBack();
+                    return response()->json(['success' => false, 'duplicate' => true, 'message' => 'This Store Credit discount was already applied.'], 409);
+                }
+                $cd = $discountSvc->computeAndRedeemForCreation(
+                    (int) $order->customer_id,
+                    $baseAmount,
+                    $scRequested,
+                    $validated['add_tax'] ? $salesTaxRate : 0.0,
+                    $scKey,
+                    $user->id,
+                    'Store Credit discount — extension',
+                );
+                $baseAmount = $cd['result']->discountedProductValue;   // reduced base
+                $taxAmount  = $cd['result']->taxAfter;                 // tax on discounted base (canonical)
+                $scDiscountPending = ['key' => $scKey, 'cd' => $cd, 'requested' => $scRequested];
+            } else {
+                $taxAmount = $validated['add_tax'] ? round($baseAmount * $salesTaxRate, 2) : 0.00;
+            }
             $grandTotal   = $baseAmount + $taxAmount;
 
             // Create extension order with pre-set order_number (boot() guard preserves it)
@@ -82,6 +111,22 @@ class StoreController extends Controller
                 'is_tax_exempt'          => $validated['add_tax'] ? 'No' : 'Yes',
                 'order_note'             => $validated['description'],
             ]);
+
+            // Link the Store Credit discount to the created extension (same txn).
+            if ($scDiscountPending !== null) {
+                app(\App\Services\Discounts\DiscountApplicationService::class)->recordCreationDiscount(
+                    $scDiscountPending['cd']['result'],
+                    $scDiscountPending['cd']['redemption_id'],
+                    \App\Enums\Discounts\DiscountTargetType::Extension,
+                    (int) $extension->id,
+                    (int) $order->customer_id,
+                    $scDiscountPending['key'],
+                    $user->id,
+                    $scDiscountPending['requested'],
+                    'Store Credit discount — extension',
+                    'admin_extension',
+                );
+            }
 
             // Store notes as a separate OrderNote on the extension order
             if (!empty($validated['notes'])) {
@@ -200,6 +245,12 @@ class StoreController extends Controller
                     'order_number' => $extension->order_number,
                 ] : null,
             ]);
+        } catch (\App\Services\Discounts\DiscountException $e) {
+            // Store Credit discount rejected (over-available / over-eligible /
+            // etc.) — roll back the redemption AND the extension together.
+            DB::rollBack();
+
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);

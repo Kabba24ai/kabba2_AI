@@ -14,6 +14,15 @@ enum PaymentMethod: string
     case Cash = 'Cash';
     case Cheque = 'Cheque';
     case TapToPay = 'TapToPay';
+    /**
+     * @deprecated Store Credit is NO LONGER a payment/tender. It is a PRE-TAX
+     * product discount funded from the customer's Store Credit balance, applied
+     * only through the canonical discount engine. Excluded from options()/
+     * canonical()/every dropdown/every validation rule so no new Store Credit
+     * payment can be selected or submitted. The case + label() are kept ONLY so
+     * legacy stored payment rows (historical tender activity) still render —
+     * never so Store Credit can be newly selected as a tender again.
+     */
     case StoreCredit = 'StoreCredit';
     case GiftCard = 'GiftCard';
     case ZelleVenmo = 'ZelleVenmo';
@@ -28,10 +37,31 @@ enum PaymentMethod: string
      */
     case BankTransfer = 'BankTransfer';
 
-    /** The eight approved methods, excluding BankTransfer — see the @deprecated note on the case itself. */
+    /**
+     * The approved SELECTABLE tender methods, excluding BankTransfer AND
+     * StoreCredit (both @deprecated — see the case notes). Store Credit is a
+     * discount now, not a tender, so it never appears in a payment dropdown or
+     * a payment validation rule built from this list.
+     */
     public static function canonical(): array
     {
-        return array_values(array_filter(self::cases(), fn (self $case) => $case !== self::BankTransfer));
+        return array_values(array_filter(
+            self::cases(),
+            fn (self $case) => !in_array($case, [self::BankTransfer, self::StoreCredit], true),
+        ));
+    }
+
+    /**
+     * Valid REFUND destinations: the canonical collection methods PLUS Store
+     * Credit. Refund-to-Store-Credit ISSUES balance (a grant + append-only
+     * issuance history) — it is NOT a new tender/collection — so Store Credit
+     * is admissible here even though it was removed from canonical() (the
+     * collection list). Use this ONLY for refund-destination validation, never
+     * for a payment/collection dropdown.
+     */
+    public static function refundDestinations(): array
+    {
+        return [...self::canonical(), self::StoreCredit];
     }
 
     public static function options(): array

@@ -92,7 +92,10 @@ class SalesTaxReportEngine
             ->where(function ($q) {
                 $q->where('op.payment_method', '!=', 'COD')
                   ->orWhere('op.status', 'Paid');
-            });
+            })
+            // Store Credit is a discount, not a tender — a legacy StoreCredit
+            // payment row must not attribute taxable sales.
+            ->where('op.payment_method', '!=', 'StoreCredit');
 
         if (!empty($filters['payment_method']) && $filters['payment_method'] !== 'All Methods') {
             $paymentQuery->where('op.payment_method', $filters['payment_method']);
@@ -344,6 +347,9 @@ class SalesTaxReportEngine
         $query = CustomerAccount::query()
             ->with('customer')
             ->where('type', 'payment')
+            // Store Credit is a discount, not a tender — exclude legacy StoreCredit
+            // A/R payments from taxable-sales attribution.
+            ->where('payment_type', '!=', 'StoreCredit')
             ->whereBetween('date', [$start, $end]);
 
         // customer_accounts.payment_type uses Customers\PaymentMethod values (CreditCard, BankTransfer, …)

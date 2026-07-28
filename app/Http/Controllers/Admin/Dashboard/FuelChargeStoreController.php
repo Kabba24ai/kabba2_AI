@@ -29,6 +29,9 @@ class FuelChargeStoreController extends Controller
             'responsible_person' => ['required', 'exists:users,id'],
             'sales_tax_type'     => ['nullable', 'in:add,free,reverse'],
             'source_context'     => ['nullable', 'in:dashboard,fuel_workspace,crm,order_details'],
+            // Optional pre-tax Store Credit discount applied at creation time.
+            'store_credit_discount' => ['nullable', 'numeric', 'min:0.01'],
+            'store_credit_key'      => ['nullable', 'string', 'max:64'],
         ]);
 
         $orderId = $validated['order_id'] ?? null;
@@ -64,7 +67,14 @@ class FuelChargeStoreController extends Controller
                 responsibleUserId: (int) $validated['responsible_person'],
                 orderId: $orderId,
                 sourceContext: $validated['source_context'] ?? 'dashboard',
+                storeCreditDiscount: isset($validated['store_credit_discount']) ? (float) $validated['store_credit_discount'] : null,
+                discountIdempotencyKey: isset($validated['store_credit_discount'])
+                    ? ($validated['store_credit_key'] ?? ('fuel_scd:' . (string) \Illuminate\Support\Str::uuid()))
+                    : null,
             );
+        } catch (\App\Services\Discounts\DiscountException $e) {
+            // Store Credit discount rejected — the whole creation rolled back.
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
             report($e);
 

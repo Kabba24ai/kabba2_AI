@@ -33,24 +33,49 @@ class AlertChargeController extends Controller
             'notes'              => ['nullable', 'string', 'max:500'],
             'responsible_person' => ['required', 'exists:users,id'],
             'sales_tax_type'     => ['nullable', 'in:add,free,reverse'],
+            // Optional pre-tax Store Credit discount applied at creation time.
+            'store_credit_discount' => ['nullable', 'numeric', 'min:0.01'],
+            'store_credit_key'      => ['nullable', 'string', 'max:64'],
         ]);
 
         $order = Order::where('unique_id', $uniqueId)->with('customer')->firstOrFail();
         $user  = User::findOrFail($request->responsible_person);
 
+        $scRequested = round((float) ($request->store_credit_discount ?? 0), 2);
+        $applyDiscount = $scRequested > 0;
+        $scKey = $request->store_credit_key ?: ('damage_alert_scd:' . (string) \Illuminate\Support\Str::uuid());
+        $discountSvc = app(\App\Services\Discounts\DiscountApplicationService::class);
+
+        if ($applyDiscount && $discountSvc->existingCreationDiscount($scKey)) {
+            return response()->json(['success' => true, 'message' => 'Damage Alert already created.'], 200);
+        }
+
         DB::beginTransaction();
 
         try {
+            $effectiveAmount = round((float) $request->amount, 2);
+            $effectiveTreatment = $request->sales_tax_type ?? 'free';
+            $pendingDiscount = null;
+
+            if ($applyDiscount) {
+                $pendingDiscount = $discountSvc->computeChargeDiscount(
+                    (int) $order->customer_id, (float) $request->amount, $request->sales_tax_type,
+                    $scRequested, $scKey, $user->id, 'damage',
+                );
+                $effectiveAmount = $pendingDiscount['effective_amount'];
+                $effectiveTreatment = $pendingDiscount['effective_treatment'];
+            }
+
             $record = new CustomerAccount();
             $record->customer_id             = $order->customer_id;
             $record->order_id                = $order->id;
-            $record->amount                  = $request->amount;
+            $record->amount                  = $effectiveAmount;
             $record->reason                  = 'Damages';
             $record->responsible_person_id   = $user->id;
             $record->responsible_person_name = $user->full_name;
             $record->notes                   = $request->notes;
             $record->date                    = now();
-            $record->sales_tax_type          = $request->sales_tax_type ?? 'free';
+            $record->sales_tax_type          = $effectiveTreatment;
             $record->sales_tax               = 0;
             $record->type                    = 'charge';
             $record->fuel_alert_status       = null;
@@ -58,6 +83,15 @@ class AlertChargeController extends Controller
             $record->save();
 
             CustomHelper::updateCreditBalance($record);
+
+            if ($pendingDiscount !== null) {
+                $discountSvc->recordCreationDiscount(
+                    $pendingDiscount['result'], $pendingDiscount['redemption_id'],
+                    \App\Enums\Discounts\DiscountTargetType::DamageCharge, (int) $record->id,
+                    (int) $order->customer_id, $scKey, $user->id, $scRequested,
+                    'Store Credit discount — damage', 'admin_damage_alert',
+                );
+            }
 
             $chargeType = 'Damage charge';
 
@@ -132,6 +166,10 @@ class AlertChargeController extends Controller
                 'success' => true,
                 'message' => 'Damage Alert created successfully.',
             ]);
+        } catch (\App\Services\Discounts\DiscountException $e) {
+            DB::rollBack();
+
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);

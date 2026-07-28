@@ -375,9 +375,13 @@ class PaymentCorrectnessFoundationTest extends TestCase
         $this->assertSame(0, $order->payments()->count());
     }
 
-    // ── 14: Dashboard Store Credit gap ───────────────────────────────
+    // ── 14: Store Credit tender DEPRECATED ───────────────────────────
+    // Store Credit is no longer a payment/tender — it is a pre-tax discount
+    // applied through the discount engine. A dashboard payment submitted with
+    // payment_type=StoreCredit must now be REJECTED (validation), and the
+    // customer's Store Credit balance must NOT be deducted.
 
-    public function test_dashboard_crm_store_credit_payment_deducts_actual_customer_credit_once(): void
+    public function test_dashboard_store_credit_tender_is_rejected_and_balance_untouched(): void
     {
         CustomerCredit::create([
             'customer_id' => $this->customer->id, 'type' => 'grant', 'amount' => 200.0,
@@ -390,14 +394,16 @@ class PaymentCorrectnessFoundationTest extends TestCase
             'fuel_alert_status' => 'pending',
         ]);
 
-        $this->post(route('admin.dashboard.paymentstore'), [
+        $response = $this->postJson(route('admin.dashboard.paymentstore'), [
             'source' => 'crm', 'customer_id' => $this->customer->id,
             'customer_account_id' => $customerAccount->unique_id,
             'amount' => 150.0, 'payment_type' => 'StoreCredit',
             'responsible_person' => $this->employee->id,
         ]);
 
-        $this->assertSame(50.0, \App\Services\CustomerCreditService::remainingBalance($this->customer->id));
+        $response->assertStatus(422); // StoreCredit no longer a valid tender
+        $this->assertSame(200.0, \App\Services\CustomerCreditService::remainingBalance($this->customer->id), 'balance NOT deducted — tender removed');
+        $this->assertSame(0, \App\Models\Customers\CustomerAccount::where('type', 'payment')->count(), 'no Store Credit payment row');
     }
 
     // ── 15: Account conversion nets against remaining balance ────────

@@ -20,7 +20,10 @@ class RefundRequest extends ApiBaseFormRequest
         return array_merge([
             'amount' => ['required', 'numeric', 'min:0.01'],
 
-            'payment_type' => ['required', 'string', 'in:' . implode(',', array_column(\App\Enums\Customers\PaymentMethod::canonical(), 'value'))],
+            // Refund DESTINATION (not a collection): canonical methods + Store
+            // Credit. Refund-to-Store-Credit issues balance, so Store Credit is
+            // admissible here even though it is no longer a collection tender.
+            'payment_type' => ['required', 'string', 'in:' . implode(',', array_column(\App\Enums\Customers\PaymentMethod::refundDestinations(), 'value'))],
 
             // HOW the refund amount was calculated — separate from 'reason'
             // (why). Defaults to Standard (today's proportional behavior)

@@ -1887,6 +1887,9 @@
                 :customer-credit-summary="$customerCreditSummary"
                 :order-applied-credit="$orderAppliedCredit"
                 :employees="$employees" />
+
+            {{-- Store Credit as a PRE-TAX DISCOUNT (not a payment). --}}
+            @include('admin.order_management.orders.partials._store_credit_discount_panel')
         </div>
 
         {{-- Resolution Center — Phase 3.3, Customer Resolution Center Foundation --}}

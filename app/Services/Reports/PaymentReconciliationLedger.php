@@ -118,6 +118,9 @@ class PaymentReconciliationLedger
             ->join('orders as o', 'o.id', '=', 'op.order_id')
             ->whereIn('o.id', $orderIds)
             ->whereIn('op.status', $settledStatuses)
+            // Store Credit is a discount, not a tender — exclude any legacy
+            // StoreCredit payment row from collected payment volume.
+            ->where('op.payment_method', '!=', 'StoreCredit')
             ->select([
                 'o.id as order_id',
                 'o.order_number',
@@ -360,6 +363,9 @@ class PaymentReconciliationLedger
         $query = DB::table('customer_accounts as ca')
             ->leftJoin('customers as c', 'c.id', '=', 'ca.customer_id')
             ->where('ca.type', 'payment')
+            // Store Credit is a discount, not a tender — exclude legacy StoreCredit
+            // A/R payments from collected payment volume.
+            ->where('ca.payment_type', '!=', 'StoreCredit')
             ->whereNull('ca.deleted_at')
             ->whereBetween('ca.date', [$startDate, $endDate])
             ->select([

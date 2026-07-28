@@ -162,31 +162,10 @@ class PaymentStoreController extends Controller
                     $customer = Customer::findOrFail($validated['customer_id']);
                     Log::debug('Customer loaded:', $customer->toArray());
 
-            // Phase 3A fix: selecting Store Credit for a fuel/damage charge
-            // payment previously never called CustomerCreditService::redeem()
-            // — the charge was marked paid but the customer's real credit
-            // balance was never decreased. Same rule enforced on every other
-            // Store Credit entry point in this codebase.
-            if (strtolower($validated['payment_type']) === 'storecredit') {
-                $idempotencyKey = $idempotencyToken
-                    ? "dashboard-extra-charge:{$record->id}:{$idempotencyToken}"
-                    : null;
-
-                try {
-                    \App\Services\CustomerCreditService::redeem(
-                        customerId: $customer->id,
-                        amount: (float) $validated['amount'],
-                        reason: "Applied to Order {$order->order_number}",
-                        responsibleUserId: $user->id,
-                        idempotencyKey: $idempotencyKey,
-                        orderId: $order->id,
-                    );
-                } catch (\RuntimeException $e) {
-                    DB::rollBack();
-
-                    return redirect()->back()->withInput()->withErrors(['error' => $e->getMessage()]);
-                }
-            }
+            // Store Credit is NO LONGER a tender — it is a pre-tax discount via
+            // the discount engine and is excluded from PaymentMethod::canonical(),
+            // which PaymentStoreRequest validates against, so 'storecredit' can
+            // never reach here. Its former redeem() branch has been removed.
 
             if (strtolower($validated['payment_type']) === 'creditcard') {
                 Log::debug('---- Starting CreditCard payment process ----');
@@ -411,33 +390,10 @@ class PaymentStoreController extends Controller
         try {
             $user = User::findOrFail($validated['responsible_person']);
 
-            // Phase 3A fix: selecting Store Credit here previously only
-            // ever created a CustomerAccount row labeled "StoreCredit" —
-            // it never called CustomerCreditService::redeem(), so the
-            // customer's real credit balance was never actually decreased,
-            // unlike the admin Receive Payment and mobile API flows (which
-            // both redeem correctly). Same "cash means cash" rule applied
-            // here: selecting Store Credit must mean the balance genuinely
-            // decreased.
-            if (strtolower($validated['payment_type']) === 'storecredit') {
-                $idempotencyKey = !empty($validated['idempotency_token'])
-                    ? "dashboard-crm-payment:{$chargeAccount->id}:{$validated['idempotency_token']}"
-                    : null;
-
-                try {
-                    \App\Services\CustomerCreditService::redeem(
-                        customerId: $customer->id,
-                        amount: (float) $validated['amount'],
-                        reason: "Applied to Charge {$chargeAccount->unique_id}",
-                        responsibleUserId: $user->id,
-                        idempotencyKey: $idempotencyKey,
-                    );
-                } catch (\RuntimeException $e) {
-                    DB::rollBack();
-
-                    return back()->withInput()->with('error', $e->getMessage());
-                }
-            }
+            // Store Credit is NO LONGER a tender (pre-tax discount via the
+            // discount engine, excluded from PaymentMethod::canonical() which
+            // PaymentStoreRequest validates against) — its former redeem()
+            // branch has been removed as unreachable.
 
             $payment = new CustomerAccount();
             $payment->customer_id             = $validated['customer_id'];
@@ -603,28 +559,11 @@ class PaymentStoreController extends Controller
             $user = User::findOrFail($validated['responsible_person']);
 
             $paymentResult = null;
-            $storeCreditRedemption = null;
 
-            // Phase 3A fix: selecting Store Credit for an extension charge
-            // previously never called CustomerCreditService::redeem() — the
-            // charge was marked paid but the customer's real credit balance
-            // was never decreased. Same rule enforced on every other Store
-            // Credit entry point in this codebase.
-            if (strtolower($validated['payment_type']) === 'storecredit') {
-                try {
-                    $storeCreditRedemption = \App\Services\CustomerCreditService::redeem(
-                        customerId: $customer->id,
-                        amount: (float) $validated['amount'],
-                        reason: "Applied to Extension Charge {$billingCharge->unique_id}",
-                        responsibleUserId: $user->id,
-                        idempotencyKey: "dashboard-extension-payment:{$billingCharge->id}",
-                    );
-                } catch (\RuntimeException $e) {
-                    DB::rollBack();
-
-                    return $this->extensionPaymentFailure($validated, $e->getMessage());
-                }
-            }
+            // Store Credit is NO LONGER a tender (pre-tax discount via the
+            // discount engine, excluded from PaymentMethod::canonical() which
+            // PaymentStoreRequest validates against) — its former redeem()
+            // branch for extension charges has been removed as unreachable.
 
             if (strtolower($validated['payment_type']) === 'creditcard') {
                 $amount = $validated['amount'];
@@ -715,7 +654,6 @@ class PaymentStoreController extends Controller
                     'Cash'         => \App\Enums\Orders\OrderPaymentMethod::Cash,
                     'Cheque'       => \App\Enums\Orders\OrderPaymentMethod::Cheque,
                     'TapToPay'     => \App\Enums\Orders\OrderPaymentMethod::TapToPay,
-                    'StoreCredit'  => \App\Enums\Orders\OrderPaymentMethod::StoreCredit,
                     'GiftCard'     => \App\Enums\Orders\OrderPaymentMethod::GiftCard,
                     'ZelleVenmo'   => \App\Enums\Orders\OrderPaymentMethod::ZelleVenmo,
                     default        => \App\Enums\Orders\OrderPaymentMethod::Other,
@@ -756,10 +694,6 @@ class PaymentStoreController extends Controller
                         'created_by_id'   => $user->id,
                         'created_by_type' => User::class,
                     ]);
-                }
-
-                if ($storeCreditRedemption) {
-                    $storeCreditRedemption->update(['order_payment_id' => $extensionOrderPayment->id]);
                 }
             }
 

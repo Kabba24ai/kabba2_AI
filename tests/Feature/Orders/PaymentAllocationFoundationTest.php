@@ -396,9 +396,15 @@ class PaymentAllocationFoundationTest extends TestCase
         $this->assertSame(PaymentAllocationService::STATE_AMBIGUOUS, $state);
     }
 
-    // ── 18-19: Store Credit linkage and balance correctness ──────────
+    // ── 18-19: Store Credit is NO LONGER a tender ────────────────────
+    // Increment 3 of the Discount Engine phase retired Store Credit as a
+    // payment/tender (it is now a PRE-TAX discount applied through the
+    // discount engine). Selecting it at Receive Payment must be rejected —
+    // no order-payment row, no redemption, no balance change. (The former
+    // "redeem + link order_payment_id" contract these tests encoded is
+    // deliberately gone.)
 
-    public function test_18_store_credit_redemption_links_to_order_payment_id(): void
+    public function test_18_store_credit_is_rejected_as_a_tender_no_payment_or_redemption(): void
     {
         CustomerCredit::create([
             'customer_id' => $this->customer->id, 'type' => 'grant', 'amount' => 500.0,
@@ -409,18 +415,14 @@ class PaymentAllocationFoundationTest extends TestCase
 
         $this->putJson(route('admin.order-management.orders.receive-payment', $order->unique_id), [
             'payment_type' => 'StoreCredit', 'responsible_person' => $this->employee->id,
-        ])->assertOk();
+        ])->assertStatus(422);
 
-        $payment = $order->payments()->first();
-        $redemption = CustomerCredit::where('type', CustomerCreditService::TYPE_REDEMPTION)
-            ->where('customer_id', $this->customer->id)
-            ->first();
-
-        $this->assertNotNull($redemption);
-        $this->assertSame($payment->id, $redemption->order_payment_id);
+        $this->assertSame(0, $order->payments()->count(), 'no order-payment row is written for a rejected Store Credit tender');
+        $this->assertSame(0, CustomerCredit::where('type', CustomerCreditService::TYPE_REDEMPTION)
+            ->where('customer_id', $this->customer->id)->count(), 'no redemption is created');
     }
 
-    public function test_19_store_credit_balance_is_still_decremented_exactly_once(): void
+    public function test_19_rejected_store_credit_tender_leaves_balance_untouched(): void
     {
         CustomerCredit::create([
             'customer_id' => $this->customer->id, 'type' => 'grant', 'amount' => 500.0,
@@ -431,9 +433,9 @@ class PaymentAllocationFoundationTest extends TestCase
 
         $this->putJson(route('admin.order-management.orders.receive-payment', $order->unique_id), [
             'payment_type' => 'StoreCredit', 'responsible_person' => $this->employee->id,
-        ])->assertOk();
+        ])->assertStatus(422);
 
-        $this->assertSame(200.0, CustomerCreditService::remainingBalance($this->customer->id));
+        $this->assertSame(500.0, CustomerCreditService::remainingBalance($this->customer->id), 'balance is untouched — spend happens only via the discount engine');
     }
 
     // ── 20-21: existing workflows remain green ────────────────────────

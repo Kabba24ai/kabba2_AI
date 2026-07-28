@@ -216,47 +216,19 @@ class ReceivePaymentController extends Controller
                     }
                 }
             }else{
+                // Store Credit is NO LONGER a tender (it is a pre-tax discount
+                // via the discount engine). It is excluded from PaymentMethod
+                // options() so it can never reach this controller; its former
+                // redemption+payment branch has been removed.
                 $orderPaymentMethod = match ($paymentMethod) {
                     'Cash' => OrderPaymentMethod::Cash->value,
                     'Cheque' => OrderPaymentMethod::Cheque->value,
                     'TapToPay' => OrderPaymentMethod::TapToPay->value,
-                    'StoreCredit' => OrderPaymentMethod::StoreCredit->value,
                     'GiftCard' => OrderPaymentMethod::GiftCard->value,
                     'ZelleVenmo' => OrderPaymentMethod::ZelleVenmo->value,
                     'Other' => OrderPaymentMethod::Other->value,
                     default => null,
                 };
-
-                // Store Credit actually deducts from the customer's real
-                // credit balance — never just a label, per the "Cash means
-                // cash" principle applied to every method: selecting Store
-                // Credit must mean the balance genuinely decreased.
-                $storeCreditRedemption = null;
-                if ($orderPaymentMethod === OrderPaymentMethod::StoreCredit->value) {
-                    // Namespaced so a duplicate submit of *this* payment is
-                    // recognized (redeem() returns the existing row instead
-                    // of redeeming twice) without colliding with an
-                    // unrelated redeem()/createFinancialCredit() call that
-                    // happened to reuse the same raw client token.
-                    $idempotencyKey = !empty($validated['idempotency_token'])
-                        ? "receive-payment:{$order->id}:{$validated['idempotency_token']}"
-                        : null;
-
-                    try {
-                        $storeCreditRedemption = \App\Services\CustomerCreditService::redeem(
-                            customerId: $customer->id,
-                            amount: $amount,
-                            reason: "Applied to Order {$order->order_number}",
-                            responsibleUserId: $user->id,
-                            idempotencyKey: $idempotencyKey,
-                            orderId: $order->id,
-                        );
-                    } catch (\RuntimeException $e) {
-                        DB::rollBack();
-
-                        return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-                    }
-                }
 
                 $payment = $order->payments()->create([
                     'payment_datetime' => now(),
@@ -276,10 +248,6 @@ class ReceivePaymentController extends Controller
                     'created_by_id' => $user->id,
                     'created_by_type' => User::class,
                 ]);
-
-                if ($storeCreditRedemption) {
-                    $storeCreditRedemption->update(['order_payment_id' => $payment->id]);
-                }
 
             }
             // When this payment fully settles the order, close out any stale

@@ -56,6 +56,8 @@ class ChargeService
         int $responsibleUserId,
         ?int $orderId = null,
         string $sourceContext = 'dashboard',
+        ?float $storeCreditDiscount = null,
+        ?string $discountIdempotencyKey = null,
     ): CustomerAccount {
         if ($salesTaxType !== null && !ChargeTaxCalculator::isValidTreatment($salesTaxType)) {
             throw new \InvalidArgumentException("Invalid sales tax treatment '{$salesTaxType}'.");
@@ -66,24 +68,72 @@ class ChargeService
         $reason     = $type === 'fuel' ? 'Fuel Charge' : 'Damages';
         $alertField = $type === 'fuel' ? 'fuel_alert_status' : 'damage_alert_status';
 
+        $applyDiscount = $storeCreditDiscount !== null && $storeCreditDiscount > 0;
+        if ($applyDiscount && $discountIdempotencyKey === null) {
+            $discountIdempotencyKey = "manual_{$type}_scd:" . (string) \Illuminate\Support\Str::uuid();
+        }
+
+        // Idempotency for discounted retries: if the discount was already
+        // recorded, the charge already exists — return it, don't recreate.
+        if ($applyDiscount && $discountIdempotencyKey !== null) {
+            $existing = app(\App\Services\Discounts\DiscountApplicationService::class)->existingCreationDiscount($discountIdempotencyKey);
+            if ($existing) {
+                return CustomerAccount::findOrFail($existing->target_id);
+            }
+        }
+
         // ── Legacy write (committed first, same as both prior controllers) ──
-        $record = DB::transaction(function () use ($customerId, $orderId, $amount, $reason, $alertField, $salesTaxType, $notes, $user) {
+        // A PRE-TAX Store Credit discount (Phase 1) is applied INSIDE this
+        // transaction, BEFORE updateCreditBalance books A/R, so the redemption,
+        // the discount record and the charge are one atomic unit.
+        $record = DB::transaction(function () use ($customerId, $orderId, $amount, $reason, $alertField, $salesTaxType, $notes, $user, $type, $applyDiscount, $storeCreditDiscount, $discountIdempotencyKey) {
+            $effectiveAmount = round($amount, 2);
+            $effectiveTreatment = $salesTaxType ?? 'free';
+            $pendingDiscount = null;
+
+            if ($applyDiscount) {
+                $cd = app(\App\Services\Discounts\DiscountApplicationService::class)->computeChargeDiscount(
+                    $customerId, $amount, $salesTaxType, (float) $storeCreditDiscount,
+                    $discountIdempotencyKey, $user->id, $type,
+                );
+                $effectiveAmount = $cd['effective_amount'];
+                $effectiveTreatment = $cd['effective_treatment'];
+                $pendingDiscount = $cd;
+            }
+
             $record                          = new CustomerAccount();
             $record->customer_id             = $customerId;
             $record->order_id                = $orderId;
-            $record->amount                  = $amount;
+            $record->amount                  = $effectiveAmount;
             $record->reason                  = $reason;
             $record->responsible_person_id   = $user->id;
             $record->responsible_person_name = $user->full_name;
             $record->notes                   = $notes;
             $record->date                    = now();
-            $record->sales_tax_type          = $salesTaxType ?? 'free';
+            $record->sales_tax_type          = $effectiveTreatment;
             $record->sales_tax               = 0;
             $record->type                    = 'charge';
             $record->$alertField             = 'pending';
             $record->save();
 
             CustomHelper::updateCreditBalance($record);
+
+            if ($pendingDiscount !== null) {
+                app(\App\Services\Discounts\DiscountApplicationService::class)->recordCreationDiscount(
+                    $pendingDiscount['result'],
+                    $pendingDiscount['redemption_id'],
+                    $type === 'fuel'
+                        ? \App\Enums\Discounts\DiscountTargetType::FuelCharge
+                        : \App\Enums\Discounts\DiscountTargetType::DamageCharge,
+                    (int) $record->id,
+                    $customerId,
+                    $discountIdempotencyKey,
+                    $user->id,
+                    (float) $storeCreditDiscount,
+                    "Store Credit discount — {$type}",
+                    'admin_' . $type,
+                );
+            }
 
             $description = "{$reason} added.";
             $description .= ' Amount: $' . number_format((float) $record->amount, 2) . '.';
@@ -360,6 +410,16 @@ class ChargeService
         int $responsibleUserId,
         array $extra = []
     ): CustomerAccount {
+        // Store Credit is NO LONGER a tender — it is a pre-tax discount applied
+        // via the discount engine. Reject it here as defense-in-depth (this is
+        // the one raw payment write site with no FormRequest of its own), so no
+        // service path can ever write a Store Credit payment row.
+        if (strcasecmp(trim($paymentType), 'StoreCredit') === 0) {
+            throw new \App\Services\Discounts\DiscountException(
+                'Store Credit is a discount, not a payment. Apply it through the discount engine, not recordPayment().'
+            );
+        }
+
         $order  = $orderProduct->order ?? $orderProduct->load('order')->order;
         $reason = $type === 'fuel' ? 'Fuel Charge' : 'Damages';
         $alertField  = $type === 'fuel' ? 'fuel_alert_status' : 'damage_alert_status';

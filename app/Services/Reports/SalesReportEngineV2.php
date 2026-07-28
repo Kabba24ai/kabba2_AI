@@ -197,6 +197,16 @@ class SalesReportEngineV2
         // 3. Discounts — anchored on orders.order_date (discount is part of original sale)
         $discounts = $this->queryDiscounts($filters);
 
+        // 3b. Pre-tax Store Credit discounts on ORDERS (the discount engine).
+        //     gross_sales stays = Σ order_products.sub_total (the pre-discount
+        //     base); the store_credit discount reduces NET here, and its tax
+        //     delta corrects the line-level tax_collected below (Finding 2 /
+        //     Option C — no order_products line columns are mutated). Only
+        //     target_type='order' applies to V2's order gross; fuel/damage/
+        //     extension are not part of order_products revenue.
+        [$storeCreditOrderDiscount, $storeCreditOrderTaxDelta] = $this->queryStoreCreditOrderDiscounts($filters);
+        $discounts += $storeCreditOrderDiscount;
+
         // 4. Refunds — anchored on COALESCE(refunded_at, payment_datetime, created_at) (REFUND TRANSACTION DATE)
         //    A refund in June on a May order appears in June, not May.
         $refunds = $this->queryRefunds($filters, $startDate, $endDate);
@@ -227,6 +237,13 @@ class SalesReportEngineV2
             $grossSales   += $billingGross;
             $taxCollected += $billingTax;
         }
+
+        // 6.6. Correct the line-level tax for pre-tax Store Credit order
+        //      discounts: queryOrderRevenue summed the FULL (pre-discount)
+        //      order_products.tax, but the customer was charged tax on the
+        //      discounted base. Subtract the discount's (tax_before − tax_after)
+        //      delta so tax_collected matches the canonical recalculated tax.
+        $taxCollected = max(0.0, $taxCollected - $storeCreditOrderTaxDelta);
 
         // 7. Apply component-level revenue filters
         $c = $this->applyComponentFilters($filters, [
@@ -417,6 +434,35 @@ class SalesReportEngineV2
     }
 
     /**
+     * Pre-tax Store Credit discounts applied to ORDERS in scope, from the
+     * canonical product_discounts ledger. Returns [discount_total, tax_delta]
+     * where tax_delta = Σ(tax_before − tax_after) — the tax the discount removed
+     * from the order-level charge (used to correct the line-based tax_collected).
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function queryStoreCreditOrderDiscounts(array $filters): array
+    {
+        $orderIds = $this->reporting->baseQuery($filters)
+            ->selectRaw('DISTINCT orders.id')
+            ->pluck('id');
+
+        if ($orderIds->isEmpty()) {
+            return [0.0, 0.0];
+        }
+
+        $row = DB::table('product_discounts')
+            ->where('discount_type', 'store_credit')
+            ->where('target_type', 'order')
+            ->where('status', 'applied')
+            ->whereIn('target_id', $orderIds)
+            ->selectRaw('COALESCE(SUM(calculated_discount_amount), 0) as disc, COALESCE(SUM(tax_before - tax_after), 0) as tax_delta')
+            ->first();
+
+        return [(float) ($row->disc ?? 0), (float) ($row->tax_delta ?? 0)];
+    }
+
+    /**
      * Refunds anchored to COALESCE(op.refunded_at, op.payment_datetime, op.created_at) — the REFUND TRANSACTION DATE.
      *
      * Key difference from old code: a refund on a May order processed in June
@@ -466,6 +512,8 @@ class SalesReportEngineV2
     {
         $query = DB::table('customer_accounts')
             ->where('type', 'payment')
+            // Store Credit is a discount, not a tender — never revenue/tax collected.
+            ->where('payment_type', '!=', 'StoreCredit')
             ->whereNull('deleted_at')
             ->whereBetween('date', [$startDate, $endDate]);
 
@@ -577,6 +625,9 @@ class SalesReportEngineV2
     {
         $query = DB::table('customer_accounts')
             ->where('type', 'payment')
+            // Paired with queryAccountPayments() — must exclude StoreCredit too
+            // so the sum(daily) == snapshot reconciliation holds.
+            ->where('payment_type', '!=', 'StoreCredit')
             ->whereNull('deleted_at')
             ->whereBetween('date', [$startDate, $endDate]);
 

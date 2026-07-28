@@ -8,6 +8,7 @@ use App\Models\Iam\Personnel\User;
 use App\Models\Orders\OrderProduct;
 use App\Services\Dispatch\DispatchReorderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -22,6 +23,14 @@ use Illuminate\Support\Facades\DB;
  * the same lock bookkeeping the canonical schedule writer
  * ({@see \App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController})
  * uses — no parallel assignment path is created.
+ *
+ * Placement modes:
+ *  - 'manual' (within-driver reorder): the card keeps the exact position the
+ *    dispatcher dragged it to.
+ *  - 'date' (moved to another driver or an idle driver): the arriving card is
+ *    auto-placed by effective date, then the dispatcher explicitly approves that
+ *    placement. `preview=true` returns the computed placement WITHOUT writing so the
+ *    UI can show the confirmation; the approved commit re-sends without `preview`.
  *
  * See {@see DispatchReorderService} for the (unit-tested, DB-free) sequencing rules.
  */
@@ -40,6 +49,9 @@ class ReorderController extends Controller
             'source_driver_id' => 'required|integer',
             'dest_driver_id'   => 'required|integer',
             'dest_idle'        => 'sometimes|boolean',
+            'placement'        => 'sometimes|in:manual,date',
+            'preview'          => 'sometimes|boolean',
+            'confirmed'        => 'sometimes|boolean',
 
             // Combined-view payload: full unified orders ([{uid, leg}]).
             'dest_order'         => 'sometimes|array',
@@ -69,32 +81,64 @@ class ReorderController extends Controller
         $dstDriver   = (int) $validated['dest_driver_id'];
         $crossDriver = $srcDriver !== $dstDriver;
         $destIdle    = (bool) ($validated['dest_idle'] ?? false);
+        $placement   = $validated['placement'] ?? 'manual';
+        $isPreview   = (bool) ($validated['preview'] ?? false);
 
         // Both endpoints of the move must be real, active drivers.
-        $driverIds = User::active()->where('is_driver', true)
+        $drivers = User::active()->where('is_driver', true)
             ->whereIn('id', array_unique([$srcDriver, $dstDriver]))
-            ->pluck('id')->map(fn ($id) => (int) $id)->all();
-        if (!in_array($srcDriver, $driverIds, true) || !in_array($dstDriver, $driverIds, true)) {
+            ->get()->keyBy('id');
+        if (!$drivers->has($srcDriver) || !$drivers->has($dstDriver)) {
             return response()->json(['success' => false, 'message' => 'Invalid driver for this move.'], 422);
         }
 
-        // Resolve the destination (and, for cross-driver moves, the source) driver's
-        // new unified order. Combined view sends it directly; Separate view sends a
-        // single leg's order that the service reconciles into the unified sequence.
-        if ($view === 'combined') {
-            $destUnified = $this->normalizeItems($validated['dest_order'] ?? []);
-            $srcUnified  = $crossDriver ? $this->normalizeItems($validated['source_order'] ?? []) : null;
-        } else {
-            $destUnified = $destIdle
-                ? [['uid' => $movedUid, 'leg' => $leg]]
-                : $this->service->reconcileSeparate(
-                    $this->normalizeItems($validated['dest_current_unified'] ?? []),
-                    array_values($validated['dest_leg_order'] ?? []),
-                    $leg,
-                    $crossDriver ? $movedUid : null,
-                    null
-                );
+        // Load every referenced order product once (no N+1), with the order eager for
+        // the confirmation preview.
+        $rawUids = [$movedUid];
+        foreach (['dest_order', 'source_order', 'dest_current_unified', 'source_current_unified'] as $k) {
+            foreach (($validated[$k] ?? []) as $it) {
+                if (isset($it['uid'])) {
+                    $rawUids[] = (string) $it['uid'];
+                }
+            }
+        }
+        foreach (['dest_leg_order', 'source_leg_order'] as $k) {
+            foreach (($validated[$k] ?? []) as $uid) {
+                $rawUids[] = (string) $uid;
+            }
+        }
+        $rawUids = array_values(array_unique($rawUids));
 
+        /** @var Collection<string, OrderProduct> $byUid */
+        $byUid = OrderProduct::with('order')
+            ->whereIn('unique_id', $rawUids)->get()->keyBy('unique_id');
+
+        $moved = $byUid->get($movedUid);
+        if (!$moved) {
+            return response()->json(['success' => false, 'message' => 'Unknown job in the board payload.'], 422);
+        }
+
+        // Type-safety backstop: the dragged leg must be a genuine pending Truck leg.
+        if (!$this->legIsActive($moved, $leg)) {
+            return response()->json(['success' => false, 'message' => 'That job has no active ' . $leg . ' leg to move.'], 422);
+        }
+
+        // Current-assignment-state guard: the card must still be assigned to the
+        // source driver on this leg. If not, the board is stale.
+        $byField = $leg === 'delivery' ? 'delivery_by' : 'pickup_by';
+        if ((int) $moved->$byField !== $srcDriver) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This job is no longer assigned as shown — the board has been refreshed.',
+            ], 409);
+        }
+
+        $arriving = ['uid' => $movedUid, 'leg' => $leg];
+
+        // ---- Source driver's new order (gap-close). Unchanged by placement mode. ----
+        if ($view === 'combined') {
+            $srcUnified = $crossDriver ? $this->normalizeItems($validated['source_order'] ?? []) : null;
+        } else {
             $srcUnified = $crossDriver
                 ? $this->service->reconcileSeparate(
                     $this->normalizeItems($validated['source_current_unified'] ?? []),
@@ -106,49 +150,71 @@ class ReorderController extends Controller
                 : null;
         }
 
+        // ---- Destination driver's new order. ----
+        if ($placement === 'date') {
+            // The dispatcher's exact drop slot is ignored; the arriving card is placed
+            // by effective date into the destination list (which excludes it).
+            $destCurrent = $view === 'combined'
+                ? $this->normalizeItems($validated['dest_order'] ?? [])
+                : ($destIdle ? [] : $this->normalizeItems($validated['dest_current_unified'] ?? []));
+            $destCurrent = array_values(array_filter($destCurrent, fn ($it) => $it['uid'] !== $movedUid));
+
+            $dateByKey = [];
+            foreach ($destCurrent as $it) {
+                $dateByKey[$it['uid'] . '|' . $it['leg']] = $this->effectiveDate($byUid->get($it['uid']), $it['leg']);
+            }
+            $dateByKey[$movedUid . '|' . $leg] = $this->effectiveDate($moved, $leg);
+
+            $destUnified = $this->service->insertByDate($destCurrent, $arriving, $dateByKey);
+        } else {
+            // Manual (within-driver reorder): honour the dragged position.
+            if ($view === 'combined') {
+                $destUnified = $this->normalizeItems($validated['dest_order'] ?? []);
+            } else {
+                $destUnified = $destIdle
+                    ? [$arriving]
+                    : $this->service->reconcileSeparate(
+                        $this->normalizeItems($validated['dest_current_unified'] ?? []),
+                        array_values($validated['dest_leg_order'] ?? []),
+                        $leg,
+                        $crossDriver ? $movedUid : null,
+                        null
+                    );
+            }
+        }
+
         $destUids = array_column($destUnified, 'uid');
         if (empty($destUids) || !in_array($movedUid, $destUids, true)) {
             return response()->json(['success' => false, 'message' => 'The moved job is missing from the destination.'], 422);
         }
 
-        // Load every referenced order product once (no N+1).
-        $allUids = array_values(array_unique(array_merge(
-            $destUids,
-            $srcUnified !== null ? array_column($srcUnified, 'uid') : []
-        )));
-        /** @var Collection<string, OrderProduct> $byUid */
-        $byUid = OrderProduct::whereIn('unique_id', $allUids)->get()->keyBy('unique_id');
+        // ---- Preview: report the computed placement without writing anything. ----
+        if ($isPreview) {
+            $legUids = array_values(array_map(
+                fn ($it) => $it['uid'],
+                array_filter($destUnified, fn ($it) => $it['leg'] === $leg)
+            ));
+            $eff = $this->effectiveDate($moved, $leg);
+            $legIdx = array_search($movedUid, $legUids, true);
+            $uniIdx = array_search($movedUid, $destUids, true);
 
-        foreach ($allUids as $uid) {
-            if (!$byUid->has($uid)) {
-                return response()->json(['success' => false, 'message' => 'Unknown job in the board payload.'], 422);
-            }
+            return response()->json(['success' => true, 'preview' => [
+                'order_number'     => $moved->order?->order_number ?? '',
+                'customer'         => $moved->order?->customer_name ?? '',
+                'leg'              => $leg,
+                'date_label'       => $eff ? Carbon::parse($eff)->format('M j') : '—',
+                'driver_name'      => $drivers->get($dstDriver)?->full_name ?? 'this driver',
+                'leg_position'     => $legIdx === false ? 0 : $legIdx + 1,
+                'leg_total'        => count($legUids),
+                'unified_position' => $uniIdx === false ? 0 : $uniIdx + 1,
+                'unified_total'    => count($destUids),
+            ]]);
         }
 
-        $moved = $byUid->get($movedUid);
-        $byField = $leg === 'delivery' ? 'delivery_by' : 'pickup_by';
-
-        // Type safety backstop: the dragged leg must be a genuine pending Truck leg
-        // on this job (a delivery can never masquerade as a return, or vice versa).
-        if (!$this->legIsActive($moved, $leg)) {
-            return response()->json(['success' => false, 'message' => 'That job has no active ' . $leg . ' leg to move.'], 422);
-        }
-
-        // Current-assignment-state guard: the card must still be assigned to the
-        // source driver on this leg. If not, the board is stale — refuse and let the
-        // client refresh rather than writing against an outdated view.
-        if ((int) $moved->$byField !== $srcDriver) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This job is no longer assigned as shown — the board has been refreshed.',
-            ], 409);
-        }
-
+        // ---- Commit. ----
         $oldPriority = $leg === 'delivery' ? $moved->delivery_priority : $moved->pickup_priority;
 
         DB::transaction(function () use ($destUnified, $srcUnified, $byUid, $movedUid, $dstDriver, $leg, $crossDriver) {
-            // Destination: renumber 1..N; (re)assign the moved card's driver only on a
-            // cross-driver move, mirroring the canonical writer's lock bookkeeping.
             $this->renumber(
                 $destUnified,
                 $byUid,
@@ -157,7 +223,6 @@ class ReorderController extends Controller
                 $leg
             );
 
-            // Source: close the gap left behind.
             if ($srcUnified !== null) {
                 $this->renumber($srcUnified, $byUid, null, null, $leg);
             }
@@ -197,6 +262,28 @@ class ReorderController extends Controller
         return $leg === 'delivery'
             ? ($op->delivery_status === 'Pending' && $op->delivery_transport_mode === 'Truck')
             : ($op->pickup_status === 'Pending' && $op->pickup_transport_mode === 'Truck');
+    }
+
+    /**
+     * Effective dispatch date for a leg as 'Y-m-d' (dispatch override, else the base
+     * schedule date), or null if undated.
+     */
+    private function effectiveDate(?OrderProduct $op, string $leg): ?string
+    {
+        if (!$op) {
+            return null;
+        }
+        $val = $leg === 'delivery'
+            ? ($op->dispatch_delivery_date ?? $op->delivery_date)
+            : ($op->dispatch_return_date ?? $op->pickup_date);
+        if (!$val) {
+            return null;
+        }
+        try {
+            return Carbon::parse($val)->toDateString();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**

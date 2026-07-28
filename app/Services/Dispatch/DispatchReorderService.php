@@ -100,6 +100,60 @@ class DispatchReorderService
     }
 
     /**
+     * Insert an arriving card into a driver's list by effective DATE (used when a
+     * job is moved to another driver or an idle driver): it lands ahead of the first
+     * existing card dated strictly later than it, otherwise at the end. Stable — the
+     * existing order is preserved; only the arriving card is positioned. This lets a
+     * job dated earlier take a higher route position even if the current list was
+     * arranged out of date order.
+     *
+     * @param  array  $current    Current list as [['uid','leg'], ...] (WITHOUT the arriving card).
+     * @param  array  $arriving   ['uid'=>, 'leg'=>] card being inserted.
+     * @param  array  $dateByKey  Map of "uid|leg" => 'Y-m-d' effective date (or null = undated → sorts last).
+     * @return array              New list as [['uid','leg'], ...] including the arriving card.
+     */
+    public function insertByDate(array $current, array $arriving, array $dateByKey): array
+    {
+        $keyOf = fn ($it) => ($it['uid'] ?? '') . '|' . ($it['leg'] ?? '');
+        $arrDate = $dateByKey[$keyOf($arriving)] ?? null;
+        $arrItem = ['uid' => $arriving['uid'], 'leg' => $arriving['leg']];
+
+        $result = [];
+        $inserted = false;
+        foreach ($current as $it) {
+            if (!$inserted && $this->dateGreater($dateByKey[$keyOf($it)] ?? null, $arrDate)) {
+                $result[] = $arrItem;
+                $inserted = true;
+            }
+            $result[] = $it;
+        }
+        if (!$inserted) {
+            $result[] = $arrItem;
+        }
+
+        return $result;
+    }
+
+    /**
+     * True if date $a is strictly later than $b. Null = undated, treated as far future
+     * (sorts last). 'Y-m-d' strings compare lexically == chronologically.
+     */
+    private function dateGreater(?string $a, ?string $b): bool
+    {
+        if ($a === $b) {
+            return false;
+        }
+        if ($a === null) {
+            return true;
+        }
+        if ($b === null) {
+            return false;
+        }
+
+        return strcmp($a, $b) > 0;
+    }
+
+    /**
      * Map a unified order to contiguous 1..N positions per item.
      *
      * @param  array $unified  [['uid','leg'], ...]

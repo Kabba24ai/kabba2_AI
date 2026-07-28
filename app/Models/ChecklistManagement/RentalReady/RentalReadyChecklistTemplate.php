@@ -25,7 +25,7 @@ class RentalReadyChecklistTemplate extends Model
 
     public function questions()
     {
-        return $this->hasMany(RentalReadyChecklistTemplateQuestion::class, 'template_id');
+        return $this->hasMany(RentalReadyChecklistTemplateQuestion::class, 'template_id')->orderBy('index_number', 'asc');
     }
 
     public function templateQuestions()

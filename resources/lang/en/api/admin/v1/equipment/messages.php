@@ -15,4 +15,7 @@ return [
 
     'no_equipment_found' => 'No equipment found.',
     'equipment_found' => 'Equipment found.',
+
+    'rental_ready_no_equipment_found' => 'No equipment found.',
+    'rental_ready_equipment_found' => 'Equipment found.',
 ];

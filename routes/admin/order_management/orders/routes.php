@@ -45,8 +45,6 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\NoteControll
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\AdjustController as BEAdjustController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\DeleteController as BEDeleteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\BillingEngine\AddToAccountController as BEAddToAccountController;
-use App\Http\Controllers\Admin\OrderManagement\Orders\CustomerCredit\ApplyController as CustomerCreditApplyController;
-use App\Http\Controllers\Admin\OrderManagement\Orders\CustomerCredit\RemoveController as CustomerCreditRemoveController;
 
 
 Route::prefix('orders')
@@ -111,19 +109,11 @@ Route::prefix('orders')
         Route::post('/{unique_id}/extension/store', ExtensionStoreController::class)->name('extension.store');
 
         // Store Credit DISCOUNT (pre-tax, not a payment) — apply / remove on a POD order.
-        Route::post('/{unique_id}/store-credit-discount', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\ApplyController::class)->name('store-credit-discount.apply');
-        Route::delete('/{unique_id}/store-credit-discount/{discountId}', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\RemoveController::class)->name('store-credit-discount.remove')->whereNumber('discountId');
+        Route::post('/{unique_id}/store-credit-discount', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\ApplyController::class)->name('store-credit-discount.apply')->middleware('permission:customer_credit.redeem');
+        Route::delete('/{unique_id}/store-credit-discount/{discountId}', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\RemoveController::class)->name('store-credit-discount.remove')->whereNumber('discountId')->middleware('permission:customer_credit.grant');
 
         // POD Payment Link — manual resend
         Route::post('/{unique_id}/resend-pod-payment-link', ResendPodPaymentLinkController::class)->name('resend-pod-payment-link');
-
-        // Customer Credit — Phase 3.2, Order Entry Integration. Manual only.
-        Route::prefix('{unique_id}/customer-credit')
-            ->name('customer-credit.')
-            ->group(function () {
-                Route::post('/apply', CustomerCreditApplyController::class)->name('apply')->middleware('permission:customer_credit.redeem');
-                Route::post('/remove', CustomerCreditRemoveController::class)->name('remove')->middleware('permission:customer_credit.grant');
-            });
 
         // Billing Engine — fuel charge actions (operate on billing_charges.unique_id, not order_product_id)
         Route::prefix('billing-charges')

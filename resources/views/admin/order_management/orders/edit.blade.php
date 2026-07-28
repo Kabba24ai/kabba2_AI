@@ -1880,15 +1880,12 @@
             </div>
         </div>{{-- close grid grid-cols-4 --}}
 
-        {{-- Customer Credit — Phase 3.2, Order Entry Integration --}}
+        {{-- Store Credit as a PRE-TAX DISCOUNT (not a payment). The retired
+             "Customer Credit" tender panel (redeem → presentational
+             balance_due − credit, no tax recompute) has been removed; this
+             canonical discount panel is now the single application path and
+             folds in the read-only credit-balance cards. --}}
         <div class="grid md:grid-cols-1 gap-4 mt-4">
-            <x-admin.order-management.orders.customer-credit-panel
-                :order="$order"
-                :customer-credit-summary="$customerCreditSummary"
-                :order-applied-credit="$orderAppliedCredit"
-                :employees="$employees" />
-
-            {{-- Store Credit as a PRE-TAX DISCOUNT (not a payment). --}}
             @include('admin.order_management.orders.partials._store_credit_discount_panel')
         </div>
 

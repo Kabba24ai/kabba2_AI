@@ -42,7 +42,6 @@ class IndexController extends BaseController
         $category          = $validated['category'] ?? null;
         $status            = $validated['status'] ?? 'All';
         $storeId           = $validated['store_id'] ?? null;
-        $perPage           = $validated['per_page'] ?? 10;
         $currentlyAssigned = ($validated['currently_assigned'] ?? '1') !== '0';
 
         $query = Equipment::with([
@@ -54,6 +53,14 @@ class IndexController extends BaseController
                 'serviceTemplate.preset',
                 'serviceTemplate.templateTasks.task',
                 'statusUpdatedByUser',
+                'checklistMaster.customerAdminTemplate.templateQuestions.question.answers',
+                'checklistMaster.customerAdminTemplate.templateQuestions.question.category',
+                'orderProduct.checklistQuestions.answers',
+                'orderProduct.checklistQuestions.deliverySelectedAnswer',
+                'orderProduct.checklistQuestions.returnSelectedAnswer',
+                'checklistMaster.rentalReadyTemplate.templateQuestions.question.answers',
+                'checklistMaster.rentalReadyTemplate.templateQuestions.question.category',
+                'orderProduct.equipmentRentalReadyTemplate.checklistQuestions',
             ])
             ->where('not_for_rent', 0)
             ->selectRaw("equipment.*, (
@@ -174,7 +181,7 @@ class IndexController extends BaseController
                 ELSE 5 END")->orderBy('equipment_name', 'asc');
         }
 
-        $equipment = $query->paginate($perPage);
+        $equipment = $query->get();
 
         // ── Service status (Service Due / Service OverDue) — matches web screen ──
         $settings = DB::table('service_master_settings')->first();
@@ -183,41 +190,68 @@ class IndexController extends BaseController
 
         $serviceRecords = DB::table('equipment_service_tasks')
             ->select('equipment_id', 'service_task_id', 'interval_value')
-            ->whereIn('equipment_id', $equipment->getCollection()->pluck('id'))
+            ->whereIn('equipment_id', $equipment->pluck('id'))
             ->get()
             ->groupBy(fn($record) => $record->equipment_id . '_' . $record->service_task_id);
 
-        $equipment->getCollection()->each(function ($item) use ($serviceRecords, $pendingBeforeHours, $pendingAfterHours) {
+        $equipment->each(function ($item) use ($serviceRecords, $pendingBeforeHours, $pendingAfterHours) {
             $item->service_status = EquipmentServiceStatusResolver::resolve($item, $serviceRecords, $pendingBeforeHours, $pendingAfterHours);
         });
 
-        // Service Due / Service OverDue only make sense within the fetched page,
-        // same as the web screen (which filters after paginating).
+        // Service Due / Service OverDue are computed statuses, filtered in-memory.
         if ($status === 'Service Due') {
-            $equipment->setCollection($equipment->getCollection()->where('service_status', 'pending')->values());
+            $equipment = $equipment->where('service_status', 'pending')->values();
         } elseif ($status === 'Service OverDue') {
-            $equipment->setCollection($equipment->getCollection()->where('service_status', 'overdue')->values());
+            $equipment = $equipment->where('service_status', 'overdue')->values();
         }
 
         // ── Rental-ready checklist questions/answers — same data & sort order
         //    as the web screen's get-checklist-questions call for each equipment.
         $checklistResolver = new RentalReadyChecklistQuestionsResolver();
 
-        $equipment->getCollection()->each(function ($item) use ($checklistResolver) {
+        // ── checklist_qas / rental_ready_checklist_questions — same source and
+        //    branching as the shared /equipment admin app endpoint
+        //    (Equipment\IndexController) so both endpoints expose them identically.
+        $equipment->each(function ($item) use ($checklistResolver) {
             $result = $checklistResolver->resolve($item->checklist_master_id, $item->id, $item->current_order_product_id);
             $item->rental_ready_checklist = $result['status'] === 200 ? $result['body'] : null;
+
+            $isRentedAndDelivered = $item->current_status->isRented()
+                && $item->orderProduct
+                && ($item->orderProduct->is_delivered == 1);
+
+            if ($isRentedAndDelivered) {
+                $questions = optional($item->orderProduct->checklistQuestions) ?? collect();
+
+                $rentalReadyQuestions = collect(
+                    $item->orderProduct->equipmentRentalReadyTemplate?->checklistQuestions
+                )
+                    ->pluck('rental_ready_qa_json')
+                    ->filter()
+                    ->map(fn($qa) => is_string($qa) ? json_decode($qa, true) : $qa)
+                    ->values();
+            } else {
+                $templateQuestions = $item->checklistMaster?->customerAdminTemplate?->templateQuestions;
+                $questions = collect($templateQuestions)
+                    ->pluck('question')
+                    ->filter()
+                    ->values();
+
+                $rentalReadyQuestions = $item->checklistMaster?->rentalReadyTemplate?->templateQuestions;
+                $rentalReadyQuestions = collect($rentalReadyQuestions)
+                    ->pluck('question')
+                    ->filter()
+                    ->values();
+            }
+
+            $item->setRelation('checklistQA', $questions);
+            $item->setRelation('rentalReadyQA', $rentalReadyQuestions);
         });
 
         return response()->json([
             'success' => true,
             'message' => trans('messages.api.admin.v1.equipment.rental_ready_equipment_found'),
             'equipment' => ListResource::collection($equipment),
-            'pagination' => [
-                'current_page' => $equipment->currentPage(),
-                'last_page' => $equipment->lastPage(),
-                'per_page' => $equipment->perPage(),
-                'total' => $equipment->total(),
-            ],
         ]);
     }
 }

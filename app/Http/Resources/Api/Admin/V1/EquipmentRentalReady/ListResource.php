@@ -2,6 +2,9 @@
 
 namespace App\Http\Resources\Api\Admin\V1\EquipmentRentalReady;
 
+use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsListResource;
+use App\Http\Resources\Api\Admin\V1\ProductCategories\ListResource as ProductCategoriesListResource;
+use App\Http\Resources\Api\Admin\V1\Stores\ListResource as StoresListResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,8 +14,13 @@ class ListResource extends JsonResource
      * Transform the resource into an array.
      *
      * Mirrors the fields the web rental-ready screen renders per equipment
-     * card (see admin.checklist-management.equipment-management.index),
-     * kept flat/lightweight for the admin app list.
+     * card (see admin.checklist-management.equipment-management.index).
+     * Reuses the same key names/nested resources as
+     * App\Http\Resources\Api\Admin\V1\Equipment\ListResource
+     * (product_category, equipment_store, order_product, current_status)
+     * so both equipment list endpoints share a consistent response shape,
+     * plus a handful of rental-ready-only fields (service_status,
+     * is_assigned, order, rental_ready_checklist).
      *
      * @param  \Illuminate\Http\Request  $request
      * @return array
@@ -30,20 +38,17 @@ class ListResource extends JsonResource
             'serial_number' => $this->serial_number ?? '',
             'equipment_id' => $this->equipment_id ?? 0,
             'product_category_id' => $this->product_category_id ?? 0,
-            'category_name' => $this->category_name ?? 'N/A',
+            'product_category' => new ProductCategoriesListResource($this->whenLoaded('productCategory')),
             'checklist_master_id' => $this->checklist_master_id ?? 0,
             'equipment_hours' => $this->equipment_hours ?? 0,
             'is_tracked' => $this->is_tracked ?? 'No',
             'last_inspection' => $this->last_inspection ?? '',
-            'current_status' => $this->current_status?->value ?? '',
-            'status_label' => $this->status_label ?? '',
+            // Label string, matching Equipment\ListResource's current_status shape.
+            'current_status' => $this->current_status?->label() ?? '',
             'service_status' => $this->service_status ?? 'empty',
             'is_assigned' => (bool) ($this->is_assigned ?? false),
 
-            'store' => $this->whenLoaded('store', fn() => [
-                'id' => $this->store->id,
-                'store_name' => $this->store->store_name,
-            ]),
+            'equipment_store' => new StoresListResource($this->whenLoaded('store')),
 
             'order' => $order ? [
                 'id' => $order->id,
@@ -51,10 +56,7 @@ class ListResource extends JsonResource
                 'customer_name' => $order->customer_name ?? '',
             ] : null,
 
-            'order_product' => $orderProduct ? [
-                'id' => $orderProduct->id,
-                'product_name' => $orderProduct->product_name ?? '',
-            ] : null,
+            'order_product' => new OrderProductsListResource($orderProduct),
 
             // Same shape/order as the web screen's get-checklist-questions call:
             // {success, questions:[...]} for a fresh template, or

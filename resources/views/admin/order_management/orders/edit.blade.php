@@ -10,7 +10,7 @@
     @include('flash::message')
 
     {{-- Order Header Section --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.1)] mb-6">
+    <div id="orderHeaderCard" class="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.1)] mb-6">
 
         {{-- Row 1: identity + icon action buttons --}}
         <div class="flex flex-wrap items-start justify-between gap-4 px-5 pt-4 pb-3">
@@ -312,9 +312,13 @@
                         </span>
                     @endif
 
+                    {{-- (PO button moved into the right-aligned links group below) --}}
+                </div>
+
+                {{-- PO + quick links — right-aligned as one group (per screenshot). --}}
+                <div class="flex items-center gap-4 text-sm text-blue-600 ml-auto">
                     {{-- Purchase Order — a plain "PO" button when none is set, a
-                         chip showing the number when one exists. Either opens the
-                         add/edit popup (#poModal) at page root. --}}
+                         chip showing the number when one exists; opens #poModal. --}}
                     <button type="button" data-po-open
                         class="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-700"
                         title="{{ $order->po_id ? 'Edit PO number' : 'Add PO number' }}">
@@ -323,14 +327,6 @@
                             <span class="text-xs font-semibold text-gray-700">{{ $order->po_id }}</span>
                         @endif
                     </button>
-
-
-
-
-                </div>
-
-                {{-- links under the pill/buttons (like screenshot) --}}
-                <div class="flex items-center gap-6 text-sm text-blue-600">
                     <a href="{{ route('admin.crm.customers.view', $order->customer?->unique_id) }}"
                         class="inline-flex items-center hover:underline {{ !$order->customer ? 'pointer-events-none opacity-50 cursor-not-allowed' : '' }}"
                         @if (!$order->customer) tabindex="-1" aria-disabled="true" @endif>
@@ -4139,6 +4135,38 @@
     <script>
         // ── Header section reveals + PO popup ───────────────────────────────────────
         document.addEventListener('DOMContentLoaded', function () {
+
+            // Fast tooltips for the header action buttons. The native `title`
+            // tooltip has a slow, browser-fixed delay, so we lift each title into
+            // a custom tooltip that shows instantly on hover and remove the native
+            // attribute to suppress the double/slow popup.
+            (function () {
+                const scope = document.getElementById('orderHeaderCard');
+                if (!scope) return;
+                let tip = document.getElementById('hdrTip');
+                if (!tip) {
+                    tip = document.createElement('div');
+                    tip.id = 'hdrTip';
+                    tip.className = 'pointer-events-none fixed z-[100000] hidden rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white shadow-lg whitespace-nowrap';
+                    document.body.appendChild(tip);
+                }
+                scope.querySelectorAll('[title]').forEach(function (el) {
+                    const text = el.getAttribute('title');
+                    if (!text) return;
+                    el.setAttribute('data-tip', text);
+                    el.removeAttribute('title');
+                    el.addEventListener('mouseenter', function () {
+                        tip.textContent = el.getAttribute('data-tip');
+                        tip.classList.remove('hidden');
+                        const r = el.getBoundingClientRect();
+                        tip.style.left = (r.left + r.width / 2) + 'px';
+                        tip.style.top = (r.bottom + 6) + 'px';
+                        tip.style.transform = 'translateX(-50%)';
+                    });
+                    el.addEventListener('mouseleave', function () { tip.classList.add('hidden'); });
+                });
+            })();
+
             // Reveal a hidden section (scroll to it) and, when the trigger names an
             // in-section button (data-click), click it so the existing add-charge
             // modal logic is reused unchanged.

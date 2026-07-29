@@ -533,6 +533,7 @@
                 <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm">
                     <button type="button" data-leg="delivery" class="dispatch-load-leg px-3 py-1.5">Deliveries</button>
                     <button type="button" data-leg="return" class="dispatch-load-leg px-3 py-1.5 border-l border-gray-300">Returns</button>
+                    <button type="button" data-leg="both" class="dispatch-load-leg px-3 py-1.5 border-l border-gray-300">Both</button>
                 </div>
                 <p id="dispatchLoadLegHint" class="text-xs text-gray-400 mt-1"></p>
             </div>
@@ -2097,8 +2098,14 @@
             });
         }
 
-        // Default the driver to the one the selected rows already share on this leg.
+        // Default the driver to the one the selected rows already share. For 'both',
+        // require the same shared driver across both legs, else leave blank.
         function commonDriverForLeg(rows, leg) {
+            if (leg === 'both') {
+                const d = commonDriverForLeg(rows, 'delivery');
+                const r = commonDriverForLeg(rows, 'return');
+                return d && d === r ? d : '';
+            }
             const key = leg === 'delivery' ? 'deliveryDriver' : 'returnDriver';
             const ids = rows.map(cb => cb.dataset[key]).filter(Boolean);
             if (ids.length !== rows.length) return '';
@@ -2121,13 +2128,16 @@
                 return;
             }
 
-            chosenLeg = deliveryOk ? 'delivery' : 'return';
+            const bothOk = deliveryOk && returnOk;
+            // Prefer Both when possible (usually the right call), else the one valid leg.
+            chosenLeg = bothOk ? 'both' : (deliveryOk ? 'delivery' : 'return');
             document.querySelectorAll('.dispatch-load-leg').forEach(btn => {
-                btn.disabled = btn.dataset.leg === 'delivery' ? !deliveryOk : !returnOk;
+                const leg = btn.dataset.leg;
+                btn.disabled = leg === 'delivery' ? !deliveryOk : (leg === 'return' ? !returnOk : !bothOk);
             });
             legRow.classList.remove('hidden');
-            legHint.textContent = (deliveryOk && returnOk)
-                ? 'These items can be combined as deliveries or as returns.'
+            legHint.textContent = bothOk
+                ? 'These items can be combined as deliveries, returns, or both.'
                 : (deliveryOk ? 'Only the delivery leg is combinable for this selection.' : 'Only the return leg is combinable for this selection.');
 
             modalTitle.textContent = 'Combine into one dispatch';

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Dispatch\DispatchLoad;
 use App\Services\Dispatch\DispatchLoadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Combined-dispatch loads: create (combine), reassign to a driver, remove a member,
@@ -25,22 +26,28 @@ class LoadController extends Controller
         $data = $request->validate([
             'member_uids'   => 'required|array|min:2',
             'member_uids.*' => 'string',
-            'leg'           => 'required|in:delivery,return',
+            'leg'           => 'required|in:delivery,return,both',
             'driver_id'     => 'required|integer',
         ]);
 
+        $driverId = (int) $data['driver_id'];
+
         try {
-            $load = $this->service->combine(
-                $data['member_uids'],
-                $data['leg'],
-                (int) $data['driver_id'],
-                auth()->id()
-            );
+            if ($data['leg'] === 'both') {
+                // One atomic operation: a delivery-load AND a return-load for the same
+                // items on the same driver. If either leg is invalid, neither is written.
+                DB::transaction(function () use ($data, $driverId) {
+                    $this->service->combine($data['member_uids'], 'delivery', $driverId, auth()->id());
+                    $this->service->combine($data['member_uids'], 'return', $driverId, auth()->id());
+                });
+            } else {
+                $this->service->combine($data['member_uids'], $data['leg'], $driverId, auth()->id());
+            }
         } catch (\RuntimeException $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
 
-        return response()->json(['success' => true, 'load' => ['unique_id' => $load->unique_id]]);
+        return response()->json(['success' => true]);
     }
 
     /** Reassign the whole load (and its members) to another driver. */

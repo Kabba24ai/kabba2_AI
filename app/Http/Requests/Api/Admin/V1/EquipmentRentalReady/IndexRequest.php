@@ -15,7 +15,7 @@ class IndexRequest extends ApiBaseFormRequest
     {
         return [
             'search'             => 'nullable|string|max:255',
-            'category'           => 'nullable|string|max:255',
+            'category'           => 'nullable|integer|exists:product_categories,id',
             'status'             => 'nullable|string|in:All,Available,Damaged,Maint. Hold,Rented,Service Due,Service OverDue',
             'store_id'           => 'nullable|integer|exists:stores,id',
             'currently_assigned' => 'nullable|in:0,1',
@@ -38,9 +38,9 @@ class IndexRequest extends ApiBaseFormRequest
                 'type' => 'string',
             ],
             'category' => [
-                'description' => 'Filter by product category title. Omit or send "All Categories" for no filter.',
-                'example' => 'Excavators',
-                'type' => 'string',
+                'description' => 'Filter by product category ID (product_categories.id). Omit for no filter.',
+                'example' => 1,
+                'type' => 'integer',
             ],
             'status' => [
                 'description' => 'Filter by rental-ready status.',

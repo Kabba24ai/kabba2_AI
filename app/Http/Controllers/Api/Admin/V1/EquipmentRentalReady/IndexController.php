@@ -81,10 +81,8 @@ class IndexController extends BaseController
         }
 
         // ── Filter: product category ──────────────────────────────────────
-        if ($category && $category !== 'All Categories') {
-            $query->whereHas('productCategory', function ($q) use ($category) {
-                $q->where('title', $category);
-            });
+        if ($category) {
+            $query->where('product_category_id', $category);
         }
 
         // ── Filter: store location ────────────────────────────────────────

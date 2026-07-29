@@ -516,7 +516,7 @@ class SalesTaxReportEngine
                 $grandTotal = $amount + $taxAmount;
 
                 $typeLabel = match ($row->billing_charge_type) {
-                    'extension'      => 'Rental Extension',
+                    'extension'      => 'Order Enhancement',
                     'fuel'           => 'Fuel Charge',
                     'damage'         => 'Damage Charge',
                     'cleaning'       => 'Cleaning Fee',

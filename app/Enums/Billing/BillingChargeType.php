@@ -17,7 +17,7 @@ enum BillingChargeType: string
         return match($this) {
             self::Fuel          => 'Fuel Charge',
             self::Damage        => 'Damage Charge',
-            self::Extension     => 'Rental Extension',
+            self::Extension     => 'Order Enhancement',
             self::ServiceTicket => 'Service Ticket',
             self::Cleaning      => 'Cleaning Fee',
             self::Delivery      => 'Delivery Fee',

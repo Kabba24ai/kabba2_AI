@@ -727,7 +727,10 @@
                         applyExpandedState();
                     }
                 })
-                .finally(() => wrapper.classList.remove('opacity-50'));
+                // Remove BOTH loading classes — persist() adds pointer-events-none to
+                // this wrapper before a reorder, and if it isn't cleared here the whole
+                // board stays click/drag-dead until a full page reload.
+                .finally(() => wrapper.classList.remove('opacity-50', 'pointer-events-none'));
             };
 
             // Switch the date-range filter (All / 3 Days / Today) — shared by the
@@ -1758,19 +1761,16 @@
             document.querySelectorAll('.dc-idle-drop').forEach(el => el.classList.toggle('dc-drop-active', on));
         }
 
-        function persist(payload) {
-            const wrapper = document.getElementById('driver-cards-wrapper');
-            if (wrapper) wrapper.classList.add('opacity-50', 'pointer-events-none');
+        // Server is authoritative: re-render cards + lower list from the DB (preserving
+        // filters/view/scope). This shows the new order on success and restores the
+        // original order on failure/decline — the board's snap-back.
+        function refreshBoard() {
+            if (typeof window.refreshDriverCards === 'function') window.refreshDriverCards();
+            if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
+        }
 
-            const finish = () => {
-                // Server is authoritative: re-render from the DB. On success this shows
-                // the new order; on failure (transaction rolled back) it restores the
-                // original order — the card's own snap-back.
-                if (typeof window.refreshDriverCards === 'function') window.refreshDriverCards();
-                if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
-            };
-
-            fetch(REORDER_URL, {
+        function postReorder(payload) {
+            return fetch(REORDER_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1779,19 +1779,66 @@
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify(payload),
-            })
-            .then(r => r.json().then(d => ({ ok: r.ok, d })))
-            .then(({ ok, d }) => {
-                if (ok && d && d.success) {
-                    window.notyf?.success?.('Dispatch order updated.');
-                } else {
-                    window.notyf?.error?.((d && d.message) || 'Could not update the dispatch order.');
-                }
-            })
-            .catch(() => {
-                window.notyf?.error?.('A network error occurred. The dispatch order was not changed.');
-            })
-            .finally(finish);
+            }).then(r => r.json().then(d => ({ ok: r.ok, d })));
+        }
+
+        function persist(payload) {
+            const wrapper = document.getElementById('driver-cards-wrapper');
+            if (wrapper) wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+            postReorder(payload)
+                .then(({ ok, d }) => {
+                    if (ok && d && d.success) {
+                        window.notyf?.success?.('Dispatch order updated.');
+                    } else {
+                        window.notyf?.error?.((d && d.message) || 'Could not update the dispatch order.');
+                    }
+                })
+                .catch(() => {
+                    window.notyf?.error?.('A network error occurred. The dispatch order was not changed.');
+                })
+                .finally(refreshBoard);
+        }
+
+        // Moving a job to another driver (or an idle driver) auto-places it by date and
+        // requires the dispatcher to explicitly approve that placement. We first ask the
+        // server where the card would land (no write), confirm, then commit.
+        function previewThenCommit(payload) {
+            const wrapper = document.getElementById('driver-cards-wrapper');
+            if (wrapper) wrapper.classList.add('opacity-50');
+
+            postReorder(Object.assign({}, payload, { preview: true }))
+                .then(({ ok, d }) => {
+                    if (wrapper) wrapper.classList.remove('opacity-50');
+
+                    if (!ok || !d || !d.success || !d.preview) {
+                        window.notyf?.error?.((d && d.message) || 'Could not place this job.');
+                        refreshBoard();
+                        return;
+                    }
+
+                    const p = d.preview;
+                    const legName  = p.leg === 'delivery' ? 'Deliveries' : 'Returns';
+                    const legLabel = p.leg === 'delivery' ? 'Delivery' : 'Return';
+                    const where = payload.view === 'combined'
+                        ? `position ${p.unified_position} of ${p.unified_total} in the route`
+                        : `position ${p.leg_position} of ${p.leg_total} in ${legName}`;
+                    const msg = `Assign ${legLabel} ${p.order_number}`
+                        + (p.customer ? ` — ${p.customer}` : '')
+                        + ` (${p.date_label}) to ${p.driver_name}?\n\n`
+                        + `By date it will be placed at ${where}.\n\nApprove this placement?`;
+
+                    if (window.confirm(msg)) {
+                        persist(Object.assign({}, payload, { preview: false, confirmed: true }));
+                    } else {
+                        refreshBoard(); // declined → nothing was written; snap back
+                    }
+                })
+                .catch(() => {
+                    if (wrapper) wrapper.classList.remove('opacity-50');
+                    window.notyf?.error?.('A network error occurred. The dispatch order was not changed.');
+                    refreshBoard();
+                });
         }
 
         function onDrop(evt) {
@@ -1841,8 +1888,18 @@
                 }
             }
 
-            relabelAll(); // instant positional feedback before the authoritative refresh
-            persist(payload);
+            if (crossDriver || destIdle) {
+                // Adding a job to another driver: auto-place by date + explicit approval.
+                // The drop slot is not used; the server decides the date position. Leave
+                // the relabel alone so we don't imply the drop slot is final.
+                payload.placement = 'date';
+                previewThenCommit(payload);
+            } else {
+                // Within-driver reorder: honour the exact dragged position immediately.
+                payload.placement = 'manual';
+                relabelAll(); // instant positional feedback before the authoritative refresh
+                persist(payload);
+            }
         }
 
         function groupFor(leg) {

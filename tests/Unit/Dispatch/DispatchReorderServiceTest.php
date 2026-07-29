@@ -97,6 +97,65 @@ class DispatchReorderServiceTest extends TestCase
         $this->assertSame(['D:n', 'R:x', 'R:y'], $this->tokens($result));
     }
 
+    /** @param array<string,string|null> $dates keyed by token e.g. ['R:x'=>'2026-07-30'] */
+    private function dateMap(array $dates): array
+    {
+        $out = [];
+        foreach ($dates as $tok => $d) {
+            [$leg, $uid] = explode(':', $tok, 2);
+            $out[$uid . '|' . ($leg === 'D' ? 'delivery' : 'return')] = $d;
+        }
+        return $out;
+    }
+
+    public function test_insert_by_date_places_earliest_at_front(): void
+    {
+        // The screenshot case: a Jul 27 return dropped onto a list dated 30/28/29 →
+        // it must jump to the front, not the bottom.
+        $current = $this->items(['R:a', 'R:b', 'R:c']);
+        $dates = $this->dateMap([
+            'R:a' => '2026-07-30', 'R:b' => '2026-07-28', 'R:c' => '2026-07-29',
+            'R:n' => '2026-07-27',
+        ]);
+        $result = $this->svc->insertByDate($current, ['uid' => 'n', 'leg' => 'return'], $dates);
+
+        $this->assertSame(['R:n', 'R:a', 'R:b', 'R:c'], $this->tokens($result));
+    }
+
+    public function test_insert_by_date_places_in_the_middle_by_first_later_date(): void
+    {
+        // List dated 27, 28, 30; a 29 arrives → lands before the first later date (30).
+        $current = $this->items(['R:a', 'R:b', 'R:c']);
+        $dates = $this->dateMap([
+            'R:a' => '2026-07-27', 'R:b' => '2026-07-28', 'R:c' => '2026-07-30',
+            'R:n' => '2026-07-29',
+        ]);
+        $result = $this->svc->insertByDate($current, ['uid' => 'n', 'leg' => 'return'], $dates);
+
+        $this->assertSame(['R:a', 'R:b', 'R:n', 'R:c'], $this->tokens($result));
+    }
+
+    public function test_insert_by_date_appends_when_latest_or_undated(): void
+    {
+        $current = $this->items(['R:a', 'R:b']);
+        $dates = $this->dateMap(['R:a' => '2026-07-27', 'R:b' => '2026-07-28', 'R:n' => '2026-08-05']);
+        $this->assertSame(['R:a', 'R:b', 'R:n'], $this->tokens(
+            $this->svc->insertByDate($current, ['uid' => 'n', 'leg' => 'return'], $dates)
+        ));
+
+        // Undated arriving card sorts last.
+        $datesNull = $this->dateMap(['R:a' => '2026-07-27', 'R:b' => '2026-07-28', 'R:n' => null]);
+        $this->assertSame(['R:a', 'R:b', 'R:n'], $this->tokens(
+            $this->svc->insertByDate($current, ['uid' => 'n', 'leg' => 'return'], $datesNull)
+        ));
+    }
+
+    public function test_insert_by_date_into_empty_list_is_first(): void
+    {
+        $result = $this->svc->insertByDate([], ['uid' => 'n', 'leg' => 'delivery'], $this->dateMap(['D:n' => '2026-07-27']));
+        $this->assertSame(['D:n'], $this->tokens($result));
+    }
+
     public function test_positions_are_contiguous_1_to_n_across_legs(): void
     {
         $unified = $this->items(['D:a', 'R:x', 'D:b', 'D:c']);

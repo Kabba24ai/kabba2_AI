@@ -10,12 +10,13 @@
     @include('flash::message')
 
     {{-- Order Header Section --}}
-    <div class="bg-white px-4 py-4 rounded-xl shadow-sm mb-6">
-        {{-- <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"> --}}
-            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.1)] mb-6">
+
+        {{-- Row 1: identity + icon action buttons --}}
+        <div class="flex flex-wrap items-start justify-between gap-4 px-5 pt-4 pb-3">
 
             {{-- LEFT: Order + Customer/Company --}}
-            <div class="min-w-0 xl:w-[280px]">
+            <div class="min-w-0">
                 <div class="text-lg font-semibold text-gray-800">
                     <span class="text-gray-700">Order ID:</span> {{ $order->order_number }}
                     @if (!empty($order->reference_order_number))
@@ -37,16 +38,110 @@
                     <div class="text-sm font-medium text-gray-800">
                         Customer: {{ $order->customer_name }}
                     </div>
-                    <div class="text-xs italic text-gray-600">
-                        Company: {{ $order->company_name }}
-                    </div>
+                    {{-- Company shown only when the customer actually has one. --}}
+                    @if (!empty($order->company_name))
+                        <div class="text-xs italic text-gray-600">
+                            Company: {{ $order->company_name }}
+                        </div>
+                    @endif
                 </div>
             </div>
 
-            {{-- MIDDLE: Payment Status + Links (centered like screenshot) --}}
-            @php
-                use App\Enums\Orders\OrderPaymentStatus;
-                use App\Services\Orders\OrderPaymentSummary;
+            {{-- RIGHT: icon actions + section triggers. Every id/data attr/class
+                 that JS binds to is preserved; only the styling changed. --}}
+            <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                {{-- Add Task — opens the canonical New Task modal (order + customer pre-linked) --}}
+                <button id="addTaskBtn" type="button" title="Add Task"
+                    data-open-task-modal
+                    data-order-id="{{ $order->id }}"
+                    data-order-number="{{ $order->order_number }}"
+                    data-customer-id="{{ $order->customer_id }}"
+                    data-customer-name="{{ $order->customer?->full_name }}"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm cursor-pointer">
+                    <x-heroicon-o-clipboard-document-list class="w-[18px] h-[18px]" />
+                </button>
+                {{-- Reorder (modal relocated to page root below) --}}
+                <button id="reorderBtn" type="button" title="Reorder"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 focus:outline-none transition-colors shadow-sm">
+                    <x-heroicon-o-arrow-path-rounded-square class="w-[18px] h-[18px]" />
+                </button>
+                {{-- Email Receipt --}}
+                <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}" title="Email Receipt"
+                    class="receipt-action inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm">
+                    <x-heroicon-o-envelope class="w-[18px] h-[18px]" />
+                    <svg class="hidden w-4 h-4 animate-spin loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                </a>
+                {{-- Print Receipt --}}
+                <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
+                    target="_blank" rel="noopener noreferrer" title="Print Receipt"
+                    class="receipt-action inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm">
+                    <x-heroicon-o-printer class="w-[18px] h-[18px]" />
+                    <svg class="hidden w-4 h-4 animate-spin loader-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                </a>
+                {{-- Operations History --}}
+                <button id="operationsHistoryBtn" type="button" title="Operations History"
+                    data-ops-history-open
+                    data-url="{{ route('admin.order-management.orders.operations-history', $order->unique_id) }}"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors shadow-sm cursor-pointer">
+                    <x-heroicon-o-clock class="w-[18px] h-[18px]" />
+                </button>
+
+                <span class="h-6 w-px bg-gray-200 mx-1"></span>
+
+                {{-- Section triggers: reveal the target section (hidden by default),
+                     scroll to it, and for Fuel/Damage/Order Enhancement click the
+                     existing in-section button so all add-charge logic is reused. --}}
+                <button type="button" title="Fuel Charge" data-reveal="#billingEngineSection" data-click="#beFuelBtn"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm">
+                    <x-heroicon-o-fire class="w-[18px] h-[18px]" />
+                </button>
+                <button type="button" title="Damage Charge" data-reveal="#billingEngineSection" data-click="#beDamageBtn"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm">
+                    <x-heroicon-o-exclamation-triangle class="w-[18px] h-[18px]" />
+                </button>
+                <button type="button" title="Order Enhancement" data-reveal="#billingEngineSection" data-click="#beExtensionBtn"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">
+                    <x-heroicon-o-calendar class="w-[18px] h-[18px]" />
+                </button>
+                <button type="button" title="Store Credit" data-reveal="#storeCreditSection"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm">
+                    <x-heroicon-o-gift class="w-[18px] h-[18px]" />
+                </button>
+                @can('resolution_center.use')
+                <button type="button" title="Resolution Center" data-reveal="#resolutionCenterSection"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-600 text-white hover:bg-slate-700 transition-colors shadow-sm">
+                    <x-heroicon-o-scale class="w-[18px] h-[18px]" />
+                </button>
+                @endcan
+
+                {{-- Resend Payment Link — only when a balance is still due
+                     (a COD / pay-on-delivery order that isn't settled). --}}
+                @php
+                    $hasCodPending = $order->payments
+                        ->where('payment_method', 'COD')
+                        ->where('status', 'Pending')
+                        ->isNotEmpty();
+                @endphp
+                @if($hasCodPending && $order->balance_due > 0)
+                    <span class="h-6 w-px bg-gray-200 mx-1"></span>
+                    <button id="resendPodPaymentLinkBtn" type="button" title="Resend Payment Link"
+                        data-url="{{ route('admin.order-management.orders.resend-pod-payment-link', $order->unique_id) }}"
+                        class="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-teal-300 bg-teal-50 text-teal-700 text-xs font-semibold hover:bg-teal-100 transition-colors shadow-sm">
+                        <x-heroicon-o-paper-airplane class="w-4 h-4 btn-icon" />
+                        <span class="btn-label">Resend Payment Link</span>
+                        <svg class="hidden w-4 h-4 ml-1 animate-spin text-teal-700 btn-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </button>
+                @endif
+            </div>
+        </div>
+
+        {{-- Payment Status summary (canonical logic unchanged) --}}
+        @php
+            use App\Enums\Orders\OrderPaymentStatus;
+            use App\Services\Orders\OrderPaymentSummary;
                 // Payment Architecture Finalization (Tier 2): the badges
                 // below used to gate on Order::last_payment_status/
                 // last_payment_type — whichever payment row happened to be
@@ -70,7 +165,9 @@
                 $methodsUsedLabel = \App\Services\PaymentDescriptionPresenter::methodsUsedLabel($paymentSummary->paymentMethodsUsed);
                 $hasUnresolvedFailedPayment = $paymentSummary->unresolvedPaymentAttempts->contains(fn ($p) => $p->status === OrderPaymentStatus::Failed);
             @endphp
-            <div class="flex-1 min-w-0 flex flex-col items-start xl:items-center gap-2">
+
+        {{-- Row 2: status bar — payment pills, PO, and quick links. --}}
+        <div class="flex flex-wrap items-center gap-2 border-t border-gray-100 px-5 py-3 bg-gray-50 rounded-b-xl">
                 <div class="flex flex-wrap items-center justify-start lg:justify-center gap-2">
                     @if ($paymentSummary->unresolvedPaymentAttempts->isNotEmpty() || $paymentSummary->collectionStatus === OrderPaymentSummary::COLLECTION_PARTIALLY_PAID)
                         <button id="pendingPaymentBtn" type="button"
@@ -215,33 +312,17 @@
                         </span>
                     @endif
 
-                    {{-- PO ID Field --}}
-
-                    <div class="flex gap-2 items-center">
-                        <input
-                            type="text"
-                            id="po_id"
-                            name="po_id"
-                            value="{{ $order->po_id ?? '' }}"
-                            data-order-id="{{ $order->id }}"
-                            class="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Enter PO ID"
-                        />
-
-                        <svg
-                            class="w-5 h-5 text-blue-500 hover:text-blue-600 cursor-pointer edit-po-btn"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                        >
-
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                            />
-                        </svg>
-                     </div>
+                    {{-- Purchase Order — a plain "PO" button when none is set, a
+                         chip showing the number when one exists. Either opens the
+                         add/edit popup (#poModal) at page root. --}}
+                    <button type="button" data-po-open
+                        class="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-700"
+                        title="{{ $order->po_id ? 'Edit PO number' : 'Add PO number' }}">
+                        <span class="text-[10px] font-bold uppercase tracking-wide text-gray-400">PO</span>
+                        @if (!empty($order->po_id))
+                            <span class="text-xs font-semibold text-gray-700">{{ $order->po_id }}</span>
+                        @endif
+                    </button>
 
 
 
@@ -266,148 +347,72 @@
                 </div>
             </div>
 
-            {{-- RIGHT: Action Buttons --}}
-            <div class="flex flex-col items-end gap-2">
+    </div>
+    {{-- /Order Header Section --}}
 
-                <!-- Row 1 -->
-                <div class="flex flex-wrap justify-end gap-2">
-                    {{-- Opens the canonical New Task modal with this order and its
-                         customer pre-linked; phone calls are a task type there. --}}
-                    <button id="addTaskBtn" type="button" title="Add Task"
-                        data-open-task-modal
-                        data-order-id="{{ $order->id }}"
-                        data-order-number="{{ $order->order_number }}"
-                        data-customer-id="{{ $order->customer_id }}"
-                        data-customer-name="{{ $order->customer?->full_name }}"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm cursor-pointer">
-                        <x-heroicon-o-clipboard-document-list class="w-4 h-4 mr-1" />
-                        Add Task
-                    </button>
-                    <button id="reorderBtn" type="button"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none">
-                        <x-heroicon-o-arrow-path-rounded-square class="w-4 h-4 mr-1" /> Reorder
-                    </button>
-                    <!-- Reorder Modal -->
-                    <div id="reorderModal"
-                        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
-                        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
-                            <!-- Header -->
-                            <div class="flex justify-between items-center p-4 border-b">
-                                <h2 class="text-lg font-semibold">Reorder</h2>
-                                <button type="button"
-                                    class="close-reorder-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
-                            </div>
-                            <!-- Body -->
-                            <form id="reorderForm" class="flex-1 flex flex-col justify-between">
-                                <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-700 required">Order Type</label>
-                                        <select id="orderTypeSelect" name="order_type"
-                                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
-                                            required>
-                                            <option value="new">New Independent Order</option>
-                                            <option value="existing_order">Related to Existing Order</option>
-                                        </select>
-                                    </div>
-                                    <div id="existingOrderSection" class="hidden">
-                                        <div class="text-sm text-green-600 font-semibold">
-                                            Original Order ID: {{ $order->reference_order_number ?? '—' }}
-                                        </div>
-                                        <div class="text-sm text-blue-600 font-semibold">
-                                            Current Order ID: {{ $order->order_number }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Footer -->
-                                <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
-                                    <button type="button"
-                                        class="close-reorder-modal-btn px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
-                                        Cancel
-                                    </button>
-                                    <button type="submit"
-                                        class="px-6 py-3 rounded-lg font-medium text-md bg-orange-600 text-white hover:bg-orange-700 shadow-sm transition">
-                                        Continue
-                                    </button>
-                                </div>
-                            </form>
+    {{-- Reorder modal — relocated from the header action column. It is
+         fixed-position (order-independent), toggled by #reorderBtn. --}}
+    <div id="reorderModal"
+        class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 transition-opacity flex justify-center items-center">
+        <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-lg font-semibold">Reorder</h2>
+                <button type="button"
+                    class="close-reorder-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
+            </div>
+            <form id="reorderForm" class="flex-1 flex flex-col justify-between">
+                <div class="overflow-y-auto flex flex-col gap-y-4 px-4 py-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-700 required">Order Type</label>
+                        <select id="orderTypeSelect" name="order_type"
+                            class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:ring focus:border-blue-500 bg-white text-gray-700"
+                            required>
+                            <option value="new">New Independent Order</option>
+                            <option value="existing_order">Related to Existing Order</option>
+                        </select>
+                    </div>
+                    <div id="existingOrderSection" class="hidden">
+                        <div class="text-sm text-green-600 font-semibold">
+                            Original Order ID: {{ $order->reference_order_number ?? '—' }}
+                        </div>
+                        <div class="text-sm text-blue-600 font-semibold">
+                            Current Order ID: {{ $order->order_number }}
                         </div>
                     </div>
-
-                    <div class="flex flex-col">
-                        <a href="{{ route('admin.order-management.orders.receipt-email', $order->unique_id) }}"
-                            class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-500 text-white hover:bg-blue-600 receipt-action">
-                            <x-heroicon-o-envelope class="w-4 h-4 mr-1" /> Email Receipt
-                            <svg class="hidden w-5 h-5 ml-2 animate-spin text-white loader-svg"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                            </svg>
-                        </a>
-
-                        @if ($order->latestReceipt && !empty($order->latestReceipt->mail_send_at))
-                            <div class="text-xs text-gray-600 mt-1 ml-[2px] text-center">
-                                {{ \App\Helpers\CustomHelper::formatDateTime($order->latestReceipt->mail_send_at) }}
-                            </div>
-                        @endif
-                    </div>
-
-                    <a href="{{ route('admin.order-management.orders.receipt-download', $order->unique_id) }}"
-                        target="_blank" rel="noopener noreferrer"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-blue-600 text-white hover:bg-blue-700 receipt-action">
-                        <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print Receipt
-                        <svg class="hidden w-4 h-4 ml-2 animate-spin text-white loader-svg" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-                    </a>
-
-                    {{-- Operations History — read-only tabbed operational audit
-                         (Staging / Driver Dispatch / Customer Checklist /
-                         Equipment Assignment). Body is fetched on open. --}}
-                    <button id="operationsHistoryBtn" type="button" title="Operations History"
-                        data-ops-history-open
-                        data-url="{{ route('admin.order-management.orders.operations-history', $order->unique_id) }}"
-                        class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-slate-700 text-white hover:bg-slate-800 transition-colors shadow-sm cursor-pointer">
-                        <x-heroicon-o-clock class="w-4 h-4 mr-1" /> Operations History
-                    </button>
-
-                    {{-- Resend POD Payment Link (only for COD Pending orders) --}}
-                    @php
-                        $hasCodPending = $order->payments
-                            ->where('payment_method', 'COD')
-                            ->where('status', 'Pending')
-                            ->isNotEmpty();
-                    @endphp
-                    @if($hasCodPending)
-                    <div class="flex flex-col">
-                        <button id="resendPodPaymentLinkBtn" type="button"
-                            data-url="{{ route('admin.order-management.orders.resend-pod-payment-link', $order->unique_id) }}"
-                            class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-md bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm">
-                            <x-heroicon-o-paper-airplane class="w-4 h-4 mr-1 btn-icon" />
-                            <span class="btn-label">Resend Payment Link</span>
-                            <svg class="hidden w-4 h-4 ml-2 animate-spin text-white btn-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                            </svg>
-                        </button>
-                        @if($order->podPaymentLink?->activities()->where('event', 'manual_resend')->exists())
-                            @php $lastResent = $order->podPaymentLink->activities()->where('event', 'manual_resend')->latest('id')->first(); @endphp
-                            <div class="text-xs text-gray-500 mt-1 ml-[2px] text-center">
-                                Last sent {{ \Carbon\Carbon::parse($lastResent->created_at)->format('m/d/Y h:i A') }}
-                            </div>
-                        @endif
-                    </div>
-                    @endif
-
                 </div>
+                <div class="flex justify-end gap-3 items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
+                    <button type="button"
+                        class="close-reorder-modal-btn px-6 py-3 rounded-lg font-medium text-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-3 rounded-lg font-medium text-md bg-orange-600 text-white hover:bg-orange-700 shadow-sm transition">
+                        Continue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
+    {{-- PO add / edit popup — opened by the "PO" button in the status bar.
+         Holds #po_id + the .edit-po-btn save trigger the existing JS binds to,
+         so the save behavior is unchanged; only the entry point moved. --}}
+    <div id="poModal" style="display:none" class="fixed inset-0 z-[99999] items-center justify-center bg-gray-900/40">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-xl p-5 w-[360px] flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900">Purchase Order</h3>
+                <button type="button" data-po-close class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+            </div>
+            <p class="text-xs text-gray-500">Attach the customer's PO number to this order. It appears on receipts and invoices.</p>
+            <input type="text" id="po_id" name="po_id" value="{{ $order->po_id ?? '' }}" data-order-id="{{ $order->id }}"
+                placeholder="Enter PO number"
+                class="h-9 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
+            <div class="flex justify-end gap-2">
+                <button type="button" data-po-close class="h-9 px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="button" class="edit-po-btn h-9 px-3.5 rounded-lg bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700">Save PO</button>
             </div>
         </div>
     </div>
-    {{-- /Order Header Section --}}
 
     {{-- Phase 3D — Order Details Refund Summary. Replaces the old,
          outstanding-only "Refund Incomplete" banner with a single,
@@ -1885,13 +1890,25 @@
              balance_due − credit, no tax recompute) has been removed; this
              canonical discount panel is now the single application path and
              folds in the read-only credit-balance cards. --}}
-        <div class="grid md:grid-cols-1 gap-4 mt-4">
+        {{-- Reveal gating: hidden until the header "Store Credit" trigger is
+             clicked, but auto-shown when a discount is already applied so an
+             existing credit never disappears. --}}
+        @php
+            $scHasApplied = \App\Models\Discounts\ProductDiscount::query()
+                ->where('target_type', 'order')->where('target_id', $order->id)
+                ->where('discount_type', 'store_credit')->where('status', 'applied')->exists();
+        @endphp
+        <div id="storeCreditSection" class="grid md:grid-cols-1 gap-4 mt-4 scroll-mt-6 @if(!$scHasApplied) hidden @endif">
             @include('admin.order_management.orders.partials._store_credit_discount_panel')
         </div>
 
-        {{-- Resolution Center — Phase 3.3, Customer Resolution Center Foundation --}}
+        {{-- Resolution Center — Phase 3.3. Hidden until the header "Resolution"
+             trigger is clicked; auto-shown when a case already exists. --}}
         @can('resolution_center.use')
-        <div class="grid md:grid-cols-1 gap-4 mt-4">
+        @php
+            $resHasCase = \App\Models\Customers\ResolutionCase::where('order_id', $order->id)->exists();
+        @endphp
+        <div id="resolutionCenterSection" class="grid md:grid-cols-1 gap-4 mt-4 scroll-mt-6 @if(!$resHasCase) hidden @endif">
             <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <h2 class="text-black font-semibold text-lg mb-3">Resolution Center</h2>
                 <p class="text-sm text-gray-500 mb-3">Guided, policy-driven help for a customer cancellation, refund, or other resolution request on this order.</p>
@@ -2030,8 +2047,12 @@
         @endif
         --}}
 
-        {{-- Billing Engine — consolidated view of billing_charges for this order --}}
+        {{-- Billing Engine — consolidated view of billing_charges for this order.
+             Hidden until a header charge trigger (Fuel/Damage/Order Enhancement)
+             is clicked; auto-shown when the order already has billing charges. --}}
+        <div id="billingEngineSection" class="scroll-mt-6 @if($billingCharges->isEmpty()) hidden @endif">
         @include('admin.order_management.orders.partials._billing_engine', ['billingCharges' => $billingCharges])
+        </div>
 
         @include('admin.order_management.orders.partials._extension_delete_modal')
 
@@ -2062,7 +2083,7 @@
         class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 flex justify-center items-center">
         <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
             <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-lg font-semibold text-gray-800">Add Extension Charge</h2>
+                <h2 class="text-lg font-semibold text-gray-800">Add Order Enhancement</h2>
                 <button type="button" id="closeExtensionModalX"
                     class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
             </div>
@@ -2176,7 +2197,7 @@
                      from the Billing Engine row exactly as today --}}
                 <button type="button" id="extSubmitBtn"
                     class="px-5 py-2 rounded-md border border-orange-300 bg-white text-orange-600 text-sm font-semibold hover:bg-orange-50 disabled:opacity-60">
-                    <span id="extBtnText">Create Extension — Pay Later</span>
+                    <span id="extBtnText">Create Order Enhancement — Pay Later</span>
                     <span id="extBtnSpinner" class="hidden">Creating…</span>
                 </button>
                 {{-- Immediate path: creates the extension, then advances
@@ -4116,6 +4137,46 @@
 @push('js')
 
     <script>
+        // ── Header section reveals + PO popup ───────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+            // Reveal a hidden section (scroll to it) and, when the trigger names an
+            // in-section button (data-click), click it so the existing add-charge
+            // modal logic is reused unchanged.
+            document.querySelectorAll('[data-reveal]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const target = document.querySelector(btn.getAttribute('data-reveal'));
+                    if (!target) return;
+                    target.classList.remove('hidden');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const clickSel = btn.getAttribute('data-click');
+                    if (clickSel) {
+                        const el = document.querySelector(clickSel);
+                        if (el) setTimeout(function () { el.click(); }, 250);
+                    }
+                });
+            });
+
+            // PO add/edit popup open/close (the Save button uses the existing
+            // .edit-po-btn handler, so saving behavior is unchanged).
+            const poModal = document.getElementById('poModal');
+            if (poModal) {
+                document.querySelectorAll('[data-po-open]').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        poModal.style.display = 'flex';
+                        poModal.querySelector('#po_id')?.focus();
+                    });
+                });
+                poModal.querySelectorAll('[data-po-close]').forEach(function (b) {
+                    b.addEventListener('click', function () { poModal.style.display = 'none'; });
+                });
+                poModal.addEventListener('click', function (e) {
+                    if (e.target === poModal) poModal.style.display = 'none';
+                });
+            }
+        });
+    </script>
+
+    <script>
         // ── Delete Order ──────────────────────────────────────────────────────────
         document.getElementById('delete-order-btn')?.addEventListener('click', function () {
             const uniqueId = this.dataset.uniqueId;
@@ -4125,7 +4186,7 @@
             if (this.dataset.extChild) {
                 window.extDeleteFlow.open({
                     contextHtml: 'Deleting child order <span class="font-semibold">#' + this.dataset.extNumber + '</span> '
-                        + 'will also remove its linked Rental Extension charge from parent order '
+                        + 'will also remove its linked Order Enhancement charge from parent order '
                         + '<span class="font-semibold">#' + this.dataset.extParent + '</span>.'
                         + '<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
                     paystate: this.dataset.extPaystate,
@@ -7841,9 +7902,9 @@
 
         window.beOpenDelete = function(row) {
             const childNumber = row.dataset.childNumber;
-            const typeLabels = { extension: 'Order Extension', fuel: 'Fuel Charge', damage: 'Damage Charge' };
+            const typeLabels = { extension: 'Order Enhancement', fuel: 'Fuel Charge', damage: 'Damage Charge' };
             window.extDeleteFlow.open({
-                contextHtml: 'Deleting this Rental Extension will also remove '
+                contextHtml: 'Deleting this Order Enhancement will also remove '
                     + (childNumber
                         ? 'child order <span class="font-semibold">#' + childNumber + '</span>'
                         : 'its linked child order')

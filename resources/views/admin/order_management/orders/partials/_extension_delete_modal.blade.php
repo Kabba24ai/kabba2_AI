@@ -1,7 +1,7 @@
 {{--
     Delete Extension Transaction — shared confirmation modal.
 
-    An extension child order and its Rental Extension charge are ONE
+    An extension child order and its Order Enhancement charge are ONE
     transaction; both deletion entry points (child-order Delete and the
     Billing Engine row Delete) open this modal and post to their own
     endpoint, which routes through ExtensionTransactionService.

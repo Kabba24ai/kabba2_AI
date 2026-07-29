@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\Admin\V1\EquipmentRentalReady;
 
+use App\Helpers\CustomHelper;
 use App\Http\Resources\Api\Admin\V1\OrderProducts\ListResource as OrderProductsListResource;
 use App\Http\Resources\Api\Admin\V1\ProductCategories\ListResource as ProductCategoriesListResource;
 use App\Http\Resources\Api\Admin\V1\Stores\ListResource as StoresListResource;
@@ -45,6 +46,8 @@ class ListResource extends JsonResource
             'last_inspection' => $this->last_inspection ?? '',
             // Label string, matching Equipment\ListResource's current_status shape.
             'current_status' => $this->current_status?->label() ?? '',
+            'current_status_updated_by' => $this->statusUpdatedByUser?->full_name ?? '',
+            'current_status_changed_at' => CustomHelper::formatDateTime($this->current_status_changed_at) ?? '',
             'service_status' => $this->service_status ?? 'empty',
             'is_assigned' => (bool) ($this->is_assigned ?? false),
 

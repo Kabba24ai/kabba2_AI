@@ -53,6 +53,7 @@ class IndexController extends BaseController
                 'softAssignments.orderProduct',
                 'serviceTemplate.preset',
                 'serviceTemplate.templateTasks.task',
+                'statusUpdatedByUser',
             ])
             ->where('not_for_rent', 0)
             ->selectRaw("equipment.*, (

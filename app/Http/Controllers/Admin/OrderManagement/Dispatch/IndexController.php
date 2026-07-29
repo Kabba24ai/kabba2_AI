@@ -485,8 +485,9 @@ class IndexController extends Controller
             ->pluck('full_name', 'unique_id')
             ->prepend('Select Employee', '');
 
-        // Driver / Tech assign modal: uses numeric id — all active employees
-        $driverEmployees = $allUsers->pluck('full_name', 'id');
+        // Driver assignment + "All Drivers" filter + combine-load modal: only users
+        // flagged as drivers (is_driver). Non-drivers are never assignable here.
+        $driverEmployees = $driverUsers->pluck('full_name', 'id');
 
         // Employee phone map (id → phone) — all active employees
         $driverPhones = $allUsers->mapWithKeys(fn($u) => [

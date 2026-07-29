@@ -43,7 +43,7 @@ class IndexController extends BaseController
         $status            = $validated['status'] ?? 'All';
         $storeId           = $validated['store_id'] ?? null;
         $perPage           = $validated['per_page'] ?? 10;
-        $currentlyAssigned = ($validated['currently_assigned'] ?? '1') !== '0';
+        $currentlyAssigned = (string) ($validated['currently_assigned'] ?? '1') !== '0';
 
         $query = Equipment::with([
                 'store',

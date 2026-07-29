@@ -154,6 +154,46 @@ class DispatchReorderService
     }
 
     /**
+     * Pull a set of member cards into one contiguous block within a unified order,
+     * positioned where the first member currently sits, preserving the members'
+     * relative order and the non-members' relative order. Used to keep a combined
+     * load's items adjacent in a driver's sequence.
+     *
+     * @param  array       $unified     [['uid','leg'], ...]
+     * @param  string[]    $memberUids  uids that belong to the load
+     * @param  string|null $leg         if given, only items of this leg are members
+     *                                  (an order_product can have both legs pending)
+     * @return array                    reordered [['uid','leg'], ...]
+     */
+    public function groupContiguous(array $unified, array $memberUids, ?string $leg = null): array
+    {
+        $isMember = array_flip($memberUids);
+        $members = [];
+        $rest = [];
+        $insertAt = null;
+
+        foreach ($unified as $it) {
+            $match = isset($isMember[$it['uid'] ?? '']) && ($leg === null || ($it['leg'] ?? null) === $leg);
+            if ($match) {
+                if ($insertAt === null) {
+                    $insertAt = count($rest); // block lands where the first member was
+                }
+                $members[] = $it;
+            } else {
+                $rest[] = $it;
+            }
+        }
+
+        if ($insertAt === null) {
+            return array_values($unified); // no members present
+        }
+
+        array_splice($rest, $insertAt, 0, $members);
+
+        return array_values($rest);
+    }
+
+    /**
      * Map a unified order to contiguous 1..N positions per item.
      *
      * @param  array $unified  [['uid','leg'], ...]

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\OrderManagement\Dispatch\ShowController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\DriverSummaryController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\PriorityController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\ReorderController;
+use App\Http\Controllers\Admin\OrderManagement\Dispatch\LoadController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\AiRulesController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SaveSettingsController;
 use App\Http\Controllers\Admin\OrderManagement\Dispatch\AiRules\SaveDriverCapabilityController;
@@ -36,6 +37,13 @@ Route::prefix('dispatch')
     // Drag-and-drop board: atomic reorder / cross-driver reassign. Literal path,
     // declared before the /{unique_id} catch-all below.
     Route::post('/reorder', ReorderController::class)->name('reorder');
+
+    // Combined dispatch loads (group several order_product legs onto one driver).
+    // Literal paths, declared before the /{unique_id} catch-all below.
+    Route::post('/loads', [LoadController::class, 'store'])->name('loads.store');
+    Route::post('/loads/{load}/assign', [LoadController::class, 'assign'])->name('loads.assign');
+    Route::post('/loads/{load}/remove-member', [LoadController::class, 'removeMember'])->name('loads.remove-member');
+    Route::delete('/loads/{load}', [LoadController::class, 'destroy'])->name('loads.destroy');
 
     // AI Rules — must be before /{unique_id} catch-all
     Route::get('/ai-rules', AiRulesController::class)->name('ai-rules.index');

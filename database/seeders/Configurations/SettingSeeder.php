@@ -1299,6 +1299,32 @@ class SettingSeeder extends Seeder
                 'sort_order' => $sortOrder++,
             ],
 
+            // --- Product Cleaning ---
+            [
+                'value_type' => 'number',
+                'setting_name' => 'std_clean_req',
+                'setting_title' => 'Std Clean Req.',
+                'placeholder' => 'Enter std clean req.',
+                'default_value' => 0,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'moderate_clean_req',
+                'setting_title' => 'Moderate Clean Req.',
+                'placeholder' => 'Enter moderate clean req.',
+                'default_value' => 0,
+                'sort_order' => $sortOrder++,
+            ],
+            [
+                'value_type' => 'number',
+                'setting_name' => 'extreme_clean_req',
+                'setting_title' => 'Extreme Clean Req.',
+                'placeholder' => 'Enter extreme clean req.',
+                'default_value' => 0,
+                'sort_order' => $sortOrder++,
+            ],
+
             // --- Track Insurance ---
             [
                 'value_type' => 'textarea',

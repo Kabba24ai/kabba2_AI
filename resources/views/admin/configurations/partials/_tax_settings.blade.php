@@ -196,4 +196,3 @@
         </div>
     </div>
 </div>
-<div class="hidden lg:block lg:col-span-1"></div>

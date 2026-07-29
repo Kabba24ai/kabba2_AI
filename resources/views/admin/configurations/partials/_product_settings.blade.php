@@ -431,6 +431,51 @@
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
     <div class="flex items-center space-x-2 mb-4">
+        <x-heroicon-o-sparkles class="h-5 w-5 text-blue-600" />
+        <h3 class="text-lg font-bold text-gray-900">Product Cleaning</h3>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-6">
+        @foreach ([
+            'std_clean_req' => 'Std Clean Req.',
+            'moderate_clean_req' => 'Moderate Clean Req.',
+            'extreme_clean_req' => 'Extreme Clean Req.',
+        ] as $cleanReqName => $cleanReqLabel)
+            <div class="flex flex-col">
+                <label for="{{ $cleanReqName }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ $cleanReqLabel }}
+                </label>
+
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 select-none">$</span>
+                    {!! html()->input(
+                            'number',
+                            $cleanReqName,
+                            old($cleanReqName, data_get($settings, "Product Settings.$cleanReqName.setting_value")),
+                        )->class([
+                            'w-24 pl-7 pr-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500',
+                            'border-gray-300' => !$errors->has($cleanReqName),
+                            'border-red-500' => $errors->has($cleanReqName),
+                        ])->attributes([
+                            'data-parsley-type' => 'number',
+                            'autocomplete' => 'off',
+                            'step' => '0.01',
+                            'min' => '0',
+                            'placeholder' => data_get($settings, "Product Settings.$cleanReqName.placeholder"),
+                            'id' => $cleanReqName,
+                        ]) !!}
+                </div>
+
+                @error($cleanReqName)
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        @endforeach
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="flex items-center space-x-2 mb-4">
         <x-heroicon-o-clock class="h-5 w-5 text-blue-600" />
         <h3 class="text-lg font-bold text-gray-900">Damage Waiver Protection</h3>
     </div>

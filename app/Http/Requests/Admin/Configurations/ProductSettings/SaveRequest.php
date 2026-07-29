@@ -101,6 +101,10 @@ class SaveRequest extends FormRequest
             'prepaid_cleaning_approve_label' => 'nullable|string|max:255',
             'prepaid_cleaning_info' => 'nullable|string|max:500',
 
+            'std_clean_req' => 'nullable|numeric|min:0',
+            'moderate_clean_req' => 'nullable|numeric|min:0',
+            'extreme_clean_req' => 'nullable|numeric|min:0',
+
             'damage_waiver_percentage' => 'nullable|numeric|min:0|max:100',
             'damage_waiver_decline_label' => 'nullable|string|max:255',
             'damage_waiver_approve_label' => 'nullable|string|max:255',

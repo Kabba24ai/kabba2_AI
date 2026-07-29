@@ -40,7 +40,7 @@ class IndexController extends BaseController
 
         $search            = $validated['search'] ?? null;
         $category          = $validated['category'] ?? null;
-        $status            = $validated['status'] ?? null;
+        $status            = $validated['status'] ?? 'All';
         $storeId           = $validated['store_id'] ?? null;
         $perPage           = $validated['per_page'] ?? 10;
         $currentlyAssigned = ($validated['currently_assigned'] ?? '1') !== '0';

@@ -238,7 +238,7 @@ class AddChargeToAccountService
         $label = match ($type) {
             'fuel'      => 'Fuel Charge',
             'damage'    => 'Damage Charge',
-            'extension' => 'Rental Extension',
+            'extension' => 'Order Enhancement',
             default     => 'Charge',
         };
 

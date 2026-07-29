@@ -106,10 +106,10 @@
                      so staff can isolate extension orders (e.g. + Payment Status
                      "Pending" = unpaid extensions). data-pinned-products keeps it
                      at the top of the list across category changes (shared JS). --}}
-                <select name="product" data-pinned-products='[{"value":"extension","label":"Extension Charge"}]'
+                <select name="product" data-pinned-products='[{"value":"extension","label":"Order Enhancement"}]'
                     class="choices-select w-full rounded-md py-3 px-3 border border-gray-300 bg-white text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                     <option value="">Select Products</option>
-                    <option value="extension" data-pinned @selected(request('product') === 'extension')>Extension Charge</option>
+                    <option value="extension" data-pinned @selected(request('product') === 'extension')>Order Enhancement</option>
                     @foreach ($products as $id => $title)
                         <option value="{{ $id }}" @selected(request('product') == $id)>
                             {{ $title }}
@@ -305,7 +305,7 @@
                         if (this.dataset.extChild) {
                             window.extDeleteFlow.open({
                                 contextHtml: 'Deleting child order <span class="font-semibold">#' + this.dataset.extNumber + '</span> '
-                                    + 'will also remove its linked Rental Extension charge from parent order '
+                                    + 'will also remove its linked Order Enhancement charge from parent order '
                                     + '<span class="font-semibold">#' + this.dataset.extParent + '</span>.'
                                     + '<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
                                 paystate: this.dataset.extPaystate,

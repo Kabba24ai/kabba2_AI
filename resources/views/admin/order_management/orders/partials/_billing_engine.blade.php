@@ -58,11 +58,11 @@
                 </svg>
                 Damage Charge
             </button>
-            {{-- Order Extension --}}
-            <button type="button" title="Add Order Extension" onclick="openExtensionModal()"
+            {{-- Order Enhancement --}}
+            <button type="button" title="Add Order Enhancement" onclick="openExtensionModal()"
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors">
                 <x-heroicon-o-calendar class="w-3.5 h-3.5" />
-                Order Extension
+                Order Enhancement
             </button>
             @if($billingCharges->isNotEmpty())
             <span class="text-xs text-green-700 font-medium pl-1 border-l border-green-200">
@@ -218,6 +218,12 @@
 
                         {{-- Details --}}
                         <td class="px-4 py-3 max-w-xs">
+                            {{-- The chosen Order Enhancement description (Rental Extension,
+                                 Delivery / Pickup Added, …) — reflects what was selected,
+                                 not a blanket type name. Sourced from the child order note. --}}
+                            @if($isExtension && $charge->childOrder?->order_note)
+                                <span class="text-xs font-medium text-gray-800 block truncate" title="{{ $charge->childOrder->order_note }}">{{ $charge->childOrder->order_note }}</span>
+                            @endif
                             @if($charge->notes)
                                 <span class="text-xs text-gray-600 block truncate" title="{{ $charge->notes }}">{{ $charge->notes }}</span>
                             @endif

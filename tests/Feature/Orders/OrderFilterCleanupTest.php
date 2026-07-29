@@ -131,7 +131,7 @@ class OrderFilterCleanupTest extends TestCase
         $res = $this->pageGet()->assertOk();
 
         $res->assertSee('value="extension"', false);
-        $res->assertSee('Extension Charge');
+        $res->assertSee('Order Enhancement');
         // Pinned data hook the shared JS reads to keep it atop the list.
         $res->assertSee('data-pinned-products', false);
     }

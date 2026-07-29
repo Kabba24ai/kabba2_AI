@@ -255,7 +255,7 @@ class ExtensionParentVisibilityTest extends TestCase
 
         $this->assertStringContainsString('3153', $html);
         $this->assertStringContainsString('3153-A', $html);
-        $this->assertStringContainsString('Extension Charge', $html); // child keeps its own identity
+        $this->assertStringContainsString('One extra week', $html); // child shows its own chosen description (order_note)
         $this->assertStringNotContainsString('4200', $html);          // unrelated parent + child excluded
     }
 

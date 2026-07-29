@@ -54,7 +54,9 @@
                                 @endforeach
                             </div>
                         @elseif ($order->reference_order_number)
-                            <span class="text-gray-500 italic text-xs">Extension Charge</span>
+                            {{-- Order Enhancement child: show the chosen description (order_note),
+                                 falling back to the generic type name when none was recorded. --}}
+                            <span class="text-gray-500 italic text-xs">{{ $order->order_note ?: 'Order Enhancement' }}</span>
                         @else
                             —
                         @endif

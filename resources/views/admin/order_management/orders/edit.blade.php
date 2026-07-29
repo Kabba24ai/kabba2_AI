@@ -2062,7 +2062,7 @@
         class="fixed inset-0 z-[99999] hidden overflow-y-auto bg-gray-500/75 flex justify-center items-center">
         <div class="bg-white rounded-lg w-full max-w-md shadow-lg flex flex-col">
             <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-lg font-semibold text-gray-800">Add Extension Charge</h2>
+                <h2 class="text-lg font-semibold text-gray-800">Add Order Enhancement</h2>
                 <button type="button" id="closeExtensionModalX"
                     class="text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
             </div>
@@ -2176,7 +2176,7 @@
                      from the Billing Engine row exactly as today --}}
                 <button type="button" id="extSubmitBtn"
                     class="px-5 py-2 rounded-md border border-orange-300 bg-white text-orange-600 text-sm font-semibold hover:bg-orange-50 disabled:opacity-60">
-                    <span id="extBtnText">Create Extension — Pay Later</span>
+                    <span id="extBtnText">Create Order Enhancement — Pay Later</span>
                     <span id="extBtnSpinner" class="hidden">Creating…</span>
                 </button>
                 {{-- Immediate path: creates the extension, then advances
@@ -4125,7 +4125,7 @@
             if (this.dataset.extChild) {
                 window.extDeleteFlow.open({
                     contextHtml: 'Deleting child order <span class="font-semibold">#' + this.dataset.extNumber + '</span> '
-                        + 'will also remove its linked Rental Extension charge from parent order '
+                        + 'will also remove its linked Order Enhancement charge from parent order '
                         + '<span class="font-semibold">#' + this.dataset.extParent + '</span>.'
                         + '<br><span class="font-semibold text-red-700">Both records will be affected.</span>',
                     paystate: this.dataset.extPaystate,
@@ -7841,9 +7841,9 @@
 
         window.beOpenDelete = function(row) {
             const childNumber = row.dataset.childNumber;
-            const typeLabels = { extension: 'Order Extension', fuel: 'Fuel Charge', damage: 'Damage Charge' };
+            const typeLabels = { extension: 'Order Enhancement', fuel: 'Fuel Charge', damage: 'Damage Charge' };
             window.extDeleteFlow.open({
-                contextHtml: 'Deleting this Rental Extension will also remove '
+                contextHtml: 'Deleting this Order Enhancement will also remove '
                     + (childNumber
                         ? 'child order <span class="font-semibold">#' + childNumber + '</span>'
                         : 'its linked child order')

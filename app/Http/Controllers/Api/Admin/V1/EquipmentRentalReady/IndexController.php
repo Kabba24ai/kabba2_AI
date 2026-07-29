@@ -42,6 +42,7 @@ class IndexController extends BaseController
         $category          = $validated['category'] ?? null;
         $status            = $validated['status'] ?? 'All';
         $storeId           = $validated['store_id'] ?? null;
+        $perPage           = $validated['per_page'] ?? 10;
         $currentlyAssigned = ($validated['currently_assigned'] ?? '1') !== '0';
 
         $query = Equipment::with([
@@ -181,7 +182,7 @@ class IndexController extends BaseController
                 ELSE 5 END")->orderBy('equipment_name', 'asc');
         }
 
-        $equipment = $query->get();
+        $equipment = $query->paginate($perPage);
 
         // ── Service status (Service Due / Service OverDue) — matches web screen ──
         $settings = DB::table('service_master_settings')->first();
@@ -190,19 +191,20 @@ class IndexController extends BaseController
 
         $serviceRecords = DB::table('equipment_service_tasks')
             ->select('equipment_id', 'service_task_id', 'interval_value')
-            ->whereIn('equipment_id', $equipment->pluck('id'))
+            ->whereIn('equipment_id', $equipment->getCollection()->pluck('id'))
             ->get()
             ->groupBy(fn($record) => $record->equipment_id . '_' . $record->service_task_id);
 
-        $equipment->each(function ($item) use ($serviceRecords, $pendingBeforeHours, $pendingAfterHours) {
+        $equipment->getCollection()->each(function ($item) use ($serviceRecords, $pendingBeforeHours, $pendingAfterHours) {
             $item->service_status = EquipmentServiceStatusResolver::resolve($item, $serviceRecords, $pendingBeforeHours, $pendingAfterHours);
         });
 
-        // Service Due / Service OverDue are computed statuses, filtered in-memory.
+        // Service Due / Service OverDue only make sense within the fetched page,
+        // same as the web screen (which filters after paginating).
         if ($status === 'Service Due') {
-            $equipment = $equipment->where('service_status', 'pending')->values();
+            $equipment->setCollection($equipment->getCollection()->where('service_status', 'pending')->values());
         } elseif ($status === 'Service OverDue') {
-            $equipment = $equipment->where('service_status', 'overdue')->values();
+            $equipment->setCollection($equipment->getCollection()->where('service_status', 'overdue')->values());
         }
 
         // ── Rental-ready checklist questions/answers — same data & sort order
@@ -212,7 +214,7 @@ class IndexController extends BaseController
         // ── checklist_qas / rental_ready_checklist_questions — same source and
         //    branching as the shared /equipment admin app endpoint
         //    (Equipment\IndexController) so both endpoints expose them identically.
-        $equipment->each(function ($item) use ($checklistResolver) {
+        $equipment->getCollection()->each(function ($item) use ($checklistResolver) {
             $result = $checklistResolver->resolve($item->checklist_master_id, $item->id, $item->current_order_product_id);
             $item->rental_ready_checklist = $result['status'] === 200 ? $result['body'] : null;
 
@@ -252,6 +254,12 @@ class IndexController extends BaseController
             'success' => true,
             'message' => trans('messages.api.admin.v1.equipment.rental_ready_equipment_found'),
             'equipment' => ListResource::collection($equipment),
+            'pagination' => [
+                'current_page' => $equipment->currentPage(),
+                'last_page' => $equipment->lastPage(),
+                'per_page' => $equipment->perPage(),
+                'total' => $equipment->total(),
+            ],
         ]);
     }
 }

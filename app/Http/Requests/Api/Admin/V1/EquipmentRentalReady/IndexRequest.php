@@ -19,6 +19,8 @@ class IndexRequest extends ApiBaseFormRequest
             'status'             => 'nullable|string|in:All,Available,Damaged,Maint. Hold,Rented,Service Due,Service OverDue',
             'store_id'           => 'nullable|integer|exists:stores,id',
             'currently_assigned' => 'nullable|in:0,1',
+            'per_page'           => 'nullable|integer|min:1|max:100',
+            'page'               => 'nullable|integer|min:1',
         ];
     }
 
@@ -56,6 +58,16 @@ class IndexRequest extends ApiBaseFormRequest
                 'example' => '1',
                 'type' => 'string',
                 'enum' => ['0', '1'],
+            ],
+            'per_page' => [
+                'description' => 'Number of items per page. Defaults to 10 (matches the web rental-ready screen).',
+                'example' => 10,
+                'type' => 'integer',
+            ],
+            'page' => [
+                'description' => 'Page number to fetch.',
+                'example' => 1,
+                'type' => 'integer',
             ],
         ];
     }

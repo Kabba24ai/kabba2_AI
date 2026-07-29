@@ -13,6 +13,7 @@ use App\Enums\Orders\OrderTermsStatus;
 
 // Helpers
 use App\Helpers\ModelHelper;
+use App\Helpers\CustomHelper;
 
 // Models
 use App\Models\ChecklistManagement\EquipmentChecklist\EquipmentStatusLog;
@@ -367,6 +368,11 @@ class Order extends Model
                 $child->forceDelete(); // Triggers deleting event on OrderMedia
             });
         });
+    }
+
+    public function getCustomerPhoneAttribute($value)
+    {
+        return empty($value) ? $value : CustomHelper::formatPhone($value);
     }
 
     public function getViewLinkAttribute()

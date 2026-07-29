@@ -98,6 +98,15 @@ class DispatchAIService
                 'detail' => 'Only schedule optional pickups when a driver has remaining capacity after all deliveries in the window are covered. '
                           . 'Batch optional pickups geographically with nearby deliveries when possible.',
             ],
+            'DRIVER_DESIGNATION_RULE' => [
+                'rule'   => 'Assign drivers in order of designation: Primary first, then Secondary, then Alternate, then Contract.',
+                'detail' => 'Each driver has a "designation" (primary | secondary | alternate) and an "is_contract" flag. '
+                          . 'Prefer primary drivers for routine work. Use secondary drivers (e.g. yard technicians/mechanics willing to drive) '
+                          . 'only when primaries are at capacity or unavailable. Use alternate drivers for special situations or as a last resort '
+                          . 'in high-demand periods. Treat is_contract = true drivers as external hired help — the last option after all employee '
+                          . 'drivers of a suitable tier are exhausted, unless a job specifically calls for one. Driver skill_rating and capability '
+                          . 'constraints still apply within a tier.',
+            ],
             'DRIVER_CONTINUITY_RULE' => [
                 'rule'    => 'Prefer assigning the same driver for a return as made the original delivery.',
                 'enabled' => (bool) ($settings['prefer_same_driver_for_returns'] ?? false),

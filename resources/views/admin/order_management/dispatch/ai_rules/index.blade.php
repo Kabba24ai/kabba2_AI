@@ -34,7 +34,8 @@
         <nav class="flex gap-1 overflow-x-auto" aria-label="Tabs">
             @php
                 $tabs = [
-                    'drivers'       => ['label' => 'Drivers',          'icon' => 'heroicon-o-user-group'],
+                    'drivers'         => ['label' => 'Drivers',          'icon' => 'heroicon-o-user-group'],
+                    'contract_drivers'=> ['label' => 'Contract Drivers', 'icon' => 'heroicon-o-identification'],
                     'trucks'        => ['label' => 'Trucks',           'icon' => 'heroicon-o-truck'],
                     'trailers'      => ['label' => 'Trailers',         'icon' => 'heroicon-o-rectangle-stack'],
                     'equipment'     => ['label' => 'Equipment',        'icon' => 'heroicon-o-wrench-screwdriver'],
@@ -67,6 +68,8 @@
     {{-- Tab Content --}}
     @if ($activeTab === 'drivers')
         @include('admin.order_management.dispatch.ai_rules.partials._drivers')
+    @elseif ($activeTab === 'contract_drivers')
+        @include('admin.order_management.dispatch.ai_rules.partials._contract_drivers')
     @elseif ($activeTab === 'trucks')
         @include('admin.order_management.dispatch.ai_rules.partials._trucks')
     @elseif ($activeTab === 'trailers')

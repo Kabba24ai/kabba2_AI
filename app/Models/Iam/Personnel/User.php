@@ -67,6 +67,7 @@ class User extends Authenticatable
         'is_driver',
         'cdl_a',
         'cdl_b',
+        'is_contract_driver',
     ];
 
     protected $appends = ['full_name', 'role_short_names'];
@@ -91,6 +92,7 @@ class User extends Authenticatable
             'is_driver' => 'boolean',
             'cdl_a'     => 'boolean',
             'cdl_b'     => 'boolean',
+            'is_contract_driver' => 'boolean',
         ];
     }
 
@@ -123,6 +125,18 @@ class User extends Authenticatable
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
+    }
+
+    /**
+     * HRM/staff users only — excludes external contract drivers, who live in the
+     * users table (so Dispatch can assign them) but are not company employees.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeEmployees($query)
+    {
+        return $query->where('is_contract_driver', false);
     }
 
     /**

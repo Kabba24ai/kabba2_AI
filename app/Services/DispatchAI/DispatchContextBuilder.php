@@ -72,6 +72,8 @@ class DispatchContextBuilder
                 'can_operate_cdl_truck'     => $cap?->can_operate_cdl_truck ?? false,
                 'home_store_id'             => $cap?->home_store_id,
                 'skill_rating'              => $cap?->skill_rating ?? 3,
+                'designation'               => $cap?->designation ?? 'primary',
+                'is_contract'               => (bool) $d->is_contract_driver,
             ];
         })->values()->toArray();
 

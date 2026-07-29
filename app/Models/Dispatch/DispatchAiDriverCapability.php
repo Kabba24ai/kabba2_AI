@@ -20,6 +20,7 @@ class DispatchAiDriverCapability extends Model
         'can_operate_cdl_truck',
         'home_store_id',
         'skill_rating',
+        'designation',
         'notes',
         'is_active',
     ];

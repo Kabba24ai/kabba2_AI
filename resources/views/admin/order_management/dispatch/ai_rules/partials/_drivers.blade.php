@@ -112,6 +112,15 @@
                             @endfor
                         </select>
                     </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs text-gray-500 mb-1">Designation <span class="text-gray-400">(AI assignment tier)</span></label>
+                        <select name="designation"
+                            class="w-full border border-gray-300 rounded-md py-1.5 px-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            @foreach ($driverDesignations as $value => $label)
+                                <option value="{{ $value }}" {{ ($cap?->designation ?? 'primary') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 {{-- Notes --}}

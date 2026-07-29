@@ -37,19 +37,36 @@ class AiRulesController extends Controller
         'Gooseneck',
     ];
 
+    // Driver mission tiers used by the AI planner (value => label).
+    public const DRIVER_DESIGNATIONS = [
+        'primary'   => 'Primary',
+        'secondary' => 'Secondary',
+        'alternate' => 'Alternate',
+    ];
+
     public function __invoke()
     {
         $settings = DispatchAiSettings::instance();
 
+        // Employee drivers (the Drivers tab) — contractors live on their own tab.
         $drivers = User::active()
             ->where('is_driver', true)
+            ->where('is_contract_driver', false)
+            ->orderBy('first_name')
+            ->get();
+
+        // External contract drivers (their own tab).
+        $contractDrivers = User::active()
+            ->where('is_contract_driver', true)
             ->orderBy('first_name')
             ->get();
 
         $driverCapabilities = DispatchAiDriverCapability::with('homeStore')
-            ->whereIn('user_id', $drivers->pluck('id'))
+            ->whereIn('user_id', $drivers->pluck('id')->merge($contractDrivers->pluck('id')))
             ->get()
             ->keyBy('user_id');
+
+        $driverDesignations = self::DRIVER_DESIGNATIONS;
 
         $trucks = DispatchAiTruck::with('store')
             ->orderBy('is_active', 'desc')
@@ -156,7 +173,9 @@ class AiRulesController extends Controller
         return view('admin.order_management.dispatch.ai_rules.index', compact(
             'settings',
             'drivers',
+            'contractDrivers',
             'driverCapabilities',
+            'driverDesignations',
             'trucks',
             'trailers',
             'equipmentByCategory',

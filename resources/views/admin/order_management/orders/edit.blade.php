@@ -3450,8 +3450,13 @@
                                                         $valid ??
                                                         $question->answers->sortByDesc('index_number')->first();
 
+                                                    $isDeliveryOverride = !(
+                                                        $question->deliverySelectedAnswer &&
+                                                        $question->deliverySelectedAnswer->is_delivery_answer == 1
+                                                    );
+
                                                     $rowAmount = 0;
-                                                    if ($latest && $latest->is_return_answer == 1 && $latest->is_delivery_answer == 0) {
+                                                    if (!$isDeliveryOverride && $latest && $latest->is_return_answer == 1 && $latest->is_delivery_answer == 0) {
                                                         $deliveryAmount = $question->deliverySelectedAnswer->delivery_amount ?? 0;
                                                         $returnAmount = $latest->user_return_amount ?? ($latest->return_amount ?? 0);
                                                         $rowAmount = max($returnAmount - $deliveryAmount, 0);
@@ -3578,7 +3583,7 @@
                                             $fuelMap = collect($arrFuelDelivery)->pluck('name', 'id');
                                         @endphp
                                         @foreach ($order->products as $product)
-                                            @if (!is_null($product->fuel_initial_reading))
+                                            @if (!is_null($product->fuel_initial_reading) || !is_null($product->fuel_final_reading) || !is_null($product->fuel_total_charge))
                                                 @php
                                                     $productFuelBase = (float) ($product->fuel_total_charge ?? 0);
                                                     $productFuelAdjustment = $product->fuelChargeLogs?->sum('change_amount') ?? 0;
@@ -3589,6 +3594,10 @@
 
                                                     $initialFuel = $fuelMap[$product->fuel_initial_reading ?? null] ?? '-';
                                                     $finalFuel = $fuelMap[$product->fuel_final_reading ?? null] ?? '-';
+
+                                                    $hasPrepaidFuelOption = !is_null(
+                                                        data_get($product->product_data, 'product_rental_items_prices.rental_prepaid_fuel'),
+                                                    );
                                                 @endphp
 
                                                 <tr class="border-b fuel-row" data-product-id="{{ $product->id }}" data-amount="{{ $productFinalFuel }}">
@@ -3597,13 +3606,19 @@
                                                         {{ $product->equipment?->power_source_type
                                                             ? $product->equipment->power_source_type->label()
                                                             : 'Select Power Source' }})
-                                                        @if ($product->fuel_initial_reading == 10)
+                                                        @if ($product->fuel_initial_reading == 10 || $hasPrepaidFuelOption)
                                                             <span class="ml-1 inline-block px-1.5 py-0.5 text-[10px] font-semibold rounded bg-green-100 text-green-700">Prepaid</span>
                                                         @endif
                                                     </td>
 
                                                     <td class="py-2 px-2">
-                                                        {{ $initialFuel }}
+                                                        @if (is_null($product->fuel_initial_reading))
+                                                            <span class="inline-block min-w-10 text-red-600">
+                                                                Admin Override
+                                                            </span>
+                                                        @else
+                                                            {{ $initialFuel }}
+                                                        @endif
                                                     </td>
 
                                                     <td
@@ -3651,16 +3666,34 @@
                                         @foreach ($order->products as $product)
                                             @if (($product->equipment?->is_tracked ?? 'No') === 'Yes')
                                                 @php
+                                                    $productHasDeliveryOverride = $product
+                                                        ->checklistQuestions()
+                                                        ->get()
+                                                        ->contains(
+                                                            fn($q) => !(
+                                                                $q->deliverySelectedAnswer &&
+                                                                $q->deliverySelectedAnswer->is_delivery_answer == 1
+                                                            ),
+                                                        );
+
+                                                    $endHoursOverride = is_null($product->end_hours) || $productHasDeliveryOverride;
+
                                                     $startHours = (float) $product->start_hours;
                                                     $endHours = (float) $product->end_hours;
                                                     $allocatedHours = (float) $product->allocated_hours;
                                                     $hourRate = (float) ($product->equipment?->overage_rate ?? 0);
 
-                                                    $usedHours = max(0, $endHours - $startHours);
-                                                    $additionalHours = max(0, ceil($usedHours - $allocatedHours));
+                                                    if ($endHoursOverride) {
+                                                        $additionalHours = 0;
+                                                        $charge = 0;
+                                                        $totalAmount = 0;
+                                                    } else {
+                                                        $usedHours = max(0, $endHours - $startHours);
+                                                        $additionalHours = max(0, ceil($usedHours - $allocatedHours));
 
-                                                    $charge = $additionalHours * $hourRate;
-                                                    $totalAmount = $charge;
+                                                        $charge = $additionalHours * $hourRate;
+                                                        $totalAmount = $charge;
+                                                    }
 
                                                     $hourTrackingTotal += $totalAmount;
 
@@ -3669,7 +3702,15 @@
                                                 <tr class="border-b hour-row" data-product-id="{{ $product->id }}" data-amount="{{ $totalAmount }}">
                                                     <td class="py-2 px-2">{{ $product->product_name }}</td>
                                                     <td class="py-2 px-2">{{ $startHours }}</td>
-                                                    <td class="py-2 px-2">{{ $endHours }}</td>
+                                                    <td class="py-2 px-2">
+                                                        @if ($endHoursOverride)
+                                                            <span class="inline-block min-w-10 text-red-600">
+                                                                Admin Override
+                                                            </span>
+                                                        @else
+                                                            {{ $endHours }}
+                                                        @endif
+                                                    </td>
                                                     <td class="py-2 px-2">{{ $allocatedHours }} h</td>
                                                     <td class="py-2 px-2">{{ $additionalHours }} h</td>
                                                     <td class="py-2 px-2">${{ number_format($hourRate, 2) }}</td>

@@ -106,10 +106,12 @@
                     class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">
                     <x-heroicon-o-calendar class="w-[18px] h-[18px]" />
                 </button>
-                <button type="button" title="Store Credit" data-reveal="#storeCreditSection"
+                @can('customer_credit.redeem')
+                <button type="button" title="Store Credit" data-sc-open
                     class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm">
                     <x-heroicon-o-gift class="w-[18px] h-[18px]" />
                 </button>
+                @endcan
                 @can('resolution_center.use')
                 <button type="button" title="Resolution Center" data-reveal="#resolutionCenterSection"
                     class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-600 text-white hover:bg-slate-700 transition-colors shadow-sm">
@@ -412,6 +414,10 @@
             </div>
         </div>
     </div>
+
+    {{-- Apply Store Credit modal — opened by the header gift trigger. Rendered
+         at page root; the applied result folds into the Subtotal window. --}}
+    @include('admin.order_management.orders.partials._store_credit_discount_panel')
 
     {{-- Phase 3D — Order Details Refund Summary. Replaces the old,
          outstanding-only "Refund Incomplete" banner with a single,
@@ -1770,12 +1776,35 @@
                 </div>
             @endif
 
+            @php
+                // Store Credit as a PRE-TAX discount folded into this window.
+                // Values come straight from the engine's ProductDiscount
+                // snapshot — no "grand_total − credit" arithmetic anywhere.
+                $scApplied = \App\Models\Discounts\ProductDiscount::query()
+                    ->where('target_type', 'order')->where('target_id', $order->id)
+                    ->where('discount_type', 'store_credit')->where('status', 'applied')
+                    ->latest('id')->first();
+            @endphp
+            {{-- Subtotal window + (when a Store Credit discount is applied) the
+                 Remove control directly below it. Wrapped so the pair occupies a
+                 single grid-cols-4 cell. --}}
+            <div class="flex flex-col gap-2">
             <div
                 class="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 shadow-sm flex flex-col text-sm text-gray-700">
                 <div class="flex justify-between">
                     <span>Subtotal:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}</span>
                 </div>
+                @if ($scApplied)
+                    <div class="flex justify-between text-brand-700 font-medium">
+                        <span>Store Credit Discount</span>
+                        <span>&minus; {{ \App\Helpers\CustomHelper::formatCurrency($scApplied->calculated_discount_amount) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Discounted Product Value</span>
+                        <span>{{ \App\Helpers\CustomHelper::formatCurrency($scApplied->discounted_product_value) }}</span>
+                    </div>
+                @endif
                 <div class="flex justify-between">
                     <span>Taxes:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->tax_amount) }}</span>
@@ -1866,7 +1895,21 @@
 
                 @endif
 
-            </div>
+            </div>{{-- close subtotal box --}}
+
+            @if ($scApplied)
+                @can('customer_credit.grant')
+                    <div class="flex justify-end" x-data="storeCreditDiscount({ responsible: {{ (int) (auth()->id() ?? 0) }} })">
+                        <button type="button" @click="remove($event)" :disabled="busy"
+                            data-remove-url="{{ route('admin.order-management.orders.store-credit-discount.remove', ['unique_id' => $order->unique_id, 'discountId' => $scApplied->id]) }}"
+                            class="inline-flex items-center h-9 px-3.5 rounded-lg border border-error-500/30 bg-white text-sm font-medium text-error-600 hover:bg-error-50 disabled:opacity-50">
+                            <span x-show="!busy">Remove Store Credit Discount</span>
+                            <span x-show="busy">Removing…</span>
+                        </button>
+                    </div>
+                @endcan
+            @endif
+            </div>{{-- close subtotal window wrapper --}}
 
             {{-- Notes (col-span-2 = 50%) --}}
             <div class="col-span-2 bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col relative">
@@ -1884,22 +1927,10 @@
             </div>
         </div>{{-- close grid grid-cols-4 --}}
 
-        {{-- Store Credit as a PRE-TAX DISCOUNT (not a payment). The retired
-             "Customer Credit" tender panel (redeem → presentational
-             balance_due − credit, no tax recompute) has been removed; this
-             canonical discount panel is now the single application path and
-             folds in the read-only credit-balance cards. --}}
-        {{-- Reveal gating: hidden until the header "Store Credit" trigger is
-             clicked, but auto-shown when a discount is already applied so an
-             existing credit never disappears. --}}
-        @php
-            $scHasApplied = \App\Models\Discounts\ProductDiscount::query()
-                ->where('target_type', 'order')->where('target_id', $order->id)
-                ->where('discount_type', 'store_credit')->where('status', 'applied')->exists();
-        @endphp
-        <div id="storeCreditSection" class="grid md:grid-cols-1 gap-4 mt-4 scroll-mt-6 @if(!$scHasApplied) hidden @endif">
-            @include('admin.order_management.orders.partials._store_credit_discount_panel')
-        </div>
+        {{-- Store Credit as a PRE-TAX DISCOUNT (not a payment). The applied
+             result is folded into the Subtotal window above; the entry point is
+             the header "Store Credit" trigger, which opens the value-entry modal
+             (#storeCreditModal, rendered at page root — see below). --}}
 
         {{-- Resolution Center — Phase 3.3. Hidden until the header "Resolution"
              trigger is clicked; auto-shown when a case already exists. --}}
@@ -4202,6 +4233,24 @@
                 });
                 poModal.addEventListener('click', function (e) {
                     if (e.target === poModal) poModal.style.display = 'none';
+                });
+            }
+
+            // Store Credit value-entry modal open/close (apply logic lives in the
+            // storeCreditDiscount() Alpine component on the modal root).
+            const scModal = document.getElementById('storeCreditModal');
+            if (scModal) {
+                document.querySelectorAll('[data-sc-open]').forEach(function (b) {
+                    b.addEventListener('click', function () {
+                        scModal.style.display = 'flex';
+                        scModal.querySelector('input[type=number]')?.focus();
+                    });
+                });
+                scModal.querySelectorAll('[data-sc-close]').forEach(function (b) {
+                    b.addEventListener('click', function () { scModal.style.display = 'none'; });
+                });
+                scModal.addEventListener('click', function (e) {
+                    if (e.target === scModal) scModal.style.display = 'none';
                 });
             }
         });

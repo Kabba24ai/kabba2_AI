@@ -30,6 +30,25 @@ class ReceiptService
                 ->first();
 
             if ($receipt) {
+                // Keep the receipt's frozen financial snapshot in step with the
+                // order's current canonical totals. A Store Credit discount (a
+                // pre-tax product discount that rewrites tax_amount + grand_total),
+                // an order edit, or an added charge can all move these AFTER the
+                // receipt row was first created — leaving the printed/emailed
+                // receipt showing stale money. This mirrors the "payment status &
+                // method are always live, never the creation-time snapshot" rule
+                // used throughout this service; the totals must not be the one
+                // thing that silently drifts. Values are consumed straight from
+                // the order columns the engine maintains — no arithmetic here.
+                if (round((float) $receipt->subtotal, 2) !== round((float) $order->subtotal, 2)
+                    || round((float) $receipt->sales_tax, 2) !== round((float) $order->tax_amount, 2)
+                    || round((float) $receipt->total, 2) !== round((float) $order->grand_total, 2)) {
+                    $receipt->subtotal  = $order->subtotal;
+                    $receipt->sales_tax = $order->tax_amount;
+                    $receipt->total     = $order->grand_total;
+                    $receipt->saveQuietly();
+                }
+
                 return $receipt;
             }
 

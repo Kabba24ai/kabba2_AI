@@ -4273,7 +4273,7 @@
                     url: '{{ route('admin.order-management.orders.bulk-delete') }}',
                     payload: { unique_ids: [uniqueId] },
                     onSuccess: function (data) {
-                        if (window.notyf) notyf.success(data.message || 'Extension transaction deleted.');
+                        if (window.notyf) notyf.success(data.message || 'Order Enhancement deleted.');
                         setTimeout(function () {
                             window.location.href = '{{ route('admin.order-management.orders.index') }}';
                         }, 800);
@@ -8001,7 +8001,7 @@
                 url: beRouteDelete.replace('__ID__', row.dataset.bcId),
                 payload: {},
                 onSuccess: function (data) {
-                    notyf.success(data.message || 'Extension transaction deleted.');
+                    notyf.success(data.message || 'Order Enhancement deleted.');
                     setTimeout(() => window.location.reload(), 1500);
                 },
             });
@@ -8234,16 +8234,17 @@
                         window.BillingPayment.openForExtension(data.billing_charge, {
                             personId: person,
                             cards: window.beCustomerCards || [],
+                            description: description,
                         });
                     } else {
                         window.location.reload();
                     }
                 } else if (status === 409 && data.duplicate) {
                     // Already created by an earlier click — just show it
-                    notyf.success('Extension already created.');
+                    notyf.success('Order Enhancement already created.');
                     window.location.reload();
                 } else {
-                    notyf.error(data.message || 'Failed to create extension charge.');
+                    notyf.error(data.message || 'Failed to create Order Enhancement.');
                 }
             })
             .catch(err => {

@@ -312,7 +312,7 @@
                                 url: "{{ route('admin.order-management.orders.bulk-delete') }}",
                                 payload: { unique_ids: [uniqueId] },
                                 onSuccess: (data) => {
-                                    notyf.success(data.message || 'Extension transaction deleted.');
+                                    notyf.success(data.message || 'Order Enhancement deleted.');
                                     const row = document.getElementById('order-row-' + uniqueId);
                                     if (row) row.remove();
                                 },

@@ -18,7 +18,7 @@ class IndexController extends BaseController
      */
     public function __invoke(): JsonResponse
     {
-        $settings = Setting::whereIn('setting_type', ['Price Settings'])
+        $settings = Setting::whereIn('setting_type', ['Price Settings', 'Product Settings'])
             ->select('id','unique_id','setting_name','setting_title','setting_value','placeholder','setting_options', 'setting_type')
             ->orderBy('sort_order', 'asc')
             ->get()

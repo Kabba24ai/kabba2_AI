@@ -346,23 +346,25 @@
                                             data-charged="{{ $item->charged ?? null }}"
                                             data-group-ids="{{ $item->groups->where('status', 'Active')->pluck('id')->implode(',') }}" />
                                         <span>{{ $item->label }}
-                                            <span class="font-medium">+
-                                                @php
-                                                    $price = match ($productVariant) {
-                                                        'daily' => $item->daily,
-                                                        'weekend' => $item->weekend,
-                                                        'weekly' => $item->weekly,
-                                                        'monthly' => $item->monthly,
-                                                        default => $item->retail_price,
-                                                    };
-                                                @endphp
-                                                {{ App\Helpers\CustomHelper::formatCurrency($price) }}
+                                            @php
+                                                $price = match ($productVariant) {
+                                                    'daily' => $item->daily,
+                                                    'weekend' => $item->weekend,
+                                                    'weekly' => $item->weekly,
+                                                    'monthly' => $item->monthly,
+                                                    default => $item->retail_price,
+                                                };
+                                            @endphp
+                                            @if ($price !== null && (float) $price !== 0.0)
+                                                <span class="font-medium">+
+                                                    {{ App\Helpers\CustomHelper::formatCurrency($price) }}
+                                                </span>
+                                            @endif
 
-                                                @if (!empty($item->charged) && $item->charged !== null)
-                                                    <small style="display: none;"
-                                                        class="text-gray-500">({{ $item->charged }})</small>
-                                                @endif
-                                            </span>
+                                            @if (!empty($item->charged) && $item->charged !== null)
+                                                <small style="display: none;"
+                                                    class="text-gray-500">({{ $item->charged }})</small>
+                                            @endif
                                         </span>
                                     </label>
                                 @endforeach

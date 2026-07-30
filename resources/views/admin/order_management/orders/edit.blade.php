@@ -2498,6 +2498,30 @@
                     </label>
                 </div>
 
+                {{-- Apply Store Credit — only when the customer actively has
+                     Store Credit available (the majority don't, so it stays out
+                     of the way otherwise). Store Credit is a PRE-TAX discount, so
+                     this hands off to the Store Credit modal (close → apply +
+                     recalc → reopen this modal with the updated balance), NOT a
+                     payment method. Hidden by JS when the modal targets an
+                     extension child (the discount applies to the main order). --}}
+                @php
+                    $ppScAvailable = $order->customer_id
+                        ? (float) \App\Services\CustomerCreditService::remainingBalance((int) $order->customer_id)
+                        : 0.0;
+                @endphp
+                @can('customer_credit.redeem')
+                    @if ($ppScAvailable > 0)
+                        <div id="paymentApplyStoreCreditRow" class="flex items-center gap-4">
+                            <button type="button" id="paymentApplyStoreCreditBtn"
+                                class="inline-flex items-center justify-center h-11 px-4 rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+                                Apply Store Credit
+                            </button>
+                            <span class="text-sm font-semibold text-gray-700">Credit Available: {{ \App\Helpers\CustomHelper::formatCurrency($ppScAvailable) }}</span>
+                        </div>
+                    @endif
+                @endcan
+
                 <!-- Partial payment fields (hidden by default) -->
                 <div id="partialPaymentFields" class="hidden space-y-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
                     <div class="flex justify-between text-sm font-medium text-gray-700">
@@ -4293,11 +4317,21 @@
                         scModal.querySelector('input[type=number]')?.focus();
                     });
                 });
+                const closeScModal = function () {
+                    scModal.style.display = 'none';
+                    // Cancelled out of the payment→Store Credit hand-off (no
+                    // apply, no reload) — return to the payment modal with the
+                    // unchanged balance.
+                    if (sessionStorage.getItem('scReturnToPayment') === '1') {
+                        sessionStorage.removeItem('scReturnToPayment');
+                        window.openProcessPaymentModal?.();
+                    }
+                };
                 scModal.querySelectorAll('[data-sc-close]').forEach(function (b) {
-                    b.addEventListener('click', function () { scModal.style.display = 'none'; });
+                    b.addEventListener('click', closeScModal);
                 });
                 scModal.addEventListener('click', function (e) {
-                    if (e.target === scModal) scModal.style.display = 'none';
+                    if (e.target === scModal) closeScModal();
                 });
             }
         });
@@ -5462,7 +5496,15 @@
                         ? crypto.randomUUID()
                         : 'idem-' + Date.now() + '-' + Math.random().toString(36).slice(2);
                 }
+                // Apply Store Credit only makes sense for the main order (the
+                // pre-tax discount targets it) — hide it when paying an
+                // extension child.
+                const scRow = document.getElementById('paymentApplyStoreCreditRow');
+                if (scRow) scRow.classList.toggle('hidden', paymentTargetUniqueId !== orderUniqueId);
             }
+            // Exposed so the Store Credit modal's cancel path can bring the
+            // user back to this modal without a page reload.
+            window.openProcessPaymentModal = openProcessPaymentModal;
 
             function closeProcessPaymentModal() {
                 processPaymentModal.classList.add('hidden');
@@ -5558,6 +5600,33 @@
             // Initialize
             updatePaymentModeUI();
             document.getElementById('balanceDueDisplay').textContent = fmtCurrency(modalBalanceDue);
+
+            // === Apply Store Credit hand-off ===
+            // Store Credit is applied as a PRE-TAX discount, not a payment. The
+            // button closes this modal and opens the Store Credit modal; the
+            // sessionStorage flag brings the user back here afterward (the apply
+            // path reloads the page with the recalculated balance).
+            const applyScBtn = document.getElementById('paymentApplyStoreCreditBtn');
+            if (applyScBtn) {
+                applyScBtn.addEventListener('click', function () {
+                    sessionStorage.setItem('scReturnToPayment', '1');
+                    closeProcessPaymentModal();
+                    const scModal = document.getElementById('storeCreditModal');
+                    if (scModal) {
+                        scModal.style.display = 'flex';
+                        scModal.querySelector('input[type=number]')?.focus();
+                    }
+                });
+            }
+            // Returned from the Store Credit modal after an apply+reload — reopen
+            // the payment modal on the freshly recalculated balance (skip if the
+            // discount cleared the balance entirely).
+            if (sessionStorage.getItem('scReturnToPayment') === '1') {
+                sessionStorage.removeItem('scReturnToPayment');
+                if (modalBalanceDue > 0.005) {
+                    openProcessPaymentModal();
+                }
+            }
 
             // Open payment modal for an extension order (called from extension table buttons)
             window.openPaymentModalForExtension = function(uniqueId, grandTotal, totalPaid, orderNumber) {

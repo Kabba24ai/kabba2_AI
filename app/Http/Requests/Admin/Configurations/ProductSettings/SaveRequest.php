@@ -55,6 +55,9 @@ class SaveRequest extends FormRequest
             'clean' => 'nullable|array',
             'clean.*.description' => 'string|max:255',
             'clean.*.rate' => 'nullable|numeric|min:0',
+            'clean.*.std' => 'nullable|numeric|min:0',
+            'clean.*.moderate' => 'nullable|numeric|min:0',
+            'clean.*.extreme' => 'nullable|numeric|min:0',
 
             'prepaid_fuel_rates' => 'nullable',
             'prepaid_cleaning_rates' => 'nullable',

@@ -435,11 +435,16 @@
         <h3 class="text-lg font-bold text-gray-900">Product Cleaning</h3>
     </div>
 
+    <p class="mb-3 text-xs text-gray-500">
+        Multipliers applied to each Prepaid Cleaning Rate's amount (rounded up to the next dollar) to get the
+        Std/Moderate/Extreme clean fee shown below.
+    </p>
+
     <div class="flex flex-wrap items-end gap-6">
         @foreach ([
-            'std_clean_req' => 'Std Clean Req.',
-            'moderate_clean_req' => 'Moderate Clean Req.',
-            'extreme_clean_req' => 'Extreme Clean Req.',
+            'std_clean_req' => 'Std Clean Multiplier',
+            'moderate_clean_req' => 'Moderate Clean Multiplier',
+            'extreme_clean_req' => 'Extreme Clean Multiplier',
         ] as $cleanReqName => $cleanReqLabel)
             <div class="flex flex-col">
                 <label for="{{ $cleanReqName }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -447,7 +452,7 @@
                 </label>
 
                 <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 select-none">$</span>
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 select-none">*</span>
                     {!! html()->input(
                             'number',
                             $cleanReqName,

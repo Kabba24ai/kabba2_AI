@@ -16,6 +16,17 @@
             border-top: 1px solid rgb(229 231 235);
             transform: rotate(45deg);
         }
+        /* Combined-load card on the driver board. Plain classes (not Tailwind
+           utilities) so styling survives without an asset rebuild. */
+        .dc-load { border: 1px solid #c7d2fe; background: #eef2ff; border-radius: .6rem; padding: .4rem; }
+        .dc-load-head { display: flex; align-items: center; gap: .4rem; padding: 0 .25rem .3rem; }
+        .dc-load-chip { font-size: 9px; font-weight: 700; letter-spacing: .04em; color: #3730a3; background: #e0e7ff; border-radius: .3rem; padding: .1rem .35rem; white-space: nowrap; }
+        .dc-load-sub { font-size: 10px; color: #818cf8; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dc-load-btn { font-size: 10px; font-weight: 500; color: #4f46e5; background: none; border: 0; cursor: pointer; padding: 0; }
+        .dc-load-btn:hover { text-decoration: underline; }
+        .dc-load-btn-danger { color: #6b7280; }
+        .dc-load-btn-danger:hover { color: #dc2626; }
+        .dc-load-body { display: flex; flex-direction: column; gap: .5rem; }
     </style>
 @endpush
 
@@ -290,6 +301,16 @@
     </div>
 
     <div class="mx-auto py-6">
+        {{-- Combine toolbar: appears when ≥1 dispatch row is selected --}}
+        <div id="dispatch-combine-bar" class="hidden mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 shadow-sm">
+            <span class="text-sm font-semibold text-blue-800"><span id="dispatch-combine-count">0</span> selected</span>
+            <span class="text-xs text-blue-500 hidden sm:inline">Combine line items into a single dispatch — one driver, one truck.</span>
+            <div class="ml-auto flex items-center gap-2">
+                <button type="button" id="dispatch-combine-clear" class="text-xs text-gray-500 hover:underline">Clear</button>
+                <button type="button" id="dispatch-combine-open" class="px-3 py-1.5 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">Combine into load</button>
+            </div>
+        </div>
+
         <div id="dispatch-table-wrapper">
             @include('admin.order_management.dispatch.partials._table', [
                 'orderProducts' => [],
@@ -497,6 +518,42 @@
     </div>
 
     <x-admin.equipment-store-modal :stores="$storesForModal" />
+
+    {{-- Combine / Assign-load modal --}}
+    <div id="dispatchLoadModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
+            <div class="flex items-center justify-between mb-2">
+                <h3 id="dispatchLoadModalTitle" class="text-lg font-semibold text-gray-900">Combine into one dispatch</h3>
+                <button type="button" class="dispatch-load-modal-close text-2xl leading-none text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <p id="dispatchLoadModalSummary" class="text-sm text-gray-500 mb-4"></p>
+
+            <div id="dispatchLoadLegRow" class="mb-4">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Combine which leg</label>
+                <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm">
+                    <button type="button" data-leg="delivery" class="dispatch-load-leg px-3 py-1.5">Deliveries</button>
+                    <button type="button" data-leg="return" class="dispatch-load-leg px-3 py-1.5 border-l border-gray-300">Returns</button>
+                    <button type="button" data-leg="both" class="dispatch-load-leg px-3 py-1.5 border-l border-gray-300">Both</button>
+                </div>
+                <p id="dispatchLoadLegHint" class="text-xs text-gray-400 mt-1"></p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Driver</label>
+                <select id="dispatchLoadDriver" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Select a driver…</option>
+                    @foreach ($driverEmployees as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" class="dispatch-load-modal-close px-4 py-2 rounded-lg text-sm border border-gray-300 text-gray-700 hover:bg-gray-100">Cancel</button>
+                <button type="button" id="dispatchLoadConfirm" class="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">Combine</button>
+            </div>
+        </div>
+    </div>
 
 @endsection
 
@@ -1944,6 +2001,234 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             window.initDispatchDnD();
+        });
+    })();
+    </script>
+
+    {{-- ===== Combined dispatch loads: select + combine, and board load controls ===== --}}
+    <script>
+    (function () {
+        const STORE_URL  = '{{ route("admin.order-management.dispatch.loads.store") }}';
+        // Templates with a __ID__ placeholder for the load's unique_id.
+        const ASSIGN_URL = '{{ route("admin.order-management.dispatch.loads.assign", ["load" => "__ID__"]) }}';
+        const REMOVE_URL = '{{ route("admin.order-management.dispatch.loads.remove-member", ["load" => "__ID__"]) }}';
+        const DESTROY_URL = '{{ route("admin.order-management.dispatch.loads.destroy", ["load" => "__ID__"]) }}';
+
+        function csrf() { return document.querySelector('meta[name="csrf-token"]')?.content; }
+
+        function post(url, method, body) {
+            return fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf(),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: body ? JSON.stringify(body) : null,
+            }).then(r => r.json().then(d => ({ ok: r.ok, d })));
+        }
+
+        function refreshBoard() {
+            if (typeof window.refreshDriverCards === 'function') window.refreshDriverCards();
+            if (typeof window.fetchDispatch === 'function') window.fetchDispatch();
+        }
+
+        // ---- Lower-list selection + combine ----
+        const bar = document.getElementById('dispatch-combine-bar');
+        const countEl = document.getElementById('dispatch-combine-count');
+
+        function selectedRows() {
+            return Array.from(document.querySelectorAll('.dispatch-select-row:checked'));
+        }
+
+        function updateBar() {
+            const n = selectedRows().length;
+            if (countEl) countEl.textContent = String(n);
+            if (bar) bar.classList.toggle('hidden', n === 0);
+        }
+
+        // Delegated (the table re-renders via AJAX).
+        document.addEventListener('change', function (e) {
+            if (e.target.classList.contains('dispatch-select-all')) {
+                const on = e.target.checked;
+                document.querySelectorAll('.dispatch-select-row').forEach(cb => { cb.checked = on; });
+                updateBar();
+                return;
+            }
+            if (e.target.classList.contains('dispatch-select-row')) {
+                updateBar();
+            }
+        });
+
+        document.getElementById('dispatch-combine-clear')?.addEventListener('click', function () {
+            document.querySelectorAll('.dispatch-select-row, .dispatch-select-all').forEach(cb => { cb.checked = false; });
+            updateBar();
+        });
+
+        // ---- Modal ----
+        const modal      = document.getElementById('dispatchLoadModal');
+        const modalTitle = document.getElementById('dispatchLoadModalTitle');
+        const modalSum   = document.getElementById('dispatchLoadModalSummary');
+        const legRow     = document.getElementById('dispatchLoadLegRow');
+        const legHint    = document.getElementById('dispatchLoadLegHint');
+        const driverSel  = document.getElementById('dispatchLoadDriver');
+        const confirmBtn = document.getElementById('dispatchLoadConfirm');
+
+        // mode: 'combine' (uses selected rows) or 'assign' (existing load)
+        let mode = 'combine';
+        let chosenLeg = 'delivery';
+        let assignLoadId = null;
+
+        function openModal() { modal?.classList.remove('hidden'); }
+        function closeModal() { modal?.classList.add('hidden'); }
+        document.querySelectorAll('.dispatch-load-modal-close').forEach(b => b.addEventListener('click', closeModal));
+        modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        function paintLegButtons() {
+            document.querySelectorAll('.dispatch-load-leg').forEach(btn => {
+                const active = btn.dataset.leg === chosenLeg;
+                btn.classList.toggle('bg-blue-600', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('bg-white', !active);
+                btn.classList.toggle('text-gray-600', !active);
+                const disabled = btn.disabled;
+                btn.classList.toggle('opacity-40', disabled);
+                btn.classList.toggle('cursor-not-allowed', disabled);
+            });
+        }
+
+        // Default the driver to the one the selected rows already share. For 'both',
+        // require the same shared driver across both legs, else leave blank.
+        function commonDriverForLeg(rows, leg) {
+            if (leg === 'both') {
+                const d = commonDriverForLeg(rows, 'delivery');
+                const r = commonDriverForLeg(rows, 'return');
+                return d && d === r ? d : '';
+            }
+            const key = leg === 'delivery' ? 'deliveryDriver' : 'returnDriver';
+            const ids = rows.map(cb => cb.dataset[key]).filter(Boolean);
+            if (ids.length !== rows.length) return '';
+            return ids.every(id => id === ids[0]) ? ids[0] : '';
+        }
+
+        function openCombine() {
+            const rows = selectedRows();
+            if (rows.length < 2) {
+                window.notyf?.error?.('Select at least two items to combine.');
+                return;
+            }
+            mode = 'combine';
+            assignLoadId = null;
+
+            const deliveryOk = rows.every(cb => cb.dataset.deliveryActive === '1');
+            const returnOk   = rows.every(cb => cb.dataset.returnActive === '1');
+            if (!deliveryOk && !returnOk) {
+                window.notyf?.error?.('The selected items do not share a combinable delivery or return leg (must be pending truck legs).');
+                return;
+            }
+
+            const bothOk = deliveryOk && returnOk;
+            // Prefer Both when possible (usually the right call), else the one valid leg.
+            chosenLeg = bothOk ? 'both' : (deliveryOk ? 'delivery' : 'return');
+            document.querySelectorAll('.dispatch-load-leg').forEach(btn => {
+                const leg = btn.dataset.leg;
+                btn.disabled = leg === 'delivery' ? !deliveryOk : (leg === 'return' ? !returnOk : !bothOk);
+            });
+            legRow.classList.remove('hidden');
+            legHint.textContent = bothOk
+                ? 'These items can be combined as deliveries, returns, or both.'
+                : (deliveryOk ? 'Only the delivery leg is combinable for this selection.' : 'Only the return leg is combinable for this selection.');
+
+            modalTitle.textContent = 'Combine into one dispatch';
+            modalSum.textContent = rows.length + ' items will travel together on one driver.';
+            confirmBtn.textContent = 'Combine';
+            driverSel.value = commonDriverForLeg(rows, chosenLeg);
+            paintLegButtons();
+            openModal();
+        }
+
+        document.getElementById('dispatch-combine-open')?.addEventListener('click', openCombine);
+
+        document.querySelectorAll('.dispatch-load-leg').forEach(btn => btn.addEventListener('click', function () {
+            if (btn.disabled) return;
+            chosenLeg = btn.dataset.leg;
+            if (mode === 'combine') driverSel.value = commonDriverForLeg(selectedRows(), chosenLeg);
+            paintLegButtons();
+        }));
+
+        confirmBtn?.addEventListener('click', function () {
+            const driverId = driverSel.value;
+            if (!driverId) { window.notyf?.error?.('Choose a driver for the load.'); return; }
+            confirmBtn.disabled = true;
+
+            const done = (ok, d) => {
+                confirmBtn.disabled = false;
+                if (ok && d && d.success) {
+                    window.notyf?.success?.(mode === 'assign' ? 'Load reassigned.' : 'Items combined into one dispatch.');
+                    closeModal();
+                    document.querySelectorAll('.dispatch-select-row, .dispatch-select-all').forEach(cb => { cb.checked = false; });
+                    updateBar();
+                    refreshBoard();
+                } else {
+                    window.notyf?.error?.((d && d.message) || 'Could not complete the action.');
+                }
+            };
+
+            if (mode === 'assign') {
+                post(ASSIGN_URL.replace('__ID__', assignLoadId), 'POST', { driver_id: driverId })
+                    .then(({ ok, d }) => done(ok, d)).catch(() => done(false));
+            } else {
+                const uids = selectedRows().map(cb => cb.dataset.uid);
+                post(STORE_URL, 'POST', { member_uids: uids, leg: chosenLeg, driver_id: driverId })
+                    .then(({ ok, d }) => done(ok, d)).catch(() => done(false));
+            }
+        });
+
+        // ---- Board load controls (delegated; the cards re-render via AJAX) ----
+        document.addEventListener('click', function (e) {
+            const assignBtn = e.target.closest('.dc-load-assign');
+            if (assignBtn) {
+                const load = assignBtn.closest('.dc-load');
+                if (!load) return;
+                mode = 'assign';
+                assignLoadId = load.dataset.loadId;
+                legRow.classList.add('hidden');
+                modalTitle.textContent = 'Assign load to a driver';
+                modalSum.textContent = 'The whole load moves to the chosen driver as one unit.';
+                confirmBtn.textContent = 'Assign';
+                driverSel.value = '';
+                openModal();
+                return;
+            }
+
+            const ungroupBtn = e.target.closest('.dc-load-ungroup');
+            if (ungroupBtn) {
+                const load = ungroupBtn.closest('.dc-load');
+                if (!load) return;
+                if (!window.confirm('Ungroup this load? The items stay on the driver but are no longer combined.')) return;
+                post(DESTROY_URL.replace('__ID__', load.dataset.loadId), 'DELETE')
+                    .then(({ ok, d }) => {
+                        if (ok && d && d.success) { window.notyf?.success?.('Load ungrouped.'); }
+                        else { window.notyf?.error?.((d && d.message) || 'Could not ungroup.'); }
+                    })
+                    .catch(() => window.notyf?.error?.('A network error occurred.'))
+                    .finally(refreshBoard);
+                return;
+            }
+
+            const removeBtn = e.target.closest('.dc-load-remove');
+            if (removeBtn) {
+                const load = removeBtn.closest('.dc-load');
+                if (!load) return;
+                post(REMOVE_URL.replace('__ID__', load.dataset.loadId), 'POST', { member_uid: removeBtn.dataset.uid })
+                    .then(({ ok, d }) => {
+                        if (ok && d && d.success) { window.notyf?.success?.('Removed from load.'); }
+                        else { window.notyf?.error?.((d && d.message) || 'Could not remove item.'); }
+                    })
+                    .catch(() => window.notyf?.error?.('A network error occurred.'))
+                    .finally(refreshBoard);
+            }
         });
     })();
     </script>

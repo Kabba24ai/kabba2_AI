@@ -476,6 +476,37 @@
                 </td>
             </tr>
 
+            {{-- Store Credit as a PRE-TAX discount — shown inline so the receipt
+                 reconciles (Subtotal − Store Credit = Discounted, +Tax = Total),
+                 mirroring the Order Details summary. Values come straight from
+                 the engine's ProductDiscount snapshot; no arithmetic here. The
+                 receipt's Tax/Total were already synced to the recalculated
+                 order columns in ReceiptService::getOrCreateReceipt(). --}}
+            @php
+                $receiptScDiscount = \App\Models\Discounts\ProductDiscount::query()
+                    ->where('target_type', 'order')->where('target_id', $order->id)
+                    ->where('discount_type', 'store_credit')->where('status', 'applied')
+                    ->latest('id')->first();
+            @endphp
+            @if ($receiptScDiscount)
+                <tr>
+                    <td style="text-align:right; padding:4px 0; color:#008080;">
+                        Store Credit Discount :
+                    </td>
+                    <td style="text-align:right; padding:4px 0; color:#008080;">
+                        &minus; {{ \App\Helpers\CustomHelper::formatCurrency($receiptScDiscount->calculated_discount_amount) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:right; padding:4px 0;">
+                        Discounted Product Value :
+                    </td>
+                    <td style="text-align:right; padding:4px 0;">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($receiptScDiscount->discounted_product_value) }}
+                    </td>
+                </tr>
+            @endif
+
             <tr>
                 <td style="text-align:right; padding:4px 0;">
                     Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %) :

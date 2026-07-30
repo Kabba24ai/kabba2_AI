@@ -17,7 +17,7 @@
                 <span class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center">
                     <x-heroicon-o-trash class="w-4 h-4 text-red-600" />
                 </span>
-                <h2 class="text-lg font-medium text-gray-900">Delete Extension Transaction?</h2>
+                <h2 class="text-lg font-medium text-gray-900">Delete Order Enhancement?</h2>
             </div>
             <button type="button" id="extDeleteCloseBtn"
                 class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
@@ -43,7 +43,7 @@
                  Employee ID (PIN), and reason are always mandatory. --}}
             <div id="extDeleteDisposition" class="hidden flex-col gap-3 border-t border-gray-100 pt-4">
                 <div class="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                    Deleting an extension permanently removes the child order and its charge.
+                    Deleting an Order Enhancement permanently removes the child order and its charge.
                     Confirm a <span class="font-bold">responsible employee, Employee ID, and reason</span> to proceed.
                 </div>
 
@@ -228,7 +228,7 @@
                 if (data && data.errors) {
                     showError(Object.values(data.errors).map(v => v.join(' ')).join(' '));
                 } else {
-                    showError((data && data.message) || 'Failed to delete the extension transaction.');
+                    showError((data && data.message) || 'Failed to delete the Order Enhancement.');
                 }
                 if (data && data.requires_disposition) {
                     disposition.classList.remove('hidden');

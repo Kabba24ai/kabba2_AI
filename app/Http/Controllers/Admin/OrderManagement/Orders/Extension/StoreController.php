@@ -37,7 +37,7 @@ class StoreController extends Controller
             return response()->json([
                 'success'   => false,
                 'duplicate' => true,
-                'message'   => 'This extension was already submitted.',
+                'message'   => 'This Order Enhancement was already submitted.',
             ], 409);
         }
 
@@ -56,7 +56,7 @@ class StoreController extends Controller
                 ->count();
             if ($existingCount >= 26) {
                 DB::rollBack();
-                return response()->json(['success' => false, 'message' => 'Maximum of 26 extensions per order reached.'], 422);
+                return response()->json(['success' => false, 'message' => 'Maximum of 26 Order Enhancements per order reached.'], 422);
             }
             $suffix = chr(65 + $existingCount); // A, B, C…
             $extensionOrderNumber = $order->order_number . '-' . $suffix;
@@ -172,7 +172,7 @@ class StoreController extends Controller
                 'action_by'   => OrderHistoryActionBy::User,
                 'action_date' => now(),
                 'action'      => OrderHistoryAction::ExtensionChargeCreated,
-                'description' => "Extension charge {$extensionOrderNumber} created — {$validated['description']} | \${$baseAmount}{$taxNote} | Total: \$" . number_format($grandTotal, 2),
+                'description' => "Order Enhancement {$extensionOrderNumber} created — {$validated['description']} | \${$baseAmount}{$taxNote} | Total: \$" . number_format($grandTotal, 2),
             ]);
 
             DB::commit();
@@ -228,7 +228,7 @@ class StoreController extends Controller
 
             return response()->json([
                 'success'   => true,
-                'message'   => "Extension charge {$extensionOrderNumber} created successfully.",
+                'message'   => "Order Enhancement {$extensionOrderNumber} created successfully.",
                 'extension' => [
                     'unique_id'    => $extension->unique_id,
                     'order_number' => $extension->order_number,
@@ -255,7 +255,7 @@ class StoreController extends Controller
             DB::rollBack();
             report($e);
 
-            return response()->json(['success' => false, 'message' => 'Failed to create extension charge. Please try again.'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to create Order Enhancement. Please try again.'], 500);
         }
     }
 }

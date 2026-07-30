@@ -299,16 +299,22 @@
             $('wsp-amount').readOnly = true;
             $('wsp-amount-note').classList.remove('hidden');
             if (opts.personId) $('wsp-person').value = opts.personId;
-            $('wsp-context-title').textContent = 'Extension Created';
+            // "Order Enhancement" is the feature name; show the chosen
+            // Description (opts.description) beside the child number so a
+            // Delivery / Retail / etc. enhancement is identifiable here too.
+            const enhNum = String(charge.order_number || '').replace(/^#/, '');
+            const enhLabel = 'Order Enhancement' + (enhNum ? ' #' + enhNum : '');
+            const enhDesc = opts.description ? ' · ' + opts.description : '';
+            $('wsp-context-title').textContent = 'Order Enhancement Created';
             $('wsp-context-text').textContent =
-                'Extension ' + (charge.order_number || '') + ' — $' + Number(charge.total || 0).toFixed(2)
+                enhLabel + enhDesc + ' — $' + Number(charge.total || 0).toFixed(2)
                 + '. Record the payment now, or save as Pay Later.';
             $('wsp-context').classList.remove('hidden');
-            $('wsp-submit').textContent = 'Create Extension & Record Payment';
+            $('wsp-submit').textContent = 'Create Order Enhancement & Record Payment';
             $('wsp-cancel').textContent = 'Save as Pay Later';
             setCards(opts.cards || []);
             syncPaymentFields();
-            openModal(opts.label || ('Extension ' + (charge.order_number || '')));
+            openModal(opts.label || enhLabel);
         },
 
         /** Show a failure reason (e.g. a declined gateway attempt) inside the modal. */

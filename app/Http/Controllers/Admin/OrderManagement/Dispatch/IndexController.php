@@ -35,7 +35,7 @@ class IndexController extends Controller
         $driverIds = $drivers->pluck('id');
         $endDate   = $mode->endDate();
 
-        $deliveryQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'deliveryStore', 'equipment', 'softAssignment.equipment'])
+        $deliveryQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'deliveryStore', 'equipment', 'softAssignment.equipment', 'deliveryLoad'])
             ->whereIn('delivery_by', $driverIds)
             ->where('delivery_status', 'Pending')
             ->where('delivery_transport_mode', 'Truck')
@@ -54,7 +54,7 @@ class IndexController extends Controller
 
         $deliveryJobs = $deliveryQuery->get()->groupBy('delivery_by');
 
-        $returnQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'pickupStore', 'equipment', 'softAssignment.equipment'])
+        $returnQuery = OrderProduct::with(['order.customer', 'order.shippingAddress', 'pickupStore', 'equipment', 'softAssignment.equipment', 'pickupLoad'])
             ->whereIn('pickup_by', $driverIds)
             ->where('pickup_status', 'Pending')
             ->where('pickup_transport_mode', 'Truck')
@@ -87,11 +87,67 @@ class IndexController extends Controller
                     : ($job->pickup_priority   ?? 9999))
                 ->values();
 
+            // Tag consecutive runs of the same combined-load so Blade can wrap them
+            // in one grouped "load" card. Separate view uses _load_*; combined view
+            // uses _cmb_load_* (the same model instances appear in both).
+            $this->tagLoadRuns($deliveries, fn($j) => $j->delivery_load_id, fn($j) => $j->deliveryLoad, '_load');
+            $this->tagLoadRuns($returns,    fn($j) => $j->pickup_load_id,   fn($j) => $j->pickupLoad,   '_load');
+            $this->tagLoadRuns(
+                $combined,
+                fn($j) => $j->getAttribute('_slot') === 'delivery' ? $j->delivery_load_id : $j->pickup_load_id,
+                fn($j) => $j->getAttribute('_slot') === 'delivery' ? $j->deliveryLoad : $j->pickupLoad,
+                '_cmb_load'
+            );
+
             $driver->delivery_jobs = $deliveries;
             $driver->return_jobs   = $returns;
             $driver->combined_jobs = $combined;
             return $driver;
         })->values();
+    }
+
+    /**
+     * Mark consecutive runs of the same load in an already-sorted job collection so
+     * the view can wrap each run in one grouped card. Sets, per job:
+     *   {$p}_open  (bool)  first member of a run — also gets {$p} (the DispatchLoad)
+     *                      and {$p}_count (members in the run)
+     *   {$p}_close (bool)  last member of a run
+     * A run of length 1 is treated as NOT a load group (a lone member renders as a
+     * normal card — a load needs ≥2 to be meaningful).
+     */
+    private function tagLoadRuns(\Illuminate\Support\Collection $jobs, callable $loadIdOf, callable $loadOf, string $p): void
+    {
+        $items = $jobs->values();
+        $n = $items->count();
+
+        for ($i = 0; $i < $n; $i++) {
+            $job  = $items[$i];
+            $lid  = $loadIdOf($job);
+            $prev = $i > 0 ? $loadIdOf($items[$i - 1]) : null;
+            $next = $i < $n - 1 ? $loadIdOf($items[$i + 1]) : null;
+
+            $isOpen  = $lid && $lid !== $prev;
+            $isClose = $lid && $lid !== $next;
+
+            // Count the run length starting at this open.
+            $count = 0;
+            if ($isOpen) {
+                for ($j = $i; $j < $n && $loadIdOf($items[$j]) === $lid; $j++) {
+                    $count++;
+                }
+            }
+
+            // A single-item "run" is not a group.
+            $isGroup = $lid && !($isOpen && $isClose && $count < 2);
+
+            $job->setAttribute($p . '_open', $isGroup && $isOpen);
+            $job->setAttribute($p . '_close', $isGroup && $isClose);
+            $job->setAttribute($p . '_in', (bool) $isGroup);
+            if ($isGroup && $isOpen) {
+                $job->setAttribute($p, $loadOf($job));
+                $job->setAttribute($p . '_count', $count);
+            }
+        }
     }
 
     public function __invoke(Request $request)
@@ -429,8 +485,9 @@ class IndexController extends Controller
             ->pluck('full_name', 'unique_id')
             ->prepend('Select Employee', '');
 
-        // Driver / Tech assign modal: uses numeric id — all active employees
-        $driverEmployees = $allUsers->pluck('full_name', 'id');
+        // Driver assignment + "All Drivers" filter + combine-load modal: only users
+        // flagged as drivers (is_driver). Non-drivers are never assignable here.
+        $driverEmployees = $driverUsers->pluck('full_name', 'id');
 
         // Employee phone map (id → phone) — all active employees
         $driverPhones = $allUsers->mapWithKeys(fn($u) => [

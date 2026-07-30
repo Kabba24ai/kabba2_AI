@@ -174,7 +174,7 @@ class ExtensionTransactionService
         $childNumber = $child?->order_number ?? '(missing)';
         $amount      = $charge ? ($charge->amount + $charge->tax_amount) : null;
 
-        $description = "Extension charge {$childNumber} deleted by {$actor->full_name}"
+        $description = "Order Enhancement {$childNumber} deleted by {$actor->full_name}"
             . ($amount !== null ? ' | Total: $' . number_format($amount, 2) : '')
             . ' | Payment state: ' . str_replace('_', ' ', $paymentState)
             . ' | Via: ' . ($entryPoint === self::ENTRY_BILLING_ROW ? 'Billing Engine row' : 'child order delete');

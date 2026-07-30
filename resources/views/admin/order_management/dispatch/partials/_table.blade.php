@@ -2,6 +2,7 @@
     <table class="min-w-full text-sm text-left whitespace-nowrap">
         <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
             <tr>
+                <th class="py-4 px-3 text-center w-8"><input type="checkbox" class="dispatch-select-all" title="Select all on this page"></th>
                 <th class="py-4 px-6 text-left">Product</th>
                 <th class="py-4 px-4 text-center">Order</th>
                 <th class="py-4 px-6 text-left">Customer</th>
@@ -53,6 +54,19 @@
                 @endphp
                 <tr id="order-row-{{ $orderProduct->id }}"
                     class="hover:bg-gray-50 {{ $fullyDone ? 'bg-green-50/60' : '' }}">
+
+                    {{-- Select (combine into a load) --}}
+                    <td class="py-4 px-3 text-center align-top">
+                        <input type="checkbox" class="dispatch-select-row"
+                            data-uid="{{ $orderProduct->unique_id }}"
+                            data-order-number="{{ $orderProduct->order?->order_number }}"
+                            data-customer="{{ $orderProduct->order?->customer_name }}"
+                            data-city="{{ $orderProduct->order?->shippingAddress?->city }}"
+                            data-delivery-active="{{ ($orderProduct->delivery_status === 'Pending' && $orderProduct->delivery_transport_mode === 'Truck') ? '1' : '0' }}"
+                            data-return-active="{{ ($orderProduct->pickup_status === 'Pending' && $orderProduct->pickup_transport_mode === 'Truck' && $orderProduct->pickup_date) ? '1' : '0' }}"
+                            data-delivery-driver="{{ $orderProduct->delivery_by }}"
+                            data-return-driver="{{ $orderProduct->pickup_by }}">
+                    </td>
 
                     {{-- Product --}}
                     <td class="py-4 px-6 text-left min-w-[210px] max-w-[210px] {{ $fullyDone ? 'opacity-60' : '' }}">
@@ -354,7 +368,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="13" class="text-center text-sm text-gray-500 px-4 py-6">
+                    <td colspan="14" class="text-center text-sm text-gray-500 px-4 py-6">
                         @if ($orderProducts)
                             No dispatch records found.
                         @else

@@ -111,11 +111,19 @@
                             $isEarly   = $job->dispatch_delivery_date && $job->delivery_date
                                          && \Carbon\Carbon::parse($job->dispatch_delivery_date)->lt(\Carbon\Carbon::parse($job->delivery_date));
                         @endphp
+                        @if (!empty($job->_load_open))
+                            @include('admin.order_management.dispatch.partials._load_open', ['load' => $job->_load, 'count' => $job->_load_count, 'leg' => 'delivery'])
+                        @endif
                         <div class="dc-entry flex items-start gap-2">
-                            {{-- Drag handle (reorder / reassign) --}}
-                            <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
-                                <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
-                            </span>
+                            @if (empty($job->_load_in))
+                                {{-- Drag handle (reorder / reassign) --}}
+                                <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
+                                    <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
+                                </span>
+                            @else
+                                {{-- Load member: remove from load instead of drag --}}
+                                <button type="button" class="dc-load-remove shrink-0 mt-1 w-4 text-center text-gray-300 hover:text-red-600 font-bold leading-none" title="Remove from load" data-uid="{{ $job->unique_id }}">&times;</button>
+                            @endif
                             {{-- Editable priority circle --}}
                             <button type="button"
                                 class="dispatch-priority-badge shrink-0 w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center leading-none mt-0.5 {{ $job->delivery_priority ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600' }}"
@@ -143,6 +151,9 @@
                                 <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
                             </button>
                         </div>
+                        @if (!empty($job->_load_close))
+                            </div></div>{{-- close .dc-load members wrapper + container --}}
+                        @endif
                         @empty
                             <p class="text-gray-300 italic">None scheduled</p>
                         @endforelse
@@ -165,11 +176,19 @@
                             $isLatePickup = $job->dispatch_return_date && $job->pickup_date
                                             && \Carbon\Carbon::parse($job->dispatch_return_date)->gt(\Carbon\Carbon::parse($job->pickup_date));
                         @endphp
+                        @if (!empty($job->_load_open))
+                            @include('admin.order_management.dispatch.partials._load_open', ['load' => $job->_load, 'count' => $job->_load_count, 'leg' => 'return'])
+                        @endif
                         <div class="dc-entry flex items-start gap-2">
-                            {{-- Drag handle (reorder / reassign) --}}
-                            <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
-                                <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
-                            </span>
+                            @if (empty($job->_load_in))
+                                {{-- Drag handle (reorder / reassign) --}}
+                                <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
+                                    <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
+                                </span>
+                            @else
+                                {{-- Load member: remove from load instead of drag --}}
+                                <button type="button" class="dc-load-remove shrink-0 mt-1 w-4 text-center text-gray-300 hover:text-red-600 font-bold leading-none" title="Remove from load" data-uid="{{ $job->unique_id }}">&times;</button>
+                            @endif
                             {{-- Editable priority circle --}}
                             <button type="button"
                                 class="dispatch-priority-badge shrink-0 w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center leading-none mt-0.5 {{ $job->pickup_priority ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-gray-100 text-gray-400 hover:bg-purple-100 hover:text-purple-600' }}"
@@ -197,6 +216,9 @@
                                 <p class="text-gray-400 leading-snug">To: {{ $job->pickupStore?->store_name ?? 'Custom' }}</p>
                             </button>
                         </div>
+                        @if (!empty($job->_load_close))
+                            </div></div>{{-- close .dc-load members wrapper + container --}}
+                        @endif
                         @empty
                             <p class="text-gray-300 italic">None scheduled</p>
                         @endforelse
@@ -228,11 +250,19 @@
                         $isLatePickup    = !$isDelivery && $job->dispatch_return_date && $job->pickup_date
                                            && \Carbon\Carbon::parse($job->dispatch_return_date)->gt(\Carbon\Carbon::parse($job->pickup_date));
                     @endphp
+                    @if (!empty($job->_cmb_load_open))
+                        @include('admin.order_management.dispatch.partials._load_open', ['load' => $job->_cmb_load, 'count' => $job->_cmb_load_count, 'leg' => $isDelivery ? 'delivery' : 'return'])
+                    @endif
                     <div class="dc-entry flex items-start gap-2">
-                        {{-- Drag handle (reorder / reassign) --}}
-                        <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
-                            <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
-                        </span>
+                        @if (empty($job->_cmb_load_in))
+                            {{-- Drag handle (reorder / reassign) --}}
+                            <span class="dc-drag-handle shrink-0 mt-1 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 select-none" title="Drag to reorder or move to another driver" aria-label="Drag to reorder">
+                                <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg>
+                            </span>
+                        @else
+                            {{-- Load member: remove from load instead of drag --}}
+                            <button type="button" class="dc-load-remove shrink-0 mt-1 w-4 text-center text-gray-300 hover:text-red-600 font-bold leading-none" title="Remove from load" data-uid="{{ $job->unique_id }}">&times;</button>
+                        @endif
                         {{-- Editable priority badge --}}
                         <button type="button"
                             class="dispatch-priority-badge shrink-0 w-7 h-7 rounded-full text-[10px] font-bold flex items-center justify-center leading-none mt-0.5
@@ -272,6 +302,9 @@
                             <p class="text-gray-500 leading-snug">{{ $addr?->address ?? '' }}{{ $addr?->address && $addr?->city ? ', ' : '' }}{{ $addr?->city ?? '—' }}</p>
                         </button>
                     </div>
+                    @if (!empty($job->_cmb_load_close))
+                        </div></div>{{-- close .dc-load members wrapper + container --}}
+                    @endif
                     @empty
                         <p class="text-gray-300 italic">No jobs scheduled</p>
                     @endforelse

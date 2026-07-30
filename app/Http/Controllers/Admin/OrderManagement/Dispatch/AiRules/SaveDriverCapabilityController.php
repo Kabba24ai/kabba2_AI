@@ -20,6 +20,7 @@ class SaveDriverCapabilityController extends Controller
             'can_operate_cdl_truck'     => 'boolean',
             'home_store_id'             => 'nullable|exists:stores,id',
             'skill_rating'              => 'required|integer|min:1|max:5',
+            'designation'               => 'required|in:primary,secondary,alternate',
             'notes'                     => 'nullable|string|max:1000',
             'is_active'                 => 'boolean',
         ]);

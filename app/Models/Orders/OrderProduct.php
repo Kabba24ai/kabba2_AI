@@ -64,6 +64,7 @@ class OrderProduct extends Model
         'delivery_priority',
         'delivery_driver_locked',
         'delivery_priority_locked',
+        'delivery_load_id',
         'delivery_signature_media_id',
         'delivery_notes',
         'is_delivered',
@@ -77,6 +78,7 @@ class OrderProduct extends Model
         'pickup_priority',
         'pickup_driver_locked',
         'pickup_priority_locked',
+        'pickup_load_id',
         'pickup_signature_media_id',
         'pickup_notes',
         'is_returned',
@@ -389,6 +391,16 @@ class OrderProduct extends Model
     public function softAssignment()
     {
         return $this->hasOne(EquipmentSoftAssign::class, 'order_product_id', 'id')->with('equipment');
+    }
+
+    public function deliveryLoad()
+    {
+        return $this->belongsTo(\App\Models\Dispatch\DispatchLoad::class, 'delivery_load_id');
+    }
+
+    public function pickupLoad()
+    {
+        return $this->belongsTo(\App\Models\Dispatch\DispatchLoad::class, 'pickup_load_id');
     }
 
     public function queueLineItem()

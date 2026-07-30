@@ -156,6 +156,30 @@ class DispatchReorderServiceTest extends TestCase
         $this->assertSame(['D:n'], $this->tokens($result));
     }
 
+    public function test_group_contiguous_pulls_members_together_at_first_member_position(): void
+    {
+        // Members b and d are scattered; they collapse into one block where b sat.
+        $unified = $this->items(['D:a', 'D:b', 'D:c', 'D:d', 'D:e']);
+        $result = $this->svc->groupContiguous($unified, ['b', 'd']);
+
+        $this->assertSame(['D:a', 'D:b', 'D:d', 'D:c', 'D:e'], $this->tokens($result));
+    }
+
+    public function test_group_contiguous_across_legs_keeps_block_at_first_member(): void
+    {
+        // A delivery-load's members (a, c) sit among a return; block lands at a's slot.
+        $unified = $this->items(['D:a', 'R:x', 'D:c']);
+        $result = $this->svc->groupContiguous($unified, ['a', 'c']);
+
+        $this->assertSame(['D:a', 'D:c', 'R:x'], $this->tokens($result));
+    }
+
+    public function test_group_contiguous_noop_when_no_members_present(): void
+    {
+        $unified = $this->items(['D:a', 'D:b']);
+        $this->assertSame(['D:a', 'D:b'], $this->tokens($this->svc->groupContiguous($unified, ['z'])));
+    }
+
     public function test_positions_are_contiguous_1_to_n_across_legs(): void
     {
         $unified = $this->items(['D:a', 'R:x', 'D:b', 'D:c']);

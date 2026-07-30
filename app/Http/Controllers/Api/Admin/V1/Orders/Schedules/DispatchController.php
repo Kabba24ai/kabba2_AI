@@ -152,49 +152,54 @@ class DispatchController extends BaseController
             });
         }
 
-        // Date filter — reference the correct date column(s) per schedule selection
+        // Date filter — reference the correct date column(s) per schedule selection,
+        // preferring the dispatch-adjusted date over the original when one is set
+        // (Schedule Financial-Closure Alignment note above; same COALESCE the web
+        // Dispatch screen's driver cards use — see IndexController::buildDriverCards()).
         if ($dateFilter && $dateFilter !== 'All') {
-            $useBothDates = $isBothSelected || empty($scheduleTypes);
-            $dateField    = $isReturnOnly ? 'pickup_date' : 'delivery_date';
+            $useBothDates    = $isBothSelected || empty($scheduleTypes);
+            $deliveryDateSql = \DB::raw('COALESCE(dispatch_delivery_date, delivery_date)');
+            $pickupDateSql   = \DB::raw('COALESCE(dispatch_return_date, pickup_date)');
+            $dateFieldSql    = $isReturnOnly ? $pickupDateSql : $deliveryDateSql;
 
             if ($useBothDates) {
                 if ($dateFilter === 'Today') {
                     // Couple status + date: only show actionable pending items due today or overdue
-                    $query->where(function ($q) {
-                        $q->where(function ($sub) {
+                    $query->where(function ($q) use ($deliveryDateSql, $pickupDateSql) {
+                        $q->where(function ($sub) use ($deliveryDateSql) {
                             $sub->where('delivery_status', 'Pending')
-                                ->whereDate('delivery_date', '<=', today());
-                        })->orWhere(function ($sub) {
+                                ->whereDate($deliveryDateSql, '<=', today());
+                        })->orWhere(function ($sub) use ($pickupDateSql) {
                             $sub->where('pickup_status', 'Pending')
                                 ->whereNotNull('pickup_date')
-                                ->whereDate('pickup_date', '<=', today());
+                                ->whereDate($pickupDateSql, '<=', today());
                         });
                     });
                 } elseif ($dateFilter === "Tomorrow") {
-                    $query->where(function ($q) {
-                        $q->whereDate('delivery_date', now()->addDay()->toDateString())
-                            ->orWhereDate('pickup_date', now()->addDay()->toDateString());
+                    $query->where(function ($q) use ($deliveryDateSql, $pickupDateSql) {
+                        $q->whereDate($deliveryDateSql, now()->addDay()->toDateString())
+                            ->orWhereDate($pickupDateSql, now()->addDay()->toDateString());
                     });
                 } elseif ($dateFilter === 'This Week') {
-                    $query->where(function ($q) {
-                        $q->whereBetween('delivery_date', [now()->startOfWeek(), now()->endOfWeek()])
-                            ->orWhereBetween('pickup_date', [now()->startOfWeek(), now()->endOfWeek()]);
+                    $query->where(function ($q) use ($deliveryDateSql, $pickupDateSql) {
+                        $q->whereBetween($deliveryDateSql, [now()->startOfWeek(), now()->endOfWeek()])
+                            ->orWhereBetween($pickupDateSql, [now()->startOfWeek(), now()->endOfWeek()]);
                     });
                 } elseif ($dateFilter === 'This Month') {
-                    $query->where(function ($q) {
-                        $q->whereMonth('delivery_date', now()->month)
-                            ->orWhereMonth('pickup_date', now()->month);
+                    $query->where(function ($q) use ($deliveryDateSql, $pickupDateSql) {
+                        $q->whereMonth($deliveryDateSql, now()->month)
+                            ->orWhereMonth($pickupDateSql, now()->month);
                     });
                 }
             } else {
                 if ($dateFilter === 'Today') {
-                    $query->whereDate($dateField, '<=', today());
+                    $query->whereDate($dateFieldSql, '<=', today());
                 } elseif ($dateFilter === "Tomorrow") {
-                    $query->whereDate($dateField, now()->addDay()->toDateString());
+                    $query->whereDate($dateFieldSql, now()->addDay()->toDateString());
                 } elseif ($dateFilter === 'This Week') {
-                    $query->whereBetween($dateField, [now()->startOfWeek(), now()->endOfWeek()]);
+                    $query->whereBetween($dateFieldSql, [now()->startOfWeek(), now()->endOfWeek()]);
                 } elseif ($dateFilter === 'This Month') {
-                    $query->whereMonth($dateField, now()->month);
+                    $query->whereMonth($dateFieldSql, now()->month);
                 }
             }
         }

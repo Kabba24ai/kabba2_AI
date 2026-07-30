@@ -6,10 +6,20 @@
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Rental Options</h3>
-        <a href="{{ route('admin.product-management.options.create') }}"
-            class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
-            + Create Options
-        </a>
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <input type="text" id="options-search" name="search" value="{{ request('search') }}"
+                    placeholder="Search options..." autocomplete="off"
+                    class="w-56 rounded-lg border border-gray-300 bg-white px-4 py-2 pr-9 text-sm text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" />
+                <div class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                </div>
+            </div>
+            <a href="{{ route('admin.product-management.options.create') }}"
+                class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500">
+                + Create Options
+            </a>
+        </div>
     </div>
 
     @include('flash::message')
@@ -17,7 +27,8 @@
     <div class="flex flex-col lg:flex-row gap-6">
 
         {{-- Table Card --}}
-        <div class="flex-1 overflow-x-auto rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
+        <div id="options-table-wrapper"
+            class="flex-1 overflow-x-auto rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm transition-opacity duration-200">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-800">
                     <tr>
@@ -35,51 +46,8 @@
                             Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white dark:bg-gray-950">
-                    @forelse ($options as $option)
-                        <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                            <td class=" px-6 py-4">{{ $option->name }}</td>
-                            <td class=" px-6 py-4">{{ $option->type }}</td>
-                            <td class=" px-6 py-4">{{ $option->description }}</td>
-                            <td class=" px-6 py-4">{{ $option->items_count }}</td>
-                            <td class=" px-6 py-4">
-                                <span
-                                    class="{{ $option->isActive() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                    {{ $option->isActive() ? 'Active' : 'Inactive' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex space-x-2">
-                                    <a href="{{ route('admin.product-management.options.edit', $option->unique_id   ) }}"
-                                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                        title="Edit">
-                                        
-                                <x-heroicon-o-pencil-square class="w-5 h-5 cursor-pointer" />
-
-                                    </a>
-                                    <form action="{{ route('admin.product-management.options.delete', $option->unique_id    ) }}"
-                                        method="POST"
-                                        onsubmit="return confirm('Are you sure you want to delete this option?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                            title="Delete">
-                                            <x-heroicon-o-trash class="w-5 h-5" />
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center px-6 py-10 text-gray-500 dark:text-gray-400">
-                                No Rental Options Found.
-                                <a href="{{ route('admin.product-management.options.create') }}"
-                                    class="text-brand-600 hover:underline dark:text-brand-400">Create Your First One</a>
-                            </td>
-                        </tr>
-                    @endforelse
+                <tbody id="options-table-body" class="bg-white dark:bg-gray-950">
+                    @include('admin.product_management.options.partials._rows')
                 </tbody>
             </table>
         </div>
@@ -104,4 +72,46 @@
             </ul>
         </div>
     </div>
+
+    @push('js')
+        <script>
+            (function() {
+                const searchInput = document.getElementById('options-search');
+                const tableBody = document.getElementById('options-table-body');
+                const wrapper = document.getElementById('options-table-wrapper');
+                const rowsUrl = @json(route('admin.product-management.options.index'));
+                let debounceTimer;
+
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => fetchOptions(searchInput.value.trim()), 400);
+                });
+
+                function fetchOptions(search) {
+                    const params = new URLSearchParams();
+                    if (search) params.append('search', search);
+
+                    wrapper.classList.add('opacity-50', 'pointer-events-none');
+
+                    fetch(`${rowsUrl}?${params.toString()}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            tableBody.innerHTML = html;
+                        })
+                        .catch(error => {
+                            tableBody.innerHTML =
+                                '<tr><td colspan="6" class="text-center px-6 py-10 text-red-500">Something went wrong loading the data.</td></tr>';
+                            console.error('Error fetching options:', error);
+                        })
+                        .finally(() => {
+                            wrapper.classList.remove('opacity-50', 'pointer-events-none');
+                        });
+                }
+            })();
+        </script>
+    @endpush
 @endsection

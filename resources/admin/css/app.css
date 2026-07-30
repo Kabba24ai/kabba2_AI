@@ -4,6 +4,15 @@
 
 @import 'air-datepicker/air-datepicker.css';
 
+/* Air-datepicker floats its calendar on <body> at --adp-z-index:100 by default.
+   Our modals use z-[99999], so a date field inside a modal (e.g. CRM Grant
+   Credit → Effective Date) would open its calendar *behind* the modal overlay
+   and read as a dead plain field. Lift the calendar (and the mobile overlay)
+   above every modal. The variables live on .air-datepicker itself, so a :root
+   override can't win — redefine them on the element, after the import. */
+.air-datepicker { --adp-z-index: 100010; }
+.air-datepicker-overlay { --adp-overlay-z-index: 100009; }
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Alpine: hide x-cloak elements until Alpine initializes (Queue Line card

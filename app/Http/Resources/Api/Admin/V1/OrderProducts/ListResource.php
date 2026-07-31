@@ -40,6 +40,8 @@ class ListResource extends JsonResource
             'tax' => $this->tax ? CustomHelper::formatCurrency($this->tax) : '0.00',
             'total' => $this->total ? CustomHelper::formatCurrency($this->total) : '0.00',
             'product_data' => $this->transformProductData($this->product_data ?? []),
+            'is_product_clean' => (bool) $this->is_product_clean,
+            'rental_prepaid_cleaning' => (float) ($this->rental_prepaid_cleaning ?? 0),
             'service_method' => $this->service_method ?? '',
             'service_option' => $this->service_option ?? '',
             'distance_type' => $this->distance_type ?? '',

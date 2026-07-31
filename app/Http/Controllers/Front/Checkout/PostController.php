@@ -303,6 +303,8 @@ class PostController extends Controller
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
                         'total' => $item['total'],
+                        'is_product_clean' => $item['is_product_clean'] ?? false,
+                        'rental_prepaid_cleaning' => $item['rental_prepaid_cleaning'] ?? 0,
                         'product_data' => json_encode($item),
                         'unique_id' => ModelHelper::generateUniqueID(new OrderProduct(), 'ORD-SCH'),
                         'service_method' => $item['service_method'] ?? null,

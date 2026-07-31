@@ -92,6 +92,8 @@ class OrderProduct extends Model
         'total_charge',
         'damage_charge',
         'damage_status',
+        'is_product_clean',
+        'rental_prepaid_cleaning',
 
         'equipment_id',
         'equipment_details',
@@ -163,6 +165,7 @@ class OrderProduct extends Model
         'pickup_is_arrived'       => 'boolean',
         'fuel_charge_status'      => OrderProductChargeStatus::class,
         'damage_status'           => OrderProductChargeStatus::class,
+        'is_product_clean'        => 'boolean',
     ];
 
     // Relationships

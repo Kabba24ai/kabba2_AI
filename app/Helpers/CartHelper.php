@@ -291,6 +291,9 @@ class CartHelper
             'hour_tracking' => $product->hour_tracking ?? 'No',
             'hour_rate' => $product->hour_rate ?? 0,
             'allocated_hours' => $allocatedHours,
+            'rental_prepaid_cleaning' => $product->rental_prepaid_cleaning ?? 0,
+            'rental_prepaid_fuel' => $product->rental_prepaid_fuel ?? 0,
+            'is_product_clean' => ($product->rental_prepaid_cleaning ?? 0) > 0,
 
             'service_method' => $validated['service_method'] ?? null,
             'distance_type' => $validated['distance_type'] ?? null,

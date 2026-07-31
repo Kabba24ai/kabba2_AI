@@ -362,4 +362,88 @@ class QueueLineSwitchEquipmentTest extends QueueLineTestCase
             ->assertSeeHtml('openSwitch(' . $assigned->id . ')')
             ->assertDontSeeHtml('openSwitch(' . $unassigned->id . ')');
     }
+
+    // ── Picker filters (Search Equipment ID + Category → Product) ─────────
+
+    public function test_open_switch_preselects_the_current_units_category(): void
+    {
+        $category = \App\Models\ProductManagement\ProductCategory::create(['title' => 'Excavators']);
+        $row = $this->makeRow();
+        $this->softAssign($row, $this->makeEquipment([
+            'assigned_product_id' => $row->product_id,
+            'product_category_id' => $category->id,
+        ]));
+
+        Livewire::test(Board::class)
+            ->call('openSwitch', $row->id)
+            ->assertSet('switchCategory', (string) $category->id);
+    }
+
+    public function test_category_filter_narrows_the_candidate_list(): void
+    {
+        $excavators = \App\Models\ProductManagement\ProductCategory::create(['title' => 'Excavators']);
+        $chippers = \App\Models\ProductManagement\ProductCategory::create(['title' => 'Wood Chippers']);
+
+        $row = $this->makeRow();
+        $this->softAssign($row, $this->makeEquipment([
+            'assigned_product_id' => $row->product_id, 'product_category_id' => $excavators->id,
+        ]));
+
+        $this->makeEquipment(['equipment_name' => 'Same Cat Digger', 'product_category_id' => $excavators->id, 'assigned_product_id' => $row->product_id]);
+        $this->makeEquipment(['equipment_name' => 'Other Cat Chipper', 'product_category_id' => $chippers->id, 'assigned_product_id' => $row->product_id]);
+
+        // Preselected to the current unit's category (Excavators)
+        Livewire::test(Board::class)
+            ->call('openSwitch', $row->id)
+            ->assertSee('Same Cat Digger')
+            ->assertDontSee('Other Cat Chipper')
+            // switching the category filter flips the list
+            ->set('switchCategory', (string) $chippers->id)
+            ->assertSee('Other Cat Chipper')
+            ->assertDontSee('Same Cat Digger');
+    }
+
+    public function test_reason_picklist_still_gates_alternate_swaps(): void
+    {
+        $row = $this->makeRow();
+        $this->softAssign($row);
+        $otherProduct = Product::create(['product_name' => 'Boom 60', 'slug' => 'b60-' . uniqid(), 'product_type' => 'Rental']);
+        $alternate = $this->makeEquipment(['assigned_product_id' => $otherProduct->id, 'equipment_name' => 'Alt Unit 9']);
+
+        // No reason selected → still blocked (unchanged process)
+        Livewire::test(Board::class)
+            ->call('openSwitch', $row->id)
+            ->set('switchPerformedBy', (string) $this->employee->id)
+            ->call('confirmSwitch', $alternate->id)
+            ->assertSee('reason');
+        $this->assertNotEquals($alternate->id, $row->fresh()->softAssignment->equipment_id);
+
+        // A standard picklist answer → allowed, stored verbatim in the audit
+        Livewire::test(Board::class)
+            ->call('openSwitch', $row->id)
+            ->set('switchPerformedBy', (string) $this->employee->id)
+            ->set('switchReason', 'Reserved unit unavailable')
+            ->call('confirmSwitch', $alternate->id)
+            ->assertSet('switchingItemId', null);
+        $this->assertEquals($alternate->id, $row->fresh()->softAssignment->equipment_id);
+        $this->assertSame('Reserved unit unavailable', EquipmentSubstitutionLog::latest('id')->first()->evaluation_context['reason']);
+    }
+
+    public function test_reason_other_uses_the_free_text_value(): void
+    {
+        $row = $this->makeRow();
+        $this->softAssign($row);
+        $otherProduct = Product::create(['product_name' => 'Boom 80', 'slug' => 'b80-' . uniqid(), 'product_type' => 'Rental']);
+        $alternate = $this->makeEquipment(['assigned_product_id' => $otherProduct->id]);
+
+        Livewire::test(Board::class)
+            ->call('openSwitch', $row->id)
+            ->set('switchPerformedBy', (string) $this->employee->id)
+            ->set('switchReason', 'Other')
+            ->set('switchReasonOther', 'One-off yard decision')
+            ->call('confirmSwitch', $alternate->id)
+            ->assertSet('switchingItemId', null);
+
+        $this->assertSame('One-off yard decision', EquipmentSubstitutionLog::latest('id')->first()->evaluation_context['reason']);
+    }
 }

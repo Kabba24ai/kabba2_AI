@@ -141,6 +141,8 @@
         @include('livewire.queue-line.partials._switch_modal', [
             'switchingItem' => $switchingItem,
             'switchCandidates' => $switchCandidates,
+            'switchCategoryOptions' => $switchCategoryOptions,
+            'switchProductOptions' => $switchProductOptions,
             'activeEmployees' => $activeEmployees,
         ])
     @endif

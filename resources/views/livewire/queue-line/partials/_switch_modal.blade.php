@@ -40,7 +40,7 @@
                 </div>
             @endif
 
-            {{-- Who is physically doing this (shared terminals) --}}
+            {{-- Who is physically doing this (shared terminals) + why --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label for="switch-performed-by" class="text-sm font-medium text-gray-700 required">Performed By</label>
@@ -56,19 +56,53 @@
                     <label for="switch-reason" class="text-sm font-medium text-gray-700">
                         Reason <span class="text-gray-400">(required for non-direct equipment)</span>
                     </label>
-                    <input type="text" id="switch-reason" wire:model="switchReason" maxlength="255"
-                        placeholder="e.g. reserved unit buried in back row"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" />
+                    {{-- Standard picklist for fast daily use; "Other" reveals a
+                         free-text box so nothing is lost. Still required for a
+                         non-direct swap — enforced server-side. --}}
+                    <select id="switch-reason" wire:model.live="switchReason"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                        <option value="">Select a reason…</option>
+                        @foreach (\App\Services\Equipment\EquipmentReassignmentService::STANDARD_REASONS as $standardReason)
+                            <option value="{{ $standardReason }}">{{ $standardReason }}</option>
+                        @endforeach
+                        <option value="Other">Other…</option>
+                    </select>
+                    @if ($switchReason === 'Other')
+                        <input type="text" wire:model="switchReasonOther" maxlength="255"
+                            placeholder="Enter a reason"
+                            class="mt-2 w-full border border-gray-300 rounded-md px-3 py-2 text-sm" />
+                    @endif
                 </div>
             </div>
 
-            {{-- Scan or search --}}
-            <div>
-                <label for="switch-search" class="text-sm font-medium text-gray-700">Scan barcode or search</label>
-                <input type="text" id="switch-search" wire:model.live.debounce.300ms="switchSearch"
-                    autofocus autocomplete="off"
-                    placeholder="Scan a barcode, or type an equipment ID / name / brand"
-                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" />
+            {{-- Find the unit: search by Equipment ID (barcode scanners type the
+                 code) + dependent Category → Product filters. Category is
+                 preselected to the currently assigned unit's category, since a
+                 same-category alternate is what's picked almost every time. --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+                        <x-heroicon-o-magnifying-glass class="w-4 h-4" aria-hidden="true" />
+                    </span>
+                    <input type="text" id="switch-search" wire:model.live.debounce.300ms="switchSearch"
+                        autofocus autocomplete="off" placeholder="Search Equipment ID"
+                        aria-label="Search Equipment ID"
+                        class="w-full border border-gray-300 rounded-md pl-9 pr-3 py-2 text-sm" />
+                </div>
+                <select wire:model.live="switchCategory" aria-label="Category"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                    <option value="">Select Category</option>
+                    @foreach ($switchCategoryOptions as $catId => $catTitle)
+                        <option value="{{ $catId }}">{{ $catTitle }}</option>
+                    @endforeach
+                </select>
+                <select wire:model.live="switchProduct" aria-label="Product"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700">
+                    <option value="">Select Products</option>
+                    @foreach ($switchProductOptions as $prodId => $prodName)
+                        <option value="{{ $prodId }}">{{ $prodName }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="max-h-80 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-md"

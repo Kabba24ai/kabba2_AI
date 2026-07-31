@@ -51,6 +51,21 @@ final class EquipmentReassignmentService
     public const SOURCE_MOBILE = 'mobile';
 
     /**
+     * Canonical picklist of switch reasons — the standard, fast-to-select
+     * answers offered in the UI (web now; mobile can consume the same list).
+     * A reason is still REQUIRED for a non-direct swap (see ::switch); this
+     * only speeds the common cases. "Other" (free text) is offered by the UI
+     * in addition to these and is not part of the list itself.
+     */
+    public const STANDARD_REASONS = [
+        'Reserved unit unavailable',
+        'Original unit down for maintenance or damage',
+        'Better-suited unit available',
+        'Correcting a mis-assignment',
+        'Customer request',
+    ];
+
+    /**
      * Swap the soft-assigned unit for $replacement.
      *
      * @param  User  $performedBy  the employee physically staging (self-selected on shared terminals)

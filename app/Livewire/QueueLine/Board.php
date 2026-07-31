@@ -137,9 +137,19 @@ class Board extends Component
 
     public string $switchSearch = '';
 
+    // Dependent Category → Product filters for the picker. Category is
+    // preselected to the unit currently assigned (99% pick a same-category
+    // alternate). Same canonical sources as the board's own filter bar.
+    public string $switchCategory = '';
+
+    public string $switchProduct = '';
+
     public string $switchPerformedBy = '';
 
     public string $switchReason = '';
+
+    // Free text shown only when the reason dropdown is set to "Other".
+    public string $switchReasonOther = '';
 
     public ?string $switchError = null;
 
@@ -149,10 +159,25 @@ class Board extends Component
     {
         $this->switchingItemId = $orderProductId;
         $this->switchSearch = '';
+        $this->switchProduct = '';
         $this->switchPerformedBy = '';
         $this->switchReason = '';
+        $this->switchReasonOther = '';
         $this->switchError = null;
         $this->actionNotice = null;
+
+        // Preselect the category of the unit currently assigned — nearly every
+        // swap picks an alternate from the SAME category, so this is the
+        // logical shortcut. No current unit / no category → no preselection.
+        $current = OrderProduct::with('softAssignment.equipment:id,product_category_id')
+            ->find($orderProductId)?->softAssignment?->equipment;
+        $this->switchCategory = $current?->product_category_id ? (string) $current->product_category_id : '';
+    }
+
+    /** Category drives the Product list — clear a now-invalid product pick. */
+    public function updatedSwitchCategory(): void
+    {
+        $this->switchProduct = '';
     }
 
     public function closeSwitch(): void
@@ -177,13 +202,20 @@ class Board extends Component
                 return;
             }
 
+            // Reason = a standard picklist answer, or the free text when
+            // "Other" is chosen. Still required for a non-direct swap — the
+            // service enforces that (unchanged process, web + mobile).
+            $reason = $this->switchReason === 'Other'
+                ? (trim($this->switchReasonOther) ?: null)
+                : (trim($this->switchReason) ?: null);
+
             $result = EquipmentReassignmentService::switch(
                 orderProduct: $orderProduct,
                 replacement: $replacement,
                 performedBy: $performedBy,
                 actor: auth()->user(),
                 source: EquipmentReassignmentService::SOURCE_WEB,
-                reason: trim($this->switchReason) ?: null,
+                reason: $reason,
             );
 
             $notice = $result['changed']
@@ -494,26 +526,29 @@ class Board extends Component
         }
     }
 
-    /** Candidate units for the switch modal — direct matches first, barcode-exact on top. */
+    /** Candidate units for the switch modal — Equipment ID search + dependent Category → Product filters. */
     private function switchCandidates(OrderProduct $item): Collection
     {
         $term = trim($this->switchSearch);
+        $categoryId = \App\Helpers\ProductFilterHelper::normalizeCategoryId($this->switchCategory);
+        $productId = \App\Helpers\ProductFilterHelper::normalizeProductId($this->switchProduct, $categoryId);
 
         return Equipment::query()
             ->where('current_status', '!=', 'rented')
             ->when($item->softAssignment?->equipment_id, fn ($q, $current) => $q->where('id', '!=', $current))
-            ->when($term !== '', function ($q) use ($term) {
+            ->when($categoryId, fn ($q, $c) => $q->where('product_category_id', $c))       // same-category shortcut
+            ->when($productId, fn ($q, $p) => $q->where('assigned_product_id', $p))         // narrow to a product
+            ->when($term !== '', function ($q) use ($term) {                                // search by Equipment ID (or name)
                 $q->where(function ($q) use ($term) {
                     $q->where('equipment_id', 'like', "%{$term}%")
-                        ->orWhere('equipment_name', 'like', "%{$term}%")
-                        ->orWhere('brand', 'like', "%{$term}%");
+                        ->orWhere('equipment_name', 'like', "%{$term}%");
                 });
             })
             ->with('assignedProduct:id,product_name')
             ->orderByRaw('equipment_id = ? DESC', [$term])                              // barcode scan → exact id first
             ->orderByRaw('assigned_product_id = ? DESC', [$item->product_id])           // direct matches next
             ->orderBy('equipment_name')
-            ->limit(15)
+            ->limit(25)
             ->get();
     }
 
@@ -681,6 +716,9 @@ class Board extends Component
             }
         }
 
+        $switchCategoryOptions = [];
+        $switchProductOptions = collect();
+
         if ($this->switchingItemId) {
             $switchingItem = OrderProduct::with('softAssignment.equipment', 'product:id,product_name', 'order')
                 ->find($this->switchingItemId);
@@ -688,6 +726,17 @@ class Board extends Component
             if ($switchingItem) {
                 $switchCandidates = $this->switchCandidates($switchingItem);
                 $activeEmployees = User::active()->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+
+                // Dependent Category → Product options for the picker (same
+                // canonical sources as the board filter bar), reduced to the
+                // preselected/chosen category.
+                $switchCategoryOptions = \App\Models\ProductManagement\ProductCategory::getHierarchy();
+                $switchProductOptions = \App\Helpers\ProductFilterHelper::productOptions();
+                $normalizedSwitchCategory = \App\Helpers\ProductFilterHelper::normalizeCategoryId($this->switchCategory);
+                if ($normalizedSwitchCategory !== null) {
+                    $switchMemberIds = \App\Helpers\ProductFilterHelper::categoryProductMap()[$normalizedSwitchCategory] ?? [];
+                    $switchProductOptions = $switchProductOptions->only($switchMemberIds);
+                }
             } else {
                 $this->switchingItemId = null;
             }
@@ -723,6 +772,8 @@ class Board extends Component
             'lastUpdated' => now(), // re-stamped by every poll/action render
             'switchingItem' => $switchingItem,
             'switchCandidates' => $switchCandidates,
+            'switchCategoryOptions' => $switchCategoryOptions,
+            'switchProductOptions' => $switchProductOptions,
             'activeEmployees' => $activeEmployees,
             'fuelByAssignment' => $fuelByAssignment,
             'fuelItem' => $fuelItem,

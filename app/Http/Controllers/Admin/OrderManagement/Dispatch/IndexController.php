@@ -39,8 +39,9 @@ class IndexController extends Controller
             ->whereIn('delivery_by', $driverIds)
             ->where('delivery_status', 'Pending')
             ->where('delivery_transport_mode', 'Truck')
-            ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC')
-            ->orderByRaw('COALESCE(dispatch_delivery_date, delivery_date) ASC');
+            // Date is the primary sort; priority only sequences items sharing a date.
+            ->orderByRaw('COALESCE(dispatch_delivery_date, delivery_date) ASC')
+            ->orderByRaw('delivery_priority IS NULL, delivery_priority ASC');
 
         if ($endDate !== null) {
             $deliveryQuery->whereDate(
@@ -59,8 +60,9 @@ class IndexController extends Controller
             ->where('pickup_status', 'Pending')
             ->where('pickup_transport_mode', 'Truck')
             ->whereNotNull('pickup_date')
-            ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC')
-            ->orderByRaw('COALESCE(dispatch_return_date, pickup_date) ASC');
+            // Date is the primary sort; priority only sequences items sharing a date.
+            ->orderByRaw('COALESCE(dispatch_return_date, pickup_date) ASC')
+            ->orderByRaw('pickup_priority IS NULL, pickup_priority ASC');
 
         if ($endDate !== null) {
             $returnQuery->whereDate(
@@ -80,11 +82,18 @@ class IndexController extends Controller
             $deliveries->each(fn($j) => $j->setAttribute('_slot', 'delivery'));
             $returns->each(fn($j)    => $j->setAttribute('_slot', 'return'));
 
-            // Combined: merge and sort by respective priority (nulls last), then by date
+            // Combined: merge and sort by effective DATE first, then per-leg priority
+            // (nulls last). Date is the primary ordering for the driver's route.
             $combined = $deliveries->concat($returns)
-                ->sortBy(fn($job) => $job->getAttribute('_slot') === 'delivery'
-                    ? ($job->delivery_priority ?? 9999)
-                    : ($job->pickup_priority   ?? 9999))
+                ->sortBy(function ($job) {
+                    $isDelivery = $job->getAttribute('_slot') === 'delivery';
+                    $date = $isDelivery
+                        ? ($job->dispatch_delivery_date ?? $job->delivery_date)
+                        : ($job->dispatch_return_date ?? $job->pickup_date);
+                    $dateKey = $date ? \Carbon\Carbon::parse($date)->format('Y-m-d') : '9999-12-31';
+                    $priority = $isDelivery ? ($job->delivery_priority ?? 9999) : ($job->pickup_priority ?? 9999);
+                    return $dateKey . '|' . str_pad((string) $priority, 5, '0', STR_PAD_LEFT);
+                })
                 ->values();
 
             // Tag consecutive runs of the same combined-load so Blade can wrap them

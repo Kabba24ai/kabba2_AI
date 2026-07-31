@@ -223,14 +223,40 @@ class DispatchLoadService
 
         $tagged = [];
         foreach ($deliveryQ->get() as $op) {
-            $tagged[] = ['uid' => (string) $op->unique_id, 'leg' => 'delivery', 'op' => $op, 'sort' => $op->delivery_priority ?? 9999];
+            $tagged[] = [
+                'uid' => (string) $op->unique_id, 'leg' => 'delivery', 'op' => $op,
+                'date' => $this->effectiveDate($op, 'delivery'), 'sort' => $op->delivery_priority ?? 9999,
+            ];
         }
         foreach ($returnQ->get() as $op) {
-            $tagged[] = ['uid' => (string) $op->unique_id, 'leg' => 'return', 'op' => $op, 'sort' => $op->pickup_priority ?? 9999];
+            $tagged[] = [
+                'uid' => (string) $op->unique_id, 'leg' => 'return', 'op' => $op,
+                'date' => $this->effectiveDate($op, 'return'), 'sort' => $op->pickup_priority ?? 9999,
+            ];
         }
 
-        usort($tagged, fn ($a, $b) => $a['sort'] <=> $b['sort']);
+        // Date first, then priority — matches the board's ordering.
+        usort($tagged, function ($a, $b) {
+            $c = strcmp($a['date'], $b['date']);
+            return $c !== 0 ? $c : ($a['sort'] <=> $b['sort']);
+        });
 
         return $tagged;
+    }
+
+    /** Effective dispatch date for a leg as 'Y-m-d' (undated sorts last). */
+    private function effectiveDate(OrderProduct $op, string $leg): string
+    {
+        $val = $leg === 'delivery'
+            ? ($op->dispatch_delivery_date ?? $op->delivery_date)
+            : ($op->dispatch_return_date ?? $op->pickup_date);
+        if (!$val) {
+            return '9999-12-31';
+        }
+        try {
+            return \Illuminate\Support\Carbon::parse($val)->toDateString();
+        } catch (\Throwable $e) {
+            return '9999-12-31';
+        }
     }
 }

@@ -35,4 +35,5 @@ Route::prefix('test')->name('test.')
     Route::get('/backfill-customer-card-info', [IndexController::class, 'backfillCustomerCardInfo'])->name('backfill_customer_card_info');
     Route::get('/test-openai', [IndexController::class, 'testOpenAi'])->name('test_openai');
     Route::get('/remove-fuel-charge/{orderProductId}', [IndexController::class, 'removeFuelCharge'])->name('remove_fuel_charge');
+    Route::get('/backfill-order-product-cleaning-fields', [IndexController::class, 'backfillOrderProductCleaningFields'])->name('backfill_order_product_cleaning_fields');
 });

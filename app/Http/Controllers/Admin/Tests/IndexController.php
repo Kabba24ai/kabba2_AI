@@ -966,6 +966,65 @@ class IndexController extends Controller
         ]);
     }
 
+    public function backfillOrderProductCleaningFields(Request $request)
+    {
+        @set_time_limit(0);
+
+        $dryRun = $request->boolean('dry_run', false);
+
+        $processed = 0;
+        $updated = 0;
+        $samples = [];
+
+        OrderProduct::query()
+            ->with('product:id,rental_prepaid_cleaning')
+            ->orderBy('id')
+            ->chunkById(100, function ($orderProducts) use (&$processed, &$updated, &$samples, $dryRun) {
+                foreach ($orderProducts as $orderProduct) {
+                    $processed++;
+
+                    $productData = $orderProduct->product_data ?? [];
+
+                    if (array_key_exists('rental_prepaid_cleaning', $productData)) {
+                        $rentalPrepaidCleaning = (float) $productData['rental_prepaid_cleaning'];
+                    } else {
+                        $rentalPrepaidCleaning = (float) ($orderProduct->product?->rental_prepaid_cleaning ?? 0);
+                        $productData['rental_prepaid_cleaning'] = $rentalPrepaidCleaning;
+                    }
+
+                    $isProductClean = $rentalPrepaidCleaning > 0;
+                    $productData['is_product_clean'] = $isProductClean;
+
+                    if (count($samples) < 20) {
+                        $samples[] = [
+                            'id' => $orderProduct->id,
+                            'rental_prepaid_cleaning' => $rentalPrepaidCleaning,
+                            'is_product_clean' => $isProductClean,
+                        ];
+                    }
+
+                    if ($dryRun) {
+                        continue;
+                    }
+
+                    $orderProduct->update([
+                        'rental_prepaid_cleaning' => $rentalPrepaidCleaning,
+                        'is_product_clean' => $isProductClean,
+                        'product_data' => $productData,
+                    ]);
+
+                    $updated++;
+                }
+            });
+
+        return response()->json([
+            'dry_run' => $dryRun,
+            'processed' => $processed,
+            $dryRun ? 'would_update' : 'updated' => $updated,
+            'samples' => $samples,
+        ]);
+    }
+
     public function testOpenAi(OpenAIService $openAIService)
     {
         try {

@@ -18,6 +18,7 @@ return [
 
     'endpoints' => [
         'api/admin/v1/orders/customer-checklists/save-delivery' => 'Order Delivery Checklist Save',
+        'api/admin/v1/orders/customer-checklists/save-return' => 'Order Return Checklist Save',
         'api/admin/v1/orders/schedules/driver-checklist' => 'Update Driver Checklist',
         'api/admin/v1/orders/schedules/update-delivery-pickup-inputs' => 'Update Delivery & Pickup Input Fields',
     ],

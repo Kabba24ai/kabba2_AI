@@ -6,10 +6,11 @@
      * information display, not an order-management form. One canonical card
      * in every state (rows: identity / payment / product image / ordered
      * product / assigned equipment / equipment status + live warnings /
-     * delivery info). The ONLY actions are true Queue Line management
-     * (RUSH, Remove Today, Remove Forever) tucked into the ⋮ Queue menu.
-     * Assignment, fuel verification, and history all still exist — they
-     * simply live in their own workflows, not on this board.
+     * delivery info). Row actions live in the ⋮ Queue menu: Queue Line
+     * management (RUSH, Remove Today, Remove Forever) plus, when a unit is
+     * assigned, Change Equipment — a pre-delivery correction that reuses the
+     * canonical reassignment path (same as Schedule Assignment). Fuel
+     * verification and history still live in their own workflows.
      *
      * The image is ALWAYS a product image (the ordered product, except a
      * substitution shows the ASSIGNED product — the machine class actually
@@ -120,6 +121,17 @@
                     </button>
                     <div x-show="open" x-cloak @click="open = false"
                         class="absolute right-0 top-9 z-30 w-44 rounded-lg border border-gray-200 bg-white shadow-lg py-1 {{ $ui['body'] }}">
+                        @if ($equipment)
+                            {{-- Correct/replace the assigned unit without leaving
+                                 the board. Opens the canonical Switch Equipment
+                                 modal (EquipmentReassignmentService) — the same
+                                 soft-assignment path used on Schedule Assignment,
+                                 plus audit + conflict handling. Only offered when
+                                 a unit is already assigned; unassigned cards use
+                                 the staging thumb to pick one. --}}
+                            <button type="button" wire:click="openSwitch({{ $item->id }})" class="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50">Change Equipment</button>
+                            <div class="my-1 border-t border-gray-100"></div>
+                        @endif
                         @if ($isRushed)
                             <button type="button" wire:click="unrush({{ $item->id }})" class="w-full text-left px-3 py-2 text-red-700 hover:bg-red-50">Remove RUSH</button>
                         @else

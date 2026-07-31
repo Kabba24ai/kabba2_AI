@@ -348,4 +348,18 @@ class QueueLineSwitchEquipmentTest extends QueueLineTestCase
             ->call('openSwitch', $row->id)
             ->assertDontSee('Rented Out Unit');
     }
+
+    // ── Board trigger (the ⋮ menu "Change Equipment" entry) ──────────────
+
+    public function test_card_exposes_change_equipment_trigger_only_when_a_unit_is_assigned(): void
+    {
+        $assigned = $this->makeRow();
+        $this->softAssign($assigned);          // has a unit → offer Change Equipment
+
+        $unassigned = $this->makeRow();         // no unit → staging thumb handles first assignment
+
+        Livewire::test(Board::class)
+            ->assertSeeHtml('openSwitch(' . $assigned->id . ')')
+            ->assertDontSeeHtml('openSwitch(' . $unassigned->id . ')');
+    }
 }

@@ -251,6 +251,8 @@ class SaveDeliveryController extends BaseController
                 'is_returned' => false,
                 'start_hours' => $validated['start_hours'] ?? null,
                 'fuel_initial_reading' => $validated['fuel_initial_reading'] ?? null,
+                'delivery_clean_option' => $validated['delivery_clean_option'] ?? null,
+                'delivery_clean_id' => $validated['delivery_clean_id'] ?? null,
             ];
 
             if($storeId = $validated['store_id'] ?? null){

@@ -205,6 +205,9 @@ class SaveReturnController extends BaseController
                 'fuel_final_reading' => $validated['fuel_final_reading'] ?? null,
                 'fuel_total_charge' => $validated['fuel_total_charge'] ?? null,
                 'total_charge' => $validated['total_charge'] ?? null,
+                'return_clean_option' => $validated['return_clean_option'] ?? null,
+                'return_clean_id' => $validated['return_clean_id'] ?? null,
+                'total_clean_charge' => $validated['total_clean_charge'] ?? null,
             ];
 
             if ($hasDamagedReturn) {

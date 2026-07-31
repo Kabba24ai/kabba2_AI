@@ -67,6 +67,9 @@ class SaveReturnRequest extends ApiBaseFormRequest
             'fuel_sales_tax_type' => ['nullable', 'in:add,free,reverse'],
             'total_charge' => 'nullable|string',
             'note' => 'nullable|string',
+            'return_clean_option' => 'nullable|string',
+            'return_clean_id' => 'nullable|string',
+            'total_clean_charge' => 'nullable|string',
 
              // For multipart, Laravel's "max" is in KB; 2048 = 2MB
             'signature_media'         => 'nullable|image|max:2048',
@@ -121,6 +124,18 @@ class SaveReturnRequest extends ApiBaseFormRequest
             'note' => [
                 'description' => 'An optional note related to the checklist.',
                 'example' => 'Customer requested special handling.',
+            ],
+            'return_clean_option' => [
+                'description' => 'Optional selected cleaning option for the return.',
+                'example' => 'Prepaid Cleaning',
+            ],
+            'return_clean_id' => [
+                'description' => 'Optional ID referencing the selected return cleaning option.',
+                'example' => '1',
+            ],
+            'total_clean_charge' => [
+                'description' => 'Optional total cleaning charge for the return.',
+                'example' => '25.00',
             ],
             'signature_media' => [
                 'description' => 'Customer signature image (PNG/JPG). Max 2MB.',

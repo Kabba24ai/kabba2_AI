@@ -94,6 +94,11 @@ class OrderProduct extends Model
         'damage_status',
         'is_product_clean',
         'rental_prepaid_cleaning',
+        'delivery_clean_option',
+        'delivery_clean_id',
+        'return_clean_option',
+        'return_clean_id',
+        'total_clean_charge',
 
         'equipment_id',
         'equipment_details',

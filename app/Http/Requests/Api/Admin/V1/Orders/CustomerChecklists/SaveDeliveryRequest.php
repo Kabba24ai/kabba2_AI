@@ -83,6 +83,8 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
             'start_hours' => 'nullable|string',
             'fuel_initial_reading' => 'nullable|string',
             'note' => 'nullable|string',
+            'delivery_clean_option' => 'nullable|string',
+            'delivery_clean_id' => 'nullable|string',
 
              // For multipart, Laravel's "max" is in KB; 2048 = 2MB
             'signature_media'         => 'nullable|image|max:2048',
@@ -125,6 +127,14 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
             'note' => [
                 'description' => 'An optional note related to the checklist.',
                 'example' => 'Customer requested special handling.',
+            ],
+            'delivery_clean_option' => [
+                'description' => 'Optional selected cleaning option for the delivery.',
+                'example' => 'Prepaid Cleaning',
+            ],
+            'delivery_clean_id' => [
+                'description' => 'Optional ID referencing the selected delivery cleaning option.',
+                'example' => '1',
             ],
             'signature_media' => [
                 'description' => 'Customer signature image (PNG/JPG). Max 2MB.',

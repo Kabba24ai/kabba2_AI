@@ -737,10 +737,10 @@
                 setTimeout(() => applyDriverCardMode(localStorage.getItem('driver_card_view') || 'separate'), 0);
             }
 
-            // Per-driver "View All" expansion is a deliberate user choice — remember it
-            // so an auto-refresh (e.g. after a drag reorder) restores it instead of
-            // collapsing every card back down. Session-scoped (resets on a full reload).
-            const expandedDrivers = new Set();
+            // "View All" / "Collapse" is a GLOBAL toggle — it expands or collapses
+            // EVERY driver card at once, even though the button sits on each card.
+            // Persisted so it survives refreshes and full reloads.
+            let allExpanded = localStorage.getItem('dispatch_cards_expanded') === '1';
 
             function setCardExpanded(card, expanded) {
                 const sections = card.querySelectorAll('.dc-scroll-section');
@@ -756,10 +756,14 @@
                 }
             }
 
+            function setAllExpanded(expanded) {
+                allExpanded = expanded;
+                localStorage.setItem('dispatch_cards_expanded', expanded ? '1' : '0');
+                document.querySelectorAll('[data-driver-card]').forEach(card => setCardExpanded(card, expanded));
+            }
+
             function applyExpandedState() {
-                document.querySelectorAll('[data-driver-card]').forEach(card => {
-                    if (expandedDrivers.has(card.dataset.driverId)) setCardExpanded(card, true);
-                });
+                document.querySelectorAll('[data-driver-card]').forEach(card => setCardExpanded(card, allExpanded));
             }
 
             // Refresh driver workload cards without reloading the page
@@ -770,7 +774,10 @@
                 const range = localStorage.getItem('driver_assign_filter') || 'today';
                 const cardsUrl = "{{ route('admin.order-management.dispatch.driver-cards') }}" + '?range=' + encodeURIComponent(range);
                 apiFetch(cardsUrl, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    // no-store: never serve the board from the browser HTTP cache — that
+                    // was returning stale (pre-change) cards until a manual reload.
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    cache: 'no-store',
                 })
                 .then(data => {
                     if (data?.html) {
@@ -780,10 +787,11 @@
                         applyDriverCardMode(mode);
                         // Re-attach drag-and-drop to the freshly injected cards
                         if (typeof window.initDispatchDnD === 'function') window.initDispatchDnD();
-                        // Restore the user's per-card View All choices after the DOM swap
+                        // Re-apply the global View All / Collapse state after the DOM swap
                         applyExpandedState();
                     }
                 })
+                .catch(() => { window.notyf?.error?.('Could not refresh the driver board — reload the page if the order looks stale.'); })
                 // Remove BOTH loading classes — persist() adds pointer-events-none to
                 // this wrapper before a reorder, and if it isn't cleared here the whole
                 // board stays click/drag-dead until a full page reload.
@@ -876,16 +884,11 @@
                     return;
                 }
 
-                // View All / Collapse for driver cards — remember the choice per driver
-                // so it survives the card refresh after a drag reorder.
+                // View All / Collapse — GLOBAL: any card's button expands/collapses
+                // every driver card together.
                 const viewAllBtn = e.target.closest('.dc-view-all-btn');
                 if (viewAllBtn) {
-                    const card = viewAllBtn.closest('[data-driver-card]');
-                    if (!card) return;
-                    const expand = card.dataset.expanded !== 'true';
-                    setCardExpanded(card, expand);
-                    if (expand) expandedDrivers.add(card.dataset.driverId);
-                    else        expandedDrivers.delete(card.dataset.driverId);
+                    setAllExpanded(!allExpanded);
                     return;
                 }
             });
@@ -938,11 +941,14 @@
                 wrapper.classList.add('opacity-50', 'pointer-events-none');
 
                 apiFetch("{{ route('admin.order-management.dispatch.index') }}?" + params.toString(), {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    // no-store: always fetch a fresh list instead of a cached response.
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    cache: 'no-store',
                 })
                 .then(response => {
                     wrapper.innerHTML = response.html;
                 })
+                .catch(() => {})
                 .finally(() => {
                     if (loadingIndicator) loadingIndicator.classList.add('hidden');
                     wrapper.classList.remove('opacity-50', 'pointer-events-none');

@@ -181,6 +181,20 @@ class InspectionHistoryTest extends TestCase
         $this->assertLessThanOrEqual(2, $orderTableQueries, 'order context must be eager-loaded, not N+1');
     }
 
+    public function test_history_list_order_number_is_a_single_hash_hotlink(): void
+    {
+        [$m, $q, $a] = $this->makeTemplate();
+        $order = \App\Models\Orders\Order::create(['order_number' => '2775', 'order_date' => now()->toDateString(), 'customer_name' => 'Acme']);
+        $equipment = $this->makeEquipment($m, 'available');
+        $equipment->forceFill(['current_order_id' => $order->id])->save();
+
+        $this->record($equipment, $q, $a['Rental Ready']);
+
+        $res = $this->actingAs($this->admin)->get($this->historyUrl($equipment))->assertOk();
+        $res->assertSee('#2775')->assertDontSee('##2775');
+        $res->assertSee(route('admin.order-management.orders.edit', ['unique_id' => $order->unique_id]), false);
+    }
+
     public function test_detail_order_number_is_a_single_hash_hotlink(): void
     {
         [$m, $q, $a] = $this->makeTemplate();

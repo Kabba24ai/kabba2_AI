@@ -60,7 +60,11 @@
                         @php
                             $lc = $ins->lifecycle_status instanceof RentalReadyLifecycleStatus ? $ins->lifecycle_status->value : (string) $ins->lifecycle_status;
                             $rs = $ins->result instanceof RentalReadyResult ? $ins->result : null;
-                            $orderNo = $ins->orderProduct?->order?->order_number ?? $ins->order?->order_number;
+                            $order = $ins->orderProduct?->order ?? $ins->order;
+                            $orderNo = $order?->order_number;
+                            $orderUrl = $order
+                                ? route('admin.order-management.orders.edit', ['unique_id' => $order->unique_id])
+                                : null;
                         @endphp
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
@@ -85,7 +89,18 @@
                                     <span class="text-gray-400 text-xs">— in progress</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-gray-700">{{ $orderNo ? '#' . $orderNo : '—' }}</td>
+                            <td class="px-4 py-3 text-gray-700">
+                                @if ($orderNo)
+                                    @php $orderLabel = '#' . ltrim((string) $orderNo, '#'); @endphp
+                                    @if ($orderUrl)
+                                        <a href="{{ $orderUrl }}" class="text-sky-700 hover:underline font-medium">{{ $orderLabel }}</a>
+                                    @else
+                                        {{ $orderLabel }}
+                                    @endif
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ $ins->completed_at ? $ins->completed_at->format('M j, Y g:i A') : '—' }}</td>
                             <td class="px-4 py-3 text-center text-gray-700">{{ (int) $ins->required_items_completed }}/{{ (int) $ins->total_questions }}</td>
                             <td class="px-4 py-3 text-center">

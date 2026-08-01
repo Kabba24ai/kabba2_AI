@@ -22,7 +22,7 @@ class RentalReadyHistoryController extends Controller
 
         $inspections = EquipmentRentalReadyTemplate::query()
             ->where('equipment_id', $equipmentModel->id)
-            ->with(['employee:id,first_name,last_name', 'orderProduct.order:id,order_number', 'order:id,order_number'])
+            ->with(['employee:id,first_name,last_name', 'orderProduct.order:id,unique_id,order_number', 'order:id,unique_id,order_number'])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(20)

@@ -55,11 +55,21 @@
                  Category · Product — AND-combined; every count below derives
                  from the same filtered set. --}}
             <div class="flex flex-wrap items-center gap-3" data-queue-filter-bar>
-                {{-- 1. Time — All (everything eligible: overdue + today +
-                     tomorrow) | Today Only (overdue + today) --}}
-                <div class="inline-flex rounded-md border border-gray-300 overflow-hidden divide-x divide-gray-300" role="group" aria-label="Time">
-                    <button type="button" wire:click="$set('time', 'all')" class="{{ $segBase }} {{ $time !== 'today' ? $segOn : $segOff }}">All</button>
-                    <button type="button" wire:click="$set('time', 'today')" class="{{ $segBase }} {{ $time === 'today' ? $segOn : $segOff }}">Today Only</button>
+                {{-- 1. Date window — Show: All | 3 Days | Today (default Today).
+                     Same DispatchDateRangeMode as the Dispatch and Schedule
+                     boards: end-bound only, so overdue always shows; 3 Days =
+                     through today+2; All = every upcoming eligible delivery
+                     (the old hard cap at tomorrow is now range-driven).
+                     data-queue-range feeds the localStorage persistence hook
+                     on the page shell. --}}
+                <div class="inline-flex items-center rounded-md border border-gray-300 overflow-hidden divide-x divide-gray-300" role="group" aria-label="Date Window">
+                    <span class="px-2 py-1.5 text-xs text-gray-400 font-medium bg-gray-50">Show:</span>
+                    <button type="button" wire:click="$set('range', 'all')" data-queue-range="all"
+                        class="{{ $segBase }} {{ $range === 'all' ? $segOn : $segOff }}">All</button>
+                    <button type="button" wire:click="$set('range', '3_days')" data-queue-range="3_days"
+                        class="{{ $segBase }} {{ $range === '3_days' ? $segOn : $segOff }}">3 Days</button>
+                    <button type="button" wire:click="$set('range', 'today')" data-queue-range="today"
+                        class="{{ $segBase }} {{ $range === 'today' ? $segOn : $segOff }}">Today</button>
                 </div>
 
                 {{-- 2. Store — sticky via the app-wide FilterFreezer hook on

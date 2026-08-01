@@ -12,15 +12,16 @@
 
     <livewire:queue-line.board />
 
-    {{-- Sticky Store filter — the app-wide FilterFreezer pattern
-         (localStorage per screen key), same mechanism the report screens
-         use. Only the STORE selection persists: employees stay on their own
-         location between visits, and "All Stores" both applies and persists
-         for cross-location planning. Standard board only — the wall board
-         is a passive display and never inherits a persisted scope. --}}
+    {{-- Sticky filters — Store via the app-wide FilterFreezer pattern, and
+         the Show: All | 3 Days | Today date window via its own raw
+         localStorage key (same convention as the Dispatch and Schedule
+         boards — a segmented button group has no form element for
+         FilterFreezer to read). Standard board only — the wall board is a
+         passive display and never inherits a persisted scope. --}}
     <script>
         document.addEventListener('livewire:initialized', function () {
             const screenKey = 'queue_line_filters';
+            const RANGE_KEY = 'queue_line_range_filter';
 
             const sel = document.getElementById('queue-store-filter');
             if (sel && window.FilterFreezer) {
@@ -32,11 +33,22 @@
                 }
             }
 
+            // Restore the saved date window (component default is Today, so
+            // only a differing saved value needs a round-trip).
+            const savedRange = localStorage.getItem(RANGE_KEY);
+            if (['all', '3_days', 'today'].includes(savedRange) && savedRange !== 'today') {
+                Livewire.dispatch('queue-line-set-range', { range: savedRange });
+            }
+
             // Delegated so Livewire re-renders never detach the persistence
             document.addEventListener('change', function (e) {
                 if (e.target && e.target.id === 'queue-store-filter' && window.FilterFreezer) {
                     window.FilterFreezer.saveFilters(screenKey, { store: e.target });
                 }
+            });
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-queue-range]');
+                if (btn) localStorage.setItem(RANGE_KEY, btn.getAttribute('data-queue-range'));
             });
         });
     </script>

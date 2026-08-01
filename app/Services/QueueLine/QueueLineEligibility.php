@@ -18,7 +18,10 @@ use Illuminate\Support\Collection;
  * schedule state. The approved predicate (audit §5):
  *   Rental product_type + order exists (soft-delete gate) +
  *   delivery_status='Pending' + delivery_date NOT NULL +
- *   delivery_date <= tomorrow + transport mode Truck or Store.
+ *   delivery_date within the date window + transport mode Truck or Store.
+ * The window is the web board's Show toggle (DispatchDateRangeMode:
+ * today / 3 days / all, end-bound only); range-less callers keep the
+ * legacy <= tomorrow cap — see eligibleQuery().
  * Payment state NEVER affects eligibility (badge is display-only).
  * The canonical date is the scheduled delivery_date — dispatch_delivery_date
  * is a Dispatch-only override and is deliberately NOT consulted.
@@ -49,28 +52,40 @@ final class QueueLineEligibility
 
     /**
      * The Phase 1 baseline eligibility predicate — every clause mirrors an
-     * existing Schedule/Dispatch predicate except the tomorrow upper bound
-     * (net-new by design).
+     * existing Schedule/Dispatch predicate except the upper date bound.
+     *
+     * Date window (2026-08-01): when a $range is given (the web board's
+     * Show: All | 3 Days | Today toggle — the SAME DispatchDateRangeMode the
+     * Dispatch and Schedule screens share), the bound is range-driven:
+     * Today → <= today, 3 Days → <= today+2, All → no upper bound. End-bound
+     * only, so overdue work surfaces in every mode. With NO range (fuel
+     * verification, release guard, mobile presenter) the legacy hard cap of
+     * <= tomorrow applies unchanged.
      */
-    public static function eligibleQuery(): Builder
+    public static function eligibleQuery(?\App\Enums\Dispatch\DispatchDateRangeMode $range = null): Builder
     {
+        // null $end (range All) = unbounded; legacy default = through tomorrow.
+        $end = $range !== null ? $range->endDate() : today()->addDay();
+
         return OrderProduct::query()
             ->where('product_data->product_type', 'Rental')
             ->whereHas('order')
             ->where('delivery_status', 'Pending')
             ->whereNotNull('delivery_date')
-            ->whereDate('delivery_date', '<=', today()->addDay())
+            ->when($end !== null, fn (Builder $q) => $q->whereDate('delivery_date', '<=', $end))
             ->whereIn('delivery_transport_mode', ['Truck', 'Store']);
     }
 
     /**
      * The active board feed: eligible rows minus suppressed/completed ones,
      * with every relation a card needs eager-loaded. Store filter uses the
-     * canonical outbound store attribution (delivery_store_id).
+     * canonical outbound store attribution (delivery_store_id). $range is the
+     * board's date-window toggle (see eligibleQuery()); callers that omit it
+     * keep the legacy through-tomorrow window.
      */
-    public static function boardQuery(?int $storeId = null): Builder
+    public static function boardQuery(?int $storeId = null, ?\App\Enums\Dispatch\DispatchDateRangeMode $range = null): Builder
     {
-        return self::eligibleQuery()
+        return self::eligibleQuery($range)
             ->when($storeId, fn (Builder $q) => $q->where('delivery_store_id', $storeId))
             ->whereDoesntHave('queueLineItem', function (Builder $q) {
                 $q->where(function (Builder $q) {
@@ -196,7 +211,13 @@ final class QueueLineEligibility
         return OrderFinancialActivity::filterActiveOrderProducts($rows);
     }
 
-    /** Overdue < today | Today = today | Tomorrow = today+1 (date-only, app timezone). */
+    /**
+     * Overdue < today | Today = today | Tomorrow = today+1 (date-only, app
+     * timezone). Under the wider All / 3 Days windows, every date beyond
+     * today falls in the Tomorrow bucket — harmless, because the bucket is
+     * an ORDERING rank only (never displayed) and sortItems() breaks rank
+     * ties by delivery_date, so later dates still sort correctly.
+     */
     public static function bucketFor(OrderProduct $row): string
     {
         $date = Carbon::parse($row->delivery_date)->startOfDay();

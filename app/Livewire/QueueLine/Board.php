@@ -2,6 +2,7 @@
 
 namespace App\Livewire\QueueLine;
 
+use App\Enums\Dispatch\DispatchDateRangeMode;
 use App\Models\Iam\Personnel\User;
 use App\Models\MaintenanceManagement\Equipment;
 use App\Models\Orders\OrderProduct;
@@ -38,15 +39,41 @@ class Board extends Component
     /** Store filter: 'all' or a store id (string — HTML select values). */
     public string $store = 'all';
 
-    // ── Filter Expansion (2026-07-20) — presentation NARROWING only. None
-    // of these change Queue Line eligibility; they subset the already-
-    // eligible rows, and every section count derives from the same
-    // filtered collection so totals can never disagree with cards. ──────
+    // ── Filter Expansion (2026-07-20) — presentation NARROWING only.
+    // Except for $range (below, 2026-08-01), none of these change Queue
+    // Line eligibility; they subset the already-eligible rows, and every
+    // section count derives from the same filtered collection so totals
+    // can never disagree with cards. ─────────────────────────────────────
 
-    /** Time: 'all' (default — everything eligible, i.e. overdue + today +
-     *  tomorrow under the current window) | 'today' ("Today Only":
-     *  overdue + today). */
-    public string $time = 'all';
+    /**
+     * Date window — Show: All | 3 Days | Today (replaces the old $time
+     * All/Today-Only pair). Values are DispatchDateRangeMode's
+     * ('all' | '3_days' | 'today'), the SAME enum the Dispatch and Schedule
+     * boards share; end-bound only, so overdue work surfaces in every mode.
+     * Unlike the other filters this one drives the SQL eligibility window
+     * (see QueueLineEligibility::eligibleQuery()). Default Today.
+     */
+    public string $range = 'today';
+
+    /** Clamp client-supplied values — anything unknown snaps to Today. */
+    public function updatedRange(): void
+    {
+        if (DispatchDateRangeMode::tryFrom($this->range) === null) {
+            $this->range = DispatchDateRangeMode::Today->value;
+        }
+    }
+
+    /**
+     * Restore a persisted range from the page shell's localStorage bootstrap
+     * (standard board only — the wall board never inherits a persisted scope).
+     */
+    #[\Livewire\Attributes\On('queue-line-set-range')]
+    public function setRangeFromClient(string $range): void
+    {
+        $this->range = DispatchDateRangeMode::tryFrom($range) !== null
+            ? $range
+            : DispatchDateRangeMode::Today->value;
+    }
 
     /** Delivery method: 'all' | 'Truck' | 'Store' — the same canonical
      *  delivery_transport_mode values Schedule and Dispatch filter on. */
@@ -564,10 +591,14 @@ class Board extends Component
             $categoryId = \App\Helpers\ProductFilterHelper::normalizeCategoryId($this->category);
             $productId = \App\Helpers\ProductFilterHelper::normalizeProductId($this->product, $categoryId);
 
+            // Date window (Show: All | 3 Days | Today) — applied in SQL via
+            // the shared DispatchDateRangeMode; invalid values snap to Today.
+            $rangeMode = DispatchDateRangeMode::fromRequest($this->range);
+
             // Narrowing filters ride the canonical board query — the same
             // WHERE shapes Schedule uses (transport mode column; category
             // via the product_category_children pivot; ORDERED product_id).
-            $boardQuery = QueueLineEligibility::boardQuery($storeId)
+            $boardQuery = QueueLineEligibility::boardQuery($storeId, $rangeMode)
                 ->when($this->method !== 'all', fn ($q) => $q->where('delivery_transport_mode', $this->method))
                 ->when($categoryId, fn ($q) => $q->whereHas('product.categories', fn ($c) => $c->where('product_categories.id', $categoryId)))
                 ->when($productId, fn ($q) => $q->where('product_id', $productId));
@@ -575,17 +606,6 @@ class Board extends Component
             $rows = QueueLineEligibility::sortItems(
                 QueueLineEligibility::filterFinanciallyActive($boardQuery->get())
             );
-
-            // Time narrowing uses the canonical bucket rule — 'all' keeps
-            // the full eligibility window untouched; 'today' (Today Only)
-            // drops the tomorrow bucket.
-            if ($this->time === 'today') {
-                $allowedBuckets = [QueueLineEligibility::BUCKET_OVERDUE, QueueLineEligibility::BUCKET_TODAY];
-
-                $rows = $rows
-                    ->filter(fn (OrderProduct $row) => in_array(QueueLineEligibility::bucketFor($row), $allowedBuckets, true))
-                    ->values();
-            }
 
             // Payment narrowing — reads the eager-loaded order.lastPayment
             // relation (zero extra queries), the exact field the card badge

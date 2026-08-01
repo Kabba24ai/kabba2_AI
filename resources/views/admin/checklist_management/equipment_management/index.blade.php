@@ -333,9 +333,13 @@
             <!-- RIGHT: Latest completed inspection — operational reference only
                  (slide-over below xl, sticky column at xl). NOT the full audit
                  record: the dedicated history + detail pages remain that. -->
+            {{-- xl: sticky column that is ALSO its own scroll region — its content
+                 scrolls independently of the page (constrained height + overflow),
+                 instead of only revealing its lower content once the page reaches
+                 the bottom. Below xl it's the off-canvas slide-over (base classes). --}}
             <aside id="previousInspectionPanel" tabindex="-1" aria-label="Previous inspection panel"
                 class="fixed inset-y-0 right-0 z-40 w-[92%] max-w-md translate-x-full transition-transform duration-200 ease-out overflow-y-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0
-                       xl:static xl:z-auto xl:w-auto xl:max-w-none xl:translate-x-0 xl:overflow-visible xl:sticky xl:top-6">
+                       xl:static xl:z-auto xl:w-auto xl:max-w-none xl:translate-x-0 xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto">
                 <div class="bg-white rounded-md shadow-sm border border-gray-200 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-base font-semibold text-gray-900">Previous Inspection</h2>
@@ -1042,6 +1046,16 @@
                 const hours = (ins.equipment_hours !== null && ins.equipment_hours !== undefined && ins.equipment_hours !== '')
                     ? Number(ins.equipment_hours).toLocaleString() : '—';
 
+                // Order: exactly one '#' (strip any leading hashes from the value),
+                // hotlinked back to the order it was created from when we have a URL.
+                let orderCell = '—';
+                if (ins.order_number) {
+                    const label = '#' + escapeHtml(String(ins.order_number).replace(/^#+/, ''));
+                    orderCell = ins.order_url
+                        ? `<a href="${ins.order_url}" class="text-sky-700 hover:underline font-medium">${label}</a>`
+                        : label;
+                }
+
                 body.innerHTML = `
                     <div class="space-y-3">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -1051,7 +1065,7 @@
                         <dl class="text-sm text-gray-600 space-y-1.5">
                             <div class="flex justify-between gap-3"><dt class="text-gray-500">Inspector</dt><dd class="text-gray-800 font-medium text-right">${ins.inspector ? escapeHtml(ins.inspector) : '—'}</dd></div>
                             <div class="flex justify-between gap-3"><dt class="text-gray-500">Hours</dt><dd class="text-gray-800 font-medium text-right">${hours}</dd></div>
-                            <div class="flex justify-between gap-3"><dt class="text-gray-500">Order</dt><dd class="text-gray-800 font-medium text-right">${ins.order_number ? '#' + escapeHtml(ins.order_number) : '—'}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-gray-500">Order</dt><dd class="text-gray-800 font-medium text-right">${orderCell}</dd></div>
                         </dl>
                         <div class="flex flex-wrap gap-x-3 gap-y-1 text-sm pt-1">
                             <a href="${ins.detail_url}" class="text-sky-700 hover:underline font-medium">View Full Inspection</a>

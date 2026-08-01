@@ -259,6 +259,29 @@ class InspectionWorkspaceTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_order_scoped_inspection_exposes_a_hotlink_url(): void
+    {
+        $cat = $this->makeCategory('Engine');
+        $template = RentalReadyChecklistTemplate::create(['template_name' => 'W', 'active_template' => true]);
+        [$q, $a] = $this->makeQuestion($template, $cat, 'Coolant', 1);
+        $master = ChecklistMaster::create(['checklist_system_name' => 'WM', 'rental_ready_template_id' => $template->id]);
+
+        $order = \App\Models\Orders\Order::create(['order_number' => '3179', 'order_date' => now()->toDateString(), 'customer_name' => 'Acme']);
+        $equipment = $this->makeEquipment($master, 'available');
+        $equipment->forceFill(['current_order_id' => $order->id])->save();
+
+        $this->record($equipment, [[$q, $a['Rental Ready']]]);
+
+        $ins = $this->actingAs($this->admin)->getJson($this->latestUrl($equipment))->assertOk()->json('inspection');
+
+        // order_number carries NO leading '#' (the view adds exactly one); the
+        // hotlink targets the order it was created from, by the order's unique_id.
+        $this->assertSame('3179', $ins['order_number']);
+        $this->assertStringNotContainsString('#', (string) $ins['order_number']);
+        $this->assertNotNull($ins['order_url']);
+        $this->assertStringContainsString($order->unique_id, $ins['order_url']);
+    }
+
     public function test_endpoint_exposes_only_the_panel_fields(): void
     {
         $cat = $this->makeCategory('Engine');
@@ -273,7 +296,7 @@ class InspectionWorkspaceTest extends TestCase
         // Exactly the comparison-panel fields — no audit columns, no raw model
         // attributes, no notes, no unnecessary snapshot internals.
         $this->assertEqualsCanonicalizing(
-            ['unique_id', 'result', 'result_label', 'inspector', 'equipment_hours', 'completed_at', 'order_number', 'detail_url', 'history_url', 'questions'],
+            ['unique_id', 'result', 'result_label', 'inspector', 'equipment_hours', 'completed_at', 'order_number', 'order_url', 'detail_url', 'history_url', 'questions'],
             array_keys($ins),
         );
         $this->assertArrayNotHasKey('counts', $ins);

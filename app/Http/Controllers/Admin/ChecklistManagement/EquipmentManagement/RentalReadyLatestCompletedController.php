@@ -37,7 +37,7 @@ class RentalReadyLatestCompletedController extends Controller
         $inspection = EquipmentRentalReadyTemplate::query()
             ->where('equipment_id', $equipmentModel->id)
             ->completed()
-            ->with(['employee:id,first_name,last_name', 'checklistQuestions', 'orderProduct.order:id,order_number', 'order:id,order_number'])
+            ->with(['employee:id,first_name,last_name', 'checklistQuestions', 'orderProduct.order:id,unique_id,order_number', 'order:id,unique_id,order_number'])
             ->orderByDesc('completed_at')
             ->orderByDesc('id')
             ->first();
@@ -77,8 +77,15 @@ class RentalReadyLatestCompletedController extends Controller
             ->values();
 
         $result = $inspection->result instanceof RentalReadyResult ? $inspection->result : null;
-        $orderNumber = $inspection->orderProduct?->order?->order_number
-            ?? $inspection->order?->order_number;
+
+        // Resolve the order this inspection was created from (order-product first,
+        // then a directly order-scoped inspection) so the panel can hotlink back
+        // to it. order_number is returned WITHOUT a leading '#' — the view adds it.
+        $order = $inspection->orderProduct?->order ?? $inspection->order;
+        $orderNumber = $order?->order_number;
+        $orderUrl = $order
+            ? route('admin.order-management.orders.edit', ['unique_id' => $order->unique_id])
+            : null;
 
         return response()->json([
             'success' => true,
@@ -90,6 +97,7 @@ class RentalReadyLatestCompletedController extends Controller
                 'equipment_hours' => $inspection->equipment_hours,
                 'completed_at' => $inspection->completed_at?->format('M j, Y g:i A'),
                 'order_number' => $orderNumber,
+                'order_url' => $orderUrl,
                 'detail_url' => route('admin.checklist-management.equipment-management.rental-ready-history.show', [$equipmentModel->unique_id, $inspection->unique_id]),
                 'history_url' => route('admin.checklist-management.equipment-management.rental-ready-history', $equipmentModel->unique_id),
                 'questions' => $questions,

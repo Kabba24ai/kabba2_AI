@@ -12,17 +12,26 @@ use Illuminate\Support\Facades\DB;
  *
  * Returns one row per payment event across all four revenue streams.
  * The sum of grand_total across all rows reconciles exactly to
- * SalesReportEngineV2::kpis()['total_collected'] for the same filters.
+ * SalesReportEngineV2::kpis()['net_collections'] for the same filters
+ * ('total_collected' is retained as that key's backward-compatible alias).
  *
- * Same date anchors as the KPI engine:
- *   Stream A (order payments)   → orders.order_date
+ * Same date anchors as the KPI engine — every stream is dated when the money
+ * actually moved (cash-basis / payment-date accounting):
+ *   Stream A (order payments)   → COALESCE(op.payment_datetime, op.created_at)
  *   Stream B (refunds)          → COALESCE(refunded_at, payment_datetime, created_at)
  *   Stream C (account payments) → customer_accounts.date
  *   Stream D (billing charges)  → billing_charges.paid_at
+ *
+ * Stream A reads {@see CollectedRevenueQuery} — the same allocation output the
+ * KPI engine's collected side reads — so the reconciliation to total_collected
+ * holds by construction, not by parallel formulas.
  */
 class PaymentReconciliationLedger
 {
-    public function __construct(private SalesReportingService $reporting) {}
+    public function __construct(
+        private SalesReportingService $reporting,
+        private CollectedRevenueQuery $collected,
+    ) {}
 
     public function rows(array $filters): Collection
     {
@@ -64,138 +73,87 @@ class PaymentReconciliationLedger
     // ─── Stream A: Standard Order Payments ───────────────────────────────────
 
     /**
-     * Phase 3D fix: this used to join each order to only its single
-     * highest-id order_payments row (via a MAX(id) subquery with no status
-     * filter — which could even resolve to a REFUND row on an order
-     * refunded since) and attribute the WHOLE order's grand_total to it.
-     * On any split-payment order that silently misattributed every other
-     * payment method's actual collected amount to whichever payment
-     * happened to be entered last. Now one ledger row is emitted per
-     * actual SETTLED payment event (OrderPayment::scopeSettled()'s status
-     * set — Paid, Partial Payment, or a legacy Invoice* row), using that
-     * row's own `amount` — never the order's grand_total. This is also
-     * why an order with no settled payment row yet (a POD/Account
-     * placeholder order with nothing actually collected) now correctly
-     * contributes zero rows here rather than fabricating one — this
-     * stream's own docblock guarantee ("sums to the actual total
-     * collected") only holds if uncollected orders emit nothing.
+     * One ledger row per settled payment event, cash-basis: the payment's
+     * execution date (COALESCE(payment_datetime, created_at)) controls which
+     * period the row lands in — never orders.order_date. All money figures come
+     * from {@see CollectedRevenueQuery} (the same allocation output the KPI
+     * engine and Sales Tax Report read), so this stream never reproduces the
+     * proportional-split formulas:
      *
-     * order_payments has no per-row tax column, so each row's tax portion
-     * is the order's tax_amount split proportionally to that row's share
-     * of the order's total collected across its own settled rows — the
-     * same proportional-split convention (deterministic remainder-to-
-     * last-row rounding) PaymentAllocationService::calculateAllocationSplits()
-     * already uses for the Standard refund calc type, applied here to the
-     * collection side instead of the refund side.
+     *   grand_total = the payment's APPLIED amount (capped at the order's
+     *                 canonical grand_total — an overpayment is noted on the
+     *                 row and excluded from collected volume, so the Σ
+     *                 grand_total == kpis()['total_collected'] guarantee holds);
+     *   tax_amount  = the order's tax allocated proportionally to the CANONICAL
+     *                 order total (temporal-stability: a later payment never
+     *                 restates an earlier row);
+     *   base_amount = applied − tax.
+     *
+     * An order with nothing collected emits zero rows; a payment on a June
+     * order collected in July emits a July row.
      */
     private function streamA(array $filters, string $startDate, string $endDate): Collection
     {
-        // Qualifying order IDs from the same base query the KPI engine uses.
-        // Anchored on orders.order_date — identical to SalesReportEngineV2.
-        $orderIds = $this->reporting->baseQuery($filters)
-            ->selectRaw('DISTINCT orders.id')
-            ->pluck('id');
+        $rows = $this->collected->rows($filters, $startDate, $endDate);
 
-        if ($orderIds->isEmpty()) {
+        if ($rows->isEmpty()) {
             return collect();
         }
 
         // Product type per order to classify revenue source (avoid N+1)
         $productTypes = DB::table('order_products as orp')
             ->join('products as p', 'p.id', '=', 'orp.product_id')
-            ->whereIn('orp.order_id', $orderIds)
+            ->whereIn('orp.order_id', $rows->pluck('order_id')->unique())
             ->whereNull('orp.deleted_at')
             ->selectRaw('orp.order_id, GROUP_CONCAT(DISTINCT p.product_type SEPARATOR ",") as types')
             ->groupBy('orp.order_id')
             ->pluck('types', 'order_id');
 
-        $settledStatuses = collect(\App\Enums\Orders\OrderPaymentStatus::cases())
-            ->filter(fn ($s) => $s->isSettled() || $s === \App\Enums\Orders\OrderPaymentStatus::PartialPayment)
-            ->map(fn ($s) => $s->value)
-            ->all();
-
-        $paymentRows = DB::table('order_payments as op')
-            ->join('orders as o', 'o.id', '=', 'op.order_id')
-            ->whereIn('o.id', $orderIds)
-            ->whereIn('op.status', $settledStatuses)
-            // Store Credit is a discount, not a tender — exclude any legacy
-            // StoreCredit payment row from collected payment volume.
-            ->where('op.payment_method', '!=', 'StoreCredit')
-            ->select([
-                'o.id as order_id',
-                'o.order_number',
-                'o.unique_id as order_unique_id',
-                DB::raw('DATE(o.order_date) as order_date'),
-                'o.customer_name',
-                'o.tax_amount as order_tax_amount',
-                'op.amount',
-                'op.payment_method',
-                'op.status as payment_status',
-                DB::raw('COALESCE(op.payment_datetime, o.order_date) as payment_date'),
-            ])
-            ->orderBy('op.id')
-            ->get();
-
-        if ($paymentRows->isEmpty()) {
-            return collect();
-        }
-
-        $rowsByOrder = $paymentRows->groupBy('order_id');
-
-        return $rowsByOrder->flatMap(function ($rows, $orderId) use ($productTypes) {
-            $types = $productTypes[$orderId] ?? '';
+        return $rows->map(function ($row) use ($productTypes) {
+            $types    = $productTypes[$row->order_id] ?? '';
             $typeList = array_values(array_filter(array_unique(explode(',', $types))));
-            $source = $this->classifyOrderRevenue($typeList);
+            $source   = $this->classifyOrderRevenue($typeList);
 
-            $orderTaxAmount = (float) ($rows->first()->order_tax_amount ?? 0);
-            $totalCents = (int) round($rows->sum(fn ($r) => (float) $r->amount) * 100);
-            $orderTaxCents = (int) round($orderTaxAmount * 100);
-            $runningTaxCents = 0;
-            $count = $rows->count();
+            // Legacy Invoice* rows fuse status with method and may have
+            // a null payment_method column — recover it from the
+            // status the same way PaymentDescriptionPresenter::describe()
+            // does, rather than mislabeling these as "Other."
+            $method = $row->payment_method;
+            if (!$method) {
+                $status = \App\Enums\Orders\OrderPaymentStatus::tryFrom($row->payment_status);
+                $method = $status?->impliedMethod()?->value;
+            }
 
-            return $rows->values()->map(function ($row, $i) use ($source, $totalCents, $orderTaxCents, &$runningTaxCents, $count) {
-                $amount = (float) $row->amount;
-                $amountCents = (int) round($amount * 100);
+            // Money fields sum the payment's canonical LINE partitions over the
+            // matching lines (all lines when no line filter is active — then
+            // base − discount + tax == the payment's applied amount exactly).
+            // Filtered views are exact partitions of the same amounts; nothing
+            // is recalculated here.
+            $lineBase = CollectedRevenueQuery::matchedLineSum($row, 'base');
+            $lineDisc = CollectedRevenueQuery::matchedLineSum($row, 'discount');
+            $lineTax  = CollectedRevenueQuery::matchedLineSum($row, 'tax');
+            $base     = round($lineBase - $lineDisc, 2);
 
-                if ($i === $count - 1) {
-                    $taxCents = $orderTaxCents - $runningTaxCents;
-                } else {
-                    $taxCents = $totalCents > 0 ? (int) round($orderTaxCents * $amountCents / $totalCents) : 0;
-                    $runningTaxCents += $taxCents;
-                }
-
-                $tax = round($taxCents / 100, 2);
-                $base = round($amount - $tax, 2);
-
-                // Legacy Invoice* rows fuse status with method and may have
-                // a null payment_method column — recover it from the
-                // status the same way PaymentDescriptionPresenter::describe()
-                // does, rather than mislabeling these as "Other."
-                $method = $row->payment_method;
-                if (!$method) {
-                    $status = \App\Enums\Orders\OrderPaymentStatus::tryFrom($row->payment_status);
-                    $method = $status?->impliedMethod()?->value;
-                }
-
-                return (object) [
-                    'stream'             => 'order',
-                    'payment_date'       => $row->payment_date,
-                    'order_number'       => $row->order_number,
-                    'order_unique_id'    => $row->order_unique_id,
-                    'order_date'         => $row->order_date,
-                    'customer_name'      => $row->customer_name ?: '—',
-                    'revenue_source'     => $source['label'],
-                    'revenue_source_key' => $source['key'],
-                    'payment_method'     => $this->mapOrderPaymentMethod($method),
-                    'payment_method_key' => $method ?? 'Other',
-                    'payment_status'     => $row->payment_status ?? 'Paid',
-                    'base_amount'        => $base,
-                    'tax_amount'         => $tax,
-                    'grand_total'        => $amount,
-                    'included_because'   => $source['label'] . ' – Paid This Period',
-                    'notes'              => null,
-                ];
-            });
+            return (object) [
+                'stream'             => 'order',
+                'payment_date'       => $row->payment_datetime,
+                'order_number'       => $row->order_number,
+                'order_unique_id'    => $row->order_unique_id,
+                'order_date'         => $row->order_date,
+                'customer_name'      => $row->customer_name ?: '—',
+                'revenue_source'     => $source['label'],
+                'revenue_source_key' => $source['key'],
+                'payment_method'     => $this->mapOrderPaymentMethod($method),
+                'payment_method_key' => $method ?? 'Other',
+                'payment_status'     => $row->payment_status ?? 'Paid',
+                'base_amount'        => $base,
+                'tax_amount'         => $lineTax,
+                'grand_total'        => round($base + $lineTax, 2),
+                'included_because'   => $source['label'] . ' – Paid This Period',
+                'notes'              => $row->overpayment > 0
+                    ? 'Overpayment of $' . number_format($row->overpayment, 2) . ' received beyond the order total — excluded from collected revenue.'
+                    : null,
+            ];
         })->values();
     }
 

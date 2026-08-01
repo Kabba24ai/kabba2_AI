@@ -17,21 +17,44 @@ use Illuminate\Support\Facades\DB;
  *   - Every report section (KPI cards, trend cards, chart) consumes this engine.
  *   - No independent revenue calculations exist outside this class.
  *
- * Transaction-based accounting — each financial event is dated when it occurred:
- *   Sales / Discounts  →  orders.order_date                              (sale transaction date)
+ * Cash-basis / payment-date accounting — each financial event is dated when the
+ * money actually moved, never when the order was created:
+ *   Sales / Discounts  →  COALESCE(op.payment_datetime, op.created_at)         (payment execution date)
  *   Refunds            →  COALESCE(refunded_at, payment_datetime, created_at)  (refund transaction date)
  *   Account Payments   →  customer_accounts.date                               (payment transaction date)
+ *   Billing Charges    →  billing_charges.paid_at                              (payment transaction date)
  *   Tax                →  same anchor as its parent transaction
  *
+ * The collected order-payment side reads {@see CollectedRevenueQuery} — the
+ * same allocation output the Sales Tax Report and the Payment Reconciliation
+ * Ledger consume — so the three surfaces (and the dashboard KPIs built on this
+ * engine) reconcile by construction. Invariants: unpaid orders contribute
+ * nothing; partial payments contribute only their proportional share (canonical
+ * grand_total denominator); later payments never restate earlier periods;
+ * overpayments are surfaced separately ('overpayments') and never create
+ * revenue or tax.
+ *
+ * Exception: payment_status='pod' keeps the legacy order-date expected-value
+ * path — it is an operational "COD not yet collected" view, and the cash-basis
+ * value of uncollected money is by definition zero.
+ *
  * Refund date note:
- *   refunded_at is the canonical field set by RefundPaymentController at refund creation.
- *   The COALESCE chain covers historical records backfilled from payment_datetime/created_at.
+ *   refunded_at is the canonical field set by RefundPaymentController at refund
+ *   creation. The COALESCE chain covers historical records backfilled from
+ *   payment_datetime/created_at. Refunds remain separate negative, event-dated
+ *   transactions — they never rewrite the original payment's period.
  */
 class SalesReportEngineV2
 {
     use HasAllocationAwareRefundSql;
 
-    public function __construct(private SalesReportingService $reporting) {}
+    /** Memo for the shared collected-revenue rows (snapshot + daily reuse one fetch). */
+    private array $collectedCache = [];
+
+    public function __construct(
+        private SalesReportingService $reporting,
+        private CollectedRevenueQuery $collected,
+    ) {}
 
     // ─── Public API ───────────────────────────────────────────────────────────
 
@@ -182,37 +205,73 @@ class SalesReportEngineV2
         $startDate = $start->toDateString();
         $endDate   = $end->toDateString();
 
-        // 1. Order revenue — anchored on orders.order_date (sale transaction date)
-        $orderAgg = $this->queryOrderRevenue($filters);
-        $grossSales       = (float) ($orderAgg->gross_sales       ?? 0);
-        $taxCollected     = (float) ($orderAgg->tax_collected     ?? 0);
-        $deliveryRevenue  = (float) ($orderAgg->delivery_revenue  ?? 0);
-        $transactionCount = (int)   ($orderAgg->transaction_count ?? 0);
+        $paymentStatus = $filters['payment_status'] ?? 'paid';
+        $overpayments  = 0.0;
 
-        // 2. Addon components — damage waiver, track insurance, tire insurance
-        //    Extracted from product_data JSON; each is a sub-component of sub_total.
-        [$damageWaiverRevenue, $trackInsuranceRevenue, $tireInsuranceRevenue]
-            = $this->queryAddonRevenue($filters);
+        if ($paymentStatus === 'pod') {
+            // 1-3b (POD legacy). The POD view is an operational "COD expected
+            // but not yet collected" report — the cash-basis value of
+            // uncollected money is zero by definition, so this view keeps the
+            // historical order-date expected-value queries.
+            $orderAgg = $this->queryOrderRevenue($filters);
+            $grossSales       = (float) ($orderAgg->gross_sales       ?? 0);
+            $taxCollected     = (float) ($orderAgg->tax_collected     ?? 0);
+            $deliveryRevenue  = (float) ($orderAgg->delivery_revenue  ?? 0);
+            $transactionCount = (int)   ($orderAgg->transaction_count ?? 0);
 
-        // 3. Discounts — anchored on orders.order_date (discount is part of original sale)
-        $discounts = $this->queryDiscounts($filters);
+            [$damageWaiverRevenue, $trackInsuranceRevenue, $tireInsuranceRevenue]
+                = $this->queryAddonRevenue($filters);
 
-        // 3b. Pre-tax Store Credit discounts on ORDERS (the discount engine).
-        //     gross_sales stays = Σ order_products.sub_total (the pre-discount
-        //     base); the store_credit discount reduces NET here, and its tax
-        //     delta corrects the line-level tax_collected below (Finding 2 /
-        //     Option C — no order_products line columns are mutated). Only
-        //     target_type='order' applies to V2's order gross; fuel/damage/
-        //     extension are not part of order_products revenue.
-        [$storeCreditOrderDiscount, $storeCreditOrderTaxDelta] = $this->queryStoreCreditOrderDiscounts($filters);
-        $discounts += $storeCreditOrderDiscount;
+            $discounts = $this->queryDiscounts($filters);
+            [$storeCreditOrderDiscount, $storeCreditOrderTaxDelta] = $this->queryStoreCreditOrderDiscounts($filters);
+            $discounts += $storeCreditOrderDiscount;
+        } else {
+            // 1-3b (cash-basis). One read of the shared collected-revenue rows —
+            // the SAME allocation output the Sales Tax Report and the Payment
+            // Reconciliation Ledger consume. Payment date controls the period;
+            // unpaid orders contribute nothing; partial payments contribute only
+            // their proportional share; overpayments create no revenue or tax.
+            $rows      = $this->collectedRows($filters, $startDate, $endDate);
+            $useScoped = $this->collected->hasLineFilters($filters);
+
+            // Filtered views sum the canonical LINE partitions of each payment
+            // (CollectedRevenueQuery's `lines` decomposition) — never a
+            // recalculation, so filtered totals roll up exactly to unfiltered
+            // and filtering can't change what a payment is worth. Gross stays
+            // PRE-discount (lifetime Σ base = order subtotal), so net_sales =
+            // gross − discounts − refunds keeps its meaning.
+            $sum = fn (string $field) => round(
+                $rows->sum(fn ($r) => $useScoped ? CollectedRevenueQuery::matchedLineSum($r, $field) : $r->{$field}),
+                2
+            );
+
+            $grossSales       = $sum('base');
+            $taxCollected     = $sum('tax');
+            $deliveryRevenue  = $sum('delivery');
+            $transactionCount = $rows->pluck('order_id')->unique()->count();
+
+            $damageWaiverRevenue   = $sum('dw');
+            $trackInsuranceRevenue = $sum('track');
+            $tireInsuranceRevenue  = $sum('tire');
+
+            // Discounts collected this period: the per-payment allocation of the
+            // order's discount_amount plus the Store Credit ledger's, both dated
+            // by payment date.
+            $discounts                = round($sum('discount') + $sum('sc_discount'), 2);
+            $storeCreditOrderTaxDelta = $sum('sc_tax_delta');
+
+            // Cash received beyond orders' canonical totals — surfaced
+            // separately, never revenue and never taxable. (Payment-level by
+            // nature — an overpayment belongs to no product line.)
+            $overpayments = round($rows->sum('overpayment'), 2);
+        }
 
         // 4. Refunds — anchored on COALESCE(refunded_at, payment_datetime, created_at) (REFUND TRANSACTION DATE)
-        //    A refund in June on a May order appears in June, not May.
+        //    A refund in June on a May order appears in June, not May — and it
+        //    never rewrites the original payment's period.
         $refunds = $this->queryRefunds($filters, $startDate, $endDate);
 
         // 5. Account payments — anchored on customer_accounts.date (payment transaction date)
-        $paymentStatus           = $filters['payment_status'] ?? 'paid';
         $accountPaymentsReceived = 0.0;
         $accountPaymentsTax      = 0.0;
         if (in_array($paymentStatus, ['paid', 'all', 'account'])) {
@@ -274,10 +333,22 @@ class SalesReportEngineV2
         $accountPaymentsTax      = $c['account_payments_tax'];
         $transactionCount        = (int) $c['transaction_count'];
 
-        // 8. Derived metrics
+        // 8. Derived metrics — collection terminology (canonical definitions):
+        //      gross_collections = grossSales + taxCollected − discounts
+        //                          (positive cash in: Σ applied payment amounts
+        //                           + account payments + billing charges)
+        //      refunds           = event-dated refund total for the period
+        //      net_collections   = gross_collections − refunds
+        //      overpayments      = cash beyond orders' canonical totals — NOT
+        //                          part of any of the above
+        //    total_collected is retained as the BACKWARD-COMPATIBLE ALIAS OF
+        //    net_collections (it has always been net of refunds) — the ledger
+        //    identity is Σ ledger grand_total == net_collections.
         $netSales             = $grossSales - $discounts - $refunds;
         $averageTicket        = $transactionCount > 0 ? $netSales / $transactionCount : 0;
-        $totalCollected       = $grossSales + $taxCollected - $refunds - $discounts;
+        $grossCollections     = $grossSales + $taxCollected - $discounts;
+        $netCollections       = $grossCollections - $refunds;
+        $totalCollected       = $netCollections;
         $totalAccountPayments = $accountPaymentsReceived + $accountPaymentsTax;
 
         return [
@@ -292,13 +363,39 @@ class SalesReportEngineV2
             'shipping_revenue'          => $shippingRevenue,
             'operational_revenue'       => $netSales,
             'tax_collected'             => $taxCollected,
-            'total_collected'           => $totalCollected,
+            'gross_collections'         => $grossCollections,
+            'net_collections'           => $netCollections,
+            'total_collected'           => $totalCollected, // alias of net_collections
             'total_account_payments'    => $totalAccountPayments,
             'transaction_count'         => $transactionCount,
             'average_ticket'            => $averageTicket,
             'account_payments_received' => $accountPaymentsReceived,
+            // Cash collected beyond orders' canonical totals — surfaced
+            // separately; deliberately NOT part of gross/net/tax/total_collected.
+            'overpayments'              => $overpayments,
             'payment_status'            => $paymentStatus,
+            // Accounting basis of THIS snapshot — POD is the one order-date
+            // uncollected projection; everything else is payment-date cash.
+            'basis'                     => $paymentStatus === 'pod' ? 'order_date_expected' : 'payment_date_cash',
+            'basis_label'               => self::basisLabel($paymentStatus),
         ];
+    }
+
+    /**
+     * Human label for the snapshot's accounting basis. POD is explicitly an
+     * order-date UNCOLLECTED PROJECTION — it never contributes to cash
+     * collections, tax collected, payment-date trends, or dashboard KPIs
+     * (the dashboard is pinned to payment_status='paid'). The account view is
+     * "Account Collections": actual cash received on account-related orders
+     * (charges ADDED to an account are accrual exposure, not collections).
+     */
+    public static function basisLabel(string $paymentStatus): string
+    {
+        return match ($paymentStatus) {
+            'pod'     => 'POD / Expected Revenue — Order-Date Basis',
+            'account' => 'Account Collections — Payment-Date Basis',
+            default   => 'Collections — Payment-Date Basis',
+        };
     }
 
     // ─── Private: Daily Series ────────────────────────────────────────────────
@@ -326,14 +423,40 @@ class SalesReportEngineV2
             $filters['shipping']        ?? 'all',
         ]);
 
-        // Daily order revenue — order_date anchor
-        $dailyOrder = $this->queryDailyOrderRevenue($filters);
+        if ($paymentStatus === 'pod') {
+            // POD legacy — order_date anchors (see snapshot()'s POD branch).
+            $dailyOrder     = $this->queryDailyOrderRevenue($filters);
+            $dailyDiscounts = !$anyOnly ? $this->queryDailyDiscounts($filters) : collect();
+        } else {
+            // Cash-basis: group the SAME shared collected-revenue rows the
+            // snapshot summed, by payment date — sum(daily) == snapshot values
+            // holds by construction because both read one row set (filtered
+            // views sum the same canonical line partitions the snapshot sums).
+            $rows      = $this->collectedRows($filters, $startDate, $endDate);
+            $useScoped = $this->collected->hasLineFilters($filters);
+            $rowVal    = fn ($r, string $field) => $useScoped
+                ? CollectedRevenueQuery::matchedLineSum($r, $field)
+                : $r->{$field};
 
-        // Daily discounts — order_date anchor (mirrors snapshot queryDiscounts)
-        // Zeroed in "only" mode to match applyComponentFilters behavior in snapshot.
-        $dailyDiscounts = !$anyOnly
-            ? $this->queryDailyDiscounts($filters)
-            : collect();
+            $dailyOrder = $rows->groupBy('payment_date')->map(fn ($dayRows, $date) => (object) [
+                'date'           => $date,
+                'daily_gross'    => round($dayRows->sum(fn ($r) => $rowVal($r, 'base')), 2),
+                'daily_delivery' => round($dayRows->sum(fn ($r) => $rowVal($r, 'delivery')), 2),
+                'daily_dw'       => round($dayRows->sum(fn ($r) => $rowVal($r, 'dw')), 2),
+                'daily_ti'       => round($dayRows->sum(fn ($r) => $rowVal($r, 'track')), 2),
+            ]);
+
+            // Includes the store-credit allocation so daily discounts match the
+            // snapshot's discounts exactly (the reconciliation guarantee).
+            $dailyDiscounts = !$anyOnly
+                ? $rows->groupBy('payment_date')->map(fn ($dayRows) => (object) [
+                    'daily_discounts' => round(
+                        $dayRows->sum(fn ($r) => $rowVal($r, 'discount')) + $dayRows->sum(fn ($r) => $rowVal($r, 'sc_discount')),
+                        2
+                    ),
+                ])
+                : collect();
+        }
 
         // Daily refunds — TRANSACTION DATE anchor (COALESCE(refunded_at, payment_datetime, created_at))
         // Zeroed in "only" mode to match applyComponentFilters behavior in snapshot.
@@ -374,8 +497,22 @@ class SalesReportEngineV2
     // ─── Private: Revenue Queries ─────────────────────────────────────────────
 
     /**
-     * Aggregate order-level revenue using orders.order_date as the date anchor.
-     * Date range is already baked into $filters and applied by baseQuery().
+     * The shared cash-basis collected-revenue rows, memoized so snapshot() and
+     * buildDailySeries() (called back-to-back by trendData()) read ONE fetch —
+     * which is also what guarantees sum(daily) == snapshot totals.
+     */
+    private function collectedRows(array $filters, string $startDate, string $endDate): Collection
+    {
+        $key = md5(json_encode($filters) . '|' . $startDate . '|' . $endDate);
+
+        return $this->collectedCache[$key] ??= $this->collected->rows($filters, $startDate, $endDate);
+    }
+
+    /**
+     * POD-LEGACY ONLY (payment_status='pod'): aggregate order-level EXPECTED
+     * revenue using orders.order_date as the date anchor. Every other view is
+     * cash-basis via collectedRows(). Date range is baked into $filters and
+     * applied by baseQuery().
      */
     private function queryOrderRevenue(array $filters): object
     {
@@ -393,8 +530,10 @@ class SalesReportEngineV2
     }
 
     /**
-     * Return [damageWaiver, trackInsurance, tireInsurance] revenue totals.
-     * Extracted from product_data JSON; these amounts are sub-components of sub_total.
+     * POD-LEGACY ONLY. Return [damageWaiver, trackInsurance, tireInsurance]
+     * revenue totals. Extracted from product_data JSON; these amounts are
+     * sub-components of sub_total. Cash-basis views read the allocated
+     * dw/track/tire fields on the shared collected-revenue rows instead.
      */
     private function queryAddonRevenue(array $filters): array
     {
@@ -415,7 +554,8 @@ class SalesReportEngineV2
     }
 
     /**
-     * Discounts anchored to orders.order_date — they are part of the original sale.
+     * POD-LEGACY ONLY. Discounts anchored to orders.order_date. Cash-basis
+     * views read the per-payment discount allocation on the shared rows.
      * Sums at the order level (not line level) to avoid double-counting multi-line orders.
      */
     private function queryDiscounts(array $filters): float
@@ -434,10 +574,12 @@ class SalesReportEngineV2
     }
 
     /**
-     * Pre-tax Store Credit discounts applied to ORDERS in scope, from the
-     * canonical product_discounts ledger. Returns [discount_total, tax_delta]
-     * where tax_delta = Σ(tax_before − tax_after) — the tax the discount removed
-     * from the order-level charge (used to correct the line-based tax_collected).
+     * POD-LEGACY ONLY. Pre-tax Store Credit discounts applied to ORDERS in
+     * scope, from the canonical product_discounts ledger. Cash-basis views read
+     * the per-payment sc_discount/sc_tax_delta allocations on the shared rows.
+     * Returns [discount_total, tax_delta] where tax_delta = Σ(tax_before −
+     * tax_after) — the tax the discount removed from the order-level charge
+     * (used to correct the line-based tax_collected).
      *
      * @return array{0: float, 1: float}
      */
@@ -551,7 +693,8 @@ class SalesReportEngineV2
     // ─── Private: Daily Queries ───────────────────────────────────────────────
 
     /**
-     * Daily order revenue grouped by orders.order_date.
+     * POD-LEGACY ONLY. Daily order revenue grouped by orders.order_date.
+     * Cash-basis views group the shared collected-revenue rows by payment date.
      * Includes component sub-values (delivery, DW, track, tire) for filter application.
      */
     private function queryDailyOrderRevenue(array $filters): Collection
@@ -571,7 +714,7 @@ class SalesReportEngineV2
     }
 
     /**
-     * Daily discounts grouped by orders.order_date.
+     * POD-LEGACY ONLY. Daily discounts grouped by orders.order_date.
      * Mirrors queryDiscounts() but per-day for chart use.
      */
     private function queryDailyDiscounts(array $filters): Collection
@@ -1023,6 +1166,8 @@ class SalesReportEngineV2
 
     private function zeroSnapshot(array $filters): array
     {
+        $paymentStatus = $filters['payment_status'] ?? 'paid';
+
         return [
             'gross_sales'               => 0.0,
             'discounts'                 => 0.0,
@@ -1035,12 +1180,17 @@ class SalesReportEngineV2
             'shipping_revenue'          => 0.0,
             'operational_revenue'       => 0.0,
             'tax_collected'             => 0.0,
+            'gross_collections'         => 0.0,
+            'net_collections'           => 0.0,
             'total_collected'           => 0.0,
             'total_account_payments'    => 0.0,
             'transaction_count'         => 0,
             'average_ticket'            => 0.0,
             'account_payments_received' => 0.0,
-            'payment_status'            => $filters['payment_status'] ?? 'paid',
+            'overpayments'              => 0.0,
+            'payment_status'            => $paymentStatus,
+            'basis'                     => $paymentStatus === 'pod' ? 'order_date_expected' : 'payment_date_cash',
+            'basis_label'               => self::basisLabel($paymentStatus),
         ];
     }
 

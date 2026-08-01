@@ -13,34 +13,41 @@ use Illuminate\Support\Facades\DB;
 /**
  * SalesTaxReportEngine — three independent transaction streams for Sales Tax reporting.
  *
- * Transaction-date accounting:
- *   Stream A (salesRows)   → anchored on orders.order_date
+ * Cash-basis / payment-date accounting — every stream is dated when the money
+ * actually moved, never when the order was created:
+ *   Stream A (salesRows)   → anchored on COALESCE(op.payment_datetime, op.created_at)
  *   Stream B (refundRows)  → anchored on COALESCE(refunded_at, payment_datetime, created_at)
  *   Stream C (accountRows) → anchored on customer_accounts.date
  *
- * Stream B is queried independently of Stream A. A June refund on a May order
- * appears in June's tax report regardless of which month the order was created.
+ * A payment collected in July on a June order appears in July's tax report; a
+ * split payment lands each portion in the period it was collected. All streams
+ * are queried independently of orders.order_date.
  */
 class SalesTaxReportEngine
 {
+    private CollectedRevenueQuery $collected;
+
+    /** Nullable + self-resolve so legacy `new SalesTaxReportEngine()` call sites keep working. */
+    public function __construct(?CollectedRevenueQuery $collected = null)
+    {
+        $this->collected = $collected ?? new CollectedRevenueQuery();
+    }
+
     // ─── Public API ───────────────────────────────────────────────────────────
 
     /**
-     * Stream A: taxable sales rows anchored on orders.order_date.
+     * Stream A: taxable sales rows anchored on the payment-execution date
+     * (COALESCE(op.payment_datetime, op.created_at)) — cash-basis. Emits one
+     * row per qualifying payment event that landed IN the window, reading the
+     * shared {@see CollectedRevenueQuery} rows (the same allocation output the
+     * Sales Summary and Payment Reconciliation Ledger consume — no independent
+     * formulas here).
      *
-     * Payment Architecture Finalization: this used to gate inclusion and
-     * attribute the WHOLE order's subtotal/tax/discount/grand_total to
-     * Order::lastPayment — the single highest-id order_payments row, no
-     * status filter. On a split-payment order that misattributed every
-     * dollar to whichever payment method happened to be entered last; on a
-     * partially-paid order (a Partial Payment row that isn't the order's
-     * last row) it counted the FULL grand_total as collected even though
-     * only part of it actually had been. Now emits one row per QUALIFYING
-     * payment event — mirroring PaymentReconciliationLedger::streamA(),
-     * whose settled-status set and proportional tax/discount split (cents-
-     * based, remainder to the last row) this reuses — so an order with N
-     * qualifying payments contributes N correctly-attributed rows instead
-     * of one row misattributed to a single payment.
+     * grand_total per row is the payment's APPLIED amount (capped at the
+     * order's canonical total): an overpayment never creates taxable revenue
+     * or tax. Inclusion is driven purely by when money was collected — a July
+     * payment on a June order reports in July; an unpaid order reports
+     * nothing; recording a later payment never restates an earlier period.
      */
     public function salesRows(array $filters): Collection
     {
@@ -50,78 +57,25 @@ class SalesTaxReportEngine
             return collect();
         }
 
-        // Only orders that own rental/retail product lines — matching the
-        // rest of the reporting architecture (SalesReportingService::baseQuery).
-        // Extension child orders have NO order_products rows; their money is
-        // already represented by the linked Billing Engine extension charge
-        // (Stream D), so admitting them here counted every paid extension twice.
-        $orderIdsQuery = Order::query()
-            ->select('id')
-            ->whereHas('products')
-            ->whereBetween('order_date', [$start, $end]);
+        // Store participates as a LINE filter: a store-filtered tax report
+        // attributes only that store's line partitions of each payment (the
+        // canonical line-attribution decomposition) — never the whole payment.
+        $rows = $this->collected->rows(
+            ['store' => $filters['store'] ?? null],
+            $start->toDateString(),
+            $end->toDateString()
+        );
 
-        if (!empty($filters['store'])) {
-            $orderIdsQuery->whereHas('products', fn($sub) => $sub->where(
-                fn($s) => $s->where('delivery_store_id', $filters['store'])
-                             ->orWhere('pickup_store_id', $filters['store'])
-            ));
-        }
-
-        $orderIds = $orderIdsQuery->pluck('id');
-
-        if ($orderIds->isEmpty()) {
+        if ($rows->isEmpty()) {
             return collect();
         }
-
-        // Same settled-status set streamA uses: Paid, the legacy Invoice*
-        // statuses, and Partial Payment — a real, partially-collected event.
-        $settledStatuses = collect(\App\Enums\Orders\OrderPaymentStatus::cases())
-            ->filter(fn ($s) => $s->isSettled() || $s === \App\Enums\Orders\OrderPaymentStatus::PartialPayment)
-            ->map(fn ($s) => $s->value)
-            ->all();
-
-        $paymentQuery = DB::table('order_payments as op')
-            ->join('orders as o', 'o.id', '=', 'op.order_id')
-            ->whereIn('o.id', $orderIds)
-            ->whereIn('op.status', $settledStatuses)
-            // Account-method rows are Stream C's (accountRows) — never
-            // realized here until the customer_accounts payment lands.
-            ->where('op.payment_method', '!=', 'Account')
-            // Unpaid-on-delivery COD was never actually collected; only a
-            // COD row that itself reached Paid status qualifies.
-            ->where(function ($q) {
-                $q->where('op.payment_method', '!=', 'COD')
-                  ->orWhere('op.status', 'Paid');
-            })
-            // Store Credit is a discount, not a tender — a legacy StoreCredit
-            // payment row must not attribute taxable sales.
-            ->where('op.payment_method', '!=', 'StoreCredit');
 
         if (!empty($filters['payment_method']) && $filters['payment_method'] !== 'All Methods') {
-            $paymentQuery->where('op.payment_method', $filters['payment_method']);
-        }
-
-        $paymentRows = $paymentQuery
-            ->select([
-                'o.id as order_id',
-                'o.unique_id as order_unique_id',
-                DB::raw('DATE(o.order_date) as order_date'),
-                'o.subtotal as order_subtotal',
-                'o.tax_amount as order_tax_amount',
-                'o.discount_amount as order_discount_amount',
-                'op.amount',
-                'op.payment_method',
-                'op.status as payment_status',
-            ])
-            ->orderBy('op.id')
-            ->get();
-
-        if ($paymentRows->isEmpty()) {
-            return collect();
+            $rows = $rows->where('payment_method', $filters['payment_method']);
         }
 
         $orders = Order::query()
-            ->whereIn('id', $paymentRows->pluck('order_id')->unique())
+            ->whereIn('id', $rows->pluck('order_id')->unique())
             ->with([
                 'shippingAddress:id,order_id,first_name,last_name',
                 'products:id,order_id,product_name',
@@ -129,66 +83,39 @@ class SalesTaxReportEngine
             ->get()
             ->keyBy('id');
 
-        return $paymentRows->groupBy('order_id')->flatMap(function ($rows, $orderId) use ($orders) {
-            $order = $orders[$orderId] ?? null;
+        return $rows->map(function ($row) use ($orders) {
+            $order = $orders[$row->order_id] ?? null;
             if (!$order) {
-                return collect();
+                return null;
             }
 
-            $orderTaxCents = (int) round((float) ($rows->first()->order_tax_amount ?? 0) * 100);
-            $orderDiscountCents = (int) round((float) ($rows->first()->order_discount_amount ?? 0) * 100);
-            $totalCents = (int) round($rows->sum(fn ($r) => (float) $r->amount) * 100);
-            $runningTaxCents = 0;
-            $runningDiscountCents = 0;
-            $count = $rows->count();
+            $method = $row->payment_method;
+            if (!$method) {
+                $status = \App\Enums\Orders\OrderPaymentStatus::tryFrom($row->payment_status);
+                $method = $status?->impliedMethod()?->value;
+            }
 
-            $customerName = $order->shippingAddress?->full_name ?? '-';
-            $productsLabel = $order->products->pluck('product_name')->implode(', ');
+            // Sum the payment's canonical LINE partitions over matching lines
+            // (all lines when unfiltered — then subtotal + tax − discount ==
+            // the payment's applied amount exactly). Never recalculated.
+            $subtotal = CollectedRevenueQuery::matchedLineSum($row, 'base');
+            $tax      = CollectedRevenueQuery::matchedLineSum($row, 'tax');
+            $discount = CollectedRevenueQuery::matchedLineSum($row, 'discount');
 
-            return $rows->values()->map(function ($row, $i) use (
-                $order, $customerName, $productsLabel, $totalCents,
-                $orderTaxCents, $orderDiscountCents, &$runningTaxCents, &$runningDiscountCents, $count
-            ) {
-                $amount = (float) $row->amount;
-                $amountCents = (int) round($amount * 100);
-                $isLast = $i === $count - 1;
-
-                if ($isLast) {
-                    $taxCents = $orderTaxCents - $runningTaxCents;
-                    $discountCents = $orderDiscountCents - $runningDiscountCents;
-                } else {
-                    $taxCents = $totalCents > 0 ? (int) round($orderTaxCents * $amountCents / $totalCents) : 0;
-                    $discountCents = $totalCents > 0 ? (int) round($orderDiscountCents * $amountCents / $totalCents) : 0;
-                    $runningTaxCents += $taxCents;
-                    $runningDiscountCents += $discountCents;
-                }
-
-                $tax = round($taxCents / 100, 2);
-                $discount = round($discountCents / 100, 2);
-                // grand_total = subtotal + tax_amount - discount_amount (discount applied post-tax)
-                $subtotal = round($amount - $tax + $discount, 2);
-
-                $method = $row->payment_method;
-                if (!$method) {
-                    $status = \App\Enums\Orders\OrderPaymentStatus::tryFrom($row->payment_status);
-                    $method = $status?->impliedMethod()?->value;
-                }
-
-                return (object) [
-                    'type'            => 'order',
-                    'unique_id'       => $order->unique_id,
-                    'link'            => $order->view_link,
-                    'date'            => $row->order_date,
-                    'customer_name'   => $customerName,
-                    'products'        => $productsLabel,
-                    'payment_type'    => \App\Enums\Orders\OrderPaymentMethod::tryFrom($method ?? '')?->label() ?? '-',
-                    'subtotal'        => $subtotal,
-                    'tax_amount'      => $tax,
-                    'discount_amount' => $discount,
-                    'grand_total'     => $amount,
-                ];
-            });
-        })->values();
+            return (object) [
+                'type'            => 'order',
+                'unique_id'       => $order->unique_id,
+                'link'            => $order->view_link,
+                'date'            => $row->payment_date,
+                'customer_name'   => $order->shippingAddress?->full_name ?? '-',
+                'products'        => $order->products->pluck('product_name')->implode(', '),
+                'payment_type'    => \App\Enums\Orders\OrderPaymentMethod::tryFrom($method ?? '')?->label() ?? '-',
+                'subtotal'        => $subtotal,
+                'tax_amount'      => $tax,
+                'discount_amount' => $discount,
+                'grand_total'     => round($subtotal + $tax - $discount, 2),
+            ];
+        })->filter()->values();
     }
 
     /**

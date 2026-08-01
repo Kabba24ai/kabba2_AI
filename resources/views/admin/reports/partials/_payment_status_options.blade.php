@@ -13,5 +13,7 @@
 @php $selectedPaymentStatus = $filters['payment_status'] ?? 'paid'; @endphp
 <option value="paid"    @selected($selectedPaymentStatus === 'paid')>Paid</option>
 <option value="all"     @selected($selectedPaymentStatus === 'all')>All</option>
-<option value="pod"     @selected($selectedPaymentStatus === 'pod')>POD</option>
+{{-- POD is an EXPECTED-VALUE projection (order-date basis, uncollected) on
+     every report — it never represents cash collections. --}}
+<option value="pod"     @selected($selectedPaymentStatus === 'pod')>POD / Expected Revenue</option>
 <option value="account" @selected($selectedPaymentStatus === 'account')>Account</option>

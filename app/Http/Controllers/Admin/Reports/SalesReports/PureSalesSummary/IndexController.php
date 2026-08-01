@@ -145,15 +145,21 @@ class IndexController extends Controller
             'tire_insurance_revenue'  => CustomHelper::formatCurrency($kpis['tire_insurance_revenue']),
             'shipping_revenue'        => CustomHelper::formatCurrency($kpis['shipping_revenue']),
             'operational_revenue'     => CustomHelper::formatCurrency($kpis['operational_revenue']),
-            // Tax & totals
+            // Tax & totals — collection terminology: total_collected is the
+            // backward-compatible alias of net_collections (net of refunds).
             'tax_collected'            => CustomHelper::formatCurrency($kpis['tax_collected']),
+            'gross_collections'        => CustomHelper::formatCurrency($kpis['gross_collections']),
+            'net_collections'          => CustomHelper::formatCurrency($kpis['net_collections']),
             'total_collected'          => CustomHelper::formatCurrency($kpis['total_collected']),
+            'overpayments'             => CustomHelper::formatCurrency($kpis['overpayments']),
             'total_account_payments'   => CustomHelper::formatCurrency($kpis['total_account_payments']),
             // Stats
             'transaction_count'         => number_format($kpis['transaction_count']),
             'average_ticket'            => CustomHelper::formatCurrency($kpis['average_ticket']),
             'account_payments_received' => CustomHelper::formatCurrency($kpis['account_payments_received']),
             'payment_status'            => $kpis['payment_status'],
+            'basis'                     => $kpis['basis'],
+            'basis_label'               => $kpis['basis_label'],
             // raw values for JS
             'raw'                       => $kpis,
         ];

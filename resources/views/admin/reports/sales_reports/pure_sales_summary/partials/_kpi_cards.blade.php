@@ -1,17 +1,32 @@
 {{-- KPI cards for Pure Sales Summary. Included on initial load and replaced via AJAX. --}}
 
-<div class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-    Period: <span class="font-medium text-gray-700 dark:text-gray-200">{{ $dateRangeLabel }}</span>
+<div class="mb-2 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+    <span>Period: <span class="font-medium text-gray-700 dark:text-gray-200">{{ $dateRangeLabel }}</span></span>
+    {{-- Accounting basis of this view. POD is the one order-date UNCOLLECTED
+         projection — it never enters cash collections, tax collected,
+         payment-date trends, or the dashboard KPIs. --}}
+    @if (!empty($kpis['basis_label']))
+        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+            {{ ($kpis['basis'] ?? '') === 'order_date_expected'
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
+            {{ $kpis['basis_label'] }}
+        </span>
+    @endif
 </div>
 
 {{-- ── Row 1: Total Collected | Gross Sales | Net Sales | Tax Collected | Refunds | Discounts ── --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
 
-    {{-- Total Collected: supporting metric — includes tax which is remitted to government --}}
+    {{-- Net Collections (fka Total Collected): supporting metric — includes tax which is remitted to government.
+         gross_collections − refunds; overpayments are excluded and shown separately when present. --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-700 p-4 shadow-sm ring-1 ring-blue-100 dark:ring-blue-900">
-        <p class="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Total Collected</p>
-        <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ $kpis['total_collected'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Gross + Tax &minus; Refunds &minus; Discounts</p>
+        <p class="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Net Collections</p>
+        <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ $kpis['net_collections'] ?? $kpis['total_collected'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Gross Collections &minus; Refunds</p>
+        @if (($kpis['raw']['overpayments'] ?? 0) > 0)
+            <p class="text-xs text-amber-600 dark:text-amber-400 mt-1">Overpayments {{ $kpis['overpayments'] }} excluded</p>
+        @endif
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">

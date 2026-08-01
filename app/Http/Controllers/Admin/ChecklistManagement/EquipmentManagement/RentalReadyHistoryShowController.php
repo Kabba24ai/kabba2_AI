@@ -25,7 +25,7 @@ class RentalReadyHistoryShowController extends Controller
         $inspection = EquipmentRentalReadyTemplate::query()
             ->where('unique_id', $template)
             ->where('equipment_id', $equipmentModel->id)
-            ->with(['employee', 'checklistQuestions', 'orderProduct.order:id,order_number', 'order:id,order_number'])
+            ->with(['employee', 'checklistQuestions', 'orderProduct.order:id,unique_id,order_number', 'order:id,unique_id,order_number'])
             ->firstOrFail();
 
         // Reconstruct the ordered answer list from each child row's frozen
@@ -54,8 +54,14 @@ class RentalReadyHistoryShowController extends Controller
             ->groupBy(fn ($q) => $q['section_name'] ?? 'Uncategorized')
             ->map(fn ($group) => $group->values());
 
-        $orderNumber = $inspection->orderProduct?->order?->order_number
-            ?? $inspection->order?->order_number;
+        // Order this inspection was created from (order-product first, then a
+        // directly order-scoped inspection) — so the header can hotlink back to
+        // it. order_number carries no '#'; the view adds exactly one.
+        $order = $inspection->orderProduct?->order ?? $inspection->order;
+        $orderNumber = $order?->order_number;
+        $orderUrl = $order
+            ? route('admin.order-management.orders.edit', ['unique_id' => $order->unique_id])
+            : null;
 
         return view('admin.checklist_management.equipment_management.rental_ready_inspection_detail', [
             'equipment' => $equipmentModel,
@@ -63,6 +69,7 @@ class RentalReadyHistoryShowController extends Controller
             'sections' => $sections,
             'questionCount' => $questions->count(),
             'orderNumber' => $orderNumber,
+            'orderUrl' => $orderUrl,
         ]);
     }
 }

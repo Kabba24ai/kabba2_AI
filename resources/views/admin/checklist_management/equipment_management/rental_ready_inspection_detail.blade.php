@@ -32,6 +32,10 @@
 @section('content')
     @include('flash::message')
 
+    {{-- Contained width — a single-column record reads far better centered than
+         stretched edge-to-edge. --}}
+    <div class="max-w-5xl mx-auto">
+
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-xl font-semibold text-gray-900">Rental Ready Inspection</h1>
@@ -68,7 +72,18 @@
         <dl class="px-5 py-4 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-sm">
             <div><dt class="text-gray-400 text-xs uppercase tracking-wide">Inspector</dt><dd class="text-gray-900 mt-0.5">{{ $inspection->employee_name ?: optional($inspection->employee)->full_name ?: '—' }}</dd></div>
             <div><dt class="text-gray-400 text-xs uppercase tracking-wide">Equipment Hours</dt><dd class="text-gray-900 mt-0.5">{{ $inspection->equipment_hours !== null ? rtrim(rtrim(number_format((float) $inspection->equipment_hours, 1), '0'), '.') : '—' }}</dd></div>
-            <div><dt class="text-gray-400 text-xs uppercase tracking-wide">Order</dt><dd class="text-gray-900 mt-0.5">{{ $orderNumber ? '#' . $orderNumber : '— (no order context)' }}</dd></div>
+            <div><dt class="text-gray-400 text-xs uppercase tracking-wide">Order</dt><dd class="text-gray-900 mt-0.5">
+                @if ($orderNumber)
+                    @php $orderLabel = '#' . ltrim((string) $orderNumber, '#'); @endphp
+                    @if ($orderUrl)
+                        <a href="{{ $orderUrl }}" class="text-sky-700 hover:underline font-medium">{{ $orderLabel }}</a>
+                    @else
+                        {{ $orderLabel }}
+                    @endif
+                @else
+                    <span class="text-gray-400">— (no order context)</span>
+                @endif
+            </dd></div>
             <div><dt class="text-gray-400 text-xs uppercase tracking-wide">Inspection Date</dt><dd class="text-gray-900 mt-0.5">{{ \Illuminate\Support\Carbon::parse($inspection->inspection_date)->format('M j, Y') }}{{ $inspection->inspection_time ? ' · ' . \Illuminate\Support\Carbon::parse($inspection->inspection_time)->format('g:i A') : '' }}</dd></div>
             <div><dt class="text-gray-400 text-xs uppercase tracking-wide">Created</dt><dd class="text-gray-900 mt-0.5">{{ optional($inspection->created_at)->format('M j, Y g:i A') ?? '—' }}</dd></div>
             <div><dt class="text-gray-400 text-xs uppercase tracking-wide">Completed</dt><dd class="text-gray-900 mt-0.5">{{ $inspection->completed_at ? $inspection->completed_at->format('M j, Y g:i A') : '—' }}</dd></div>
@@ -100,31 +115,23 @@
             <div class="px-5 py-2.5 bg-gray-50 border-b border-gray-100 text-sm font-semibold text-gray-700">{{ $sectionName }}</div>
             <ul class="divide-y divide-gray-100">
                 @foreach ($questions as $q)
+                    @php $sel = $q['selected_answer']; $answered = $sel && isset($sel['answer_name']); @endphp
                     <li class="px-5 py-3">
-                        <div class="flex items-start justify-between gap-4">
-                            <div class="min-w-0">
-                                <div class="text-sm font-medium text-gray-900">
-                                    {{ $q['question_name'] }}
-                                    @if ($q['required_question'])
-                                        <span class="ml-1 text-[10px] font-semibold uppercase text-gray-400">Required</span>
-                                    @endif
-                                </div>
-                                @if (!empty($q['note']))
-                                    <div class="text-xs text-gray-500 mt-1">Note: {{ $q['note'] }}</div>
-                                @endif
-                            </div>
-                            <div class="shrink-0 text-right">
-                                @php $sel = $q['selected_answer']; @endphp
-                                @if ($sel && isset($sel['answer_name']))
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded border text-xs font-semibold {{ $answerTone[$sel['type'] ?? ''] ?? 'bg-gray-100 text-gray-700 border-gray-200' }}">
-                                        {{ $sel['answer_name'] }}
-                                    </span>
-                                @else
-                                    <span class="text-xs text-gray-400 italic">Not answered</span>
-                                @endif
-                            </div>
+                        <div class="flex items-center flex-wrap gap-2">
+                            <span class="text-sm font-medium text-gray-900">{{ $q['question_name'] }}</span>
+                            @if ($q['required_question'])
+                                <span class="text-[10px] font-semibold uppercase text-gray-400">Required</span>
+                            @endif
+                            @unless ($answered)
+                                <span class="text-xs text-gray-400 italic">Not answered</span>
+                            @endunless
                         </div>
-                        {{-- The full option set as it existed at inspection time. --}}
+                        @if (!empty($q['note']))
+                            <div class="text-xs text-gray-500 mt-1">Note: {{ $q['note'] }}</div>
+                        @endif
+                        {{-- The full option set as it existed at inspection time, with the
+                             chosen option highlighted — the single source of truth (no
+                             redundant right-hand selected badge). --}}
                         @if (!empty($q['answers']))
                             <div class="mt-2 flex flex-wrap gap-1.5">
                                 @foreach ($q['answers'] as $opt)
@@ -132,6 +139,13 @@
                                         {{ $opt['answer_name'] ?? '—' }}
                                     </span>
                                 @endforeach
+                            </div>
+                        @elseif ($answered)
+                            {{-- Legacy row without a stored option set: show the selection itself. --}}
+                            <div class="mt-2">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded border text-xs font-semibold {{ $answerTone[$sel['type'] ?? ''] ?? 'bg-gray-100 text-gray-700 border-gray-200' }}">
+                                    {{ $sel['answer_name'] }}
+                                </span>
                             </div>
                         @endif
                     </li>
@@ -143,4 +157,6 @@
             No answer snapshot was recorded for this inspection.
         </div>
     @endforelse
+
+    </div>
 @endsection

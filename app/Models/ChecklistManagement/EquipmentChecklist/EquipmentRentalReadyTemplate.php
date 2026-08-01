@@ -127,4 +127,10 @@ class EquipmentRentalReadyTemplate extends Model
         return $this->belongsTo(OrderProduct::class, 'order_product_id');
     }
 
+    /** Order-scoped inspections may carry order_id directly (no order product). */
+    public function order()
+    {
+        return $this->belongsTo(\App\Models\Orders\Order::class, 'order_id');
+    }
+
 }

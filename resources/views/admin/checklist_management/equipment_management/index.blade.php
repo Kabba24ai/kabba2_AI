@@ -176,6 +176,11 @@
 
                 <!-- Checklist Container -->
                 <div id="checklistContainer" class="hidden bg-white rounded-md shadow-sm border border-gray-200 p-6">
+                    {{-- Phase 2B — inspection context + actions. Selecting a unit is
+                         never a blank slate: it shows the last inspection and the
+                         history/latest-completed entry points, and labels the form
+                         below as a NEW inspection (any draft resumes automatically). --}}
+                    <div id="inspectionContextBar" class="hidden mb-5 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3"></div>
                     <div class="mb-6">
                         <div class="flex flex-wrap items-start gap-2 mb-4">
                             <h2 id="checklistTitle" class="text-xl font-semibold text-gray-900">Rental Ready Checklist</h2>
@@ -393,6 +398,8 @@
            console.time("rawEquipmentParse");
 
             const rawEquipment = @json($equipments->items());
+            // Phase 2B — Rental Ready history entry point (built per equipment from unique_id).
+            const rrHistoryTemplate = '{{ route('admin.checklist-management.equipment-management.rental-ready-history', ':id') }}';
 
             console.timeEnd("rawEquipmentParse");
 
@@ -485,6 +492,7 @@
                     checklist_master_id: eq.checklist_master_id,
                     hours: eq.equipment_hours,
                     lastInspection: eq.last_inspection ?? '',
+                    latestCompletedUuid: eq.latest_rental_ready_template?.unique_id ?? null,
                     orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                     orderproductid: eq.order_product?.id ?? null,
                     order_route: eq.order?.view_link ?? null,
@@ -591,6 +599,7 @@
                             checklist_master_id: eq.checklist_master_id,
                             hours: eq.equipment_hours,
                             lastInspection: eq.last_inspection ?? '',
+                            latestCompletedUuid: eq.latest_rental_ready_template?.unique_id ?? null,
                             orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                             orderproductid: eq.order_product?.id ?? null,
                             order_route: eq.order?.view_link ?? null,
@@ -754,6 +763,7 @@
                                     <div>
                                         <div class="font-medium text-gray-700">Last Inspection</div>
                                         <div>${eq.lastInspection || 'Not Available'}</div>
+                                        <a href="${rrHistoryTemplate.replace(':id', eq.unique_id)}" onclick="event.stopPropagation()" class="text-xs text-sky-700 hover:underline">View History</a>
                                     </div>
 
                                 </div>
@@ -829,6 +839,7 @@
                             checklist_master_id: eq.checklist_master_id,
                             hours: eq.equipment_hours,
                             lastInspection: eq.last_inspection ?? '',
+                            latestCompletedUuid: eq.latest_rental_ready_template?.unique_id ?? null,
                             orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                             orderproductid: eq.order_product?.id ?? null,
                             order_route: eq.order?.view_link ?? null,
@@ -884,6 +895,38 @@
 
 
             /* =================== RIGHT: OPEN CHECKLIST =================== */
+            // Phase 2B — context + action separation. A selected unit shows its
+            // last inspection and history entry points BEFORE the new-inspection
+            // form, so choosing completed equipment is never a context-free blank
+            // checklist. Start New = the form below; Resume Draft = auto-resumed by
+            // the questions endpoint; View Latest Completed / View History = links.
+            function renderInspectionContextBar(eq) {
+                const bar = document.getElementById("inspectionContextBar");
+                if (!bar) return;
+
+                if (eq.badge === "Rented") { bar.classList.add("hidden"); return; }
+
+                const historyUrl = rrHistoryTemplate.replace(':id', eq.unique_id);
+                const last = (eq.lastInspection && eq.lastInspection !== '') ? eq.lastInspection : 'No prior inspection on record';
+                const latestLink = eq.latestCompletedUuid
+                    ? `<a href="${historyUrl}/${eq.latestCompletedUuid}" class="text-sky-700 hover:underline font-medium">View Latest Completed</a><span class="text-gray-300">·</span>`
+                    : '';
+
+                bar.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-semibold text-gray-800">Last inspection:</span> ${last}
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            ${latestLink}
+                            <a href="${historyUrl}" class="text-sky-700 hover:underline font-medium">View History</a>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">The checklist below starts a <span class="font-medium">new inspection</span>. Any in-progress draft is resumed automatically.</p>
+                `;
+                bar.classList.remove("hidden");
+            }
+
             function openChecklist(eq) {
 
                 console.time("openChecklist");
@@ -938,6 +981,7 @@
                 placeholder.classList.add("hidden");
                 checklistContainer.classList.remove("hidden");
                 checklistTitle.textContent = `Rental Ready Checklist - ${eq.name}`;
+                renderInspectionContextBar(eq);
                 equipmentHoursInput.value = eq.hours;
 
                 if (eq.is_tracked === "Yes") {

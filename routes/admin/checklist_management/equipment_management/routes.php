@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\IndexController;
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\ChecklistQuestionsController;
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\StoreController;
+use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\RentalReadyHistoryController;
+use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\RentalReadyHistoryShowController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +23,13 @@ Route::prefix('equipment-management')
     ->name('equipment-management.')
     ->group(function ($router) {
         Route::get('/', IndexController::class)->name('index');
+
+        // Phase 2B — read-only Rental Ready inspection history + detail.
+        // Multi-segment, so they never collide with the /{equipment} wildcard;
+        // both bind by unique_id (resolved in the controller, matching the
+        // module convention).
+        Route::get('/{equipment}/rental-ready-history', RentalReadyHistoryController::class)->name('rental-ready-history');
+        Route::get('/{equipment}/rental-ready-history/{template}', RentalReadyHistoryShowController::class)->name('rental-ready-history.show');
 
         Route::get('/{equipment}', IndexController::class)->name('show');
 

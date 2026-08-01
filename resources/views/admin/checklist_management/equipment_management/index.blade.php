@@ -12,11 +12,47 @@
         @include('admin.wait_list.partials.banner', ['equipment' => \App\Models\MaintenanceManagement\Equipment::find($selectedEquipmentId)])
     @endif
     @include('admin.partials.formErrors')
+    {{-- Phase 3A — Three-Column Rental Ready Workspace.
+         xl+ : left navigator (~24%) · center inspection (~48%) · right
+               latest-completed comparison (~28%), center primary, right sticky.
+         < xl : center is full-width primary; the navigator becomes a left
+               DRAWER and the previous inspection a right SLIDE-OVER — never
+               three squeezed columns on an iPad-width display. --}}
+
+    {{-- Mobile / tablet toolbar (hidden on xl where both panels are always visible) --}}
+    <div class="xl:hidden mb-4 flex items-center gap-2">
+        <button type="button" onclick="openEquipmentDrawer()"
+            class="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+            Browse Equipment
+        </button>
+        <button type="button" id="openPreviousBtnMobile" onclick="openPreviousPanel()" disabled
+            class="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v5h5" /><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" /><path d="M12 7v5l4 2" />
+            </svg>
+            Previous Inspection
+        </button>
+    </div>
+
+    {{-- Backdrops for the drawer / slide-over (below xl only) --}}
+    <div id="equipmentDrawerBackdrop" aria-hidden="true" class="hidden xl:hidden fixed inset-0 z-30 bg-black/40" onclick="closeEquipmentDrawer()"></div>
+    <div id="previousPanelBackdrop" aria-hidden="true" class="hidden xl:hidden fixed inset-0 z-30 bg-black/40" onclick="closePreviousPanel()"></div>
+
     <div class="">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- LEFT: Equipment -->
-            <div class="lg:col-span-1">
+        <div class="xl:grid xl:grid-cols-[minmax(0,24fr)_minmax(0,48fr)_minmax(0,28fr)] xl:gap-6 xl:items-start">
+            <!-- LEFT: Equipment navigator (drawer below xl) -->
+            <aside id="equipmentNavigator" tabindex="-1" aria-label="Equipment navigator"
+                class="fixed inset-y-0 left-0 z-40 w-[92%] max-w-sm -translate-x-full transition-transform duration-200 ease-out overflow-y-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0
+                       xl:static xl:z-auto xl:w-auto xl:max-w-none xl:translate-x-0 xl:overflow-visible">
                 <div class="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+                    <div class="xl:hidden flex justify-end mb-2">
+                        <button type="button" onclick="closeEquipmentDrawer()" data-panel-close aria-label="Close equipment navigator" class="p-1 text-gray-400 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-xl font-semibold text-gray-900">Select Equipment</h2>
                         <div class="flex items-center gap-2 text-sm text-gray-600">
@@ -143,12 +179,12 @@
 
                     </div>
 
-                    
-                </div>
-            </div>
 
-            <!-- RIGHT: Checklist -->
-            <div class="lg:col-span-2">
+                </div>
+            </aside>
+
+            <!-- CENTER: Current inspection (primary) -->
+            <div class="min-w-0 mt-4 xl:mt-0">
                 <!-- Placeholder -->
                 <div id="placeholder" class="bg-white rounded-md shadow-sm border border-gray-200 p-8 text-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -176,17 +212,24 @@
 
                 <!-- Checklist Container -->
                 <div id="checklistContainer" class="hidden bg-white rounded-md shadow-sm border border-gray-200 p-6">
-                    {{-- Phase 2B — inspection context + actions. Selecting a unit is
-                         never a blank slate: it shows the last inspection and the
-                         history/latest-completed entry points, and labels the form
-                         below as a NEW inspection (any draft resumes automatically). --}}
-                    <div id="inspectionContextBar" class="hidden mb-5 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3"></div>
+                    {{-- Phase 3A — the Phase 2B context bar is absorbed into this
+                         center header: a mode chip states clearly whether this is a
+                         NEW inspection or a RESUMED draft, and the history / latest-
+                         completed entry points sit alongside it. Selecting a unit is
+                         never a context-free blank slate. --}}
                     <div class="mb-6">
-                        <div class="flex flex-wrap items-start gap-2 mb-4">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
                             <h2 id="checklistTitle" class="text-xl font-semibold text-gray-900">Rental Ready Checklist</h2>
+                            <span id="inspectionModeChip" class="hidden inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border"></span>
+                            <button type="button" id="openPreviousBtnInline" onclick="openPreviousPanel()"
+                                class="xl:hidden inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-gray-300 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5" /><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" /><path d="M12 7v5l4 2" /></svg>
+                                Previous
+                            </button>
                             <div class="text-sm text-gray-600 w-full sm:w-auto sm:ml-auto sm:text-right ml-auto"
                                 id="progressTop">0 of 10 items completed</div>
                         </div>
+                        <div id="inspectionContextLinks" class="hidden mb-4 flex flex-wrap items-center gap-2 text-sm"></div>
 
                         <!-- Header row -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -286,6 +329,25 @@
                 {{ html()->form()->close() }}
 
             </div>
+
+            <!-- RIGHT: Latest completed inspection — operational reference only
+                 (slide-over below xl, sticky column at xl). NOT the full audit
+                 record: the dedicated history + detail pages remain that. -->
+            <aside id="previousInspectionPanel" tabindex="-1" aria-label="Previous inspection panel"
+                class="fixed inset-y-0 right-0 z-40 w-[92%] max-w-md translate-x-full transition-transform duration-200 ease-out overflow-y-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0
+                       xl:static xl:z-auto xl:w-auto xl:max-w-none xl:translate-x-0 xl:overflow-visible xl:sticky xl:top-6">
+                <div class="bg-white rounded-md shadow-sm border border-gray-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-semibold text-gray-900">Previous Inspection</h2>
+                        <button type="button" onclick="closePreviousPanel()" data-panel-close aria-label="Close previous inspection panel" class="xl:hidden p-1 text-gray-400 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div id="previousInspectionBody">
+                        <p class="text-sm text-gray-400 py-6 text-center">Select equipment to see its most recent completed inspection.</p>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
 @endsection
@@ -475,8 +537,12 @@
                 applyFilters();
             });
 
-            const equipment = rawEquipment.map(eq => {
-                // Get service status icon and replace EQUIPMENT_ID placeholder
+            // Single canonical equipment mapper (used by the initial render,
+            // filtering, and infinite scroll — one shape, no drift). Phase 3A
+            // adds the latest-completed summary + active-draft flag the left
+            // card needs; a draft NEVER overrides the completed result because
+            // both come from separate, completion-only readers.
+            function mapEquipment(eq) {
                 let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
                 serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
 
@@ -493,6 +559,10 @@
                     hours: eq.equipment_hours,
                     lastInspection: eq.last_inspection ?? '',
                     latestCompletedUuid: eq.latest_rental_ready_template?.unique_id ?? null,
+                    latestCompletedResult: eq.latest_rental_ready_template?.result ?? null,
+                    latestCompletedDate: eq.latest_rental_ready_template?.inspection_date ?? null,
+                    latestCompletedInspector: eq.latest_rental_ready_template?.employee_name ?? null,
+                    hasDraft: !!eq.latest_draft_rental_ready_template,
                     orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
                     orderproductid: eq.order_product?.id ?? null,
                     order_route: eq.order?.view_link ?? null,
@@ -506,7 +576,10 @@
                     is_assigned: eq.is_assigned ?? 0,
                     store_name: eq.store?.store_name ?? null,
                 };
-            });
+            }
+            window.mapEquipment = mapEquipment;
+
+            const equipment = rawEquipment.map(mapEquipment);
 
 
             let groups = []; // use 'let' so you can reassign
@@ -581,39 +654,7 @@
 
                     equipment.length = 0;
 
-                    const newItems = result.data.map(eq => {
-
-                        let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
-
-                        serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
-
-                        return {
-                            id: eq.id,
-                            unique_id: eq.unique_id,
-                            name: eq.equipment_name,
-                            model: eq.model,
-                            serial: eq.serial_number,
-                            equipment_id: eq.equipment_id,
-                            category_id: eq.category_id,
-                            category: eq.category_name ?? 'N/A',
-                            checklist_master_id: eq.checklist_master_id,
-                            hours: eq.equipment_hours,
-                            lastInspection: eq.last_inspection ?? '',
-                            latestCompletedUuid: eq.latest_rental_ready_template?.unique_id ?? null,
-                            orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
-                            orderproductid: eq.order_product?.id ?? null,
-                            order_route: eq.order?.view_link ?? null,
-                            orderid: eq.order?.id ?? null,
-                            badge: eq.status_label,
-                            icon: icons[eq.current_status] ?? icons.available,
-                            is_tracked: eq.is_tracked ?? 'No',
-                            customername: eq.order?.customer_name ?? ' ',
-                            serviceStatus: eq.service_status,
-                            serviceStatusIcon: serviceIcon,
-                            is_assigned: eq.is_assigned ?? 0,
-                            store_name: eq.store?.store_name ?? null,
-                        };
-                    });
+                    const newItems = result.data.map(mapEquipment);
 
                     equipment.push(...newItems);
 
@@ -716,6 +757,10 @@
                                         <span class="inline-flex px-2 py-1 rounded text-xs font-medium border ${badgeColors(eq.badge)}">
                                             ${eq.badge}
                                         </span>
+                                        ${eq.hasDraft ? `<span class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border bg-blue-50 text-blue-700 border-blue-200" title="An in-progress draft inspection exists">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                            Draft
+                                        </span>` : ''}
                                     </div>
                                 </div>
 
@@ -761,8 +806,13 @@
                                     </div>
 
                                     <div>
-                                        <div class="font-medium text-gray-700">Last Inspection</div>
-                                        <div>${eq.lastInspection || 'Not Available'}</div>
+                                        <div class="font-medium text-gray-700">Last Completed</div>
+                                        ${eq.latestCompletedResult
+                                            ? `<div class="flex flex-col gap-0.5">
+                                                    <span class="inline-flex items-center self-start px-2 py-0.5 rounded text-xs font-medium border ${resultChipClass(eq.latestCompletedResult)}">${resultLabel(eq.latestCompletedResult)}</span>
+                                                    ${eq.latestCompletedDate ? `<span class="text-xs text-gray-500">${escapeHtml(eq.latestCompletedDate)}${eq.latestCompletedInspector ? ' · ' + escapeHtml(eq.latestCompletedInspector) : ''}</span>` : ''}
+                                               </div>`
+                                            : `<div class="text-xs italic text-gray-400">No completed inspection</div>`}
                                         <a href="${rrHistoryTemplate.replace(':id', eq.unique_id)}" onclick="event.stopPropagation()" class="text-xs text-sky-700 hover:underline">View History</a>
                                     </div>
 
@@ -823,37 +873,7 @@
 
                     const result = await response.json();
 
-                    const newItems = result.data.map(eq => {
-                        let serviceIcon = serviceStatusIcons[eq.service_status] || serviceStatusIcons.empty;
-                        serviceIcon = serviceIcon.replace(/EQUIPMENT_ID/g, eq.unique_id);
-
-                        return {
-                            id: eq.id,
-                            unique_id: eq.unique_id,
-                            name: eq.equipment_name,
-                            model: eq.model,
-                            serial: eq.serial_number,
-                            equipment_id: eq.equipment_id,
-                            category_id: eq.category_id,
-                            category: eq.category_name ?? 'N/A',
-                            checklist_master_id: eq.checklist_master_id,
-                            hours: eq.equipment_hours,
-                            lastInspection: eq.last_inspection ?? '',
-                            latestCompletedUuid: eq.latest_rental_ready_template?.unique_id ?? null,
-                            orderproduct: eq.order_product?.product_name ?? eq.soft_assignments?.[0]?.order_product?.product_name ?? null,
-                            orderproductid: eq.order_product?.id ?? null,
-                            order_route: eq.order?.view_link ?? null,
-                            orderid: eq.order?.id ?? null,
-                            badge: eq.status_label,
-                            icon: icons[eq.current_status] ?? icons.available,
-                            is_tracked: eq.is_tracked ?? 'No',
-                            customername: eq.order?.customer_name ?? ' ',
-                            serviceStatus: eq.service_status,
-                            serviceStatusIcon: serviceIcon,
-                            is_assigned: eq.is_assigned ?? 0,
-                            store_name: eq.store?.store_name ?? null,
-                        };
-                    });
+                    const newItems = result.data.map(mapEquipment);
 
                     equipment.push(...newItems);
                     newItems.forEach(eq => {
@@ -878,6 +898,42 @@
                 return "bg-gray-100 text-gray-700 border-gray-200";
             }
 
+            // Rental Ready RESULT (business outcome) → label + tone. Mirrors the
+            // RentalReadyResult enum labels; kept in JS for the left card + right
+            // panel. Distinct from equipment status badges above. Declared as
+            // hoisted functions so the synchronous selected-equipment render (which
+            // runs before this point) can still call them.
+            function resultLabel(v) {
+                if (v === "rental_ready") return "Rental Ready";
+                if (v === "maintenance_hold") return "Maintenance Hold";
+                if (v === "damaged") return "Damaged";
+                return "—";
+            }
+            function resultChipClass(v) {
+                if (v === "rental_ready") return "bg-green-50 text-green-700 border-green-200";
+                if (v === "maintenance_hold") return "bg-amber-50 text-amber-800 border-amber-200";
+                if (v === "damaged") return "bg-red-50 text-red-700 border-red-200";
+                return "bg-gray-100 text-gray-600 border-gray-200";
+            }
+            window.resultLabel = resultLabel;
+            window.resultChipClass = resultChipClass;
+
+            // HTML-escape every snapshot / historical value rendered via innerHTML.
+            // Immutable ≠ trusted: an older, browser-built snapshot could carry
+            // markup in a question, answer, inspector name, order number, etc.
+            // Declared (hoisted) so the synchronous selected-equipment render can
+            // use it too.
+            function escapeHtml(v) {
+                if (v === null || v === undefined) return '';
+                return String(v)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            window.escapeHtml = escapeHtml;
+
             window.setStatus = function(status) {
                 // console.log("Setting equipment status:", status);
 
@@ -894,38 +950,320 @@
 
 
 
-            /* =================== RIGHT: OPEN CHECKLIST =================== */
-            // Phase 2B — context + action separation. A selected unit shows its
-            // last inspection and history entry points BEFORE the new-inspection
-            // form, so choosing completed equipment is never a context-free blank
-            // checklist. Start New = the form below; Resume Draft = auto-resumed by
-            // the questions endpoint; View Latest Completed / View History = links.
-            function renderInspectionContextBar(eq) {
-                const bar = document.getElementById("inspectionContextBar");
-                if (!bar) return;
+            /* ============ RIGHT PANEL + COMPARISON (Phase 3A) ============ */
+            // The three regions are driven from a SINGLE equipment selection.
+            // A monotonic token guards against stale async results when the user
+            // switches units quickly: the checklist-questions fetch and the
+            // latest-completed fetch each stamp the token they started under and
+            // bail if it has moved on.
+            const rrLatestCompletedTemplate = '{{ route('admin.checklist-management.equipment-management.rental-ready-latest-completed', ':id') }}';
+            window.rrSelectionToken = 0;
+            window.currentGroupsReady = false;
+            window.currentInspectionBlocked = false; // rented → no current inspection
+            window.previousReady = false;
+            window.previousInspection = null;
 
-                if (eq.badge === "Rented") { bar.classList.add("hidden"); return; }
-
+            // Center header: history / latest-completed entry points (absorbed
+            // from the Phase 2B context bar) + the New-vs-Draft mode chip.
+            function renderInspectionContextLinks(eq) {
+                const box = document.getElementById("inspectionContextLinks");
+                if (!box) return;
                 const historyUrl = rrHistoryTemplate.replace(':id', eq.unique_id);
-                const last = (eq.lastInspection && eq.lastInspection !== '') ? eq.lastInspection : 'No prior inspection on record';
                 const latestLink = eq.latestCompletedUuid
-                    ? `<a href="${historyUrl}/${eq.latestCompletedUuid}" class="text-sky-700 hover:underline font-medium">View Latest Completed</a><span class="text-gray-300">·</span>`
+                    ? `<a href="${historyUrl}/${eq.latestCompletedUuid}" class="inline-flex items-center gap-1 text-sky-700 hover:underline font-medium">View Latest Completed</a><span class="text-gray-300">·</span>`
                     : '';
+                box.innerHTML = `
+                    ${latestLink}
+                    <a href="${historyUrl}" class="inline-flex items-center gap-1 text-sky-700 hover:underline font-medium">View History</a>
+                `;
+                box.classList.remove("hidden");
+            }
 
-                bar.innerHTML = `
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div class="text-sm text-gray-600">
-                            <span class="font-semibold text-gray-800">Last inspection:</span> ${last}
+            // Explicit New Inspection vs Draft Resumed label. `resumed` is decided
+            // AFTER the questions endpoint answers (existing_data ⇒ a draft was
+            // reopened; otherwise a brand-new inspection).
+            function setInspectionMode(resumed) {
+                const chip = document.getElementById("inspectionModeChip");
+                if (!chip) return;
+                chip.classList.remove("hidden", "bg-blue-50", "text-blue-700", "border-blue-200", "bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                if (resumed) {
+                    chip.textContent = "Draft Resumed";
+                    chip.classList.add("bg-blue-50", "text-blue-700", "border-blue-200");
+                } else {
+                    chip.textContent = "New Inspection";
+                    chip.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                }
+            }
+
+            // Fetch the latest COMPLETED, non-voided inspection for the right
+            // panel. Read-only; never mutates anything. Null ⇒ never inspected.
+            function fetchLatestCompleted(eq, token) {
+                const body = document.getElementById("previousInspectionBody");
+                if (body) {
+                    body.innerHTML = `<div class="p-4 flex flex-col gap-3 animate-pulse">${Array(3).fill(0).map(() => '<div class="h-10 bg-gray-200 rounded-md"></div>').join("")}</div>`;
+                }
+                window.previousReady = false;
+                window.previousInspection = null;
+
+                fetch(rrLatestCompletedTemplate.replace(':id', eq.unique_id), {
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (token !== window.rrSelectionToken) return; // stale
+                        window.previousInspection = (data && data.success) ? data.inspection : null;
+                        window.previousReady = true;
+                        renderPreviousPanelHeader();
+                        renderComparison();
+                    })
+                    .catch(() => {
+                        if (token !== window.rrSelectionToken) return;
+                        window.previousInspection = null;
+                        window.previousReady = true;
+                        renderPreviousPanelHeader();
+                        renderComparison();
+                    });
+            }
+
+            // Right-panel header: result / completion date / inspector / hours /
+            // order + View Full Inspection + View All History. Operational
+            // reference only — NOT the full audit record (that stays on the
+            // dedicated detail + history pages).
+            function renderPreviousPanelHeader() {
+                const body = document.getElementById("previousInspectionBody");
+                if (!body) return;
+                const ins = window.previousInspection;
+
+                if (!ins) {
+                    body.innerHTML = `<p class="text-sm text-gray-400 py-6 text-center">No completed inspection on record for this unit yet.</p>`;
+                    return;
+                }
+
+                const hours = (ins.equipment_hours !== null && ins.equipment_hours !== undefined && ins.equipment_hours !== '')
+                    ? Number(ins.equipment_hours).toLocaleString() : '—';
+
+                body.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${resultChipClass(ins.result)}">${escapeHtml(ins.result_label || resultLabel(ins.result))}</span>
+                            ${ins.completed_at ? `<span class="text-xs text-gray-500">${escapeHtml(ins.completed_at)}</span>` : ''}
                         </div>
-                        <div class="flex items-center gap-2 text-sm">
-                            ${latestLink}
-                            <a href="${historyUrl}" class="text-sky-700 hover:underline font-medium">View History</a>
+                        <dl class="text-sm text-gray-600 space-y-1.5">
+                            <div class="flex justify-between gap-3"><dt class="text-gray-500">Inspector</dt><dd class="text-gray-800 font-medium text-right">${ins.inspector ? escapeHtml(ins.inspector) : '—'}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-gray-500">Hours</dt><dd class="text-gray-800 font-medium text-right">${hours}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-gray-500">Order</dt><dd class="text-gray-800 font-medium text-right">${ins.order_number ? '#' + escapeHtml(ins.order_number) : '—'}</dd></div>
+                        </dl>
+                        <div class="flex flex-wrap gap-x-3 gap-y-1 text-sm pt-1">
+                            <a href="${ins.detail_url}" class="text-sky-700 hover:underline font-medium">View Full Inspection</a>
+                            <a href="${ins.history_url}" class="text-sky-700 hover:underline font-medium">View All History</a>
+                        </div>
+                        <div class="pt-2 border-t border-gray-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Answer Comparison</h3>
+                            </div>
+                            <div id="comparisonList" class="space-y-2"></div>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">The checklist below starts a <span class="font-medium">new inspection</span>. Any in-progress draft is resumed automatically.</p>
                 `;
-                bar.classList.remove("hidden");
             }
+
+            // Compact current-vs-previous comparison, aligned PRIMARILY by stable
+            // master question id (current `main_id` ↔ snapshot `question_id`).
+            //  - a NEW current question (no prior match) shows "No previous answer";
+            //  - a historical question no longer in the current checklist is kept
+            //    in a collapsed "Questions no longer in the current checklist"
+            //    section (never discarded);
+            //  - match / difference labels appear ONLY after the current question
+            //    is answered, with explicit text (not color alone);
+            //  - read-only: rendering never alters any submitted classification.
+            function renderComparison() {
+                if (!window.previousReady) return;               // wait for fetch
+                const list = document.getElementById("comparisonList");
+                if (!list) return; // header not rendered (no previous inspection)
+                // Wait for the current checklist unless it's blocked (rented).
+                if (!window.currentInspectionBlocked && !window.currentGroupsReady) return;
+
+                const prevQuestions = (window.previousInspection && window.previousInspection.questions) || [];
+                // Primary key: numeric master question id. Secondary key: question
+                // unique_id (covers a resumed draft, whose current items key off it).
+                const prevByNumeric = {};
+                const prevByUuid = {};
+                prevQuestions.forEach(p => {
+                    if (p.question_id !== null && p.question_id !== undefined) prevByNumeric[String(p.question_id)] = p;
+                    if (p.question_unique_id) prevByUuid[String(p.question_unique_id)] = p;
+                });
+
+                const currentItems = window.currentInspectionBlocked ? [] : (((window.groups || [])[0] || {}).items || []);
+                // Enforce ONE-TO-ONE alignment: a historical question, once matched
+                // to a current question, is consumed and cannot match a second one.
+                // `matched` (by numeric question_id) also drives orphan detection.
+                const matched = new Set();
+                let rows = "";
+
+                currentItems.forEach(item => {
+                    // Primary key: numeric master id. Secondary: question unique_id,
+                    // used ONLY when both sides carry it. NEVER fall back to option
+                    // ids or question text — a false comparison is worse than
+                    // "No previous answer". A candidate already consumed by an
+                    // earlier current question is skipped (one-to-one).
+                    let prev = null;
+                    let candidate = null;
+                    if (item.main_id !== null && item.main_id !== undefined && prevByNumeric[String(item.main_id)]) {
+                        candidate = prevByNumeric[String(item.main_id)];
+                    } else if (item.id !== null && item.id !== undefined && prevByUuid[String(item.id)]) {
+                        candidate = prevByUuid[String(item.id)];
+                    }
+                    if (candidate && !matched.has(String(candidate.question_id))) {
+                        prev = candidate;
+                        matched.add(String(prev.question_id));
+                    }
+
+                    // Current selection (read from the DOM radios; never written).
+                    const itemId = item.question_id || item.id;
+                    const picked = document.querySelector(`input[name="answer-${itemId}"]:checked`);
+                    const currentType = picked ? picked.value : null;
+
+                    const prevAnswer = prev
+                        ? `${escapeHtml(prev.selected_answer_name || '—')}`
+                        : `<span class="italic text-gray-400">No previous answer</span>`;
+
+                    // Difference label only once the current question is answered.
+                    let diff = "";
+                    if (currentType) {
+                        if (!prev || !prev.selected_answer_type) {
+                            diff = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700">New</span>`;
+                        } else if (String(prev.selected_answer_type) === String(currentType)) {
+                            diff = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500">✓ Unchanged</span>`;
+                        } else {
+                            diff = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700">▲ Changed</span>`;
+                        }
+                    }
+
+                    rows += `
+                        <div class="rounded-md border border-gray-100 bg-gray-50 px-2.5 py-2">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="text-xs font-medium text-gray-700">${escapeHtml(item.title || '—')}</span>
+                                ${diff}
+                            </div>
+                            <div class="text-xs text-gray-500 mt-0.5">Prev: ${prevAnswer}</div>
+                        </div>
+                    `;
+                });
+
+                if (!currentItems.length && !window.currentInspectionBlocked) {
+                    rows = `<p class="text-xs text-gray-400">Loading current checklist…</p>`;
+                }
+
+                // Historical questions no longer present in the current checklist —
+                // retained, never discarded, in a collapsed section.
+                const orphans = prevQuestions.filter(p => !matched.has(String(p.question_id)));
+                let orphanBlock = "";
+                if (orphans.length) {
+                    orphanBlock = `
+                        <details class="mt-2 rounded-md border border-gray-200">
+                            <summary class="cursor-pointer select-none px-2.5 py-2 text-xs font-semibold text-gray-600">
+                                Questions no longer in the current checklist (${orphans.length})
+                            </summary>
+                            <div class="px-2.5 pb-2 space-y-2">
+                                ${orphans.map(p => `
+                                    <div class="rounded-md border border-gray-100 bg-white px-2.5 py-2">
+                                        <div class="text-xs font-medium text-gray-700">${escapeHtml(p.question_name || '—')}</div>
+                                        <div class="text-xs text-gray-500 mt-0.5">Prev: ${escapeHtml(p.selected_answer_name || '—')}</div>
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </details>
+                    `;
+                }
+
+                list.innerHTML = (window.currentInspectionBlocked
+                        ? `<p class="text-xs text-gray-400 mb-2">This unit is rented — no current inspection to compare. Showing the previous inspection for reference.</p>`
+                        : "") + rows + orphanBlock;
+            }
+            window.renderComparison = renderComparison;
+
+            /* ============ DRAWER / SLIDE-OVER (below xl) ============ */
+            // Accessible off-canvas panels: opening one closes the other; focus
+            // moves into the panel and returns to the opener on close; body scroll
+            // is locked while open and restored on EVERY close path; Escape and
+            // backdrop click both close. Declared (hoisted) so openChecklist's
+            // synchronous selected-equipment path can call closeEquipmentDrawer();
+            // also exported to window for the inline onclick handlers.
+            let rrLastFocused = null;
+            function rrIsMobile() { return window.matchMedia("(max-width: 1279px)").matches; }
+            function rrAnyPanelOpen() {
+                const nav = document.getElementById("equipmentNavigator");
+                const prev = document.getElementById("previousInspectionPanel");
+                return (!nav.classList.contains("-translate-x-full")) || (!prev.classList.contains("translate-x-full"));
+            }
+            function rrFocusInto(panel) {
+                const target = panel.querySelector("[data-panel-close]") || panel;
+                setTimeout(() => { try { target.focus(); } catch (e) {} }, 60);
+            }
+            function rrRestoreFocus() {
+                const el = rrLastFocused;
+                rrLastFocused = null;
+                if (el && typeof el.focus === "function" && el !== document.body) {
+                    try { el.focus(); } catch (e) {}
+                }
+            }
+            function rrSyncBodyScroll() {
+                // Only the mobile off-canvas state locks scrolling; at xl the panels
+                // are permanent columns, so never lock there.
+                document.body.classList.toggle("overflow-hidden", rrIsMobile() && rrAnyPanelOpen());
+            }
+
+            function openEquipmentDrawer() {
+                const opener = document.activeElement;
+                closePreviousPanel();
+                rrLastFocused = opener;
+                const panel = document.getElementById("equipmentNavigator");
+                panel.classList.remove("-translate-x-full");
+                document.getElementById("equipmentDrawerBackdrop").classList.remove("hidden");
+                rrSyncBodyScroll();
+                rrFocusInto(panel);
+            }
+            function closeEquipmentDrawer() {
+                const panel = document.getElementById("equipmentNavigator");
+                const wasOpen = rrIsMobile() && !panel.classList.contains("-translate-x-full");
+                panel.classList.add("-translate-x-full");
+                document.getElementById("equipmentDrawerBackdrop").classList.add("hidden");
+                rrSyncBodyScroll();
+                if (wasOpen) rrRestoreFocus();
+            }
+            function openPreviousPanel() {
+                const opener = document.activeElement;
+                closeEquipmentDrawer();
+                rrLastFocused = opener;
+                const panel = document.getElementById("previousInspectionPanel");
+                panel.classList.remove("translate-x-full");
+                document.getElementById("previousPanelBackdrop").classList.remove("hidden");
+                rrSyncBodyScroll();
+                rrFocusInto(panel);
+            }
+            function closePreviousPanel() {
+                const panel = document.getElementById("previousInspectionPanel");
+                const wasOpen = rrIsMobile() && !panel.classList.contains("translate-x-full");
+                panel.classList.add("translate-x-full");
+                document.getElementById("previousPanelBackdrop").classList.add("hidden");
+                rrSyncBodyScroll();
+                if (wasOpen) rrRestoreFocus();
+            }
+            window.openEquipmentDrawer = openEquipmentDrawer;
+            window.closeEquipmentDrawer = closeEquipmentDrawer;
+            window.openPreviousPanel = openPreviousPanel;
+            window.closePreviousPanel = closePreviousPanel;
+
+            // Escape closes whichever off-canvas panel is open (mobile/tablet only).
+            document.addEventListener("keydown", (e) => {
+                if (e.key !== "Escape" || !rrIsMobile()) return;
+                const nav = document.getElementById("equipmentNavigator");
+                const prev = document.getElementById("previousInspectionPanel");
+                if (nav && !nav.classList.contains("-translate-x-full")) { closeEquipmentDrawer(); return; }
+                if (prev && !prev.classList.contains("translate-x-full")) { closePreviousPanel(); }
+            });
+            // If the viewport grows to xl while a panel was open, drop the scroll lock.
+            window.addEventListener("resize", rrSyncBodyScroll);
 
             function openChecklist(eq) {
 
@@ -933,8 +1271,25 @@
 
                 window.currentEquipment = eq;
 
-                // console.log('openChecklist :-');
-                // console.log(currentEquipment);
+                // Phase 3A — a fresh selection drives all three regions. Bump the
+                // token so any in-flight async result for a previously-selected
+                // unit is discarded, reset the per-selection readiness flags, and
+                // kick off the (read-only) latest-completed fetch for the right
+                // panel in parallel with the checklist-questions fetch below.
+                const token = ++window.rrSelectionToken;
+                window.currentGroupsReady = false;
+                window.currentInspectionBlocked = (eq.badge === "Rented");
+                window.previousReady = false;
+                window.previousInspection = null;
+                // Hide stale context from a prior selection; the questions handler
+                // sets the correct New/Draft mode. Rented units return early and
+                // never load a checklist, so their chip stays hidden.
+                document.getElementById("inspectionModeChip")?.classList.add("hidden");
+                document.getElementById("inspectionContextLinks")?.classList.add("hidden");
+                fetchLatestCompleted(eq, token);
+                closeEquipmentDrawer(); // if opened as a drawer on tablet, dismiss it
+                const openPrevBtn = document.getElementById("openPreviousBtnMobile");
+                if (openPrevBtn) openPrevBtn.disabled = false;
 
 
                 const footerButton = document.getElementById("footerbutton"); // get the footer button
@@ -981,7 +1336,7 @@
                 placeholder.classList.add("hidden");
                 checklistContainer.classList.remove("hidden");
                 checklistTitle.textContent = `Rental Ready Checklist - ${eq.name}`;
-                renderInspectionContextBar(eq);
+                renderInspectionContextLinks(eq);
                 equipmentHoursInput.value = eq.hours;
 
                 if (eq.is_tracked === "Yes") {
@@ -1238,6 +1593,15 @@
 
                                 updateAllCounts();
                                 updateProgress();
+
+                                // Phase 3A — the questions endpoint has spoken:
+                                // existing_data ⇒ a draft was resumed, otherwise a
+                                // brand-new inspection. Label it, then let the
+                                // right-panel comparison render now that the
+                                // current checklist is in the DOM.
+                                setInspectionMode(!!(data.existing_data && data.existing_data.questions));
+                                window.currentGroupsReady = true;
+                                renderComparison();
                             } else {
                                 //notyf.error(data.message);
 
@@ -1331,6 +1695,10 @@
 
                     updateGroupCount(groupKey);
                     updateProgress();
+                    // Phase 3A — refresh the read-only comparison so match /
+                    // difference labels appear as questions get answered. This
+                    // only reads the current selections; it never writes them.
+                    if (window.renderComparison) window.renderComparison();
                 }
 
 

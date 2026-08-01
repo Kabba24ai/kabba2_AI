@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\Checklist
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\StoreController;
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\RentalReadyHistoryController;
 use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\RentalReadyHistoryShowController;
+use App\Http\Controllers\Admin\ChecklistManagement\EquipmentManagement\RentalReadyLatestCompletedController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,10 @@ Route::prefix('equipment-management')
         // module convention).
         Route::get('/{equipment}/rental-ready-history', RentalReadyHistoryController::class)->name('rental-ready-history');
         Route::get('/{equipment}/rental-ready-history/{template}', RentalReadyHistoryShowController::class)->name('rental-ready-history.show');
+
+        // Phase 3A — read-only data source for the right-panel latest-completed
+        // comparison. Multi-segment, so it never collides with /{equipment}.
+        Route::get('/{equipment}/rental-ready-latest-completed', RentalReadyLatestCompletedController::class)->name('rental-ready-latest-completed');
 
         Route::get('/{equipment}', IndexController::class)->name('show');
 

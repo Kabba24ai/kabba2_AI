@@ -26,7 +26,7 @@ class IndexController extends Controller
         // $equipments = Equipment::with(['productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order','order', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])->where('not_for_rent', 0)->orderBy('equipment_name', 'asc')->paginate(5);
         // ->get();
 
-        $query = Equipment::with(['store:id,store_name', 'productCategory', 'latestRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'softAssignments.orderProduct', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
+        $query = Equipment::with(['store:id,store_name', 'productCategory', 'latestRentalReadyTemplate', 'latestDraftRentalReadyTemplate', 'orderProduct', 'orderProduct.order', 'order', 'softAssignments.orderProduct', 'serviceTemplate.preset', 'serviceTemplate.templateTasks.task'])
             ->where('not_for_rent', 0)
             ->selectRaw("equipment.*, (
                 CASE WHEN (

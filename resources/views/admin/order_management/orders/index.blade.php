@@ -120,46 +120,16 @@
             <div class="w-full sm:w-38">
                 <select id="payment_method" name="payment_method"
                     class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">All Payment Types</option>
-                    {{-- Canonical methods (+ COD, which canonical() excludes as a
-                         completed method but this filter still offers so staff can
-                         find orders awaiting delivery payment). Sorted A-Z by label;
-                         only the "All Payment Types" default stays first. --}}
-                    @php
-                        // Canonical filter provider: canonical() + COD + Account.
-                        $paymentMethods = collect(\App\Enums\Orders\OrderPaymentMethod::filterOptions())
-                            ->sortBy(fn ($method) => $method->label())
-                            ->values();
-                    @endphp
-                    @foreach ($paymentMethods as $method)
-                        <option value="{{ $method->value }}" @selected(request('payment_method') === $method->value)>
-                            {{ $method->label() }}
-                        </option>
-                    @endforeach
+                    {{-- Shared canonical options — same list on Orders and Schedule. --}}
+                    @include('admin.order_management.partials._payment_method_filter_options')
                 </select>
             </div>
 
             <div class="w-full sm:w-36">
                 <select id="payment_status" name="payment_status"
                     class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-full focus:ring-blue-500 focus:border-blue-500">
-                    {{-- Default label renamed "All Payments" → "Payment Status"
-                         (filters payment STATE, not method). Options come from
-                         OrderPaymentStatus::filterOptions() — canonical() plus
-                         Account, so on-account orders are findable — excluding the
-                         legacy Invoice* cases and system-only Superseded. The
-                         Account label is rendered "On Account" via the canonical
-                         presenter. Sorted A-Z by label; the default stays first. --}}
-                    <option value="">Payment Status</option>
-                    @php
-                        $paymentStatuses = collect(\App\Enums\Orders\OrderPaymentStatus::filterOptions())
-                            ->sortBy(fn ($status) => \App\Services\PaymentDescriptionPresenter::statusLabel($status))
-                            ->values();
-                    @endphp
-                    @foreach ($paymentStatuses as $status)
-                        <option value="{{ $status->value }}" @selected(request('payment_status') === $status->value)>
-                            {{ \App\Services\PaymentDescriptionPresenter::statusLabel($status) }}
-                        </option>
-                    @endforeach
+                    {{-- Shared canonical options — same list on Orders and Schedule. --}}
+                    @include('admin.order_management.partials._payment_status_filter_options')
                 </select>
             </div>
 

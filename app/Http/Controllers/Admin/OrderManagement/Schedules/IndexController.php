@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\OrderManagement\Schedules;
 
+use App\Enums\Dispatch\DispatchDateRangeMode;
 use App\Helpers\ProductFilterHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Iam\Personnel\User;
@@ -160,15 +161,18 @@ class IndexController extends Controller
                 $orderByField = 'pickup_date';
             }
 
-            if ($request->filled('date_filter')) {
-                $dateFilter = $request->date_filter;
-                if ($dateFilter === 'today') {
-                    $query->whereDate($orderByField, "<=", today());
+            // Date-window scope — Show: All | 3 Days | Today. Shares the Dispatch
+            // board's DispatchDateRangeMode (all | 3_days | today, default today):
+            // end-bound only (<= end date, no start bound), so overdue work
+            // surfaces in every mode. Replaces the legacy date_filter dropdown
+            // (today / week / month).
+            $rangeMode = DispatchDateRangeMode::fromRequest($request->input('range'));
+            if ($rangeEnd = $rangeMode->endDate()) {
+                $query->whereDate($orderByField, '<=', $rangeEnd);
+                if ($rangeMode === DispatchDateRangeMode::Today) {
+                    // Preserve the legacy Today behavior: newest first, so
+                    // today's work sits above the older overdue rows.
                     $orderBy = 'desc';
-                } elseif ($dateFilter === 'week') {
-                    $query->whereBetween($orderByField, [now()->startOfWeek(), now()->endOfWeek()]);
-                } elseif ($dateFilter === 'month') {
-                    $query->whereMonth($orderByField, now()->month);
                 }
             }
 

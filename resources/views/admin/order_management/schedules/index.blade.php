@@ -119,44 +119,25 @@
                 </select>
             </div>
 
-            {{-- Payment Method --}}
+            {{-- Payment Method — shared canonical options (same list as Orders) --}}
             <div>
-                {{-- <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label> --}}
                 <select id="payment_method" name="payment_method"
                     class= " border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-38 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">All Payment Types</option>
-                    <option value="Card" @selected(request('payment_method') == 'Card')>Card</option>
-                    <option value="COD" @selected(request('payment_method') == 'COD')>POD</option>
-                    <option value="Account" @selected(request('payment_method') == 'Account')>Account</option>
+                    @include('admin.order_management.partials._payment_method_filter_options')
                 </select>
             </div>
 
-            {{-- Payment Status --}}
+            {{-- Payment Status — shared canonical options (same list as Orders) --}}
             <div>
-                {{-- <label for="payment_status" class="block text-sm font-medium text-gray-700 mb-1">Payment</label> --}}
                 <select id="payment_status" name="payment_status"
                     class=" border bg-white border-gray-300 rounded-md py-3 px-3 text-sm w-34 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">All Payments</option>
-                    <option value="Paid" @selected(request('payment_status') == 'Paid')>Paid</option>
-                    <option value="Pending" @selected(request('payment_status') == 'Pending')>Pending</option>
-                    <option value="Account" @selected(request('payment_status') == 'Account')>Account</option>
-                    <option value="Partial Refund" @selected(request('payment_status') == 'Partial Refund')>Partial Refund</option>
-                    <option value="Refunded" @selected(request('payment_status') == 'Refunded')>Refunded</option>
-                    <option value="Failed" @selected(request('payment_status') == 'Failed')>Failed</option>
+                    @include('admin.order_management.partials._payment_status_filter_options')
                 </select>
             </div>
 
-            <!-- Date Dropdown -->
-            <div>
-                {{-- <label for="date_filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label> --}}
-                <select name="date_filter" id="date_filter"
-                    class=" border border-gray-300 rounded-md py-3 px-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-                    <option value="">All Dates</option>
-                    <option value="today" @selected(request('date_filter') == 'today')>Today</option>
-                    <option value="week" @selected(request('date_filter') == 'week')>This Week</option>
-                    <option value="month" @selected(request('date_filter') == 'month')>This Month</option>
-                </select>
-            </div>
+            {{-- The legacy "All Dates" dropdown is retired — the date window is
+                 now the Show: All | 3 Days | Today toggle in Row 2 (same
+                 DispatchDateRangeMode semantics as the Dispatch board). --}}
         </div>
         @php
             // If param is not set at all, default both checked. If set (even empty array), use only what is present.
@@ -216,6 +197,21 @@
                         </label>
                     @endforeach
                 </div>
+                {{-- Date-window scope — Show: All | 3 Days | Today. Same segmented-
+                     toggle idiom and DispatchDateRangeMode semantics as the Dispatch
+                     board: end-bound only, so overdue work surfaces in every mode.
+                     Replaces the retired "All Dates" dropdown and the old
+                     Deliveries/Returns hot buttons. State persists in localStorage;
+                     JS corrects the server-rendered default on load. --}}
+                <div class="flex items-center rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
+                    <span class="px-2 py-1.5 text-gray-400 font-medium border-r border-gray-300 bg-gray-50">Show:</span>
+                    <button type="button" id="srf-all"
+                        class="px-3 py-1.5 font-semibold bg-white text-gray-600 hover:bg-gray-50">All</button>
+                    <button type="button" id="srf-3days"
+                        class="px-3 py-1.5 font-semibold border-l border-gray-300 bg-white text-gray-600 hover:bg-gray-50">3 Days</button>
+                    <button type="button" id="srf-today"
+                        class="px-3 py-1.5 font-semibold border-l border-gray-300 bg-blue-600 text-white">Today</button>
+                </div>
                 <!-- Special Filters -->
                 <div class="flex items-center gap-2 bg-white rounded-md px-4 py-2 border">
                     <x-heroicon-o-funnel class="w-5 h-5 text-orange-500" />
@@ -229,21 +225,6 @@
                             class="text-red-600 focus:ring-red-500 rounded border-gray-300" @checked(request('overdue') == '1')>
                         <span class="font-medium">Overdue</span>
                     </label>
-                </div>
-                <!-- Quick Filter Buttons -->
-                <div class="flex gap-2">
-                    <button type="button"
-                        class="schedule-filter-btn px-3 py-2 rounded bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200 border border-blue-200"
-                        data-schedule-type="Delivery" data-transport-mode="Truck">Deliveries - Truck</button>
-                    <button type="button"
-                        class="schedule-filter-btn px-3 py-2 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 border border-green-200"
-                        data-schedule-type="Delivery" data-transport-mode="Store">Deliveries - In Store</button>
-                    <button type="button"
-                        class="schedule-filter-btn px-3 py-2 rounded bg-purple-100 text-purple-700 text-xs font-semibold hover:bg-purple-200 border border-purple-200"
-                        data-schedule-type="Return" data-transport-mode="Truck">Returns - Truck</button>
-                    <button type="button"
-                        class="schedule-filter-btn px-3 py-2 rounded bg-indigo-100 text-indigo-700 text-xs font-semibold hover:bg-indigo-200 border border-indigo-200"
-                        data-schedule-type="Return" data-transport-mode="Store">Returns - In Store</button>
                 </div>
             </div>
         </div>
@@ -649,7 +630,6 @@
             let productInput = document.querySelector('select[name="product"]');
             let paymentStatusInput = document.querySelector('select[name="payment_status"]');
             let paymentMethodInput = document.querySelector('select[name="payment_method"]');
-            let dateFilterInput = document.querySelector('select[name="date_filter"]');
             let storeLocationInputs = document.querySelectorAll('input[name="store_location[]"]');
             let transportModeInputs = document.querySelectorAll('input[name="transport_mode[]"]');
             let scheduleTypeInputs = document.querySelectorAll('input[name="schedule_type[]"]');
@@ -666,6 +646,42 @@
                 .get('per_page') || null;
             const pageParam = new URLSearchParams(window.location.search).get('page') || 1;
 
+            // --- Show: All | 3 Days | Today (date-window scope) -----------------
+            // Same pattern as the Dispatch board: state lives in localStorage
+            // (no hidden input), sent as the `range` param, consumed via
+            // DispatchDateRangeMode (all | 3_days | today, default today).
+            const SCHEDULE_RANGE_KEY = 'schedule_range_filter';
+
+            function currentScheduleRange() {
+                const saved = localStorage.getItem(SCHEDULE_RANGE_KEY);
+                return ['all', '3_days', 'today'].includes(saved) ? saved : 'today';
+            }
+
+            function updateSrfButtons(range) {
+                const map = { all: 'srf-all', '3_days': 'srf-3days', today: 'srf-today' };
+                Object.entries(map).forEach(([value, id]) => {
+                    const btn = document.getElementById(id);
+                    if (!btn) return;
+                    if (value === range) {
+                        btn.classList.add('bg-blue-600', 'text-white');
+                        btn.classList.remove('bg-white', 'text-gray-600', 'hover:bg-gray-50');
+                    } else {
+                        btn.classList.remove('bg-blue-600', 'text-white');
+                        btn.classList.add('bg-white', 'text-gray-600', 'hover:bg-gray-50');
+                    }
+                });
+            }
+
+            function applyScheduleRange(range, refetch = true) {
+                localStorage.setItem(SCHEDULE_RANGE_KEY, range);
+                updateSrfButtons(range);
+                if (refetch && typeof fetchSchedules === 'function') fetchSchedules();
+            }
+
+            document.getElementById('srf-all')?.addEventListener('click', () => applyScheduleRange('all'));
+            document.getElementById('srf-3days')?.addEventListener('click', () => applyScheduleRange('3_days'));
+            document.getElementById('srf-today')?.addEventListener('click', () => applyScheduleRange('today'));
+
 
 
             const screenKey = "schedules_filters";
@@ -679,7 +695,6 @@
                 'product': productInput,
                 'payment_status': paymentStatusInput,
                 'payment_method': paymentMethodInput,
-                'date_filter': dateFilterInput,
                 'store_location[]': storeLocationInputs,
                 'rescheduled_only': rescheduledOnlyInput,
                 'schedule_type[]': scheduleTypeInputs,
@@ -690,10 +705,12 @@
             document.getElementById('clear-filters').addEventListener('click', function() {
                 window.clearFilters(fieldMap, screenKey);
 
-                // Restore defaults: all schedule types, delivery modes, and stores checked
+                // Restore defaults: all schedule types, delivery modes, and stores
+                // checked; date window back to Today (the screen default).
                 scheduleTypeInputs.forEach(input => { input.checked = true; });
                 transportModeInputs.forEach(input => { input.checked = true; });
                 storeLocationInputs.forEach(input => { input.checked = true; });
+                applyScheduleRange('today', false);
 
                 rebuildProductChoices(); // restore the full product list
                 fetchSchedules();
@@ -707,8 +724,10 @@
                 // Arriving from the dashboard Overdue Orders card — start with clean slate
                 [customerNameInput, customerCompanyNameInput, customerPhoneInput, orderNumberInput]
                     .forEach(el => { if (el) el.value = ''; });
-                [categoryInput, productInput, paymentStatusInput, paymentMethodInput, dateFilterInput]
+                [categoryInput, productInput, paymentStatusInput, paymentMethodInput]
                     .forEach(el => { if (el) el.value = ''; });
+                // Range toggle: leave the user's saved scope — its end-bound
+                // semantics (<= end date) never hide overdue rows anyway.
                 scheduleTypeInputs.forEach(input => { input.checked = true; });
                 transportModeInputs.forEach(input => { input.checked = true; });
                 storeLocationInputs.forEach(input => { input.checked = true; });
@@ -720,24 +739,15 @@
             }
 
             if (urlScheduleType) {
+                // Arriving from a dashboard schedule card: focus the linked
+                // schedule type, re-check all stores, and scope to Today.
                 scheduleTypeInputs.forEach(input => {
-                    const mode = input.value;
-                    if (urlScheduleType.includes(mode)) {
-                        input.checked = true;
-                    } else {
-                        input.checked = false;
-                    }
-
-                     storeLocationInputs.forEach(input => {
-        input.checked = true;
-    });
-
-     // AUTO SELECT TODAY
-    if (dateFilterInput) {
-        dateFilterInput.value = 'today';
-    }
-
+                    input.checked = urlScheduleType.includes(input.value);
                 });
+                storeLocationInputs.forEach(input => {
+                    input.checked = true;
+                });
+                applyScheduleRange('today', false); // initial fetch below sends it
             }
 
             if (urlTransportMode) {
@@ -761,6 +771,7 @@
                 @json($productOptionsJs)
             );
 
+            updateSrfButtons(currentScheduleRange()); // sync toggle to saved scope
             fetchSchedules(pageParam, perPageParam); // initial fetch after loading saved filters
             window.fetchSchedules = fetchSchedules;
             function fetchSchedules(page = 1, perPage = 30) {
@@ -781,7 +792,7 @@
                     paymentStatusInput.value);
                 if (paymentMethodInput && paymentMethodInput.value) params.append('payment_method',
                     paymentMethodInput.value);
-                if (dateFilterInput && dateFilterInput.value) params.append('date_filter', dateFilterInput.value);
+                params.append('range', currentScheduleRange()); // Show: All | 3 Days | Today
                 if (rescheduledOnlyInput && rescheduledOnlyInput.checked) params.append('rescheduled_only',
                     rescheduledOnlyInput.value);
                 if (overdueInput && overdueInput.checked) params.append('overdue', '1');
@@ -878,7 +889,6 @@
             if (productInput) productInput.addEventListener('change', fetchSchedules);
             if (paymentStatusInput) paymentStatusInput.addEventListener('change', fetchSchedules);
             if (paymentMethodInput) paymentMethodInput.addEventListener('change', fetchSchedules);
-            if (dateFilterInput) dateFilterInput.addEventListener('change', fetchSchedules);
             storeLocationInputs.forEach(input => input.addEventListener('change', fetchSchedules));
             if (rescheduledOnlyInput) rescheduledOnlyInput.addEventListener('change', fetchSchedules);
             if (overdueInput) overdueInput.addEventListener('change', fetchSchedules);
@@ -910,35 +920,9 @@
                 });
             });
 
-            // Schedule filter buttons logic
-            document.querySelectorAll('.schedule-filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const scheduleType = this.getAttribute('data-schedule-type');
-                    const transportMode = this.getAttribute('data-transport-mode');
-
-                    // Uncheck all schedule_type checkboxes, then check the right one
-                    document.querySelectorAll('input[name="schedule_type[]"]').forEach(cb => {
-                        cb.checked = (cb.value === scheduleType);
-                    });
-                    // Uncheck all transport_mode checkboxes, then check the right one
-                    document.querySelectorAll('input[name="transport_mode[]"]').forEach(cb => {
-                        cb.checked = (cb.value === transportMode);
-                    });
-
-                      // CHECK ALL STORES
-                            document.querySelectorAll('input[name="store_location[]"]').forEach(cb => {
-                                cb.checked = true;
-                            });
-                            // AUTO SELECT TODAY
-                    if (dateFilterInput) {
-                        dateFilterInput.value = 'today';
-                    }
-
-                    // Trigger AJAX filter
-                    if (typeof fetchSchedules === 'function') fetchSchedules(pageParam,
-                        perPageParam);
-                });
-            });
+            // (Deliveries/Returns hot buttons retired 2026-08 — they were a JS
+            // macro over schedule_type/transport_mode/store/date and were not
+            // being used; the Show toggle + checkbox clusters cover the need.)
 
             const modal = document.getElementById('equipmentAssignModal');
             const equipmentAssignForm = document.getElementById('equipmentAssignForm');

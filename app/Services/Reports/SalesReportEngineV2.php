@@ -649,6 +649,13 @@ class SalesReportEngineV2
     /**
      * Account payments (base + tax), anchored to customer_accounts.date.
      * Returns [base, tax].
+     *
+     * Canonical window semantics: customer_accounts.date is a DATETIME, so the
+     * window is HALF-OPEN — [start 00:00:00, end+1day 00:00:00) — never an
+     * inclusive BETWEEN on date strings (which silently truncated the final
+     * day at midnight). queryDailyAccountPayments() and the ledger's Stream C
+     * use the IDENTICAL boundaries so snapshot, daily series, and ledger stay
+     * equal by construction.
      */
     private function queryAccountPayments(array $filters, string $startDate, string $endDate): array
     {
@@ -657,7 +664,8 @@ class SalesReportEngineV2
             // Store Credit is a discount, not a tender — never revenue/tax collected.
             ->where('payment_type', '!=', 'StoreCredit')
             ->whereNull('deleted_at')
-            ->whereBetween('date', [$startDate, $endDate]);
+            ->where('date', '>=', Carbon::parse($startDate)->startOfDay())
+            ->where('date', '<', Carbon::parse($endDate)->addDay()->startOfDay());
 
         if (!empty($filters['store'])) {
             $customerIds = DB::table('orders')
@@ -760,9 +768,16 @@ class SalesReportEngineV2
     }
 
     /**
-     * Daily account payments grouped by customer_accounts.date.
+     * Daily account payments grouped by CALENDAR DATE of customer_accounts.date.
      * Mirrors queryAccountPayments() base amount per-day for chart use.
      * Only base amount (not tax) — aligns with how base flows into gross_sales in snapshot().
+     *
+     * customer_accounts.date is a DATETIME: the grouping key MUST be normalized
+     * to DATE(`date`) so it matches the chart grid's Y-m-d keys (raw datetime
+     * keys never matched, silently dropping every account payment from the
+     * daily series — the sum(daily) == net_sales invariant failure found in
+     * production validation 2026-08-01). Window boundaries are the identical
+     * half-open interval queryAccountPayments() uses.
      */
     private function queryDailyAccountPayments(array $filters, string $startDate, string $endDate): Collection
     {
@@ -772,7 +787,8 @@ class SalesReportEngineV2
             // so the sum(daily) == snapshot reconciliation holds.
             ->where('payment_type', '!=', 'StoreCredit')
             ->whereNull('deleted_at')
-            ->whereBetween('date', [$startDate, $endDate]);
+            ->where('date', '>=', Carbon::parse($startDate)->startOfDay())
+            ->where('date', '<', Carbon::parse($endDate)->addDay()->startOfDay());
 
         if (!empty($filters['store'])) {
             $customerIds = DB::table('orders')
@@ -795,10 +811,10 @@ class SalesReportEngineV2
         $taxSql = TaxCalculationService::extractTaxFromInclusiveAmountSql();
 
         return $query
-            ->selectRaw("date, SUM({$taxSql['base']}) AS daily_acct")
-            ->groupBy('date')
+            ->selectRaw("DATE(`date`) AS d, SUM({$taxSql['base']}) AS daily_acct")
+            ->groupByRaw('DATE(`date`)')
             ->get()
-            ->keyBy('date');
+            ->keyBy('d');
     }
 
     // ─── Private: Billing Engine Revenue ─────────────────────────────────────

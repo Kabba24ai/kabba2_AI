@@ -4,6 +4,7 @@ namespace App\Services\Reports;
 
 use App\Helpers\CustomHelper;
 use App\Services\TaxCalculationService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -325,7 +326,13 @@ class PaymentReconciliationLedger
             // A/R payments from collected payment volume.
             ->where('ca.payment_type', '!=', 'StoreCredit')
             ->whereNull('ca.deleted_at')
-            ->whereBetween('ca.date', [$startDate, $endDate])
+            // customer_accounts.date is a DATETIME — canonical HALF-OPEN window,
+            // identical to SalesReportEngineV2::queryAccountPayments(), so
+            // Stream C and the snapshot's account contribution stay equal by
+            // construction (an inclusive BETWEEN on date strings truncated the
+            // final day at midnight).
+            ->where('ca.date', '>=', Carbon::parse($startDate)->startOfDay())
+            ->where('ca.date', '<', Carbon::parse($endDate)->addDay()->startOfDay())
             ->select([
                 'ca.date as payment_date',
                 'ca.amount',

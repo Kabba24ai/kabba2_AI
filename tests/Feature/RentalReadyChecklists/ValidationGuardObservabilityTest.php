@@ -119,11 +119,14 @@ class ValidationGuardObservabilityTest extends TestCase
 
     // ── SaveController: unanswered required question ───────────────────────
 
-    public function test_save_logs_when_a_question_is_left_unanswered(): void
+    public function test_unanswered_required_question_is_saved_as_a_draft(): void
     {
-        [$equipment, , , $optionalQuestion, $optionalAnswer] = $this->makeEquipmentWithRentalReadyTemplate();
+        // Phase 2A: an incomplete submission (a required question left
+        // unanswered, no damage) is now a DRAFT — a definite lifecycle state,
+        // not an observability warning. It succeeds, but it does NOT finalize a
+        // result and does NOT change equipment status.
+        [$equipment, , , $optionalQuestion, $optionalAnswer] = $this->makeEquipmentWithRentalReadyTemplate('available');
 
-        // Only the optional question is answered — the required one is left out entirely.
         $response = $this->callAs('POST', 'orders/rental-ready-checklists/save-rental-ready', [
             'equipment_unique_id' => $equipment->unique_id,
             'user_id'             => (string) $this->employee->id,
@@ -133,13 +136,13 @@ class ValidationGuardObservabilityTest extends TestCase
             ],
         ]);
 
-        // Behavior unchanged: still succeeds, still 200, despite the unanswered required question.
         $response->assertOk()->assertJson(['success' => true]);
 
-        $this->assertTrue($this->apiErrorsHandler->hasWarningThatContains('Rental Ready checklist saved despite unanswered questions'));
-        $record = $this->apiErrorsHandler->getRecords()[0];
-        $this->assertEquals($equipment->id, $record->context['equipment_id']);
-        $this->assertSame(1, $record->context['unanswered_count']);
+        $template = \App\Models\ChecklistManagement\EquipmentChecklist\EquipmentRentalReadyTemplate::where('equipment_id', $equipment->id)->latest('id')->firstOrFail();
+        $this->assertSame('draft', $template->lifecycle_status->value);
+        $this->assertNull($template->result);
+        // An in-progress draft never erases the prior state.
+        $this->assertSame('available', $equipment->fresh()->current_status->value);
     }
 
     public function test_save_happy_path_all_answered_does_not_log(): void

@@ -48,15 +48,19 @@ class ChecklistQuestionsController extends Controller
                 ], 404);
             }
 
-            // CASE 1: Fresh template OR existing with no order_product_id
+            // CASE 1: resume an in-progress DRAFT, else a fresh inspection.
+            // Phase 2A: a finalized inspection (Rental Ready / Maintenance Hold /
+            // Damaged) is immutable — selecting the equipment starts a NEW
+            // inspection rather than reopening a completed one's answers.
             if (!$order_product_id || $order_product_id === '-') {
-                $existingTemplate = EquipmentRentalReadyTemplate::where('equipment_id', $equipment_id)
+                $existingDraft = EquipmentRentalReadyTemplate::where('equipment_id', $equipment_id)
                     ->whereNull('order_product_id')
+                    ->where('lifecycle_status', 'draft')
                     ->latest('id')
                     ->first();
 
-                if ($existingTemplate && $existingTemplate->status !== 'Rental Ready') {
-                    return $this->returnExistingTemplate($existingTemplate);
+                if ($existingDraft) {
+                    return $this->returnExistingTemplate($existingDraft);
                 }
 
                 return $this->returnFreshTemplate($equipment, $checklist);
@@ -79,7 +83,7 @@ class ChecklistQuestionsController extends Controller
 
             if (
                 $orderProduct->equipmentRentalReadyTemplate &&
-                $orderProduct->equipmentRentalReadyTemplate->status !== 'Rental Ready'
+                ($orderProduct->equipmentRentalReadyTemplate->lifecycle_status?->value ?? null) === 'draft'
             ) {
                 return $this->returnExistingTemplate($orderProduct->equipmentRentalReadyTemplate);
             }

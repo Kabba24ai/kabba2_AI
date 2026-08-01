@@ -23,6 +23,12 @@ class SaveRequest extends ApiBaseFormRequest
             'checklist.*.question_unique_id' => 'required',
             'checklist.*.answer_unique_id' => 'required',
             'checklist.*.note' => 'nullable|string',
+            // Phase 2A idempotency: a client-generated key per completion attempt.
+            // A retry carrying the same key returns the already-recorded
+            // inspection instead of creating a duplicate.
+            'completion_idempotency_key' => 'nullable|string|max:100',
+            // Optional: continue a specific in-progress draft (by its unique_id).
+            'inspection_uuid' => 'nullable|string',
         ];
     }
 

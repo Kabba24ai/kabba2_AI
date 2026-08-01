@@ -272,11 +272,13 @@ class SaveControllerCharacterizationTest extends TestCase
             'to_status'    => 'available',
         ]);
 
-        // The unanswered optional question still trips the PR-B3/D3 observability
-        // warning (it is unanswered, regardless of required/optional) — logged, not
-        // rejected. Documented here so the drift between this rule and the
-        // required-only "does it block completion" rule is explicit in one place.
-        $this->assertTrue($this->apiErrorsHandler->hasWarningThatContains('Rental Ready checklist saved despite unanswered questions'));
+        // Phase 2A: the PR-B3/D3 observability-only warning is retired — the
+        // canonical server-authoritative writer resolves completion from the
+        // master template directly, so an unanswered OPTIONAL question no longer
+        // needs a "saved despite unanswered questions" warning; all required
+        // answered → a clean completed Rental Ready inspection.
+        $this->assertSame('completed', $template->lifecycle_status->value);
+        $this->assertSame('rental_ready', $template->result->value);
     }
 
     // ── Scenario 4: required question unanswered ────────────────────────────────
@@ -312,21 +314,21 @@ class SaveControllerCharacterizationTest extends TestCase
         $this->assertSame(0, $template->items_requiring_maintenance);
         $this->assertSame(0, $template->damaged_items);
 
-        // Draft maps to EquipmentStatusService::markMaintenanceFromRentalReady().
-        $this->assertSame('maintenance', $equipment->fresh()->current_status->value);
+        // Phase 2A change: an incomplete submission (a REQUIRED question
+        // unanswered) is a DRAFT, and a draft must NOT change equipment status —
+        // an in-progress inspection never erases the prior state. Previously
+        // this incorrectly forced the unit to 'maintenance'.
+        $this->assertSame('draft', $template->lifecycle_status->value);
+        $this->assertNull($template->result);
+        $this->assertSame('available', $equipment->fresh()->current_status->value);
 
-        $this->assertDatabaseHas('equipment_status_logs', [
+        $this->assertDatabaseMissing('equipment_status_logs', [
             'equipment_id' => $equipment->id,
             'from_status'  => 'available',
             'to_status'    => 'maintenance',
         ]);
 
+        // The submission log is still written (append-only audit).
         $this->assertSame(1, EquipmentRentalReadyChecklistQuestionLog::where('equipment_rental_ready_template_id', $template->id)->count());
-
-        // PR-B3/D3 observability warning fired for the unanswered required question.
-        $this->assertTrue($this->apiErrorsHandler->hasWarningThatContains('Rental Ready checklist saved despite unanswered questions'));
-        $record = $this->apiErrorsHandler->getRecords()[0];
-        $this->assertEquals($equipment->id, $record->context['equipment_id']);
-        $this->assertSame(1, $record->context['unanswered_count']);
     }
 }

@@ -378,22 +378,45 @@ class Equipment extends Model
         }
     }
 
+    // ── Rental Ready inspection resolution (Phase 2A) ────────────────────
+    // Operational readers resolve the latest COMPLETED, non-voided inspection.
+    // A draft is NEVER authoritative and must not shadow a completed record —
+    // it is surfaced only via latestDraftRentalReadyTemplate().
+
     public function lastRentalReadyTemplate()
     {
-        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')->latestOfMany('id');
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
+            ->where('lifecycle_status', 'completed')
+            ->orderByDesc('completed_at')->orderByDesc('id');
     }
 
     public function latestRentalReadyTemplate()
     {
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
-            ->latest('inspection_date')
-            ->latest('inspection_time');
+            ->where('lifecycle_status', 'completed')
+            ->orderByDesc('completed_at')->orderByDesc('id');
     }
 
     public function activeEquipmentRentalReadyTemplate()
     {
         return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
-            ->latest('id');
+            ->where('lifecycle_status', 'completed')
+            ->orderByDesc('completed_at')->orderByDesc('id');
+    }
+
+    /** The in-progress draft (if any) — surfaced separately; never authoritative. */
+    public function latestDraftRentalReadyTemplate()
+    {
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
+            ->where('lifecycle_status', 'draft')
+            ->orderByDesc('id');
+    }
+
+    /** Latest row regardless of lifecycle — audit/writer use only, not for readiness. */
+    public function latestRentalReadyTemplateAnyState()
+    {
+        return $this->hasOne(EquipmentRentalReadyTemplate::class, 'equipment_id')
+            ->orderByDesc('id');
     }
 
     public function statusUpdatedByUser()

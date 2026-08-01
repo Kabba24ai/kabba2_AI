@@ -2,6 +2,8 @@
 
 namespace App\Models\ChecklistManagement\EquipmentChecklist;
 
+use App\Enums\ChecklistManagement\RentalReadyLifecycleStatus;
+use App\Enums\ChecklistManagement\RentalReadyResult;
 use App\Helpers\ModelHelper;
 
 use App\Models\MaintenanceManagement\Equipment;
@@ -31,6 +33,15 @@ class EquipmentRentalReadyTemplate extends Model
         'equipment_hours',
         'general_notes',
         'status',
+        // Phase 2A — lifecycle (editability/authority) separate from result (outcome).
+        'lifecycle_status',
+        'result',
+        'completed_at',
+        'voided_at',
+        'voided_by',
+        'void_reason',
+        'superseded_by_template_id',
+        'completion_idempotency_key',
         'is_complete',
         'total_questions',
         'required_questions',
@@ -41,6 +52,33 @@ class EquipmentRentalReadyTemplate extends Model
         'created_by',
         'updated_by',
     ];
+
+    protected $casts = [
+        'lifecycle_status' => RentalReadyLifecycleStatus::class,
+        'result' => RentalReadyResult::class,
+        'completed_at' => 'datetime',
+        'voided_at' => 'datetime',
+    ];
+
+    /** Completed and not voided — the only authoritative inspections. */
+    public function scopeCompleted($query)
+    {
+        return $query->where('lifecycle_status', RentalReadyLifecycleStatus::Completed->value);
+    }
+
+    /** In-progress inspections — surfaced separately, never authoritative. */
+    public function scopeDraft($query)
+    {
+        return $query->where('lifecycle_status', RentalReadyLifecycleStatus::Draft->value);
+    }
+
+    /** A terminal (frozen) inspection may never be reused for a later inspection. */
+    public function isTerminal(): bool
+    {
+        return $this->lifecycle_status instanceof RentalReadyLifecycleStatus
+            ? $this->lifecycle_status->isTerminal()
+            : ($this->lifecycle_status !== RentalReadyLifecycleStatus::Draft->value);
+    }
 
     public function equipment()
     {

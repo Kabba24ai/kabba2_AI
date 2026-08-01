@@ -13,7 +13,7 @@
     <livewire:queue-line.board />
 
     {{-- Sticky filters — Store via the app-wide FilterFreezer pattern, and
-         the Show: All | 3 Days | Today date window via its own raw
+         the Show: All | 2 Days | Today Only date window via its own raw
          localStorage key (same convention as the Dispatch and Schedule
          boards — a segmented button group has no form element for
          FilterFreezer to read). Standard board only — the wall board is a
@@ -36,7 +36,7 @@
             // Restore the saved date window (component default is Today, so
             // only a differing saved value needs a round-trip).
             const savedRange = localStorage.getItem(RANGE_KEY);
-            if (['all', '3_days', 'today'].includes(savedRange) && savedRange !== 'today') {
+            if (['all', '2_days', 'today'].includes(savedRange) && savedRange !== 'today') {
                 Livewire.dispatch('queue-line-set-range', { range: savedRange });
             }
 

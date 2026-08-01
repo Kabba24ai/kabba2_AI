@@ -5,16 +5,20 @@ namespace App\Enums\Dispatch;
 use Illuminate\Support\Carbon;
 
 /**
- * The Dispatch page's "Show" date-range filter — drives both the Driver
- * Workload cards and the main table from a single control. Adding a future
- * range (7 Days, This Week, Custom Range, etc.) only requires a new case
- * plus a branch in endDate() — no changes to the query code that consumes
- * it, which only ever asks for an end date.
+ * The shared "Show" date-range filter — one enum, three boards:
+ * Dispatch (All | 3 Days | Today), Schedule (same), and Queue Line
+ * (All | 2 Days | Today Only — 2 Days is its original prep window of
+ * today + tomorrow). Adding a future range (7 Days, This Week, Custom
+ * Range, etc.) only requires a new case plus a branch in endDate() — no
+ * changes to the query code that consumes it, which only ever asks for
+ * an end date. Each board offers only the cases its UI renders; unknown
+ * values snap to Today via fromRequest().
  */
 enum DispatchDateRangeMode: string
 {
     case All       = 'all';
     case ThreeDays = '3_days';
+    case TwoDays   = '2_days';
     case Today     = 'today';
 
     public static function fromRequest(?string $value): self
@@ -27,6 +31,7 @@ enum DispatchDateRangeMode: string
         return match ($this) {
             self::All       => 'All',
             self::ThreeDays => '3 Days',
+            self::TwoDays   => '2 Days',
             self::Today     => 'Today',
         };
     }
@@ -45,6 +50,7 @@ enum DispatchDateRangeMode: string
         return match ($this) {
             self::All       => null,
             self::Today     => today(),
+            self::TwoDays   => today()->addDay(),
             self::ThreeDays => today()->addDays(2),
         };
     }

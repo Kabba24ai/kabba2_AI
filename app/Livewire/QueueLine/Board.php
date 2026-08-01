@@ -46,14 +46,27 @@ class Board extends Component
     // can never disagree with cards. ─────────────────────────────────────
 
     /**
-     * Date window — Show: All | 3 Days | Today (replaces the old $time
-     * All/Today-Only pair). Values are DispatchDateRangeMode's
-     * ('all' | '3_days' | 'today'), the SAME enum the Dispatch and Schedule
-     * boards share; end-bound only, so overdue work surfaces in every mode.
-     * Unlike the other filters this one drives the SQL eligibility window
-     * (see QueueLineEligibility::eligibleQuery()). Default Today.
+     * Date window — Show: All | 2 Days | Today Only. Values are
+     * DispatchDateRangeMode's ('all' | '2_days' | 'today'), the SAME enum
+     * the Dispatch and Schedule boards share (2 Days = today + tomorrow —
+     * Queue Line's original prep window); end-bound only, so overdue work
+     * surfaces in every mode. Unlike the other filters this one drives the
+     * SQL eligibility window (see QueueLineEligibility::eligibleQuery()).
+     * Default Today on the standard board; the wall board pins to 2 Days
+     * (its long-standing through-tomorrow view — see mount()).
      */
     public string $range = 'today';
+
+    public function mount(bool $wallboard = false): void
+    {
+        $this->wallboard = $wallboard;
+
+        // The wall board keeps its original default window: today + tomorrow.
+        // It renders no toggle and never inherits a persisted scope.
+        if ($wallboard) {
+            $this->range = DispatchDateRangeMode::TwoDays->value;
+        }
+    }
 
     /** Clamp client-supplied values — anything unknown snaps to Today. */
     public function updatedRange(): void
@@ -591,7 +604,7 @@ class Board extends Component
             $categoryId = \App\Helpers\ProductFilterHelper::normalizeCategoryId($this->category);
             $productId = \App\Helpers\ProductFilterHelper::normalizeProductId($this->product, $categoryId);
 
-            // Date window (Show: All | 3 Days | Today) — applied in SQL via
+            // Date window (Show: All | 2 Days | Today Only) — applied in SQL via
             // the shared DispatchDateRangeMode; invalid values snap to Today.
             $rangeMode = DispatchDateRangeMode::fromRequest($this->range);
 

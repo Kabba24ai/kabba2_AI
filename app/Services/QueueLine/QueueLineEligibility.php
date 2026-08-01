@@ -20,8 +20,9 @@ use Illuminate\Support\Collection;
  *   delivery_status='Pending' + delivery_date NOT NULL +
  *   delivery_date within the date window + transport mode Truck or Store.
  * The window is the web board's Show toggle (DispatchDateRangeMode:
- * today / 3 days / all, end-bound only); range-less callers keep the
- * legacy <= tomorrow cap — see eligibleQuery().
+ * today / 2 days / all, end-bound only; 2 Days = the original prep
+ * window of today + tomorrow); range-less callers keep the same
+ * <= tomorrow cap — see eligibleQuery().
  * Payment state NEVER affects eligibility (badge is display-only).
  * The canonical date is the scheduled delivery_date — dispatch_delivery_date
  * is a Dispatch-only override and is deliberately NOT consulted.
@@ -55,12 +56,13 @@ final class QueueLineEligibility
      * existing Schedule/Dispatch predicate except the upper date bound.
      *
      * Date window (2026-08-01): when a $range is given (the web board's
-     * Show: All | 3 Days | Today toggle — the SAME DispatchDateRangeMode the
-     * Dispatch and Schedule screens share), the bound is range-driven:
-     * Today → <= today, 3 Days → <= today+2, All → no upper bound. End-bound
-     * only, so overdue work surfaces in every mode. With NO range (fuel
-     * verification, release guard, mobile presenter) the legacy hard cap of
-     * <= tomorrow applies unchanged.
+     * Show: All | 2 Days | Today Only toggle — the SAME DispatchDateRangeMode
+     * the Dispatch and Schedule screens share), the bound is range-driven:
+     * Today → <= today, 2 Days → <= today+1 (the original prep window of
+     * today + tomorrow), All → no upper bound. End-bound only, so overdue
+     * work surfaces in every mode. With NO range (fuel verification, release
+     * guard, mobile presenter) the legacy hard cap of <= tomorrow applies
+     * unchanged — identical to the 2 Days window.
      */
     public static function eligibleQuery(?\App\Enums\Dispatch\DispatchDateRangeMode $range = null): Builder
     {
@@ -213,7 +215,7 @@ final class QueueLineEligibility
 
     /**
      * Overdue < today | Today = today | Tomorrow = today+1 (date-only, app
-     * timezone). Under the wider All / 3 Days windows, every date beyond
+     * timezone). Under the wider All / 2 Days windows, every date beyond
      * today falls in the Tomorrow bucket — harmless, because the bucket is
      * an ORDERING rank only (never displayed) and sortItems() breaks rank
      * ties by delivery_date, so later dates still sort correctly.

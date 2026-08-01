@@ -37,7 +37,7 @@ class QueueLineFilterTest extends QueueLineTestCase
     public function test_default_state_is_today_window_with_all_other_filters_open(): void
     {
         Livewire::test(Board::class)
-            ->assertSet('range', 'today')   // Show: All | 3 Days | Today — default Today
+            ->assertSet('range', 'today')   // Show: All | 2 Days | Today Only — default Today
             ->assertSet('method', 'all')
             ->assertSet('payment', 'all')
             ->assertSet('category', '')
@@ -99,9 +99,9 @@ class QueueLineFilterTest extends QueueLineTestCase
         $this->assertStringContainsString('data-order-product-id="' . $unpaid->id . '"', $html);
     }
 
-    // ── Date window (Show: All | 3 Days | Today) ─────────────────────────
+    // ── Date window (Show: All | 2 Days | Today Only) ────────────────────
 
-    public function test_range_semantics_for_today_three_days_and_all(): void
+    public function test_range_semantics_for_today_two_days_and_all(): void
     {
         $overdue  = $this->makeRow(null, ['delivery_date' => now()->subDay()->format('Y-m-d')]);
         $today    = $this->makeRow();
@@ -109,32 +109,38 @@ class QueueLineFilterTest extends QueueLineTestCase
         $dayAfter = $this->makeRow(null, ['delivery_date' => now()->addDays(2)->format('Y-m-d')]);
         $farOut   = $this->makeRow(null, ['delivery_date' => now()->addDays(10)->format('Y-m-d')]);
 
-        // Today = overdue + today (end-bound: overdue always surfaces)
+        // Today Only = overdue + today (end-bound: overdue always surfaces)
         $html = Livewire::test(Board::class)->set('range', 'today')->html();
         $this->assertStringContainsString('data-order-product-id="' . $overdue->id . '"', $html);
         $this->assertStringContainsString('data-order-product-id="' . $today->id . '"', $html);
         $this->assertStringNotContainsString('data-order-product-id="' . $tomorrow->id . '"', $html);
         $this->assertSame(2, $this->cardCount($html));
 
-        // 3 Days = through today+2 (overdue + today + tomorrow + day after)
-        $html = Livewire::test(Board::class)->set('range', '3_days')->html();
-        $this->assertStringContainsString('data-order-product-id="' . $dayAfter->id . '"', $html);
-        $this->assertStringNotContainsString('data-order-product-id="' . $farOut->id . '"', $html);
-        $this->assertSame(4, $this->cardCount($html));
+        // 2 Days = today + tomorrow (the original prep window), plus overdue
+        $html = Livewire::test(Board::class)->set('range', '2_days')->html();
+        $this->assertStringContainsString('data-order-product-id="' . $tomorrow->id . '"', $html);
+        $this->assertStringNotContainsString('data-order-product-id="' . $dayAfter->id . '"', $html);
+        $this->assertSame(3, $this->cardCount($html));
 
-        // All = every upcoming eligible delivery — the legacy hard cap at
-        // tomorrow is range-driven now, so the far-out row appears too.
+        // All = every upcoming eligible delivery — the far-out row appears too.
         $html = Livewire::test(Board::class)->set('range', 'all')->html();
         $this->assertStringContainsString('data-order-product-id="' . $farOut->id . '"', $html);
         $this->assertSame(5, $this->cardCount($html));
     }
 
-    public function test_the_range_toggle_offers_all_three_days_and_today(): void
+    public function test_the_range_toggle_offers_all_two_days_and_today_only(): void
     {
         Livewire::test(Board::class)
             ->assertSee('Show:')
-            ->assertSee('3 Days')
-            ->assertDontSee('Today Only');
+            ->assertSee('2 Days')
+            ->assertSee('Today Only')
+            ->assertDontSee('3 Days');
+    }
+
+    public function test_the_wall_board_defaults_to_the_two_day_window(): void
+    {
+        Livewire::test(Board::class, ['wallboard' => true])
+            ->assertSet('range', '2_days');
     }
 
     // ── Store filter ─────────────────────────────────────────────────────
@@ -294,7 +300,7 @@ class QueueLineFilterTest extends QueueLineTestCase
         $html = Livewire::test(Board::class, ['wallboard' => true])->html();
 
         $this->assertStringNotContainsString('data-queue-filter-bar', $html);
-        $this->assertStringNotContainsString('3 Days', $html);
+        $this->assertStringNotContainsString('2 Days', $html);
         $this->assertStringContainsString('queue-store-filter', $html);
     }
 }

@@ -16,6 +16,7 @@ use App\Services\Reports\PaymentReconciliationLedger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
+use Tests\Concerns\CreatesOrderFixtureLines;
 use Tests\TestCase;
 
 /**
@@ -36,6 +37,7 @@ use Tests\TestCase;
 class RefundReportingAndAuditTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesOrderFixtureLines;
 
     private User $admin;
 
@@ -69,6 +71,8 @@ class RefundReportingAndAuditTest extends TestCase
             'customer_name' => $this->customer->full_name ?? 'Test Customer',
             'subtotal' => $subtotal ?? $grandTotal, 'tax_amount' => $taxAmount, 'grand_total' => $grandTotal,
         ]);
+
+        $this->addFixtureLine($order, $subtotal ?? $grandTotal, $taxAmount);
 
         // Customer::orders() is morphMany('created_by'), NOT a customer_id
         // relation — Customer::paid_sales and its siblings traverse it, so

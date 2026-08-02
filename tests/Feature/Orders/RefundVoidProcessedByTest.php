@@ -9,6 +9,7 @@ use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Services\AuthorizeNetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesOrderFixtureLines;
 use Tests\TestCase;
 
 /**
@@ -21,6 +22,7 @@ use Tests\TestCase;
 class RefundVoidProcessedByTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesOrderFixtureLines;
 
     private User $admin;
     private User $employee;
@@ -44,8 +46,12 @@ class RefundVoidProcessedByTest extends TestCase
         $this->order = Order::create([
             'order_date'    => now()->format('Y-m-d'),
             'customer_name' => 'Walk-in Customer',
+            'subtotal'      => 100,
+            'tax_amount'    => 0,
             'grand_total'   => 100,
         ]);
+        $this->addFixtureLine($this->order);
+        $this->order = $this->order->fresh();
 
         // Cash-paid order: refunds skip the payment gateway entirely
         $this->payment = $this->order->payments()->create([

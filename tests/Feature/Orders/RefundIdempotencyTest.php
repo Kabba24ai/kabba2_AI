@@ -11,6 +11,7 @@ use App\Models\Orders\OrderPayment;
 use App\Services\AuthorizeNetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Concerns\CreatesOrderFixtureLines;
 use Tests\TestCase;
 
 /**
@@ -25,6 +26,7 @@ use Tests\TestCase;
 class RefundIdempotencyTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesOrderFixtureLines;
 
     private User $admin;
     private User $employee;
@@ -48,6 +50,8 @@ class RefundIdempotencyTest extends TestCase
             'order_date' => now()->format('Y-m-d'), 'customer_name' => 'Walk-in Customer',
             'subtotal' => 1000.0, 'tax_amount' => 97.50, 'grand_total' => 1097.50,
         ]);
+        $this->addFixtureLine($this->order);
+        $this->order = $this->order->fresh();
 
         $this->actingAs($this->admin);
     }

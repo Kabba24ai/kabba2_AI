@@ -13,6 +13,7 @@ use App\Services\AuthorizeNetService;
 use App\Services\Reports\PaymentReconciliationLedger;
 use App\Services\Reports\SalesTaxReportEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesOrderFixtureLines;
 use Tests\TestCase;
 
 /**
@@ -25,6 +26,7 @@ use Tests\TestCase;
 class RefundCalculationTypesTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesOrderFixtureLines;
 
     private User $admin;
     private User $employee;
@@ -53,6 +55,8 @@ class RefundCalculationTypesTest extends TestCase
             'tax_amount'    => 97.50,
             'grand_total'   => 1097.50,
         ]);
+        $this->addFixtureLine($this->order);
+        $this->order = $this->order->fresh();
 
         $this->actingAs($this->admin);
     }

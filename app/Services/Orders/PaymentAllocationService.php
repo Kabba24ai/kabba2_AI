@@ -10,6 +10,7 @@ use App\Enums\Orders\RefundOperationStatus;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Models\Orders\OrderPaymentRefundAllocation;
+use App\Http\DataObjects\HistoricalTaxBasis;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -514,12 +515,56 @@ final class PaymentAllocationService
      * one piece of tax-split math used by both Standard and Card
      * Processing Fee Retained allocations lives in the allocation service,
      * not duplicated in a controller.
+     *
+     * DENOMINATOR CORRECTION (FD-002 Amendment 1 §3). This method used to
+     * derive its rate as `$order->tax_amount / $order->subtotal`. That is
+     * wrong on any order containing an `is_tax_free_item` product:
+     * `CartHelper::buildCartItem()` zeroes such a line's tax, but
+     * `orders.subtotal` still accumulates the line, so the tax-free amount
+     * sat in the denominator and understated the rate — a $200 order half
+     * of it tax-free at 9.75% derived 4.875%. The failure mode was silent
+     * precisely because 4.875% is a believable number.
+     *
+     * The rate now comes solely from {@see HistoricalTaxBasisResolver},
+     * which reconstructs the basis that actually generated the stored tax
+     * from frozen order/line data. The extraction arithmetic below, the
+     * rounding, and every caller's downstream behavior are unchanged — only
+     * where the rate comes from changed.
+     *
+     * ERROR CONTRACT — deliberately chosen, not inherited. When the basis
+     * cannot be reconstructed this throws, rather than returning 0.0 as the
+     * old no-tax path did. Returning 0.0 would allocate a taxable refund
+     * entirely to base with zero tax: a silently incorrect allocation, and
+     * exactly the class of quiet wrongness this correction exists to remove.
+     * `\InvalidArgumentException` matches the type this service already
+     * throws from {@see validateSplit()} for an unsatisfiable split, so
+     * callers' existing handling shape is preserved.
+     *
+     * Zero-tax orders are NOT an error: the resolver succeeds with a zero
+     * ordinary tax, `ordinaryRate()` returns 0.0, and this returns 0.0
+     * without deriving or guessing any rate.
+     *
+     * @param  HistoricalTaxBasis|null  $basis  Pre-resolved basis. Supplied by
+     *         {@see calculateAllocationSplits()} so one allocation resolves
+     *         once and every row shares an identical basis. Resolved here
+     *         when omitted.
+     *
+     * @throws \InvalidArgumentException when the historical basis cannot be
+     *         reconstructed. Never falls back to the subtotal denominator.
      */
-    public static function proportionalTaxRefund(Order $order, float $refundAmount): float
+    public static function proportionalTaxRefund(Order $order, float $refundAmount, ?HistoricalTaxBasis $basis = null): float
     {
-        $originalTaxRate = ((float) $order->subtotal > 0 && (float) $order->tax_amount > 0)
-            ? (float) $order->tax_amount / (float) $order->subtotal
-            : 0.0;
+        $basis ??= HistoricalTaxBasisResolver::resolve($order);
+
+        if (! $basis->succeeded()) {
+            throw new \InvalidArgumentException(
+                "PaymentAllocationService: cannot allocate refund tax for order {$order->id} — "
+                ."{$basis->failure->message()} (reason: {$basis->failure->value}). "
+                .'Refusing to derive a rate from orders.subtotal.'
+            );
+        }
+
+        $originalTaxRate = $basis->ordinaryRate();
 
         return $originalTaxRate > 0
             ? round($refundAmount - ($refundAmount / (1 + $originalTaxRate)), 2)
@@ -562,8 +607,18 @@ final class PaymentAllocationService
         array $allocations,
         RefundCalculationType $calcType,
         float $feePercentage = 0.0,
+        ?HistoricalTaxBasis $basis = null,
     ): array {
         $rows = [];
+
+        // Resolve the historical basis ONCE per allocation, not once per row:
+        // every row of one refund must be split against an identical basis, and
+        // re-resolving per row would also re-query per row. Sales Tax Only never
+        // reaches proportionalTaxRefund(), so it is deliberately not resolved
+        // here — that branch's behavior is unchanged by this correction.
+        if ($calcType !== RefundCalculationType::SalesTaxOnly) {
+            $basis ??= HistoricalTaxBasisResolver::resolve($order);
+        }
 
         if ($calcType === RefundCalculationType::SalesTaxOnly) {
             foreach ($allocations as $row) {
@@ -587,7 +642,7 @@ final class PaymentAllocationService
                 }
 
                 $net = round($gross - $fee, 2);
-                $tax = self::proportionalTaxRefund($order, $net);
+                $tax = self::proportionalTaxRefund($order, $net, $basis);
                 $base = round($net - $tax, 2);
 
                 $rows[] = [
@@ -603,7 +658,7 @@ final class PaymentAllocationService
                 $totalAmountCents += (int) round((float) $row['amount'] * 100);
             }
 
-            $totalTax = self::proportionalTaxRefund($order, round($totalAmountCents / 100, 2));
+            $totalTax = self::proportionalTaxRefund($order, round($totalAmountCents / 100, 2), $basis);
             $totalTaxCents = (int) round($totalTax * 100);
             $runningTaxCents = 0;
             $count = count($allocations);

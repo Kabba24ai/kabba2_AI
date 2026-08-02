@@ -16,6 +16,7 @@ use App\Services\AuthorizeNetService;
 use App\Services\Orders\PaymentAllocationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Concerns\CreatesOrderFixtureLines;
 use Tests\TestCase;
 
 /**
@@ -39,6 +40,7 @@ use Tests\TestCase;
 class MultiSourceRefundTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesOrderFixtureLines;
 
     private User $admin;
 
@@ -67,12 +69,17 @@ class MultiSourceRefundTest extends TestCase
 
     private function makeOrder(float $grandTotal, ?float $subtotal = null, float $taxAmount = 0.0): Order
     {
-        return Order::create([
+        $order = Order::create([
             'order_date' => now()->format('Y-m-d'), 'customer_id' => $this->customer->id,
             'customer_name' => $this->customer->full_name ?? 'Test Customer',
             'subtotal' => $subtotal ?? $grandTotal, 'tax_amount' => $taxAmount, 'grand_total' => $grandTotal,
         ]);
+
+        $this->addFixtureLine($order, $subtotal ?? $grandTotal, $taxAmount);
+
+        return $order->fresh();
     }
+
 
     private function makeSettledPayment(Order $order, float $amount, array $overrides = []): OrderPayment
     {

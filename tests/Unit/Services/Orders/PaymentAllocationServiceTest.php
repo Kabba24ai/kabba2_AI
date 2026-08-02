@@ -5,6 +5,7 @@ namespace Tests\Unit\Services\Orders;
 use App\Enums\Orders\OrderPaymentRefundAllocationStatus;
 use App\Enums\Orders\RefundCalculationType;
 use App\Enums\Orders\RefundOperationStatus;
+use App\Http\DataObjects\HistoricalTaxBasis;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Services\Orders\PaymentAllocationService;
@@ -37,8 +38,16 @@ use Tests\TestCase;
  *  - calculateAllocationSplits() for Standard and Sales Tax Only — neither
  *    branch touches the database (only Card Processing Fee Retained calls
  *    remainingCardFeeCapacity(), which queries a relation) — built with
- *    real, unsaved Order instances since proportionalTaxRefund() only
- *    reads plain attributes.
+ *    real, unsaved Order instances plus an explicitly-supplied
+ *    HistoricalTaxBasis. The basis must now be passed in: since the
+ *    denominator correction, proportionalTaxRefund() sources its rate from
+ *    HistoricalTaxBasisResolver, which reads persisted order_products rows
+ *    that an unsaved Order does not have. Supplying it keeps these tests
+ *    DB-free and focused on the extraction arithmetic; the resolver's own
+ *    reconstruction and rejection behavior is covered against real rows in
+ *    tests/Feature/Orders/HistoricalTaxBasisResolverTest.php, and the
+ *    corrected end-to-end refund behavior in
+ *    tests/Feature/Orders/RefundTaxBasisRegressionTest.php.
  *  - proportionalTaxRefund()'s pure formula.
  *  - OrderPaymentRefundAllocationStatus::reservesBalance() and
  *    RefundOperationStatus::isRetryable().
@@ -183,13 +192,42 @@ class PaymentAllocationServiceTest extends TestCase
         return $order;
     }
 
+    /**
+     * A pre-resolved basis, so these stay pure-formula unit tests with no
+     * database.
+     *
+     * proportionalTaxRefund() now sources its rate from
+     * HistoricalTaxBasisResolver, which reads persisted order_products rows
+     * — an unsaved Order has none. Passing the basis explicitly keeps these
+     * tests exercising the extraction arithmetic (which is what they are
+     * for) while the resolver's own reconstruction and rejection behavior is
+     * covered by HistoricalTaxBasisResolverTest against real rows.
+     *
+     * These fixtures use a FULLY taxable order, so basis == subtotal and the
+     * expected results are identical to the pre-correction values — which is
+     * the point: the denominator fix must not move fully-taxable outcomes.
+     */
+    private function makeBasis(float $taxableBasis, float $taxAmount): HistoricalTaxBasis
+    {
+        return HistoricalTaxBasis::resolved(
+            ordinaryBasisCents:   (int) round($taxableBasis * 100),
+            ordinaryTaxCents:     (int) round($taxAmount * 100),
+            specialBasisCents:    0,
+            specialTaxCents:      0,
+            nonTaxableBasisCents: 0,
+            addedFeesCents:       0,
+            discountCents:        0,
+            lines:                [],
+        );
+    }
+
     public function test_proportional_tax_refund_extracts_tax_at_the_original_rate(): void
     {
         // $1000 subtotal + $97.50 tax => 9.75% rate. A $219.50 refund at
         // that rate extracts $19.50 tax (matches the Phase 2/3A formula).
         $order = $this->makeOrder(1000.0, 97.50);
 
-        $tax = PaymentAllocationService::proportionalTaxRefund($order, 219.50);
+        $tax = PaymentAllocationService::proportionalTaxRefund($order, 219.50, $this->makeBasis(1000.0, 97.50));
 
         $this->assertEqualsWithDelta(19.50, $tax, 0.01);
     }
@@ -198,7 +236,7 @@ class PaymentAllocationServiceTest extends TestCase
     {
         $order = $this->makeOrder(1000.0, 0.0);
 
-        $this->assertSame(0.0, PaymentAllocationService::proportionalTaxRefund($order, 500.0));
+        $this->assertSame(0.0, PaymentAllocationService::proportionalTaxRefund($order, 500.0, $this->makeBasis(1000.0, 0.0)));
     }
 
     // ── calculateAllocationSplits(): Standard (no DB — no card-fee lookup) ──
@@ -215,6 +253,8 @@ class PaymentAllocationServiceTest extends TestCase
                 ['original_order_payment_id' => 2, 'amount' => 400.0],
             ],
             RefundCalculationType::Standard,
+            0.0,
+            $this->makeBasis(1000.0, 97.50),
         );
 
         $this->assertCount(2, $result['rows']);
@@ -229,7 +269,7 @@ class PaymentAllocationServiceTest extends TestCase
         // The aggregate tax must match a single-shot proportional
         // computation on the combined total — the whole point of
         // remainder-to-last-row rounding.
-        $expectedTotalTax = PaymentAllocationService::proportionalTaxRefund($order, 1000.0);
+        $expectedTotalTax = PaymentAllocationService::proportionalTaxRefund($order, 1000.0, $this->makeBasis(1000.0, 97.50));
         $this->assertEqualsWithDelta($expectedTotalTax, $result['total_tax'], 0.001);
     }
 
@@ -249,9 +289,11 @@ class PaymentAllocationServiceTest extends TestCase
                 ['original_order_payment_id' => 3, 'amount' => 133.31],
             ],
             RefundCalculationType::Standard,
+            0.0,
+            $this->makeBasis(300.0, 33.33),
         );
 
-        $expectedTotalTax = PaymentAllocationService::proportionalTaxRefund($order, 333.33);
+        $expectedTotalTax = PaymentAllocationService::proportionalTaxRefund($order, 333.33, $this->makeBasis(300.0, 33.33));
         $this->assertEqualsWithDelta($expectedTotalTax, $result['total_tax'], 0.001);
 
         foreach ($result['rows'] as $row) {

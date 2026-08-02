@@ -49,6 +49,7 @@ class Order extends Model
         'discount_amount',
         'grand_total',
         'pretax_discount_total',
+        'legacy_unallocated_pretax_discount',
         'tax_amount_before_discount',
         'special_tax_before_discount',
         'grand_total_before_discount',

@@ -10,6 +10,7 @@ use App\Models\Orders\OrderProduct;
 use App\Services\Discounts\Contracts\DiscountTarget;
 use App\Services\Discounts\DiscountException;
 use App\Services\Discounts\DiscountResult;
+use App\Services\Discounts\PretaxDiscountAllocator;
 
 /**
  * POD / rental ORDER discount adapter. Pre-posting only: an order that has
@@ -110,12 +111,47 @@ class OrderDiscountTarget implements DiscountTarget
         $this->captureOriginalSnapshotOnce();
         $newPretax = round((float) $this->order->pretax_discount_total + $result->discountAmount, 2);
         $this->recompute($newPretax);
+
+        // Record WHICH lines bore THIS adjustment. Order-level totals cannot
+        // answer that, and reversing one adjustment among several needs it.
+        PretaxDiscountAllocator::allocate(
+            $this->order,
+            (int) $discount->id,
+            (int) round(((float) $result->discountAmount) * 100),
+        );
+
+        $this->assertAllocationsReconcile();
     }
 
     public function reverseDiscount(ProductDiscount $original): void
     {
         $newPretax = round((float) $this->order->pretax_discount_total - (float) $original->calculated_discount_amount, 2);
         $this->recompute(max(0.0, $newPretax));
+
+        // Deactivate only this adjustment's rows; every other adjustment's
+        // allocations survive untouched.
+        PretaxDiscountAllocator::reverse($this->order, (int) $original->id);
+
+        $this->assertAllocationsReconcile();
+    }
+
+    /**
+     * The allocation ledger must agree with the order's own discount total:
+     *
+     *     legacy_unallocated + Σ active tracked allocations = pretax_discount_total
+     *
+     * The legacy term carries whatever was conceded before per-line allocation
+     * existed, so a NEW adjustment on such an order reconciles cleanly against
+     * only the portion this service controls — without the new rows ever
+     * appearing to account for the historical concession.
+     */
+    private function assertAllocationsReconcile(): void
+    {
+        $problem = PretaxDiscountAllocator::reconcile($this->order->refresh());
+
+        if ($problem !== null) {
+            throw new DiscountException($problem.' Allocation and order total must agree to the cent.');
+        }
     }
 
     // ── internals ──────────────────────────────────────────────────────────

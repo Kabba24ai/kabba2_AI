@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\OrderManagement\Orders\ChargeCreditCardController
 use App\Http\Controllers\Admin\OrderManagement\Orders\ReceivePaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\RefundPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\RefundPaymentPreviewController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\GoodwillPreviewController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\GoodwillApplyController;
+use App\Http\Controllers\Admin\OrderManagement\Orders\GoodwillReverseController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\VoidPaymentController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateNoteController;
 use App\Http\Controllers\Admin\OrderManagement\Orders\UpdateProductScheduleController;
@@ -69,6 +72,16 @@ Route::prefix('orders')
         Route::put('/{unique_id}/receive-payment', ReceivePaymentController::class)->name('receive-payment');
         Route::put('/{unique_id}/refund-payment', RefundPaymentController::class)->name('refund-payment');
         Route::post('/{unique_id}/refund-payment/preview', RefundPaymentPreviewController::class)->name('refund-payment.preview');
+
+        // Goodwill Adjustment (FD-002). Applied AFTER the real tender is
+        // recorded through receive-payment above — never bundled with it, so a
+        // Goodwill refusal can never roll back a gateway charge that already
+        // moved money. Permission is enforced inside the service via Spatie
+        // directly, because AppServiceProvider's Gate::before(fn () => true)
+        // makes route middleware and can() decorative for every ability.
+        Route::post('/{unique_id}/goodwill/preview', GoodwillPreviewController::class)->name('goodwill.preview');
+        Route::post('/{unique_id}/goodwill/apply', GoodwillApplyController::class)->name('goodwill.apply');
+        Route::post('/{unique_id}/goodwill/reverse', GoodwillReverseController::class)->name('goodwill.reverse');
         Route::put('/{unique_id}/void-payment', VoidPaymentController::class)->name('void-payment');
         Route::put('/{unique_id}/add-to-account', AddToAccountPaymentController::class)->name('add-to-account');
 

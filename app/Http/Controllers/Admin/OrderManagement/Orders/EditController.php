@@ -89,6 +89,30 @@ class EditController extends Controller
         // partial explicitly; this page's $categories are product categories.
         $taskModalData = \App\Support\Tasks\UnifiedTaskModalData::make();
 
-        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges', 'billingCharges', 'resolutionPresets', 'fuelNotePresets', 'customerCreditSummary', 'orderAppliedCredit', 'taskModalData'));
+        // Goodwill (FD-002 §7.3): only users who genuinely hold
+        // `goodwill.apply` may be offered as the authorising manager. Read
+        // from Spatie directly rather than through can()/Gate, because
+        // AppServiceProvider registers Gate::before(fn () => true) — an
+        // ability check there would return every active user. This list is a
+        // convenience for the operator; the service re-verifies the selected
+        // manager's permission server-side before writing anything.
+        //
+        // Guarded: Spatie's permission() scope THROWS when the permission row
+        // does not exist, which would take this entire page down — not just
+        // the Goodwill panel — on any environment where ModuleSeeder has not
+        // run yet. An order page must not 500 because an optional feature's
+        // permission is unseeded.
+        $goodwillManagers = collect();
+
+        try {
+            $goodwillManagers = \App\Models\Iam\Personnel\User::where('status', 'Active')
+                ->permission('goodwill.apply')
+                ->orderBy('first_name')
+                ->get(['id', 'first_name', 'last_name']);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return view('admin.order_management.orders.edit', compact('order', 'stores', 'employees', 'drivers', 'states', 'paymentSetting', 'payments', 'categories', 'allocatedHoursSettings', 'sales_tax', 'relatedOrders', 'additionalCharges', 'billingCharges', 'resolutionPresets', 'fuelNotePresets', 'customerCreditSummary', 'orderAppliedCredit', 'taskModalData', 'goodwillManagers'));
     }
 }

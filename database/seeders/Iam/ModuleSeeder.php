@@ -107,6 +107,28 @@ class ModuleSeeder extends Seeder
             ],
             // Customer Credit [End]
 
+            // Goodwill Adjustment [Start] — FD-002.
+            // Deliberately its own module rather than a permission on an
+            // existing one: FD-002 §7.3 requires that authority to RECEIVE a
+            // payment must not imply authority to REDUCE revenue, and folding
+            // these into an order or payment module would grant them together.
+            [
+                'module_category_name' => 'Goodwill Adjustment',
+                'modules' => [
+                    [
+                        'module_name' => 'goodwill',
+                        'module_title' => 'Goodwill Adjustment',
+                        'model_name' => 'OrderGoodwillAdjustment',
+                        'permission_names' => [
+                            'apply'   => 'Apply Goodwill Adjustment',
+                            'reverse' => 'Reverse Goodwill Adjustment',
+                            'view'    => 'View Goodwill Adjustments',
+                        ],
+                    ],
+                ],
+            ],
+            // Goodwill Adjustment [End]
+
             // Resolution Center [Start] — Phase 3.3, Customer Resolution Center Foundation
             [
                 'module_category_name' => 'Resolution Center',

@@ -529,6 +529,11 @@
         @include('admin.order_management.orders.partials._refund_allocation_details', ['refundEvents' => $allRefundEvents])
     @endif
 
+    {{-- Goodwill Adjustment (FD-002) — kept in its own partial rather than
+         expanding this file further. It renders only once real tender has
+         been recorded and a balance remains; the partial decides. --}}
+    @include('admin.order_management.orders.partials._goodwill_adjustment')
+
     {{-- Shared New Fuel Charge modal (Billing Engine commonization) —
          locked-order launch mode: this order + its customer are fixed
          context; same normalized payload / canonical creation path as the

@@ -50,6 +50,7 @@ class Order extends Model
         'grand_total',
         'pretax_discount_total',
         'tax_amount_before_discount',
+        'special_tax_before_discount',
         'grand_total_before_discount',
         'auto_inject',
         'auto_inject_by',

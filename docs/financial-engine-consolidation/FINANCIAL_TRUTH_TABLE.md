@@ -311,3 +311,23 @@ Adopted together with **FD-002 Amendment 1**. The §3a row above is corrected in
 **3. Neither bucket has a queryable column.** `special_tax` and `added_fees` survive only inside `order_products.product_data` JSON. Where they cannot be reconstructed reliably from that blob and reconciled against stored columns, the adjustment is **rejected**, never approximated.
 
 **Newly discovered pre-existing defect, recorded here for traceability:** `PaymentAllocationService` (refund allocation) already derives `$originalTaxRate` as `orders.tax_amount / orders.subtotal` — the same defective denominator, live today, independent of Goodwill. FD-002 Amendment 1 §3 brings that call site onto the shared resolver so the two paths cannot disagree. This is a correction to an existing defect, not a change to refund policy; no row of this Truth Table's refund treatment is altered by it.
+
+## A-001.8 Revision 2 (2026-08-01) — Extension Charge (type 9) and historical basis reconstruction
+
+Adopted together with **FD-002 Amendment 2**. This revision adds no new transaction type and changes no row's tax treatment. It records how the historical taxable basis of an **Extension Charge (§3, type 9)** is reconstructed, because implementing Amendment 1 §3 established that extension child orders carry no `order_products` rows at all.
+
+**Finding.** `Extension\StoreController` creates the child order from totals only; `IndexController` independently documents the same fact ("extension child orders own no `order_products` rows"). The child is nevertheless a real, independently payable order — it receives its own Pending COD placeholder payment, appears in the orders index, renders on the ordinary Order Details page, and has no refund-path guard. It therefore reaches the Standard refund path in normal operation.
+
+**Consequence.** A purely line-based reconstruction rejects every extension child. That regressed working behavior rather than exposing a defect: an extension is one base amount under one `add_tax` flag, so `orders.subtotal` genuinely *was* its taxable basis, and the pre-correction `tax_amount / subtotal` formula returned the correct rate for this type specifically. It was wrong only for mixed-line orders, which an extension can never be.
+
+**Resolution — three named sources, in priority order** (full rules and binding constraints in FD-002 Amendment 2):
+
+| Priority | Source | Applies to |
+|---|---|---|
+| 1 | `order_product_lines` | Every order that has lines |
+| 2 | `extension_billing_charge` | Extension children with a linked, reconciling `billing_charges` row |
+| 3 | `extension_order_level` | Extension children with no linked charge, once every invariant is proven |
+
+Source 3's validity depends on the extension invariant — one tax posture, no hidden fee, special-tax, discount, or tax-free component — not on its arithmetic, which is identical to the formula this initiative removed. **Any future extension feature that breaks those invariants must update or disable it.** A contradictory linked charge is a hard failure that must never fall through to source 3, and anonymous line-less orders remain unsupported.
+
+**Effect on this document's rows:** none. Type 9's tax treatment, scope boundary, and "no `customer_accounts` effect" classification are unchanged. Its §7 status remains **Needs Technical Decision** — its self-contained tax formula still has not been compared against `TaxCalculationService`, and this revision does not do so.

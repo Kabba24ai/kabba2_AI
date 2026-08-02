@@ -3,6 +3,7 @@
 namespace App\Http\DataObjects;
 
 use App\Enums\Orders\HistoricalTaxBasisFailure;
+use App\Enums\Orders\HistoricalTaxBasisSource;
 
 /**
  * The reconstructed historical tax basis of one order, in INTEGER CENTS.
@@ -55,6 +56,9 @@ final class HistoricalTaxBasis
 
         /** Null when resolution succeeded. */
         public readonly ?HistoricalTaxBasisFailure $failure,
+
+        /** Where this basis was reconstructed from. Null on failure. Logged so every refund split is traceable to its evidence. */
+        public readonly ?HistoricalTaxBasisSource $source = null,
     ) {}
 
     /**
@@ -69,18 +73,19 @@ final class HistoricalTaxBasis
         int $addedFeesCents,
         int $discountCents,
         array $lines,
+        HistoricalTaxBasisSource $source = HistoricalTaxBasisSource::OrderProductLines,
     ): self {
         return new self(
             $ordinaryBasisCents, $ordinaryTaxCents,
             $specialBasisCents, $specialTaxCents,
             $nonTaxableBasisCents, $addedFeesCents, $discountCents,
-            $lines, null,
+            $lines, null, $source,
         );
     }
 
     public static function failed(HistoricalTaxBasisFailure $failure): self
     {
-        return new self(0, 0, 0, 0, 0, 0, 0, [], $failure);
+        return new self(0, 0, 0, 0, 0, 0, 0, [], $failure, null);
     }
 
     public function succeeded(): bool

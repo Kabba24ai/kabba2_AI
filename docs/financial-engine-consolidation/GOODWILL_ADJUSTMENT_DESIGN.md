@@ -62,6 +62,28 @@ Both survive only in `order_products.product_data` JSON. Unreconstructable or in
 
 **Consumed by both `GoodwillAdjustmentService` and `PaymentAllocationService`**, so the two cannot drift.
 
+### 3.2.1 Source priority (FD-002 Amendment 2)
+
+Every successful resolution records which of three named sources it used, tried in this order. The source is exposed on the result as `HistoricalTaxBasisSource` and logged.
+
+| Priority | Source | Evidence | Applies to |
+|---|---|---|---|
+| 1 | `order_product_lines` | Per-line frozen basis and tax, reconciled exactly against stored order totals | Every order that has lines |
+| 2 | `extension_billing_charge` | The extension child's linked `billing_charges` row (`amount`, `tax_amount`, `tax_type`), reconciled exactly against the child's stored totals | Extension children with a linked charge |
+| 3 | `extension_order_level` | The extension child's own stored totals | Extension children with **no** linked charge, once every invariant is proven |
+
+Source 3 is logged at **warning** level so the weakest evidence stays visible in operations rather than becoming an invisible default.
+
+**Binding constraints:**
+
+1. **`extension_order_level` is a named transaction-type exception, not a generic fallback.** It exists solely for extension child orders, which `Extension\StoreController` creates with totals and no `order_products` rows by design.
+2. **Its validity rests on an invariant, not on arithmetic.** An extension is one base amount under one `add_tax` flag — one tax posture, no hidden fee, special-tax, discount, or tax-free component. The arithmetic is identical to the defective `tax_amount / subtotal` formula this initiative removed; what makes it sound here is the *proven absence* of a tax-free component, nothing else.
+3. **Any future extension feature that changes those invariants must update or disable this mode.** Multiple lines, per-line tax posture, a discount, an added fee, or a special tax on an extension invalidates it. The guards (no discount; `subtotal + tax === grand_total` exactly; `is_tax_exempt` agreeing with stored tax) are the tripwires.
+4. **A contradictory billing charge is a hard failure.** When a linked charge exists but disagrees with the child order, resolution rejects outright and **never** falls through to source 3. Contradictory authoritative data is a reason to stop, not to retry with weaker evidence.
+5. **Anonymous line-less orders remain unsupported.** No lines and no provable extension relationship means rejection.
+
+**Why extensions needed this at all.** Extension children are independently payable, appear in the orders index, render on the ordinary Order Details page, and have no refund-path guard — so they reach the Standard refund path. A purely line-based reconstruction rejected all of them, which *regressed working behavior* rather than exposing a defect: for this type specifically, `orders.subtotal` genuinely was the taxable basis, so the old formula had been returning the correct rate.
+
 ### 3.3 Mandatory rejection conditions
 
 Reject — never approximate — on: zero taxable basis with nonzero stored tax; mixed/multiple historical rates across lines; manual tax override unexplainable from stored values; taxable charges outside the selected basis; existing adjustments making the denominator ambiguous; corrupt or unreconciled stored totals; `product_data` absent, malformed, or inconsistent.

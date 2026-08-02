@@ -42,6 +42,15 @@ enum HistoricalTaxBasisFailure: string
     /** An existing pre-tax adjustment already changed the basis, making the denominator ambiguous. */
     case AmbiguousExistingAdjustment = 'ambiguous_existing_adjustment';
 
+    /** More than one candidate extension charge points at this child order — no single authoritative record. */
+    case ConflictingExtensionCharges = 'conflicting_extension_charges';
+
+    /** The linked extension charge exists but contradicts the child order's stored totals. */
+    case ExtensionChargeMismatch = 'extension_charge_mismatch';
+
+    /** A line-less extension child that cannot prove the invariants order-level resolution requires. */
+    case ExtensionInvariantsUnproven = 'extension_invariants_unproven';
+
     /**
      * Operator-facing explanation. Deliberately says what is wrong with the
      * DATA, not what the user did — every one of these is a property of the
@@ -59,6 +68,9 @@ enum HistoricalTaxBasisFailure: string
             self::UnexplainedTaxOverride => 'A product line carries sales tax that its own recorded amount cannot explain.',
             self::FrozenDataUnavailable => 'The frozen product data needed to separate special tax and added fees is missing or unreadable.',
             self::AmbiguousExistingAdjustment => 'An existing adjustment already altered this order\'s basis, so the original basis is ambiguous.',
+            self::ConflictingExtensionCharges => 'This extension order has more than one linked billing charge, so no single authoritative record identifies its taxable basis.',
+            self::ExtensionChargeMismatch => 'This extension order\'s linked billing charge disagrees with the order\'s own stored totals.',
+            self::ExtensionInvariantsUnproven => 'This order has no product lines and cannot be conclusively identified as a simple, single-tax-posture extension.',
         };
     }
 }

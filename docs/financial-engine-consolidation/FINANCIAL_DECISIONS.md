@@ -158,4 +158,33 @@ Where `PaymentAllocationService` has an existing safe fallback, that fallback is
 
 **5. Receipts are superseded, never rewritten.**
 
+
 Audit finding: `ReceiptService` persists a **snapshot** (`receipts.subtotal`/`sales_tax`/`total` plus per-item rows), not a live view. A receipt issued before an adjustment is a historical record. Goodwill therefore marks any existing receipt **superseded** and issues a new one carrying the revised totals. The original receipt row is never edited or deleted, consistent with this initiative's standing rule against rewriting history.
+
+### Amendment 2 (2026-08-01) — Historical tax basis source priority
+
+Approved together with FD-002. Added after implementing Amendment 1 §3 revealed that one legitimate transaction type carries no product lines at all, and that rejecting it outright regressed working behavior.
+
+**Resolver source priority.** `HistoricalTaxBasisResolver` reconstructs a basis from exactly one of three named sources, tried in this order, and records which one it used on every successful result:
+
+| Priority | Source | Evidence |
+|---|---|---|
+| 1 | `order_product_lines` | The order's own `order_products` rows — per-line frozen basis and tax, reconciled exactly against stored order totals. The normal case and the strongest proof. |
+| 2 | `extension_billing_charge` | An extension child's linked `billing_charges` row (`amount`, `tax_amount`, `tax_type`), reconciled exactly against the child order's stored totals. |
+| 3 | `extension_order_level` | An extension child's own stored totals. Permitted **only** when no linked charge exists and every extension invariant is proven. |
+
+The selected source is logged on every resolution, `extension_order_level` at warning level, so the weakest evidence stays visible in operations rather than becoming an invisible default.
+
+**Constraints, all binding:**
+
+1. **`extension_order_level` is a named transaction-type exception, not a generic fallback.** It exists solely for extension child orders, which `Extension\StoreController` creates with totals and no `order_products` rows by design.
+
+2. **Its validity rests on an invariant, not on arithmetic.** An extension is one base amount under one `add_tax` flag, so it has exactly one tax posture and no hidden fee, special-tax, discount, or tax-free component. That is the only reason its `subtotal` may serve as the taxable basis. The arithmetic is identical to the defective `tax_amount / subtotal` formula this initiative removed — what makes it sound here is the proven absence of any tax-free component, nothing else.
+
+3. **Any future extension feature that changes those invariants must update or disable this mode.** Permitting multiple lines, a per-line tax posture, a discount, an added fee, or a special tax on an extension invalidates it immediately. The mode's guards (no discount, `subtotal + tax === grand_total` exactly, `is_tax_exempt` agreeing with stored tax) are the tripwires; a change that routes around them must revisit this amendment first.
+
+4. **A contradictory billing charge is a hard failure.** When a linked extension charge exists but disagrees with the child order, resolution rejects outright and **must never fall through to `extension_order_level`**. Contradictory authoritative data is a reason to stop, not to retry with weaker evidence.
+
+5. **Anonymous line-less orders remain unsupported.** An order with no lines that cannot prove the extension relationship is rejected. There is no general line-less path, and none may be added without superseding this amendment.
+
+**Why this is recorded as policy rather than left to implementation.** Reconstructing a historical rate from anything other than per-line data is a financial judgement, not a coding detail. Writing the permitted exceptions down — with the invariant each depends on — is what stops the next such exception being added silently because it looked reasonable at the time. That is the same failure mode FD-001 exists to prevent.

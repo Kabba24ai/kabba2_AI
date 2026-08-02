@@ -2,9 +2,13 @@
 
 namespace App\Services\Orders;
 
+use App\Enums\Billing\BillingChargeType;
 use App\Enums\Orders\HistoricalTaxBasisFailure;
+use App\Enums\Orders\HistoricalTaxBasisSource;
 use App\Http\DataObjects\HistoricalTaxBasis;
 use App\Models\Orders\Order;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -54,7 +58,7 @@ class HistoricalTaxBasisResolver
         $lines = $order->products()->orderBy('id')->get();
 
         if ($lines->isEmpty()) {
-            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::NoLineData);
+            return self::logSource($order, self::resolveLineless($order));
         }
 
         $storedSubtotalCents   = self::toCents($order->subtotal);
@@ -141,7 +145,7 @@ class HistoricalTaxBasisResolver
             return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::MixedTaxRates);
         }
 
-        return HistoricalTaxBasis::resolved(
+        return self::logSource($order, HistoricalTaxBasis::resolved(
             ordinaryBasisCents:   $ordinaryBasisCents,
             ordinaryTaxCents:     $ordinaryTaxCents,
             specialBasisCents:    $specialBasisCents,
@@ -150,7 +154,207 @@ class HistoricalTaxBasisResolver
             addedFeesCents:       $addedFeesCents,
             discountCents:        $storedDiscountCents,
             lines:                $resolvedLines,
+            source:               HistoricalTaxBasisSource::OrderProductLines,
+        ));
+    }
+
+    /**
+     * An order with no order_products rows.
+     *
+     * Extension child orders own no lines BY DESIGN — `Extension\StoreController`
+     * creates them with totals only, and `IndexController` documents the same
+     * fact. They are nevertheless real, independently payable orders (they get
+     * their own Pending COD placeholder payment) that render on the ordinary
+     * Order Details page, so they can and do reach the Standard refund path.
+     *
+     * Two named modes handle them, in strict priority. Everything else — any
+     * line-less order that cannot PROVE it is a simple extension child — is
+     * rejected. There is deliberately no general line-less fallback, because a
+     * line-less order of unknown shape could hide a tax-free component inside
+     * its subtotal, which is the very defect this class exists to prevent.
+     */
+    private static function resolveLineless(Order $order): HistoricalTaxBasis
+    {
+        if (! self::isExtensionChild($order)) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::NoLineData);
+        }
+
+        $charges = DB::table('billing_charges')
+            ->where('child_order_id', $order->id)
+            ->where('billing_charge_type', BillingChargeType::Extension->value)
+            ->whereNull('deleted_at')
+            ->get();
+
+        if ($charges->count() > 1) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ConflictingExtensionCharges);
+        }
+
+        if ($charges->count() === 1) {
+            // Authoritative record found. Its verdict is final: if it
+            // contradicts the order we reject outright rather than falling
+            // through to the weaker order-level mode. Contradictory
+            // authoritative data is a reason to stop, not to try again with
+            // less evidence.
+            return self::resolveFromExtensionCharge($order, $charges->first());
+        }
+
+        return self::resolveExtensionOrderLevel($order);
+    }
+
+    /**
+     * MODE 1 (preferred) — reconstruct from the linked extension charge.
+     *
+     * `billing_charges` carries the extension's own frozen `amount`,
+     * `tax_amount` and `tax_type`, written by the BillingEngine bridge at
+     * creation time. That is genuine authoritative evidence, not inference.
+     */
+    private static function resolveFromExtensionCharge(Order $order, $charge): HistoricalTaxBasis
+    {
+        $chargeBasisCents = self::toCents($charge->amount);
+        $chargeTaxCents   = self::toCents($charge->tax_amount);
+        $taxType          = (string) ($charge->tax_type ?? '');
+
+        $storedSubtotalCents   = self::toCents($order->subtotal);
+        $storedTaxCents        = self::toCents($order->tax_amount);
+        $storedDiscountCents   = self::toCents($order->discount_amount);
+        $storedGrandTotalCents = self::toCents($order->grand_total);
+
+        // tax_type must state the posture unambiguously — 'add' (taxable) or
+        // 'free' (tax-free). Anything else leaves taxability unestablished.
+        if (! in_array($taxType, ['add', 'free'], true)) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ExtensionChargeMismatch);
+        }
+
+        if ($taxType === 'free' && $chargeTaxCents !== 0) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ExtensionChargeMismatch);
+        }
+
+        // The charge must agree with the child order it points at, exactly.
+        if ($chargeBasisCents !== $storedSubtotalCents || $chargeTaxCents !== $storedTaxCents) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ExtensionChargeMismatch);
+        }
+
+        if ($storedSubtotalCents + $storedTaxCents - $storedDiscountCents !== $storedGrandTotalCents) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ExtensionChargeMismatch);
+        }
+
+        $taxable = $taxType === 'add' && $chargeTaxCents > 0;
+
+        return HistoricalTaxBasis::resolved(
+            ordinaryBasisCents:   $taxable ? $chargeBasisCents : 0,
+            ordinaryTaxCents:     $chargeTaxCents,
+            specialBasisCents:    0,
+            specialTaxCents:      0,
+            nonTaxableBasisCents: $taxable ? 0 : $chargeBasisCents,
+            addedFeesCents:       0,
+            discountCents:        $storedDiscountCents,
+            lines:                [],
+            source:               HistoricalTaxBasisSource::ExtensionBillingCharge,
         );
+    }
+
+    /**
+     * MODE 2 (fallback) — the extension child's own stored totals.
+     *
+     * Reached ONLY when no linked charge exists at all: a legacy extension
+     * predating the bridge, or one whose BillingEngine call failed — that
+     * bridge is wrapped in a try/catch that only logs, so a missing charge is
+     * a real, expected shape rather than a theoretical one.
+     *
+     * This is emphatically NOT "use orders.subtotal when unsure". It is
+     * permitted only once every extension invariant below is PROVEN, and the
+     * reason it is sound is narrow and specific: an extension is created from
+     * a single `add_tax` flag applied to a single base amount, so the whole
+     * order has exactly one tax posture. No tax-free component can be hiding
+     * inside its subtotal, which is the only thing that made the old
+     * `tax_amount / subtotal` denominator wrong. Any order that cannot prove
+     * that property is rejected.
+     */
+    private static function resolveExtensionOrderLevel(Order $order): HistoricalTaxBasis
+    {
+        $subtotalCents   = self::toCents($order->subtotal);
+        $taxCents        = self::toCents($order->tax_amount);
+        $discountCents   = self::toCents($order->discount_amount);
+        $grandTotalCents = self::toCents($order->grand_total);
+
+        // Invariant: no discount may sit between the basis and the total, or
+        // the denominator's relationship to the stored figures is ambiguous.
+        if ($discountCents !== 0) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ExtensionInvariantsUnproven);
+        }
+
+        // Invariant: stored totals reconcile exactly, with no room for an
+        // unaccounted special tax or added fee hiding in the difference.
+        if ($subtotalCents + $taxCents !== $grandTotalCents) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ExtensionInvariantsUnproven);
+        }
+
+        // Invariant: a basis must exist to divide by whenever tax was charged.
+        if ($taxCents !== 0 && $subtotalCents <= 0) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ZeroBasisWithTax);
+        }
+
+        // Invariant: the order's single tax posture must agree with its stored
+        // tax. `is_tax_exempt` governs the WHOLE extension — a tax-exempt
+        // extension carrying tax, or a taxable one carrying none, is not the
+        // simple shape this mode is allowed to assume.
+        $exempt = (string) ($order->is_tax_exempt ?? '') === 'Yes';
+
+        if ($exempt && $taxCents !== 0) {
+            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::ExtensionInvariantsUnproven);
+        }
+
+        $taxable = ! $exempt && $taxCents > 0;
+
+        return HistoricalTaxBasis::resolved(
+            ordinaryBasisCents:   $taxable ? $subtotalCents : 0,
+            ordinaryTaxCents:     $taxCents,
+            specialBasisCents:    0,
+            specialTaxCents:      0,
+            nonTaxableBasisCents: $taxable ? 0 : $subtotalCents,
+            addedFeesCents:       0,
+            discountCents:        0,
+            lines:                [],
+            source:               HistoricalTaxBasisSource::ExtensionOrderLevel,
+        );
+    }
+
+    /**
+     * An extension child, as the codebase already defines one.
+     *
+     * Reuses Order::scopeExtensionChildren()'s rule rather than inventing a
+     * second definition: a reference_order_number plus an order_number of the
+     * form "<parent>-A". Reorders also carry a reference_order_number but have
+     * their own products, so they never reach this path anyway.
+     */
+    private static function isExtensionChild(Order $order): bool
+    {
+        return Order::query()->whereKey($order->id)->extensionChildren()->exists();
+    }
+
+    /**
+     * Record which evidence a resolution used, so any refund's tax split can
+     * be traced back to it. Weaker sources are logged at a higher level than
+     * the ordinary one precisely so they stay visible rather than becoming
+     * an invisible default.
+     */
+    private static function logSource(Order $order, HistoricalTaxBasis $basis): HistoricalTaxBasis
+    {
+        $context = [
+            'order_id' => $order->id,
+            'source'   => $basis->source?->value,
+            'failure'  => $basis->failure?->value,
+        ];
+
+        if (! $basis->succeeded()) {
+            Log::info('HistoricalTaxBasisResolver: resolution rejected', $context);
+        } elseif ($basis->source === HistoricalTaxBasisSource::ExtensionOrderLevel) {
+            Log::warning('HistoricalTaxBasisResolver: resolved from extension order-level totals (no linked charge)', $context);
+        } else {
+            Log::debug('HistoricalTaxBasisResolver: resolved', $context);
+        }
+
+        return $basis;
     }
 
     /**
@@ -227,7 +431,7 @@ class HistoricalTaxBasisResolver
             return false;
         }
 
-        return \DB::table('order_goodwill_adjustments')
+        return DB::table('order_goodwill_adjustments')
             ->where('order_id', $order->id)
             ->whereNull('reversed_at')
             ->exists();

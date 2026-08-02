@@ -58,3 +58,126 @@ This amendment formally names two calculation families — **Financial Transacti
 ### Related document — Phase 2.5B (2026-07-02): `FINANCIAL_TRUTH_TABLE.md`
 
 This is a pointer, not a new decision — no new business policy was approved in Phase 2.5B. `docs/financial-engine-consolidation/FINANCIAL_TRUTH_TABLE.md` is now the detailed, per-transaction-type reference implementing FD-001's principles (transaction/line-level tax as source of truth; the Financial Transaction vs. Financial Analytics distinction) across all 16 transaction types found in the codebase. It records, per type, which tax-treatment rules are already Approved (consistent with FD-001 and this decision's existing scope) and which remain Pending Business Decision, Undefined, or Future Enhancement. **When any of those pending items is actually resolved by the business, record the resolution as a new FD entry here (FD-002 or later) and then update the Truth Table's corresponding row and Business Decision Status column — the Truth Table must never be the origin of a new policy, only its recorded implementation.**
+
+---
+
+# ⚠ DRAFT — NOT APPROVED — Goodwill production re-baseline (2026-08-02)
+
+Everything below this line is **draft**. None of it is approved policy. It exists so the decisions the re-baseline requires are written down before any code is ported.
+
+Supporting audit: `GOODWILL_PRODUCTION_REBASELINE_REPORT.md`.
+
+## Context: FD-002 does not exist in this repository
+
+FD-002 (*Goodwill Adjustment is a Pre-Tax Reduction of an Order's Taxable Basis*) and its Amendments 1–7 were authored against `Kabba24ai/kabba2_AI`, whose `raj_development` had not advanced since 2026-07-22. This repository — `RajChotaliya/Kaaba2`, the true production source — is 169 commits ahead of that point and its `FINANCIAL_DECISIONS.md` ends at FD-001.
+
+**FD-002 must be ported here as part of the re-baseline, not assumed to apply.** Several of its recorded statements are already false against this codebase; those are enumerated below and must be superseded *at the time FD-002 is ported*, not silently carried over.
+
+## D-A (draft) — Store Credit is a pre-tax product discount, superseding FD-002's scope note
+
+FD-002 records *"Store Credit remains post-tax tender, out of scope by decision."* **That is no longer true.** Commit `dd369166` reframed Store Credit as a pre-tax product discount, and commit `2026_07_27_090000` added `orders.pretax_discount_total`, `tax_amount_before_discount`, `grand_total_before_discount`.
+
+A reusable pre-tax adjustment abstraction now exists at `app/Services/Discounts/` (`DiscountTarget` contract, `DiscountApplicationService`, `DiscountCalculator`, `OrderDiscountTarget`).
+
+**Open decision:** does Goodwill become a target/type on that abstraction, or remain a separate domain adopting the same persistence model? Two independent pre-tax engines is not an acceptable outcome.
+
+## D-B (draft) — Whether a pre-tax concession reduces line revenue
+
+The two implementations disagree:
+
+- `OrderDiscountTarget` leaves `orders.subtotal` and `order_products.sub_total` **untouched**, accruing the reduction in `pretax_discount_total`, explicitly "so gross sales reporting is unaffected".
+- FD-002's Goodwill **reduces** both, so `ProductSalesPerformanceEngine` reports reduced product revenue.
+
+`ProductSalesPerformanceEngine` documents *"Revenue source: `order_products.sub_total` (discounts are priced-in)"* — which is **not currently true** for Store Credit, since the discount layer never writes that column. This inconsistency is pre-existing. Whatever is decided must apply to **both** features, not one.
+
+## D-C (draft) — Receipt model: mutate or supersede
+
+`ReceiptService::getOrCreateReceipt()` now **rewrites** an existing receipt's `subtotal`/`sales_tax`/`total` whenever they drift from the order. FD-002 Amendment 6 instead specifies **append-only supersession**, on the grounds that a receipt is a document handed to a customer and rewriting it destroys the evidence of what they were originally told.
+
+Both fix staleness. They are mutually exclusive. The receipt table currently has no supersession columns.
+
+## D-D (draft) — Reconciliation identity must include `pretax_discount_total`
+
+FD-002 Amendment 3's identity —
+
+```
+subtotal + ordinary tax + special tax + added fees − discount = grand_total
+```
+
+— **fails on any order carrying a Store Credit discount**, because `pretax_discount_total` sits outside `discount_amount` while `tax_amount` and `grand_total` have already been reduced. `HistoricalTaxBasisResolver` would return `UnreconciledGrandTotal` and refuse, breaking refunds on exactly the orders Store Credit touches. The identity must be restated before the resolver is ported.
+
+## D-E (draft) — Reporting is cash-basis; the frozen-engine verdict must be re-proved
+
+FD-002 records that `SalesTaxReportEngine` requires no changes. That was proved against the accrual-basis engine of 2026-07-22. The engine now anchors on `COALESCE(op.payment_datetime, op.created_at)` (`7fb51595`). It also does not read `pretax_discount_total`. **The verdict is void until re-proved.**
+
+## D-F (draft) — Blended-rate correctness in `OrderDiscountTarget`
+
+`OrderDiscountTarget::taxRate()` uses `tax_amount ÷ subtotal` as a blended effective rate. This is arithmetically **correct** when the reduction is proportional across taxable and exempt lines in their original ratio, and **incorrect** otherwise.
+
+Whether product-targeted discounts can violate that proportionality is **unverified**. If they can, production carries a live sales-tax defect independent of Goodwill, and it should be raised on its own merits rather than bundled into this release.
+
+## Unchanged and still applicable
+
+These FD-002 findings were re-verified against `d8591af5` and remain true:
+
+1. `PaymentAllocationService::proportionalTaxRefund()` still derives its rate from `tax_amount / subtotal` — the defect FD-002 Amendment 1 exists to correct. It is now compounded, since a discounted order has a reduced `tax_amount` over an undiscounted `subtotal`.
+2. Special tax and added fees still have **no columns** and survive only in `order_products.product_data`.
+3. `Gate::before(fn ($user, string $ability) => true)` is still registered in `AppServiceProvider`. Direct Spatie enforcement remains necessary for any authority separation.
+4. `ModuleSeeder` is still a destructive reconciliation seeder and must not be run in production.
+5. Extension children still own no order lines and still carry an `extensionCharge()` relation.
+
+---
+
+## Re-baseline decisions A / B / C (2026-08-02) — DRAFT, approved in principle
+
+Issued after the production re-baseline audit. These resolve the open questions D-A, D-B and D-C above. Full design: `SHARED_PRETAX_ADJUSTMENT_DESIGN.md`.
+
+**Governing principle:** *Gross merchandise values remain stable; discounts are explicit; tax and net revenue follow the allocated discounts.*
+
+### A — One shared pre-tax engine
+
+Goodwill uses `app/Services/Discounts/` and does **not** maintain a parallel pricing engine. `order_goodwill_adjustments` is retained as the Goodwill-specific authorization, audit, idempotency, reversal and payment-linkage domain.
+
+| Layer | Responsibility |
+|---|---|
+| Discounts | calculate and persist the financial adjustment |
+| Goodwill | authorize, invoke, snapshot, reverse, audit |
+
+Goodwill is **not** integrated into the current float/blended-rate implementation unchanged. The shared engine is first hardened for integer-cent reconciliation, mixed taxable/exempt merchandise, separately-derived ordinary and special tax, and protected fees.
+
+`DiscountType::Goodwill` already exists in production, marked deferred and gated by `isOperationalInPhase1()`.
+
+### B — Gross line values are preserved
+
+`orders.subtotal` and `order_products.sub_total` are **gross merchandise values and are never reduced.** This supersedes FD-002's line-reducing model.
+
+The concession is stored explicitly in `orders.pretax_discount_total` and in a per-line allocation (`order_products.pretax_discount_allocated` plus `order_product_discount_allocations` for per-adjustment reversal).
+
+**Product net revenue = gross line subtotal − allocated pre-tax discounts.** `ProductSalesPerformanceEngine` and its documentation are corrected accordingly; its current claim that discounts are "priced-in" to `sub_total` is **false** and must not be repeated. The same reporting rule governs Store Credit and Goodwill alike.
+
+### C — Receipt lifecycle
+
+A receipt that has **not been issued** may refresh in place. Once **issued**, it is immutable: any later Goodwill adjustment or reversal creates a **superseding** receipt linked to the prior one. Previously issued receipt and receipt-item rows are never overwritten.
+
+Goodwill retains the append-only **original → adjusted → restored** chain, adapted to the production receipt model. This requires an explicit `issued_at` marker — the existing `is_email_status` / `mail_send_at` cover email only, not download or print.
+
+### Audit outcome — one live defect found
+
+Executed against `OrderDiscountTarget` on `d8591af5`:
+
+| Scenario | Verdict |
+|---|---|
+| Mixed taxable / tax-free | **Correct.** The blended rate is exact under whole-population proportional reduction — verified numerically. It is *not* the defect it was suspected of being |
+| Product- or line-targeted discounts | Not reachable today; no such target exists |
+| **Special-tax lines** | ❌ **LIVE DEFECT** |
+| Added fees | Correctly preserved, but indistinguishable from special tax in the lumped residual |
+| Stacking | Correct — recompute-from-snapshot is exact |
+| Rounding | Float with `round(…, 2)`; no exact-reconciliation guarantee |
+
+**The defect:** `OrderDiscountTarget::recompute()` preserves `otherComponents = grand_total_before − subtotal − tax_before` intact. Special tax is basis-derived, so when the basis shrinks it must shrink too. It does not.
+
+Proven: $200 merchandise, $19.50 ordinary tax, $4.00 special tax, $50 discount → special tax stays $4.00 where it should be $3.00. **$1.00 over-collected.** This affects every Store Credit discount on an order carrying special tax, **today**, and is independent of Goodwill.
+
+It cannot be fixed without the special-tax/added-fee columns, because the lumped residual cannot distinguish special tax from added fees. Those columns therefore become a **prerequisite for a production defect fix**, not merely a Goodwill enabler.
+
+**Guard:** the blended rate stays correct only while every adjustment reduces the whole merchandise population proportionally. Introducing per-line allocation makes line-scoped adjustment possible, so the rate must be replaced by per-line derivation from each line's own frozen tax posture at the same time.

@@ -259,3 +259,37 @@ This does not change the recommendation already reached in `PHASE_2_5A_LEDGER_RE
 - **Future enhancements identified**: **1 category** — the four unimplemented `BillingChargeType` values (Service Ticket, Cleaning, Delivery, Misc).
 - **`LedgerBalanceService` readiness**: unchanged from Phase 2.5A's **GO WITH CONDITIONS**, now with a complete, code-verified truth table backing every "Ready Now" and "Blocked" classification instead of the four-transaction-type analysis available before this phase.
 - **May Version 2.1 (`LedgerBalanceService`) begin?** **Yes, in the same narrow form already approved in Phase 2.5A** (service skeleton plus the `payment`, `order`, and `charge` branches, zero callers migrated) — every transaction type that scope touches is "Ready Now" in §7. **Expanding beyond that narrow scope (Phase 2.7-2.8, the 52 real call sites) still requires the conditions in `PHASE_2_5A_LEDGER_READINESS_REVIEW.md` §10, now with this document as the single reference for resolving them, rather than a fresh investigation per open item.**
+
+---
+
+## Amendment — Pre-tax adjustments (2026-08-02) — DRAFT, awaiting approval
+
+Recorded per this document's own rule: a policy is decided in `FINANCIAL_DECISIONS.md` first, and the Truth Table records its implementation. Origin: re-baseline decisions A/B/C. Design: `SHARED_PRETAX_ADJUSTMENT_DESIGN.md`.
+
+### New / revised transaction types
+
+| # | Type | Tax treatment | Status |
+|---|---|---|---|
+| 17 | **Store Credit Redemption** | **Reclassified.** No longer post-tax tender. A pre-tax product discount: reduces the taxable basis, tax recomputed after. `product_discounts` + `orders.pretax_discount_total` | **Approved** (production `dd369166`) |
+| 18 | **Goodwill Adjustment** | Manager-authorised discretionary pre-tax reduction, applied so the revised total equals payments accepted as payment in full. Same engine as type 17; distinct authorization, audit and reversal domain | **Draft** |
+
+### Invariants governing both types
+
+1. **Gross is stable.** `orders.subtotal` and `order_products.sub_total` are never reduced. The adjustment is explicit in `pretax_discount_total` and per-line allocation.
+2. **Tax follows the allocated discount.** Ordinary tax is derived per line from that line's own frozen posture — an originally-untaxed line stays untaxed however much it is reduced.
+3. **Special tax is recomputed at its own rate on its own basis**, never blended with ordinary tax. *This is currently violated in production — see §Defect below.*
+4. **Added fees are protected** and never reduced by any pre-tax adjustment.
+5. **Stacking is permitted.** Adjustments recompute from the immutable `*_before_discount` snapshot, so order of application does not affect the result.
+6. **Reversal is recomputation, not delta replay.** Reversing one adjustment must not disturb the others.
+7. **Neither type is tender.** Neither creates an `order_payments` row; neither appears in the Payment Reconciliation Ledger as money received.
+8. **Reporting:** product net revenue = gross line subtotal − allocated pre-tax discounts. Gross sales remain reportable from the untouched `subtotal`.
+
+### Defect recorded against type 17
+
+`OrderDiscountTarget::recompute()` preserves special tax unchanged when the basis is reduced, over-collecting it. Verified numerically: $200 basis, $4.00 special tax, $50 discount → $4.00 retained where $3.00 is owed.
+
+Cannot be corrected until special tax and added fees have their own columns; today both are lumped into a single undifferentiated residual. **Status: open, live in production, independent of Goodwill.**
+
+### Superseded
+
+FD-002's statement that Store Credit *"remains post-tax tender, out of scope"* is superseded by type 17 above. Any Truth Table row asserting Store Credit is a payment tender is void.

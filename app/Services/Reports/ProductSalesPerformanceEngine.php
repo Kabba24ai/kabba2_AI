@@ -8,9 +8,23 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * ProductSalesPerformanceEngine — demand-based product and category reporting.
  *
- * Revenue source: order_products.sub_total (discounts are priced-in).
+ * Revenue source: NET line revenue —
+ *
+ *     order_products.sub_total - order_products.pretax_discount_allocated
+ *
+ * `sub_total` is the GROSS merchandise value and is never reduced by a pre-tax
+ * adjustment; the concession lives in `pretax_discount_allocated`. An earlier
+ * version of this docblock claimed "discounts are priced-in" to `sub_total`,
+ * which was NOT true — the discount engine never wrote that column, so Store
+ * Credit concessions did not appear in product reporting at all.
+ *
  * Scope: paid orders + account orders; excludes unpaid COD and fully-refunded orders.
- * Partial refunds: proportionally reduce each line item's sub_total.
+ * Partial refunds: proportionally reduce each line item's net revenue.
+ *
+ * LEGACY ORDERS: an order discounted before per-line allocations existed
+ * reports GROSS product revenue, because there is no record of which lines
+ * bore the concession. The unattributed amount is disclosed by
+ * {@see self::legacyUnallocatedDiscount()} rather than silently absorbed.
  *
  * This engine contains ZERO accounting formulas. It measures product demand,
  * not realized cash revenue. It will NOT reconcile to Pure Sales Summary.
@@ -307,6 +321,35 @@ class ProductSalesPerformanceEngine
     }
 
     // ─── KPIs ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Pre-tax concessions in scope that are NOT attributed to any product.
+     *
+     * These belong to orders discounted before per-line allocation existed.
+     * Their product revenue above is therefore GROSS, overstated by exactly
+     * this amount. Surfacing it is the difference between a report that is
+     * incomplete and one that is quietly wrong: a consumer can see how much
+     * revenue is unattributed and decide whether it matters, instead of being
+     * told a net figure that is not net.
+     *
+     * Counted once per ORDER — `legacy_unallocated_pretax_discount` is an
+     * order-level column, so summing it across a line-grouped query would
+     * multiply it by the line count.
+     */
+    public function legacyUnallocatedDiscount(array $filters): float
+    {
+        $orderIds = $this->demandQuery($filters)
+            ->distinct()
+            ->pluck('orders.id');
+
+        if ($orderIds->isEmpty()) {
+            return 0.0;
+        }
+
+        return (float) \Illuminate\Support\Facades\DB::table('orders')
+            ->whereIn('id', $orderIds)
+            ->sum('legacy_unallocated_pretax_discount');
+    }
 
     public function buildKpis(array $filters): array
     {

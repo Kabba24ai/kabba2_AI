@@ -8,13 +8,27 @@ use Illuminate\Support\Facades\DB;
 /**
  * Payment Architecture Finalization — shared "demand-style" refund netting:
  * exclude fully-refunded orders entirely, and proportionally reduce each
- * line's sub_total by that order's share of partial refunds. Originally
+ * line's revenue by that order's share of partial refunds. Originally
  * written once, inline, inside ProductSalesPerformanceEngine::demandQuery()
  * — extracted here so every report grouping order_products.sub_total by
  * product/category/store applies the identical netting instead of counting
  * a refunded order's original revenue with no netting at all (the bug this
  * fixes in ProductSalesRankingReport and SalesByStoresReport, which had no
  * refund awareness whatsoever before this).
+ *
+ * CONSUMERS (5) — all share one financial meaning through netRevenueExpr():
+ * ProductSalesPerformanceEngine, ProductSalesRankingReport,
+ * SalesByStoresReport, EmployeePerformanceEngine, BillingRevenueAttributionService.
+ *
+ * NOT a consumer, and deliberately left alone:
+ *   - SalesReportEngineV2 sums raw `order_products.sub_total` as `gross_sales`
+ *     and `daily_gross`. Those are INTENTIONALLY gross and correctly named;
+ *     gross merchandise reporting stays available.
+ *   - SalesTrendReport sums raw `sub_total` and labels it `revenue`. That is
+ *     now inconsistent with the five reports above, which net allocated
+ *     pre-tax discounts. It is flagged rather than changed here: altering what
+ *     a trend line means is a reporting decision, not a refactor, and it is
+ *     out of this increment's scope.
  */
 trait NetsRefundedRevenue
 {
@@ -22,10 +36,14 @@ trait NetsRefundedRevenue
 
     /**
      * Exclude orders that have been fully refunded, and join the two
-     * subqueries netRevenueExpr() depends on: each order's gross sub_total
-     * total (needed as the ratio denominator when a query groups by
-     * product/store rather than by order) and its allocation-aware summed
-     * partial-refund amount.
+     * subqueries netRevenueExpr() depends on: each order's NET merchandise
+     * total — gross sub_total less allocated pre-tax discounts, needed as the
+     * ratio denominator when a query groups by product/store rather than by
+     * order — and its allocation-aware summed partial-refund amount.
+     *
+     * The alias is `order_net`, not `order_gross`: since pre-tax discounts are
+     * subtracted here, a name promising gross would be actively misleading to
+     * the next reader.
      */
     protected function applyRefundNetting(Builder $query): Builder
     {
@@ -39,7 +57,7 @@ trait NetsRefundedRevenue
 
         $query->leftJoinSub(
             DB::table('order_products as op_gross')
-                ->selectRaw('order_id, SUM(sub_total) AS order_gross')
+                ->selectRaw('order_id, SUM(sub_total - COALESCE(pretax_discount_allocated, 0)) AS order_net')
                 ->whereNull('deleted_at')
                 ->groupBy('order_id'),
             'order_totals',
@@ -65,16 +83,43 @@ trait NetsRefundedRevenue
     }
 
     /**
-     * Per-row net revenue expression (no SUM — callers wrap in SUM as
-     * needed). ratio = (order_gross - partial_refunded) / order_gross;
-     * net = sub_total * GREATEST(0, ratio) — floored at 0, never negative.
-     * Falls back to sub_total when order_totals has no join match.
+     * Per-row net revenue expression (no SUM — callers wrap in SUM as needed).
+     *
+     * TWO reductions apply, in this order:
+     *
+     *   1. PRE-TAX DISCOUNT. `sub_total` is the GROSS merchandise value and is
+     *      never reduced by an adjustment; the concession is recorded in
+     *      `pretax_discount_allocated`. Product revenue must therefore be
+     *      `sub_total - pretax_discount_allocated`, or a Store Credit
+     *      concession would never appear in product reporting at all.
+     *
+     *   2. REFUND NETTING. The result is then scaled by that order's surviving
+     *      share after partial refunds, exactly as before.
+     *
+     *      ratio = (order_net - partial_refunded) / order_net
+     *      net   = line_net * GREATEST(0, ratio)      — floored at 0
+     *
+     * The ratio denominator is net of discounts too: a refund is measured
+     * against what the customer actually owed, not the pre-concession figure.
+     * On an undiscounted order `pretax_discount_allocated` is 0 and both terms
+     * collapse to the previous behaviour exactly.
+     *
+     * LEGACY ORDERS. An order discounted before allocations were recorded has
+     * `legacy_unallocated_pretax_discount > 0` and zero on every line, so this
+     * expression reports its GROSS product revenue. That is deliberate: there
+     * is no record of which lines bore the concession and inventing one would
+     * produce per-product figures that look authoritative and are not. The
+     * unattributed amount is disclosed separately — see
+     * {@see \App\Services\Reports\ProductSalesPerformanceEngine::legacyUnallocatedDiscount()}
+     * — rather than silently absorbed into product revenue.
      */
     protected function netRevenueExpr(): string
     {
-        return "order_products.sub_total * GREATEST(0,
-            (COALESCE(order_totals.order_gross, order_products.sub_total) - COALESCE(order_refunds.partial_refunded, 0))
-            / NULLIF(COALESCE(order_totals.order_gross, order_products.sub_total), 0)
+        $lineNet = '(order_products.sub_total - COALESCE(order_products.pretax_discount_allocated, 0))';
+
+        return "{$lineNet} * GREATEST(0,
+            (COALESCE(order_totals.order_net, {$lineNet}) - COALESCE(order_refunds.partial_refunded, 0))
+            / NULLIF(COALESCE(order_totals.order_net, {$lineNet}), 0)
         )";
     }
 }

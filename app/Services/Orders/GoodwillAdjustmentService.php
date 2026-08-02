@@ -2,11 +2,17 @@
 
 namespace App\Services\Orders;
 
+use App\Enums\Orders\GoodwillReasonCode;
 use App\Http\DataObjects\GoodwillCalculation;
 use App\Http\DataObjects\GoodwillCalculationFailure;
+use App\Http\DataObjects\GoodwillOperationFailure;
 use App\Http\DataObjects\HistoricalTaxBasis;
 use App\Models\Orders\Order;
+use App\Models\Orders\OrderGoodwillAdjustment;
+use App\Models\Iam\Personnel\User;
 use App\Services\TaxCalculationService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Goodwill Adjustment — calculation (FD-002, Truth Table type 17).
@@ -162,7 +168,7 @@ class GoodwillAdjustmentService
             return GoodwillCalculation::failed(GoodwillCalculationFailure::ReconciliationFailed);
         }
 
-        $allocations = self::allocate($basis, $goodwillCents, $ordinaryRate, $revisedTaxCents);
+        $allocations = self::allocate($basis, $goodwillCents, $ordinaryRate, $revisedTaxCents, $revisedSpecialTaxCents);
 
         if ($allocations === null) {
             return GoodwillCalculation::failed(GoodwillCalculationFailure::AllocationImbalance);
@@ -182,6 +188,7 @@ class GoodwillAdjustmentService
             goodwillCents:           $goodwillCents,
             acceptedCents:           $acceptedCents,
             protectedCents:          $protectedCents,
+            protectedLineCents:      $basis->protectedLineCents,
             discountCents:           $discountCents,
             lineAllocations:         $allocations,
             basisSnapshot:           [
@@ -222,6 +229,7 @@ class GoodwillAdjustmentService
         int $goodwillCents,
         float $ordinaryRate,
         int $revisedTaxCents,
+        int $revisedSpecialTaxCents = 0,
     ): ?array {
         // ALL reducible merchandise lines share the reduction — taxable and
         // untaxed alike. Untaxed merchandise is still merchandise (FD-002
@@ -285,6 +293,18 @@ class GoodwillAdjustmentService
         $taxedIndexes   = array_keys(array_filter($eligible, fn (array $l) => $l['taxable']));
         $lastTaxedIndex = $taxedIndexes === [] ? null : end($taxedIndexes);
 
+        // Special tax follows the same shape on its own set of lines: only
+        // lines that actually carried it can carry it afterwards, and the
+        // residual cent lands on the last such line. Ordinary and special tax
+        // are allocated independently and never blended into one figure.
+        $specialAssigned      = 0;
+        $specialBasisTotal    = array_sum(array_map(
+            fn (array $l) => ($l['special_tax_cents'] ?? 0) > 0 ? $l['basis_cents'] : 0,
+            $eligible,
+        ));
+        $specialIndexes       = array_keys(array_filter($eligible, fn (array $l) => ($l['special_tax_cents'] ?? 0) > 0));
+        $lastSpecialIndex     = $specialIndexes === [] ? null : end($specialIndexes);
+
         foreach ($eligible as $i => $line) {
             $basisAfter = $line['basis_cents'] - $shares[$i];
 
@@ -301,7 +321,18 @@ class GoodwillAdjustmentService
                 $taxAssigned += $taxAfter;
             }
 
-            if ($taxAfter < 0) {
+            if (($line['special_tax_cents'] ?? 0) <= 0) {
+                $specialAfter = 0;
+            } elseif ($i === $lastSpecialIndex) {
+                $specialAfter = $revisedSpecialTaxCents - $specialAssigned;
+            } else {
+                $specialAfter = $specialBasisTotal > 0
+                    ? (int) round($revisedSpecialTaxCents * $line['basis_cents'] / $specialBasisTotal)
+                    : 0;
+                $specialAssigned += $specialAfter;
+            }
+
+            if ($taxAfter < 0 || $specialAfter < 0) {
                 return null;
             }
 
@@ -311,6 +342,11 @@ class GoodwillAdjustmentService
                 'basis_after'  => $basisAfter,
                 'tax_before'   => $line['tax_cents'],
                 'tax_after'    => $taxAfter,
+                'special_tax_before' => $line['special_tax_cents'] ?? 0,
+                'special_tax_after'  => $specialAfter,
+                // Protected: recorded so a reversal can prove it was never
+                // touched, never so it can be changed.
+                'added_fees'   => $line['added_fees_cents'] ?? 0,
                 'reduced_by'   => $shares[$i],
             ];
         }
@@ -319,6 +355,296 @@ class GoodwillAdjustmentService
             return null;
         }
 
+        if (array_sum(array_column($allocations, 'special_tax_after')) !== $revisedSpecialTaxCents) {
+            return null;
+        }
+
         return $allocations;
+    }
+
+    // ══ Writer ═════════════════════════════════════════════════════════════
+
+    /**
+     * Apply a Goodwill Adjustment atomically.
+     *
+     * TRANSACTION BOUNDARY. Everything below happens inside ONE
+     * DB::transaction. The order row is locked FOR UPDATE before anything is
+     * read that a concurrent payment could change, and it stays locked until
+     * commit — so a payment landing mid-operation cannot make the accepted
+     * amount stale between the check and the write. Any failure returns a
+     * named refusal and the transaction rolls back, leaving neither an
+     * adjustment nor a mutated order.
+     *
+     * Goodwill NEVER creates a payment row. `$orderPaymentId` merely links the
+     * real tender that was recorded alongside, by whatever normal payment path
+     * recorded it.
+     *
+     * @param  int  $expectedAcceptedCents  What the caller believes cumulative
+     *         settled payments are. Re-read under the lock and rejected as
+     *         stale if it disagrees — the browser's number is never trusted.
+     * @return array{ok:bool, failure:?GoodwillOperationFailure, calculation:?GoodwillCalculation, adjustment:?OrderGoodwillAdjustment, replayed:bool}
+     */
+    public static function apply(
+        Order $order,
+        int $expectedAcceptedCents,
+        GoodwillReasonCode $reason,
+        ?string $reasonNote,
+        User $approvedBy,
+        User $performedBy,
+        ?string $idempotencyToken = null,
+        ?int $orderPaymentId = null,
+    ): array {
+        return DB::transaction(function () use (
+            $order, $expectedAcceptedCents, $reason, $reasonNote,
+            $approvedBy, $performedBy, $idempotencyToken, $orderPaymentId
+        ) {
+            // Idempotency first: a retry must never produce a second
+            // adjustment. The unique index is the backstop; this is the
+            // graceful path that returns the original result.
+            if ($idempotencyToken !== null) {
+                $existing = OrderGoodwillAdjustment::where('idempotency_token', $idempotencyToken)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existing) {
+                    return self::ok(null, $existing, replayed: true);
+                }
+            }
+
+            /** @var Order|null $locked */
+            $locked = Order::whereKey($order->id)->lockForUpdate()->first();
+
+            if (! $locked) {
+                return self::fail(GoodwillOperationFailure::AdjustmentNotFound);
+            }
+
+            if (! self::authorises($approvedBy, 'goodwill.apply')) {
+                return self::fail(GoodwillOperationFailure::PermissionDenied);
+            }
+
+            if ($reason->requiresNote() && trim((string) $reasonNote) === '') {
+                return self::fail(GoodwillOperationFailure::ReasonNoteRequired);
+            }
+
+            // One active adjustment per order, enforced under the lock. MySQL
+            // has no partial unique index, so the lock IS the enforcement.
+            $active = OrderGoodwillAdjustment::where('order_id', $locked->id)
+                ->whereNull('reversed_at')
+                ->lockForUpdate()
+                ->exists();
+
+            if ($active) {
+                return self::fail(GoodwillOperationFailure::ActiveAdjustmentExists);
+            }
+
+            // Cumulative settled payments, re-read under the lock.
+            $settledCents = (int) round(((float) $locked->total_paid) * 100);
+
+            if ($settledCents !== $expectedAcceptedCents) {
+                return self::fail(GoodwillOperationFailure::StaleOrderState);
+            }
+
+            $calc = self::calculate($locked, $settledCents);
+
+            if (! $calc->succeeded()) {
+                return self::fail(GoodwillOperationFailure::CalculationFailed, $calc);
+            }
+
+            // Protected fee-type lines cannot occur today; the write path for
+            // them is therefore untested, so it is refused rather than guessed.
+            if ($calc->protectedLineCents !== 0) {
+                return self::fail(GoodwillOperationFailure::ProtectedLineUnsupported, $calc);
+            }
+
+            $statusBefore = $locked->is_paid ? 'Paid' : 'Partial';
+
+            $adjustment = OrderGoodwillAdjustment::create([
+                'unique_id'            => (string) Str::uuid(),
+                'order_id'             => $locked->id,
+                'goodwill_amount'      => $calc->goodwillCents / 100,
+                'reason_code'          => $reason->value,
+                'reason_note'          => $reasonNote,
+                'approved_by'          => $approvedBy->id,
+                'performed_by'         => $performedBy->id,
+                'original_subtotal'    => $calc->originalMerchandiseCents() / 100,
+                'original_tax'         => $calc->originalTaxCents / 100,
+                'original_special_tax' => $calc->originalSpecialTaxCents / 100,
+                'original_grand_total' => $calc->originalGrandTotalCents / 100,
+                'revised_subtotal'     => $calc->revisedMerchandiseCents() / 100,
+                'revised_tax'          => $calc->revisedTaxCents / 100,
+                'revised_special_tax'  => $calc->revisedSpecialTaxCents / 100,
+                'revised_grand_total'  => $calc->revisedGrandTotalCents / 100,
+                'line_allocations'     => $calc->lineAllocations,
+                'basis_snapshot'       => $calc->basisSnapshot,
+                'payments_accepted'    => $settledCents / 100,
+                'payment_status_before' => $statusBefore,
+                'payment_status_after'  => 'Paid',
+                'order_payment_id'     => $orderPaymentId,
+                'idempotency_token'    => $idempotencyToken,
+            ]);
+
+            // Canonical order totals. Special tax moves with the basis that
+            // generated it; added fees are protected and never move.
+            $locked->subtotal           = $calc->revisedMerchandiseCents() / 100;
+            $locked->tax_amount         = $calc->revisedTaxCents / 100;
+            $locked->special_tax_amount = $calc->revisedSpecialTaxCents / 100;
+            $locked->grand_total        = $calc->revisedGrandTotalCents / 100;
+            $locked->save();
+
+            // Allocated line reductions — sub_total only; `price` is the
+            // original unit price and is never repriced by a concession, and
+            // `product_data` is the immutable original snapshot.
+            foreach ($calc->lineAllocations as $row) {
+                DB::table('order_products')
+                    ->where('id', $row['line_id'])
+                    ->update([
+                        'sub_total'   => $row['basis_after'] / 100,
+                        'tax'         => $row['tax_after'] / 100,
+                        'special_tax' => ($row['special_tax_after'] ?? 0) / 100,
+                        // Same composition CartHelper::buildCartItem() uses:
+                        // basis + ordinary tax + special tax + added fees.
+                        'total'       => ($row['basis_after'] + $row['tax_after']
+                            + ($row['special_tax_after'] ?? 0) + ($row['added_fees'] ?? 0)) / 100,
+                        'updated_at'  => now(),
+                    ]);
+            }
+
+            // Paid status is never assigned directly — it is whatever the
+            // canonical accessor now derives from the revised totals.
+            $locked->refresh();
+
+            return self::ok($calc, $adjustment->fresh(), replayed: false);
+        });
+    }
+
+    /**
+     * Reverse an adjustment, restoring the pre-adjustment financial state.
+     *
+     * TRANSACTION BOUNDARY. One DB::transaction; the order and the adjustment
+     * row are both locked FOR UPDATE before any check, so a concurrent
+     * reversal or refund cannot interleave. Restoration reads ONLY the stored
+     * snapshot — never current product data, which may since have changed for
+     * unrelated reasons.
+     *
+     * The customer's real payments are never touched. Reopening the balance is
+     * a consequence of restoring grand_total, not a separate write.
+     *
+     * @return array{ok:bool, failure:?GoodwillOperationFailure, calculation:?GoodwillCalculation, adjustment:?OrderGoodwillAdjustment, replayed:bool}
+     */
+    public static function reverse(
+        Order $order,
+        User $reversedBy,
+        string $reversalReason,
+    ): array {
+        return DB::transaction(function () use ($order, $reversedBy, $reversalReason) {
+            /** @var Order|null $locked */
+            $locked = Order::whereKey($order->id)->lockForUpdate()->first();
+
+            if (! $locked) {
+                return self::fail(GoodwillOperationFailure::AdjustmentNotFound);
+            }
+
+            if (! self::authorises($reversedBy, 'goodwill.reverse')) {
+                return self::fail(GoodwillOperationFailure::PermissionDenied);
+            }
+
+            /** @var OrderGoodwillAdjustment|null $adjustment */
+            $adjustment = OrderGoodwillAdjustment::where('order_id', $locked->id)
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
+
+            if (! $adjustment) {
+                return self::fail(GoodwillOperationFailure::AdjustmentNotFound);
+            }
+
+            if ($adjustment->isReversed()) {
+                return self::fail(GoodwillOperationFailure::AlreadyReversed);
+            }
+
+            // Later financial activity that depends on the ADJUSTED totals
+            // makes restoration unsafe: a refund was sized against a basis
+            // that would no longer exist. Refuse with a descriptive error
+            // rather than corrupt the ledger.
+            $laterRefund = $locked->payments()
+                ->whereIn('status', ['Refunded', 'Partial Refund'])
+                ->where('created_at', '>=', $adjustment->created_at)
+                ->exists();
+
+            if ($laterRefund) {
+                return self::fail(GoodwillOperationFailure::ReversalUnsafe);
+            }
+
+            // Restore from the SNAPSHOT, never from current product data.
+            $locked->subtotal           = $adjustment->original_subtotal;
+            $locked->tax_amount         = $adjustment->original_tax;
+            $locked->special_tax_amount = $adjustment->original_special_tax;
+            $locked->grand_total        = $adjustment->original_grand_total;
+            $locked->save();
+
+            foreach (($adjustment->line_allocations ?? []) as $row) {
+                DB::table('order_products')
+                    ->where('id', $row['line_id'])
+                    ->update([
+                        'sub_total'   => $row['basis_before'] / 100,
+                        'tax'         => $row['tax_before'] / 100,
+                        'special_tax' => ($row['special_tax_before'] ?? 0) / 100,
+                        'total'       => ($row['basis_before'] + $row['tax_before']
+                            + ($row['special_tax_before'] ?? 0) + ($row['added_fees'] ?? 0)) / 100,
+                        'updated_at'  => now(),
+                    ]);
+            }
+
+            $adjustment->reversed_at     = now();
+            $adjustment->reversed_by     = $reversedBy->id;
+            $adjustment->reversal_reason = $reversalReason;
+            $adjustment->save();
+
+            $locked->refresh();
+
+            return self::ok(null, $adjustment->fresh(), replayed: false);
+        });
+    }
+
+    /**
+     * Does this user genuinely hold the permission?
+     *
+     * Checked through Spatie DIRECTLY rather than through `$user->can()`,
+     * deliberately. `AppServiceProvider::gatesRegistration()` registers
+     * `Gate::before(fn () => true)` as a documented small-business posture —
+     * every signed-in user passes every ability check application-wide — so
+     * `can()` would return true for anyone and this guard would be decorative.
+     *
+     * FD-002 §7.3 requires that authority to reduce revenue is NOT implied by
+     * authority to receive a payment, and requires the server to enforce it
+     * rather than merely hide the UI. Consulting the permission store directly
+     * is the only way to honour that while leaving the application-wide Gate
+     * posture exactly as the business chose it. Removing that global bypass is
+     * a separate decision with a far wider blast radius than this feature.
+     */
+    private static function authorises(User $user, string $permission): bool
+    {
+        if (! method_exists($user, 'hasPermissionTo')) {
+            return false;
+        }
+
+        try {
+            return $user->hasPermissionTo($permission);
+        } catch (\Throwable) {
+            // An undefined permission means nobody holds it.
+            return false;
+        }
+    }
+
+    /** @return array{ok:bool, failure:?GoodwillOperationFailure, calculation:?GoodwillCalculation, adjustment:?OrderGoodwillAdjustment, replayed:bool} */
+    private static function ok(?GoodwillCalculation $calc, ?OrderGoodwillAdjustment $adjustment, bool $replayed): array
+    {
+        return ['ok' => true, 'failure' => null, 'calculation' => $calc, 'adjustment' => $adjustment, 'replayed' => $replayed];
+    }
+
+    /** @return array{ok:bool, failure:?GoodwillOperationFailure, calculation:?GoodwillCalculation, adjustment:?OrderGoodwillAdjustment, replayed:bool} */
+    private static function fail(GoodwillOperationFailure $failure, ?GoodwillCalculation $calc = null): array
+    {
+        return ['ok' => false, 'failure' => $failure, 'calculation' => $calc, 'adjustment' => null, 'replayed' => false];
     }
 }

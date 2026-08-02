@@ -239,3 +239,34 @@ Asserted in integer cents. Failure writes nothing.
 | Revised grand total | $185.00 |
 
 **Allocation.** Goodwill is allocated proportionally across **all reducible merchandise lines**, taxable or untaxed, using the existing largest-remainder rule with ties broken by ascending line id. **No share is ever allocated to a protected component.** Tax is recomputed only on lines that actually carried ordinary tax; an untaxed line stays untaxed however much it is reduced.
+
+### Amendment 4 (2026-08-02) — Special tax and added fees become first-class current columns
+
+Approved after an audit of every consumer. Added because the writer was refusing special-tax orders outright, which contradicted Amendment 1 §5 and Amendment 3 §5 — both of which require special tax to be *recomputed*, not avoided.
+
+**The defect.** Special tax and added fees existed nowhere in the schema. `CartHelper::buildCartItem()` computed them at checkout, folded them into `orders.grand_total`, and persisted them **only** inside the per-line `product_data` JSON. `orders.tax_amount` never contained them.
+
+That left `HistoricalTaxBasisResolver` sourcing basis and ordinary tax from **mutable columns** while sourcing these two from an **immutable snapshot**. Any operation that legitimately moved the columns and the grand total — a Goodwill Adjustment — could not move the JSON, because the JSON is the frozen original by design. The reconciliation identity would then fail permanently, refusing **every subsequent refund** on that order. The refusal was correct; the storage was not.
+
+**The decision:**
+
+| Table | Columns | Role |
+|---|---|---|
+| `orders` | `special_tax_amount`, `added_fees_amount` | current, mutable, authoritative |
+| `order_products` | `special_tax`, `added_fees` | current, mutable, authoritative |
+| `order_products.product_data` | unchanged | **immutable original checkout snapshot** |
+
+**Rules:**
+
+1. **Columns are current; JSON is original.** The resolver reads money from columns and consults `product_data` only for what a line *is* (its classification), never for what it currently *costs*.
+2. **`product_data` is never written** by the backfill, by an adjustment, or by a reversal. Its byte-identity through apply and reverse is asserted by test.
+3. **The order-level aggregate is the sum of its own line columns**, never a separately computed figure that happens to agree.
+4. **Checkout writes all three**: line columns, order aggregate, and the frozen snapshot. At creation the column and the snapshot are equal — that equality is what makes the snapshot usable as the original-state record once an adjustment later moves the column away from it.
+5. **The backfill never records an unreadable snapshot as a trustworthy zero.** Every order is checked against the residual it must explain — `grand_total − (subtotal + tax_amount − discount_amount)`, which *is* special tax plus added fees by construction. A row is written only when the reconstruction equals that residual exactly, or when both are zero. Anything else keeps the column default and is reported as a named exception.
+6. **Added fees remain protected** (Amendment 3 §3). Special tax is now genuinely recomputed at its own rate, per line, with the residual cent falling to the last special-taxed line — the same determinism rule ordinary tax uses, so an exact reversal remains possible.
+
+7. **A line-less order is written as zero only when its residual is also exactly zero.** "No lines" does not independently prove "no special tax or fees" — it only proves there is no line to attribute one to. Extension children are constrained that way today by how `Extension\StoreController` builds them, not by the schema. A line-less order carrying a nonzero residual is reported as its own category, never grouped with the safely-zero ones.
+
+Because reading money from a column is what the resolver already did for basis and tax, this makes it *internally consistent* rather than weaker. The `SpecialTaxUnsupported` refusal is removed.
+
+**Production deployment is gated.** The migration must not run until `diagnostics:special-tax-backfill-audit` reports zero in all three declined categories. See `SPECIAL_TAX_COLUMNS_DEPLOYMENT_PLAN.md`.

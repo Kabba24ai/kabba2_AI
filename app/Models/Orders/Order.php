@@ -42,6 +42,10 @@ class Order extends Model
         'subtotal',
         'is_tax_exempt', // Yes, No*
         'tax_amount',
+        // Current, mutable components of grand_total. The per-line
+        // `product_data` JSON keeps the immutable original of the same values.
+        'special_tax_amount',
+        'added_fees_amount',
         'coupon_code',
         'discount_amount',
         'grand_total',

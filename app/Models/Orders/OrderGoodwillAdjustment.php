@@ -3,7 +3,7 @@
 namespace App\Models\Orders;
 
 use App\Enums\Orders\GoodwillReasonCode;
-use App\Models\User;
+use App\Models\Iam\Personnel\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,6 +18,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * A reversal is recorded on this row (reversed_at / reversed_by /
  * reversal_reason). Rows are never deleted and the original snapshot columns
  * are never rewritten.
+ *
+ * There is deliberately no "amount paid after" column. Goodwill moves no
+ * money — it reduces the pre-tax product cost so the revised grand total
+ * equals what was already collected — so a before/after pair on the money
+ * would always hold the same number and would read as evidence of a payment
+ * that never happened. `payments_accepted` records the single relevant fact:
+ * the cumulative settled payments management accepted as payment in full.
+ * The thing that genuinely does change is the DERIVED payment status, which
+ * is what payment_status_before / payment_status_after record.
  */
 class OrderGoodwillAdjustment extends Model
 {
@@ -39,8 +48,7 @@ class OrderGoodwillAdjustment extends Model
         'revised_grand_total',
         'line_allocations',
         'basis_snapshot',
-        'total_paid_before',
-        'total_paid_after',
+        'payments_accepted',
         'payment_status_before',
         'payment_status_after',
         'order_payment_id',
@@ -62,8 +70,7 @@ class OrderGoodwillAdjustment extends Model
         'revised_tax'          => 'decimal:2',
         'revised_special_tax'  => 'decimal:2',
         'revised_grand_total'  => 'decimal:2',
-        'total_paid_before'    => 'decimal:2',
-        'total_paid_after'     => 'decimal:2',
+        'payments_accepted'    => 'decimal:2',
         'line_allocations'     => 'array',
         'basis_snapshot'       => 'array',
         'reversed_at'          => 'datetime',

@@ -222,6 +222,11 @@ class PostController extends Controller
                 'company_website' => $customer->company_website,
                 'subtotal' => $cartSummary['sub_total'],
                 'tax_amount' => $cartSummary['tax_total'],
+                // grand_total has always included these two; until now they were
+                // recorded nowhere but the per-line frozen JSON, which left the
+                // order unable to reconcile once its totals legitimately moved.
+                'special_tax_amount' => $cartSummary['special_tax_total'] ?? 0,
+                'added_fees_amount' => $cartSummary['added_fees_total'] ?? 0,
                 'coupon_code' => null,
                 'discount_amount' => $cartSummary['discount'],
                 'grand_total' => $cartSummary['grand_total'],
@@ -302,6 +307,12 @@ class PostController extends Controller
                         'allocated_hours' => $item['allocated_hours'] ?? 0.0,
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
+                        // Current, mutable components. `product_data` below keeps
+                        // the immutable original of the same two values; these
+                        // columns are what HistoricalTaxBasisResolver reads and
+                        // what a Goodwill Adjustment may revise.
+                        'special_tax' => $item['special_tax'] ?? 0,
+                        'added_fees' => $item['added_fees'] ?? 0,
                         'total' => $item['total'],
                         'product_data' => json_encode($item),
                         'unique_id' => ModelHelper::generateUniqueID(new OrderProduct(), 'ORD-SCH'),

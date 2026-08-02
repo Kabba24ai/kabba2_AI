@@ -48,6 +48,10 @@ class OrderProduct extends Model
         'hour_rate',
         'sub_total',
         'tax',
+        // Current, mutable components. `product_data` holds the immutable
+        // original of the same two values.
+        'special_tax',
+        'added_fees',
         'total',
         'product_data', // json
         'service_method', // 'In Store Pickup', 'Delivery'

@@ -47,14 +47,16 @@ Self-consistent by construction: each taxable line's tax is `sub_total × rate`,
 
 **Reconciliation gate:** `Σ order_products.tax` must equal `orders.tax_amount`. Disagreement means the basis is unreconstructable → reject.
 
-### 3.1 The order also carries two components with no columns
+### 3.1 The order also carries two components — now with columns (FD-002 Am.4)
 
-`CartHelper` builds the total as `sub_total + tax + special_tax + added_fees − discount`, but `orders` stores only `subtotal`, `tax_amount`, `discount_amount`, `grand_total`, and `order_products` only `price`, `quantity`, `sub_total`, `tax`, `total`.
+`CartHelper` builds the total as `sub_total + tax + special_tax + added_fees − discount`.
 
 - **`special_tax`** — a second tax, `$itemSubTotal × special_taxes/100`, gated per-product by `apply_special_tax`, at a **different rate**. Basis-derived, so it **must** be recomputed when the basis shrinks (FD-002 Am.1 §2), at its own separately-derived rate, never blended with the ordinary rate.
 - **`added_fees`** — flat per-unit charges, not basis-derived, **preserved unchanged**.
 
-Both survive only in `order_products.product_data` JSON. Unreconstructable or inconsistent → reject.
+**Originally neither had a column anywhere**, surviving only inside `order_products.product_data` JSON. That was the defect: the resolver read basis and ordinary tax from mutable columns but these two from an immutable snapshot, so an adjusted order could never reconcile again and every later refund on it was refused.
+
+FD-002 Amendment 4 promotes both to first-class **current** columns — `orders.special_tax_amount`/`added_fees_amount` and `order_products.special_tax`/`added_fees` — while `product_data` remains the **immutable original checkout snapshot**, never written. Columns are money; JSON is classification and audit. Still unreconstructable or inconsistent → reject.
 
 ### 3.2 Shared resolver
 
@@ -142,9 +144,11 @@ Deterministic — required for exact reversal.
 
 ## 6. Domain model
 
-`order_goodwill_adjustments`, all money `decimal(10,2)`: `id`, `order_id`, `goodwill_amount`, `reason_code`, `reason_note`, `approved_by`, `performed_by`, `original_subtotal`/`original_tax`/`original_special_tax`/`original_grand_total`, `revised_subtotal`/`revised_tax`/`revised_special_tax`/`revised_grand_total`, `line_allocations` (json, before/after per line), `basis_snapshot` (json — resolved basis, both rates, reconciliation verdict), `total_paid_before`/`total_paid_after`, `payment_status_before`/`payment_status_after`, `order_payment_id`, `superseded_receipt_id`, `idempotency_token` (unique), `reversed_at`/`reversed_by`/`reversal_reason`, timestamps.
+`order_goodwill_adjustments`, all money `decimal(10,2)`: `id`, `order_id`, `goodwill_amount`, `reason_code`, `reason_note`, `approved_by`, `performed_by`, `original_subtotal`/`original_tax`/`original_special_tax`/`original_grand_total`, `revised_subtotal`/`revised_tax`/`revised_special_tax`/`revised_grand_total`, `line_allocations` (json, before/after per line), `basis_snapshot` (json — resolved basis, both rates, reconciliation verdict), `payments_accepted`, `payment_status_before`/`payment_status_after`, `order_payment_id`, `superseded_receipt_id`, `idempotency_token` (unique), `reversed_at`/`reversed_by`/`reversal_reason`, timestamps.
 
 `basis_snapshot` exists so a future reader can see exactly which basis and rates were used, without re-deriving them from data that may have since changed.
+
+There is deliberately **no "amount paid after" column**. Goodwill moves no money, so a before/after pair on the money would always hold the same number and would read as evidence of a payment that never happened. `payments_accepted` records the one relevant fact — the cumulative settled payments, re-read under the row lock, that management accepted as payment in full. What genuinely changes is the *derived* payment status, which `payment_status_before`/`payment_status_after` record. (The original schema shipped `total_paid_before`/`total_paid_after`; renamed forward in migration `2026_08_01_000002` rather than by editing committed history.)
 
 **Constraints:** unique `idempotency_token`; index `order_id`; at most one active (non-reversed) adjustment per order — enforced in-transaction under the row lock and asserted by test, since MySQL has no partial index.
 
@@ -247,7 +251,7 @@ Restores `original_*` and `line_allocations` to `orders`/`order_products`; sets 
 1. **Store Credit is post-tax tender** — pre-existing, unchanged by decision, still an open financial-engine finding.
 2. **`TaxCalculationService` float contract** — modernization is technical debt; contained by integer-cent assertions at the boundary.
 3. **Goodwill with $0.00 collected unsupported** — needs its own business decision (relates to Truth Table §5.9 write-off).
-4. **`special_tax` / `added_fees` have no columns** — recoverable only from `product_data` JSON. Promoting them to real columns is recommended follow-up; until then, unreconstructable orders are rejected.
+4. ~~**`special_tax` / `added_fees` have no columns**~~ — **RESOLVED** by FD-002 Amendment 4 (2026-08-02). Both are now first-class current columns on `orders` and `order_products`, backfilled from the frozen JSON under an exact-residual reconciliation that declines rather than guesses. `product_data` remains the immutable original. The writer's `SpecialTaxUnsupported` refusal is removed.
 5. **`(float)` money in the surrounding payment path** (`Order::is_paid` uses `+ 0.005`) — untouched; Goodwill adds no new float logic.
 6. **`rc_kabba_testing` does not exist on this machine** — only `kabba2_ai` is present. Must be created before the suite runs.
 

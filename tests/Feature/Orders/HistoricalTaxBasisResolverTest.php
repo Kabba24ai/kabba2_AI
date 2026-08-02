@@ -57,9 +57,24 @@ class HistoricalTaxBasisResolverTest extends TestCase
         ]);
     }
 
-    /** @param array<string,mixed>|null $frozen  null writes NULL product_data (the legacy case). */
-    private function addLine(Order $order, float $subTotal, float $tax, ?array $frozen = []): void
-    {
+    /**
+     * @param  array<string,mixed>|null  $frozen  null writes NULL product_data (the legacy case).
+     *
+     * Special tax and added fees are written to BOTH the current columns and
+     * the frozen snapshot, which is what checkout does — at creation the two
+     * agree, and the column is what the resolver reads. Tests that need them
+     * to DIVERGE (proving which one is authoritative) set the column
+     * explicitly via $columnOverrides.
+     *
+     * @param  array{special_tax?:float, added_fees?:float}  $columnOverrides
+     */
+    private function addLine(
+        Order $order,
+        float $subTotal,
+        float $tax,
+        ?array $frozen = [],
+        array $columnOverrides = [],
+    ): void {
         static $n = 0;
         $n++;
 
@@ -71,6 +86,8 @@ class HistoricalTaxBasisResolverTest extends TestCase
             'quantity'     => 1,
             'sub_total'    => $subTotal,
             'tax'          => $tax,
+            'special_tax'  => $columnOverrides['special_tax'] ?? ($frozen['special_tax'] ?? 0),
+            'added_fees'   => $columnOverrides['added_fees'] ?? ($frozen['added_fees'] ?? 0),
             'total'        => $subTotal + $tax,
             'product_data' => $frozen === null ? null : json_encode($frozen),
         ]);
@@ -143,6 +160,33 @@ class HistoricalTaxBasisResolverTest extends TestCase
         // Separate rates, never summed.
         $this->assertEqualsWithDelta(0.0975, $basis->ordinaryRate(), 0.0000001);
         $this->assertEqualsWithDelta(0.02, $basis->specialRate(), 0.0000001);
+    }
+
+    public function test_special_tax_is_read_from_the_current_column_not_the_frozen_snapshot(): void
+    {
+        // The two are deliberately made to disagree. The column says 4.00 and
+        // the order's grand total agrees with the column; the snapshot still
+        // holds the original 9.00. Only the column can be the live value —
+        // sourcing it from the snapshot is exactly what made an adjusted order
+        // permanently unreconcilable, which is why these columns exist.
+        $order = $this->makeOrder(200.00, 19.50, 223.50);
+        $this->addLine($order, 200.00, 19.50, ['special_tax' => 9.00], ['special_tax' => 4.00]);
+
+        $basis = HistoricalTaxBasisResolver::resolve($order->fresh());
+
+        $this->assertTrue($basis->succeeded(), 'Reconciliation must follow the current column.');
+        $this->assertSame(400, $basis->specialTaxCents);
+    }
+
+    public function test_added_fees_are_read_from_the_current_column_not_the_frozen_snapshot(): void
+    {
+        $order = $this->makeOrder(200.00, 19.50, 225.50);
+        $this->addLine($order, 200.00, 19.50, ['added_fees' => 11.00], ['added_fees' => 6.00]);
+
+        $basis = HistoricalTaxBasisResolver::resolve($order->fresh());
+
+        $this->assertTrue($basis->succeeded());
+        $this->assertSame(600, $basis->addedFeesCents);
     }
 
     public function test_multi_line_same_rate_reconciles_exactly(): void

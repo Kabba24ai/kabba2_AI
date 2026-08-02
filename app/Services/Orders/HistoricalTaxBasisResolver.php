@@ -35,10 +35,19 @@ use Illuminate\Support\Facades\Schema;
  *  - READ-ONLY. Never writes, never saves, never normalizes legacy data
  *    while resolving. Resolving an order twice cannot change it.
  *  - DETERMINISTIC. Same stored rows in, same result out.
- *  - FROZEN DATA ONLY. Reads `orders` columns and `order_products` columns
- *    plus each line's frozen `product_data` snapshot. It never consults the
- *    `products` table, store configuration, or any tax setting — today's
- *    configuration says nothing about what an order was taxed at last March.
+ *  - ORDER-LOCAL DATA ONLY. Reads `orders` columns and `order_products`
+ *    columns plus each line's frozen `product_data` snapshot. It never
+ *    consults the `products` table, store configuration, or any tax setting —
+ *    today's configuration says nothing about what an order was taxed at last
+ *    March.
+ *
+ *    Money comes from COLUMNS; `product_data` is consulted only for what a
+ *    line IS (its classification), never for what it currently COSTS. Special
+ *    tax and added fees moved to columns for exactly this reason: they are
+ *    live financial state that a Goodwill Adjustment may revise, and sourcing
+ *    them from an immutable snapshot pinned them to their original values
+ *    while the order's grand total moved, breaking reconciliation forever
+ *    after. The snapshot remains the original-state record for audit.
  *  - EXACT RECONCILIATION. Line sums must match stored order totals to the
  *    cent. No tolerance, no epsilon.
  *  - NO GUESSED FALLBACK. Every unsupported or corrupt state returns a named
@@ -98,8 +107,16 @@ class HistoricalTaxBasisResolver
                 return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::FrozenDataUnavailable);
             }
 
-            $lineSpecialTaxCents = self::toCents($frozen['special_tax'] ?? 0);
-            $lineAddedFeesCents  = self::toCents($frozen['added_fees'] ?? 0);
+            // CURRENT columns, not the frozen snapshot. `product_data` remains
+            // the immutable original and is still what proves a line's
+            // classification below — but special tax and added fees are live
+            // financial state that a Goodwill Adjustment may legitimately
+            // revise, exactly like sub_total and tax immediately above. Reading
+            // them from JSON would pin them to their original values while the
+            // order's grand total moved, permanently breaking the
+            // reconciliation identity asserted further down.
+            $lineSpecialTaxCents = self::toCents($line->special_tax);
+            $lineAddedFeesCents  = self::toCents($line->added_fees);
 
             $taxable = $taxCents > 0;
 
@@ -130,6 +147,12 @@ class HistoricalTaxBasisResolver
                 'id'          => (int) $line->id,
                 'basis_cents' => $basisCents,
                 'tax_cents'   => $taxCents,
+                // Carried per line so a Goodwill Adjustment can reduce special
+                // tax at its own rate on exactly the lines that bear it, and
+                // so a reversal restores each line's own figure rather than
+                // redistributing an order-level total.
+                'special_tax_cents' => $lineSpecialTaxCents,
+                'added_fees_cents'  => $lineAddedFeesCents,
                 'taxable'     => $taxable && ! $protectedLine,
                 // Reducible merchandise — taxable or not. Goodwill allocates
                 // across these; protected lines never receive a share.

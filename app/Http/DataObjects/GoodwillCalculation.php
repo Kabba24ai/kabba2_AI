@@ -50,6 +50,9 @@ final class GoodwillCalculation
 
         /** PROTECTED components Goodwill may never reduce (flat fees, proven fee-type lines). */
         public readonly int $protectedCents,
+
+        /** The fee-type LINE portion of $protectedCents. Always 0 today; the writer refuses if it is not. */
+        public readonly int $protectedLineCents,
         public readonly int $discountCents,
 
         /** Per-line reduction: [line_id => ['basis_before','basis_after','tax_before','tax_after']]. */
@@ -76,6 +79,7 @@ final class GoodwillCalculation
         int $goodwillCents,
         int $acceptedCents,
         int $protectedCents,
+        int $protectedLineCents,
         int $discountCents,
         array $lineAllocations,
         array $basisSnapshot,
@@ -84,7 +88,7 @@ final class GoodwillCalculation
             $originalBasisCents, $originalUntaxedMerchandiseCents, $originalTaxCents, $originalSpecialTaxCents, $originalGrandTotalCents,
             $revisedBasisCents, $revisedUntaxedMerchandiseCents, $revisedTaxCents, $revisedSpecialTaxCents, $revisedGrandTotalCents,
             $goodwillCents, $acceptedCents,
-            $protectedCents, $discountCents,
+            $protectedCents, $protectedLineCents, $discountCents,
             $lineAllocations, $basisSnapshot, null, null,
         );
     }
@@ -93,7 +97,7 @@ final class GoodwillCalculation
         GoodwillCalculationFailure $failure,
         ?HistoricalTaxBasisFailure $basisFailure = null,
     ): self {
-        return new self(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, [], [], $failure, $basisFailure);
+        return new self(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, [], [], $failure, $basisFailure);
     }
 
     public function succeeded(): bool

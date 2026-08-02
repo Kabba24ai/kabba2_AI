@@ -60,6 +60,11 @@ class GoodwillCalculationTest extends TestCase
             'product_name' => 'Goodwill Test',
             'price' => $subTotal, 'quantity' => 1,
             'sub_total' => $subTotal, 'tax' => $tax, 'total' => $subTotal + $tax,
+            // Current columns and frozen snapshot both written, exactly as
+            // checkout does. The resolver reads the columns; the snapshot is
+            // the original-state record.
+            'special_tax' => $frozen['special_tax'] ?? 0,
+            'added_fees' => $frozen['added_fees'] ?? 0,
             'product_data' => json_encode($frozen + ['special_tax' => 0, 'added_fees' => 0]),
         ]);
     }

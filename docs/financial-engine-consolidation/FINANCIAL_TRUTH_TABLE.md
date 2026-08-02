@@ -259,3 +259,55 @@ This does not change the recommendation already reached in `PHASE_2_5A_LEDGER_RE
 - **Future enhancements identified**: **1 category** — the four unimplemented `BillingChargeType` values (Service Ticket, Cleaning, Delivery, Misc).
 - **`LedgerBalanceService` readiness**: unchanged from Phase 2.5A's **GO WITH CONDITIONS**, now with a complete, code-verified truth table backing every "Ready Now" and "Blocked" classification instead of the four-transaction-type analysis available before this phase.
 - **May Version 2.1 (`LedgerBalanceService`) begin?** **Yes, in the same narrow form already approved in Phase 2.5A** (service skeleton plus the `payment`, `order`, and `charge` branches, zero callers migrated) — every transaction type that scope touches is "Ready Now" in §7. **Expanding beyond that narrow scope (Phase 2.7-2.8, the 52 real call sites) still requires the conditions in `PHASE_2_5A_LEDGER_READINESS_REVIEW.md` §10, now with this document as the single reference for resolving them, rather than a fresh investigation per open item.**
+
+---
+
+# Amendment A-001 — Transaction Type 17: Goodwill Adjustment
+
+Amendment date: 2026-08-01
+Status: **DRAFT — NOT YET APPROVED.** Conditional on `FINANCIAL_DECISIONS.md` **FD-002** being approved. If FD-002 is not approved, this amendment is void and type 17 does not exist.
+Governing policy: **FD-002**. Per §1 of this document and FD-001's closing instruction, this amendment records an approved policy; it does not originate one.
+
+## A-001.1 Why this is an amendment and not a new row edited into §3
+
+§3's tables are an approved artifact. Rather than rewrite them in place — which would make it impossible to see what was approved on 2026-07-02 versus what was added later — type 17 is recorded here in the same column structure. §2's inventory count rises from 16 to **17**; §3a, §3b, §4, and §7 are each extended by exactly one row, reproduced below.
+
+## A-001.2 §3a extension — Identity and Tax Treatment
+
+| # | Transaction Type | Description | Example Scenario | Taxable | Tax Calculation Method | Transaction-Safe or Analytics-Only |
+|---|---|---|---|---|---|---|
+| 17 | **Goodwill Adjustment** | A manager-authorized, discretionary pre-tax reduction of an order's taxable product basis, applied so the revised grand total equals the cumulative settled payments accepted as payment in full. Not tender, not a refund, not Store Credit, not a `customer_accounts` discount. | A $219.50 POD order ($200.00 subtotal + $19.50 tax at 9.75%) is settled by accepting $185.00 cash as payment in full. Basis is reduced to $168.56, tax recomputed to $16.44, revised total $185.00, Goodwill $31.44. | **Yes — the reduced basis remains taxable.** Goodwill does not make an order tax-exempt; it lowers the amount on which tax is computed. | `TaxCalculationService::extractTaxFromInclusiveAmount($acceptedInclusiveAmount, $rate)` — the division formula, applied to the accepted tax-inclusive total. **No new formula.** Zero-rate orders return base = accepted amount, tax = 0 via that method's existing `$rate <= 0` guard. | **Transaction-Safe** |
+
+## A-001.3 §3b extension — Effects, Ownership, and Decision Status
+
+| # | Transaction Type | Balance Effect | Running Balance Effect | Available Credit Effect | Customer Balance Effect | Invoice Effect | Ledger Effect | Reporting Effect | Reversible | Related Transaction Types | Current Implementation | Future Financial Engine Owner | Business Decision Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 17 | Goodwill Adjustment | **None on `customer_accounts`** — reduces the order's own stored totals only | None | None | None | None | **Creates zero `customer_accounts` rows.** Creates 1 `order_goodwill_adjustments` row; updates `orders` and affected `order_products` in place | Reduces product revenue and taxable sales wherever those are read from `orders`/`order_products`. `SalesTaxReportEngine` Stream A reflects it automatically with no engine change (reads `orders.tax_amount`, allocates across settled payments). **Never** counted as tender, cash, collections, Store Credit, or refund | **Yes** — dedicated reversal operation; restores prior canonical totals, preserves all history and all real payments | Discount (3) and Write-Off (15) are conceptual neighbours but share **no** code path and **no** table | `GoodwillAdjustmentService` (proposed, unbuilt) | `GoodwillAdjustmentService`, calling `TaxCalculationService` | **Pending Business Decision — FD-002 draft** |
+
+## A-001.4 §4 extension — Decision Confidence
+
+| Transaction Type | Confidence | Why |
+|---|---|---|
+| Goodwill Adjustment | **High** on the calculation; **Pending** on the policy | The arithmetic was verified by executing the real `TaxCalculationService::extractTaxFromInclusiveAmount()` (168.56 / 16.44 / 31.44 for the worked example) and by replicating `SalesTaxReportEngine::salesRows()`'s allocation for both single- and split-payment cases, which reconcile exactly. The *policy* — that the business wants a waived balance treated as a pre-tax basis reduction — is High-confidence as an intent but carries no approval until FD-002 is signed. |
+
+## A-001.5 §7 extension — Implementation Readiness
+
+| Transaction Type | Status |
+|---|---|
+| Goodwill Adjustment | **Blocked on FD-002 approval.** Every technical prerequisite is confirmed present (authoritative tax primitive, canonical paid-status logic, settled-payment scope, idempotency convention, permission convention, `decimal(10,2)` money columns at both order and line level). Nothing else blocks it. |
+
+## A-001.6 Effect on §5 (Missing Business Rules)
+
+**No item in §5 is resolved, altered, or made more urgent by this amendment, and none blocks it.** Goodwill never creates a `customer_accounts` row, so it never reaches the divergent `CustomHelper` balance methods, the undecided `sales_tax_type` branching, or the Refund/Discount/Write-Off questions in §5.1, §5.2, and §5.9. That containment is a required property of the design, per FD-002. Should it ever be relaxed, those items become blocking and this amendment must be superseded.
+
+## A-001.7 Revision 1 (2026-08-01) — post-audit corrections
+
+Adopted together with **FD-002 Amendment 1**. The §3a row above is corrected in three respects; the corrections are recorded here rather than by editing the row, so the original draft stays visible.
+
+**1. Tax Calculation Method — corrected denominator.** The row's "accepted tax-inclusive total" is imprecise. `extractTaxFromInclusiveAmount()` is applied to the **taxable portion** of the accepted total (accepted minus non-taxable line subtotals, special tax, and added fees), and the effective ordinary rate is derived from the **ordinary taxable basis** — `Σ order_products.sub_total` over lines that carried ordinary sales tax — **never** from `orders.subtotal`, which includes `is_tax_free_item` lines and would yield a wrong rate on any mixed order.
+
+**2. A second tax bucket exists and is recomputed separately.** `special_tax` (per-product `apply_special_tax`, levied at its own rate) is recomputed on the reduced basis at its own separately-derived rate. It is never blended into the ordinary sales-tax rate. `added_fees` are flat per-unit charges, are not basis-derived, and are preserved unchanged.
+
+**3. Neither bucket has a queryable column.** `special_tax` and `added_fees` survive only inside `order_products.product_data` JSON. Where they cannot be reconstructed reliably from that blob and reconciled against stored columns, the adjustment is **rejected**, never approximated.
+
+**Newly discovered pre-existing defect, recorded here for traceability:** `PaymentAllocationService` (refund allocation) already derives `$originalTaxRate` as `orders.tax_amount / orders.subtotal` — the same defective denominator, live today, independent of Goodwill. FD-002 Amendment 1 §3 brings that call site onto the shared resolver so the two paths cannot disagree. This is a correction to an existing defect, not a change to refund policy; no row of this Truth Table's refund treatment is altered by it.

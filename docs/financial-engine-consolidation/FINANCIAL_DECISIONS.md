@@ -55,6 +55,107 @@ The original decision text above is amended to explicitly include the following 
 
 This amendment formally names two calculation families — **Financial Transaction Calculations** and **Financial Analytics Calculations** — governed by the rules in `PHASE_2_3A_CALCULATION_PATTERN_ARCHITECTURE.md`. `TaxCalculationService`'s methods are categorized against this framework in that document's §6 and in the method-level PHPDoc in `app/Services/TaxCalculationService.php`. Future services (starting with `InvoiceCalculationService`, Phase 2.4) are expected to be built with this categorization in mind from the start, rather than discovering it after the fact as Phases 2.2 and 2.3 did.
 
-### Related document — Phase 2.5B (2026-07-02): `FINANCIAL_TRUTH_TABLE.md`
+### Related document — Phase 2.5B (2026-07-02): `FINANCIAL_TRUTH_TABLE.md` (FD-001)
 
 This is a pointer, not a new decision — no new business policy was approved in Phase 2.5B. `docs/financial-engine-consolidation/FINANCIAL_TRUTH_TABLE.md` is now the detailed, per-transaction-type reference implementing FD-001's principles (transaction/line-level tax as source of truth; the Financial Transaction vs. Financial Analytics distinction) across all 16 transaction types found in the codebase. It records, per type, which tax-treatment rules are already Approved (consistent with FD-001 and this decision's existing scope) and which remain Pending Business Decision, Undefined, or Future Enhancement. **When any of those pending items is actually resolved by the business, record the resolution as a new FD entry here (FD-002 or later) and then update the Truth Table's corresponding row and Business Decision Status column — the Truth Table must never be the origin of a new policy, only its recorded implementation.**
+
+---
+
+## FD-002: Goodwill Adjustment is a Pre-Tax Reduction of an Order's Taxable Basis
+
+**Decision date:** *(pending)*
+**Approval status:** **DRAFT — NOT YET APPROVED.** Awaiting business sign-off. No application code may be written against this entry until this line reads Approved and a decision date is recorded.
+**Recorded during:** Goodwill Adjustment design (2026-08-01)
+
+### Decision
+
+A **Goodwill Adjustment** is a discretionary, manager-authorized, **pre-tax reduction of an order's taxable product basis**, applied so that the order's revised grand total equals the cumulative settled payments the business has agreed to accept as payment in full.
+
+The following rules are approved as a unit:
+
+1. **Goodwill reduces the taxable basis before tax is computed.** Sales tax is then recalculated on the reduced basis. Goodwill is never applied against a post-tax balance.
+2. **The accepted inclusive amount is cumulative settled payments**, as defined by `OrderPayment::scopeSettled()` — not the newest payment alone. Failed, Voided, Superseded, and other non-settled rows are excluded by that scope, not by any new rule introduced here.
+3. **Goodwill is not tender.** It never creates an `order_payments` row, never appears in `OrderPaymentMethod`, and never appears in any payment-method report, collection total, or cash-basis figure. The money actually received is recorded through the real tender the customer used.
+4. **Goodwill is not a refund, not Store Credit, and not a `customer_accounts` discount.** It creates no `customer_accounts` row of any type.
+5. **The order's canonical stored totals become the revised values.** `orders.subtotal`, `orders.tax_amount`, `orders.grand_total`, and the affected `order_products.price`/`tax`/`total` rows are updated in place, because those columns are what every downstream report and receipt reads. The pre-adjustment values are preserved in a dedicated side record, which is the audit history; the order columns are the current authoritative state.
+6. **Tax is recalculated only by `TaxCalculationService`.** No new tax formula, and no parallel calculator, may be introduced for Goodwill. The authorized primitive is `extractTaxFromInclusiveAmount()`, which is already classified TRANSACTION-SAFE.
+7. **Paid status is only ever reached through canonical status logic** (`Order::getIsPaidAttribute()` / `scopeSettled()`). No code path may assign a paid status directly as a consequence of applying Goodwill.
+8. **Goodwill is reversible, never deletable.** A reversal restores the prior canonical totals and records its own actor, timestamp, and reason. Neither the original adjustment record nor the customer's real payments are removed or edited.
+
+### Monetary Precision Rule
+
+Goodwill introduces **no new floating-point calculation logic**. Monetary values entering and leaving the Goodwill domain are normalized to **integer cents**. `TaxCalculationService` is the authorized calculation boundary even though its current internal contract uses `float`: cents are converted to that representation only for the duration of the call, and the returned base and tax are immediately normalized back to integer cents, after which `base + tax == target inclusive amount` is asserted **exactly, in cents**. If that assertion fails, the operation aborts and nothing is written.
+
+Creating a parallel tax calculator merely to avoid the shared service's float interface is explicitly prohibited — it would reproduce precisely the duplicate-formula failure mode FD-001 exists to prevent.
+
+**Recorded as technical debt, not addressed here:** modernizing `TaxCalculationService` to a decimal or minor-unit contract. That is a separate, independently-scoped project. Until it happens, the float boundary is a known, contained, asserted-at-the-edge exception rather than an accepted precision risk.
+
+### Relationship to Existing Pending Decisions
+
+This decision **does not resolve, depend on, or prejudge** any open item in `FINANCIAL_TRUTH_TABLE.md` §5 — specifically Refund tax treatment (§5.1), Discount tax treatment (§5.2), or whether Write-Off should reduce a recorded balance (§5.9).
+
+It is able to avoid them because a Goodwill Adjustment is **order-scoped**: it writes to `orders`, `order_products`, and its own side table, and never creates a `customer_accounts` row. The four divergent `CustomHelper` balance methods, and the `sales_tax_type` branching whose correct behavior is still undecided, are therefore never reached. This containment is a deliberate design constraint of FD-002, not an incidental property — if a future change gives Goodwill a `customer_accounts` effect, those pending decisions become blocking and this entry must be superseded.
+
+### Business Rationale
+
+The business already accepts less than the full amount due in practice; today that leaves the order permanently partially paid, with the shortfall invisible as anything other than an unexplained gap between `grand_total` and payments. That has two consequences worth correcting: revenue and taxable sales are overstated for orders that were never going to collect in full, and there is no record of who authorized the concession or why.
+
+Treating the waived amount as tender would be the simpler implementation and is rejected deliberately. Fake tender would inflate collections, corrupt payment-method reporting, and — most seriously — leave sales tax calculated on revenue the business never received, overstating tax liability. A pre-tax basis reduction is the only treatment under which the tax figure remains correct.
+
+### Architectural Impact
+
+- **`TaxCalculationService`** is confirmed as the sole tax authority for this transaction type, consistent with FD-001.
+- **`SalesTaxReportEngine` requires no modification and must remain frozen.** Its Stream A reads `orders.tax_amount` and allocates it across settled payments using integer-cent arithmetic with the remainder assigned to the final row. Because FD-002 updates `orders.tax_amount` as a canonical stored value, that engine reports Goodwill-adjusted figures with no code change. This was verified by executing the engine's own allocation arithmetic against both the single-payment and split-payment cases; both reconcile exactly. FD-001's deferral of that engine is therefore untouched by this decision.
+- **Reporting engines generally** continue to consume stored transaction values. No report is permitted to re-derive a pre-Goodwill figure.
+- **A new permission** (`goodwill.apply`, `goodwill.reverse`) is required, following the established dot-notation convention used by `customer_credit.grant` / `customer_credit.redeem`. Authority to receive a payment does not confer authority to reduce revenue.
+
+### Future Implementation Guidance
+
+- Any future pre-tax adjustment type (promotional credit, loyalty adjustment) should follow this entry's shape: order-scoped, canonical-totals-updated, side-record-audited, `TaxCalculationService`-calculated, never tender.
+- Should Store Credit ever be migrated from its current post-tax tender treatment to a pre-tax basis reduction, that migration requires its own FD entry. FD-002 deliberately does not authorize it and does not change Store Credit's behavior in any way.
+
+### Amendment 1 (2026-08-01) — Historical taxable basis, special tax, and the shared resolver
+
+Approved together with FD-002. Added after the pre-implementation audit found that the original text left the tax-rate denominator undefined and was silent on the existence of a second tax bucket. Both gaps are closed here; nothing above is reversed.
+
+**1. The historical effective tax rate may only be derived from the exact taxable basis that originally generated `orders.tax_amount`.**
+
+Audit finding: **`orders.subtotal` is NOT that basis.** `CartHelper::buildCartItem()` computes a line's tax as `($taxExempt || $product->is_tax_free_item) ? 0 : $itemSubTotal * $taxRate`, while `orders.subtotal` accumulates **every** line's `sub_total` including `is_tax_free_item` products. Dividing `tax_amount` by `subtotal` on a mixed order therefore yields a plausible-looking but wrong rate.
+
+**The authoritative denominator is the *ordinary taxable basis*:**
+
+```
+ordinaryTaxableBasis = Σ order_products.sub_total  WHERE that line carried ordinary sales tax
+```
+
+reconciled against `orders.tax_amount`. `orders.subtotal` may never be used as the denominator, by Goodwill or by anything else.
+
+**2. Special tax is recomputed proportionally, and never blended into the ordinary rate.**
+
+`special_tax` is a second, independent tax (`$itemSubTotal × special_taxes/100`, gated per-product by `apply_special_tax`) levied at a different rate from ordinary sales tax. Because it is derived from the same basis Goodwill reduces, leaving it unchanged would levy a tax on a basis that no longer exists.
+
+Therefore: when Goodwill reduces the taxable basis, `special_tax` is **recomputed on the reduced basis at its own separately-derived rate**. The two rates are resolved and applied independently and must never be summed into a single blended rate.
+
+**3. One shared historical-tax-basis resolver, used by every consumer.**
+
+The basis reconstruction above is implemented **once**, in a focused financial reconstruction service, and consumed by both the Goodwill path and `PaymentAllocationService`. This is deliberately **not** a generic pre-tax-adjustment abstraction — it reconstructs historical tax basis and nothing else.
+
+This is required because the audit found `PaymentAllocationService` already computes `$originalTaxRate = $order->tax_amount / $order->subtotal` — the identical defective denominator, live in production refund allocation today. Goodwill may not ship while the adjustment path and the refund path derive tax from different bases for the same order. Correcting that call site is in scope for FD-002; broadening the change into unrelated refund allocation behavior is not.
+
+**4. Rejection is mandatory when the basis cannot be reconstructed reliably.**
+
+The feature must never infer a plausible-looking rate from an incorrect denominator. The operation is rejected — never approximated — when any of the following holds:
+
+- Zero taxable basis with a nonzero stored tax.
+- Mixed or multiple historical tax rates across lines.
+- A manual tax override that cannot be explained from stored values.
+- Taxable charges outside the selected basis.
+- Existing adjustments that make the denominator ambiguous.
+- Corrupt or unreconciled stored totals (summed line tax disagrees with `orders.tax_amount`).
+- Components recoverable only from `order_products.product_data` JSON where that blob is absent, malformed, or inconsistent with stored columns.
+
+Where `PaymentAllocationService` has an existing safe fallback, that fallback is used rather than a new rejection path, so refund behavior is not broadened.
+
+**5. Receipts are superseded, never rewritten.**
+
+Audit finding: `ReceiptService` persists a **snapshot** (`receipts.subtotal`/`sales_tax`/`total` plus per-item rows), not a live view. A receipt issued before an adjustment is a historical record. Goodwill therefore marks any existing receipt **superseded** and issues a new one carrying the revised totals. The original receipt row is never edited or deleted, consistent with this initiative's standing rule against rewriting history.

@@ -172,6 +172,14 @@ Inside one `DB::transaction`: `lockForUpdate()` the order → re-read settled pa
 
 Reject on: missing permission (403); already fully paid; voided/ineligible order; `goodwill <= 0`; payment ≤ 0; any §3.3 reconstruction failure; `absorbable < 0`; payments would exceed the revised total (remedy is a refund, and the message says so); `state_fingerprint` mismatch (409); duplicate idempotency token (200, returns original, no second write); already reversed; any cent assertion failure (500, rolled back). No float tolerance anywhere.
 
+### 8.1 Durable artifact guards (FD-002 Am.5)
+
+An order already reported to someone outside itself may not be altered underneath that report. **Apply** additionally refuses when the order has an Accounts Receivable posting (`customer_accounts`, any type, not soft-deleted), an issued invoice (checked via `orders.invoice_id`, the bound `customer_accounts.invoice_id`, **and** `invoice_items.item_id` referencing an order product — `Invoice\StoreController` writes the binding in three places and stamps the order column only conditionally), or an existing receipt (temporary, until §10 supersession lands).
+
+**Reversal** refuses on the presence of any of the same three. Because apply already refuses when they exist, presence at reversal time *is* proof the artifact arrived afterwards — a stronger test than comparing timestamps. Refunds remain timestamp-compared, since they are legitimately possible on an adjusted order.
+
+Goodwill never edits a running account balance, an invoice total, or an invoice item. Corrections to those belong in a credit-memo / account-adjustment workflow. All guards run under the order row lock before any mutation; refusals leave order, lines, frozen `product_data`, and real payments byte-identical.
+
 ---
 
 ## 9. Reporting — verified, no engine changes

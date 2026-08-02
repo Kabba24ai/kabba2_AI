@@ -105,6 +105,91 @@ class GoodwillApplyReverseTest extends TestCase
         ]);
     }
 
+    /** An Accounts Receivable posting for this order, as AddToAccountPaymentController writes it. */
+    private function postToAccount(Order $order, string $type = 'order'): int
+    {
+        return (int) DB::table('customer_accounts')->insertGetId([
+            'unique_id'   => 'CA-'.$order->id.'-'.$type.'-'.uniqid(),
+            'customer_id' => $this->customer->id,
+            'order_id'    => $order->id,
+            'amount'      => 200.00,
+            'balance'     => 200.00,
+            'sales_tax'   => '0',
+            'date'        => now(),
+            'type'        => $type,
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+    }
+
+    private function issueInvoice(Order $order): int
+    {
+        $invoiceId = (int) DB::table('invoices')->insertGetId([
+            'unique_id'          => (string) \Illuminate\Support\Str::uuid(),
+            'invoice_number'     => 'INV-'.$order->id.'-'.uniqid(),
+            'invoice_date'       => now()->toDateString(),
+            'customer_id'        => $this->customer->id,
+            'invoice_created_by' => $this->manager->id,
+            'subtotal'           => 200.00,
+            'sales_tax'          => 19.50,
+            'total'              => 219.50,
+            'open_amount'        => 219.50,
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ]);
+
+        $order->update(['invoice_id' => $invoiceId]);
+
+        return $invoiceId;
+    }
+
+    /** An invoice item bound to the order's LINE, with orders.invoice_id left null. */
+    private function issueInvoiceItemOnly(Order $order): void
+    {
+        $invoiceId = (int) DB::table('invoices')->insertGetId([
+            'unique_id'          => (string) \Illuminate\Support\Str::uuid(),
+            'invoice_number'     => 'INV-ITEM-'.$order->id.'-'.uniqid(),
+            'invoice_date'       => now()->toDateString(),
+            'customer_id'        => $this->customer->id,
+            'invoice_created_by' => $this->manager->id,
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ]);
+
+        DB::table('invoice_items')->insert([
+            'invoice_id' => $invoiceId,
+            'type'       => 'order',
+            'item_name'  => 'Writer Test',
+            'item_id'    => $order->products()->firstOrFail()->unique_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function createReceipt(Order $order): void
+    {
+        DB::table('receipts')->insert([
+            'unique_id'   => (string) \Illuminate\Support\Str::uuid(),
+            'order_id'    => $order->id,
+            'customer_id' => $this->customer->id,
+            'subtotal'    => 200.00,
+            'sales_tax'   => 19.50,
+            'total'       => 219.50,
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+    }
+
+    /** Snapshot of everything an apply must not touch when it refuses. */
+    private function financialSnapshot(Order $order): array
+    {
+        return [
+            'order'    => DB::table('orders')->where('id', $order->id)->first(),
+            'lines'    => DB::table('order_products')->where('order_id', $order->id)->orderBy('id')->get()->toArray(),
+            'payments' => DB::table('order_payments')->where('order_id', $order->id)->orderBy('id')->get()->toArray(),
+        ];
+    }
+
     // ── Apply ──────────────────────────────────────────────────────────────
 
     public function test_successful_apply_closes_the_order_at_the_accepted_amount(): void
@@ -137,6 +222,35 @@ class GoodwillApplyReverseTest extends TestCase
         $this->assertSame('219.50', (string) $adj->original_grand_total);
         $this->assertSame($this->manager->id, $adj->approved_by);
         $this->assertSame($this->clerk->id, $adj->performed_by);
+
+        // The single money snapshot: cumulative settled payments management
+        // accepted as satisfaction of the revised total. There is deliberately
+        // no "after" counterpart, because Goodwill moves no money.
+        $this->assertSame('185.00', (string) $adj->payments_accepted);
+        $this->assertEqualsWithDelta(185.00, (float) $order->total_paid, 0.001, 'payments_accepted must equal actual settled tender.');
+        $this->assertFalse(
+            array_key_exists('total_paid_after', $adj->getAttributes()),
+            'No before/after money pair may exist — it would read as evidence of a payment that never happened.'
+        );
+
+        // The status DID change, and that is what the before/after pair records.
+        $this->assertSame('Partial', $adj->payment_status_before);
+        $this->assertSame('Paid', $adj->payment_status_after);
+    }
+
+    public function test_payments_accepted_tracks_cumulative_tender_across_partial_payments(): void
+    {
+        // Two partials totalling 150.00 accepted as payment in full. The
+        // snapshot must record the cumulative figure, not the last payment.
+        $order = $this->makeOrder();
+        $this->pay($order, 90.00);
+        $this->pay($order, 60.00);
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 15000, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertTrue($result['ok']);
+        $this->assertSame('150.00', (string) $result['adjustment']->payments_accepted);
+        $this->assertSame(2, $order->payments()->count(), 'Goodwill adds no tender of its own.');
     }
 
     public function test_apply_reduces_line_sub_total_and_leaves_price_untouched(): void
@@ -398,6 +512,129 @@ class GoodwillApplyReverseTest extends TestCase
         );
     }
 
+    // ── Durable artifact guards: apply ─────────────────────────────────────
+
+    public function test_existing_accounts_receivable_entry_blocks_apply_with_no_writes(): void
+    {
+        // customer_accounts rows of type `order` snapshot order_products
+        // sub_total and tax — the exact columns Goodwill mutates — and feed a
+        // running balance every later row inherits. Reducing the order without
+        // touching that chain would leave the statement claiming the full
+        // pre-adjustment receivable.
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->postToAccount($order);
+
+        $before = $this->financialSnapshot($order);
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::AccountsReceivableAlreadyPosted, $result['failure']);
+        $this->assertSame(0, OrderGoodwillAdjustment::count());
+        $this->assertEquals($before, $this->financialSnapshot($order), 'A refused apply must write nothing.');
+    }
+
+    public function test_any_account_ledger_type_blocks_apply_not_just_order_rows(): void
+    {
+        // The running balance is one chain regardless of which row type
+        // started it, so a payment row against this order is just as
+        // disqualifying as an `order` row.
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->postToAccount($order, 'payment');
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::AccountsReceivableAlreadyPosted, $result['failure']);
+    }
+
+    public function test_a_soft_deleted_ledger_entry_does_not_block_apply(): void
+    {
+        // A deleted entry no longer participates in the balance, so it is not
+        // a reason to refuse — refusing on it would block legitimate work.
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $id = $this->postToAccount($order);
+        DB::table('customer_accounts')->where('id', $id)->update(['deleted_at' => now()]);
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertTrue($result['ok']);
+    }
+
+    public function test_issued_invoice_blocks_apply_with_no_writes(): void
+    {
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->issueInvoice($order);
+
+        $before = $this->financialSnapshot($order);
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::InvoiceAlreadyIssued, $result['failure']);
+        $this->assertSame(0, OrderGoodwillAdjustment::count());
+        $this->assertEquals($before, $this->financialSnapshot($order));
+    }
+
+    public function test_invoice_item_bound_to_a_line_blocks_apply_even_when_the_order_column_is_null(): void
+    {
+        // Invoice\StoreController stamps orders.invoice_id only when it finds
+        // an unbound customer_accounts row, so an invoice can reference an
+        // order product while the order column stays null. Checking only the
+        // column would miss a real issued document.
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->issueInvoiceItemOnly($order);
+
+        $this->assertNull($order->fresh()->invoice_id, 'Precondition: the order column is not stamped.');
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::InvoiceAlreadyIssued, $result['failure']);
+    }
+
+    /**
+     * TEMPORARY GUARD — this test must be REPLACED in Commit 4B, not deleted.
+     * Once receipt supersession is atomic with the adjustment, the correct
+     * assertion becomes "apply succeeds and supersedes the existing receipt".
+     * The reversal-side receipt block stays.
+     */
+    public function test_existing_receipt_blocks_apply_until_supersession_lands(): void
+    {
+        // ReceiptService returns the existing row without ever refreshing it,
+        // so applying now would leave that receipt permanently current and
+        // stale.
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->createReceipt($order);
+
+        $before = $this->financialSnapshot($order);
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::ReceiptAlreadyIssued, $result['failure']);
+        $this->assertEquals($before, $this->financialSnapshot($order));
+    }
+
+    public function test_receipt_status_flag_alone_blocks_apply(): void
+    {
+        // A legacy order can carry the flag without a surviving receipt row.
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        DB::table('orders')->where('id', $order->id)->update(['receipt_status' => 'created']);
+
+        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::ReceiptAlreadyIssued, $result['failure']);
+    }
+
     // ── Reverse ────────────────────────────────────────────────────────────
 
     public function test_reversal_restores_totals_from_the_snapshot_and_reopens_the_balance(): void
@@ -468,6 +705,100 @@ class GoodwillApplyReverseTest extends TestCase
         // Nothing restored.
         $order->refresh();
         $this->assertSame('185.00', (string) $order->grand_total);
+    }
+
+    /**
+     * The relationship IS the evidence, not the timestamp.
+     *
+     * An order that already had AR, an invoice, or a receipt could never have
+     * received Goodwill — applyBlocker() refuses it — so the mere presence of
+     * one of these at reversal time proves it arrived afterwards. That is
+     * stronger than comparing timestamps, which can tie, skew, or be
+     * back-dated. Each test below asserts nothing was restored.
+     */
+    public function test_reversal_is_blocked_by_an_account_entry_created_after_goodwill(): void
+    {
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->assertTrue(GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk)['ok']);
+
+        $this->postToAccount($order);
+
+        $result = GoodwillAdjustmentService::reverse($order->fresh(), $this->manager, 'Too late');
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::ReversalBlockedByAccountsReceivable, $result['failure']);
+
+        $order->refresh();
+        $this->assertSame('185.00', (string) $order->grand_total, 'Nothing may be restored.');
+        $this->assertFalse(OrderGoodwillAdjustment::firstOrFail()->isReversed());
+    }
+
+    public function test_reversal_is_blocked_by_an_invoice_issued_after_goodwill(): void
+    {
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->assertTrue(GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk)['ok']);
+
+        $this->issueInvoice($order);
+
+        $result = GoodwillAdjustmentService::reverse($order->fresh(), $this->manager, 'Too late');
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::ReversalBlockedByInvoice, $result['failure']);
+
+        $order->refresh();
+        $this->assertSame('185.00', (string) $order->grand_total);
+        $this->assertFalse(OrderGoodwillAdjustment::firstOrFail()->isReversed());
+    }
+
+    public function test_reversal_is_blocked_by_a_receipt_created_after_goodwill(): void
+    {
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        $this->assertTrue(GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk)['ok']);
+
+        $this->createReceipt($order);
+
+        $result = GoodwillAdjustmentService::reverse($order->fresh(), $this->manager, 'Too late');
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame(GoodwillOperationFailure::ReversalBlockedByReceipt, $result['failure']);
+
+        $order->refresh();
+        $this->assertSame('185.00', (string) $order->grand_total);
+    }
+
+    public function test_a_blocked_reversal_leaves_the_payment_byte_identical(): void
+    {
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $this->postToAccount($order);
+        $beforePayments = DB::table('order_payments')->where('order_id', $order->id)->orderBy('id')->get()->toArray();
+
+        GoodwillAdjustmentService::reverse($order->fresh(), $this->manager, 'Too late');
+
+        $this->assertEquals(
+            $beforePayments,
+            DB::table('order_payments')->where('order_id', $order->id)->orderBy('id')->get()->toArray(),
+            'A refused reversal must never alter real money.'
+        );
+    }
+
+    public function test_frozen_product_data_survives_a_blocked_reversal(): void
+    {
+        $order = $this->makeOrder();
+        $this->pay($order, 185.00);
+        GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
+
+        $before = DB::table('order_products')->where('order_id', $order->id)->pluck('product_data')->all();
+
+        $this->issueInvoice($order);
+        GoodwillAdjustmentService::reverse($order->fresh(), $this->manager, 'Too late');
+
+        $this->assertSame($before, DB::table('order_products')->where('order_id', $order->id)->pluck('product_data')->all());
     }
 
     public function test_reversal_permission_is_enforced(): void

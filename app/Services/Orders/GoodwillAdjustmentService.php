@@ -437,6 +437,15 @@ class GoodwillAdjustmentService
                 return self::fail(GoodwillOperationFailure::ActiveAdjustmentExists);
             }
 
+            // Durable downstream artifacts — checked BEFORE any mutation and
+            // under the order lock, so an invoice or ledger posting cannot be
+            // created between the check and the write. Goodwill never edits a
+            // running account balance, an invoice total, or an invoice item;
+            // it refuses and defers to a workflow that amends them explicitly.
+            if ($blocker = self::applyBlocker($locked)) {
+                return self::fail($blocker);
+            }
+
             // Cumulative settled payments, re-read under the lock.
             $settledCents = (int) round(((float) $locked->total_paid) * 100);
 
@@ -562,17 +571,12 @@ class GoodwillAdjustmentService
                 return self::fail(GoodwillOperationFailure::AlreadyReversed);
             }
 
-            // Later financial activity that depends on the ADJUSTED totals
-            // makes restoration unsafe: a refund was sized against a basis
-            // that would no longer exist. Refuse with a descriptive error
-            // rather than corrupt the ledger.
-            $laterRefund = $locked->payments()
-                ->whereIn('status', ['Refunded', 'Partial Refund'])
-                ->where('created_at', '>=', $adjustment->created_at)
-                ->exists();
-
-            if ($laterRefund) {
-                return self::fail(GoodwillOperationFailure::ReversalUnsafe);
+            // Durable artifacts created SINCE the adjustment make restoration
+            // unsafe: each one states the adjusted totals, and restoring the
+            // originals would silently contradict it. Checked under the lock,
+            // before anything is written.
+            if ($blocker = self::reversalBlocker($locked, $adjustment)) {
+                return self::fail($blocker);
             }
 
             // Restore from the SNAPSHOT, never from current product data.
@@ -604,6 +608,170 @@ class GoodwillAdjustmentService
 
             return self::ok(null, $adjustment->fresh(), replayed: false);
         });
+    }
+
+    // ══ Durable downstream artifacts ═══════════════════════════════════════
+
+    /**
+     * Has this order been posted to the customer's account?
+     *
+     * `customer_accounts` rows of type `order` snapshot `order_products.
+     * sub_total` and `order_products.tax` — precisely the two columns a
+     * Goodwill Adjustment mutates — and `LedgerBalanceService::
+     * applyTransaction()` then computes a running `balance` that every later
+     * row inherits. Reducing the order without touching that chain would leave
+     * the customer's statement still claiming the full pre-adjustment
+     * receivable.
+     *
+     * ANY type is disqualifying, not just `order`: a payment, charge, or
+     * discount row against this order means the order is represented in the
+     * ledger, and the running balance is a single chain regardless of which
+     * row type started it. Soft-deleted rows are excluded — a deleted entry no
+     * longer participates in the balance.
+     */
+    private static function hasAccountsReceivable(Order $order): bool
+    {
+        return DB::table('customer_accounts')
+            ->where('order_id', $order->id)
+            ->whereNull('deleted_at')
+            ->exists();
+    }
+
+    /**
+     * Is this order bound to an invoice?
+     *
+     * Checked three ways because the binding is written in three places by
+     * `Crm\Customers\Invoice\StoreController`: the order is stamped with
+     * `invoice_id`, the matching `customer_accounts` row is bound via
+     * `invoice_item_id`, and the `invoice_items` row itself references the
+     * ORDER PRODUCT's `unique_id` in `item_id` with `type = 'order'`. Any one
+     * of them means an external document states this order's totals.
+     *
+     * The third check is not redundant paranoia: `StoreController` only stamps
+     * `orders.invoice_id` when it finds an unbound `customer_accounts` row, so
+     * an invoice can reference an order product while the order column stays
+     * null.
+     */
+    private static function hasInvoice(Order $order): bool
+    {
+        if ($order->invoice_id !== null) {
+            return true;
+        }
+
+        if (DB::table('customer_accounts')
+            ->where('order_id', $order->id)
+            ->whereNotNull('invoice_id')
+            ->whereNull('deleted_at')
+            ->exists()) {
+            return true;
+        }
+
+        $lineUniqueIds = DB::table('order_products')
+            ->where('order_id', $order->id)
+            ->pluck('unique_id')
+            ->all();
+
+        if ($lineUniqueIds === []) {
+            return false;
+        }
+
+        return DB::table('invoice_items')
+            ->where('type', 'order')
+            ->whereIn('item_id', $lineUniqueIds)
+            ->exists();
+    }
+
+    /**
+     * Has a receipt already been created for this order?
+     *
+     * `ReceiptService::getOrCreateReceipt()` freezes `subtotal`/`sales_tax`/
+     * `total` and per-item `tax`/`total`, and thereafter RETURNS THE EXISTING
+     * ROW without ever refreshing it. A receipt created before an adjustment
+     * would therefore stay current and stale forever.
+     *
+     * TEMPORARY — SCHEDULED FOR REMOVAL IN COMMIT 4B (receipt supersession
+     * and reissue). It exists only because shipping an apply path that
+     * knowingly leaves an existing receipt permanently current and stale is
+     * not acceptable. Once supersession is atomic with the adjustment, the
+     * correct behaviour becomes supersede-and-reissue and this refusal must be
+     * deleted from {@see self::applyBlocker()} — NOT from
+     * {@see self::reversalBlocker()}, where a receipt created after the
+     * adjustment remains a genuine blocker.
+     *
+     * Both the row and the order's own `receipt_status` flag are checked,
+     * since a legacy order could carry the flag without a surviving row.
+     */
+    private static function hasReceipt(Order $order): bool
+    {
+        if ((string) $order->receipt_status === 'created') {
+            return true;
+        }
+
+        return DB::table('receipts')->where('order_id', $order->id)->exists();
+    }
+
+    /**
+     * What, if anything, forbids applying Goodwill to this order?
+     *
+     * Ordered most-consequential first so the operator is told about the
+     * accounting record before the paperwork. Every check is an EXPLICIT
+     * RELATIONSHIP — a foreign key or a bound identifier — never a timestamp
+     * heuristic.
+     */
+    private static function applyBlocker(Order $order): ?GoodwillOperationFailure
+    {
+        if (self::hasAccountsReceivable($order)) {
+            return GoodwillOperationFailure::AccountsReceivableAlreadyPosted;
+        }
+
+        if (self::hasInvoice($order)) {
+            return GoodwillOperationFailure::InvoiceAlreadyIssued;
+        }
+
+        // TEMPORARY — remove in Commit 4B, once receipt supersession is atomic
+        // with the adjustment. See hasReceipt()'s docblock.
+        if (self::hasReceipt($order)) {
+            return GoodwillOperationFailure::ReceiptAlreadyIssued;
+        }
+
+        return null;
+    }
+
+    /**
+     * What, if anything, forbids reversing this adjustment?
+     *
+     * The relationship checks come first and the timestamp is only supporting
+     * evidence, deliberately. An order that already had AR, an invoice, or a
+     * receipt could never have received Goodwill in the first place —
+     * {@see self::applyBlocker()} refuses it — so the mere PRESENCE of one of
+     * these artifacts at reversal time is itself proof that it arrived after
+     * the adjustment. That is a stronger and simpler test than comparing
+     * timestamps, which can tie, skew, or be back-dated.
+     *
+     * Refunds are different: they are legitimately possible on an adjusted
+     * order, so there the timestamp comparison is load-bearing and is kept.
+     */
+    private static function reversalBlocker(Order $order, OrderGoodwillAdjustment $adjustment): ?GoodwillOperationFailure
+    {
+        if (self::hasAccountsReceivable($order)) {
+            return GoodwillOperationFailure::ReversalBlockedByAccountsReceivable;
+        }
+
+        if (self::hasInvoice($order)) {
+            return GoodwillOperationFailure::ReversalBlockedByInvoice;
+        }
+
+        if (self::hasReceipt($order)) {
+            return GoodwillOperationFailure::ReversalBlockedByReceipt;
+        }
+
+        // A refund sized against a basis that would no longer exist.
+        $laterRefund = $order->payments()
+            ->whereIn('status', ['Refunded', 'Partial Refund'])
+            ->where('created_at', '>=', $adjustment->created_at)
+            ->exists();
+
+        return $laterRefund ? GoodwillOperationFailure::ReversalUnsafe : null;
     }
 
     /**

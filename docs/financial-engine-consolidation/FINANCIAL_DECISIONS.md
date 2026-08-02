@@ -270,3 +270,33 @@ That left `HistoricalTaxBasisResolver` sourcing basis and ordinary tax from **mu
 Because reading money from a column is what the resolver already did for basis and tax, this makes it *internally consistent* rather than weaker. The `SpecialTaxUnsupported` refusal is removed.
 
 **Production deployment is gated.** The migration must not run until `diagnostics:special-tax-backfill-audit` reports zero in all three declined categories. See `SPECIAL_TAX_COLUMNS_DEPLOYMENT_PLAN.md`.
+
+### Amendment 5 (2026-08-02) — Goodwill refuses orders already represented in a durable artifact
+
+Approved after an audit classifying every durable snapshot created downstream of an order.
+
+**The principle.** An order that has been posted to Accounts Receivable, placed on an issued invoice, or printed on a receipt has been **reported to someone outside this order**. Altering the order underneath such a document does not correct it — it makes the two disagree silently, with no record that they ever agreed. Goodwill therefore refuses, and defers to a credit-memo / account-adjustment workflow that amends the artifact explicitly.
+
+**Goodwill never edits a running account balance, an invoice total, or an invoice item.** It is not a correction mechanism for documents it did not create.
+
+#### Artifact classification
+
+| Artifact | Verdict | Why |
+|---|---|---|
+| `customer_accounts` (any type) | **BLOCKS apply and reversal** | Type `order` rows snapshot `order_products.sub_total` and `.tax` — the exact columns Goodwill mutates — and feed a running `balance` every later row inherits |
+| `invoices` / `invoice_items` | **BLOCKS apply and reversal** | External document with an `open_amount` a customer may be paying against |
+| `receipts` / `receipt_items` | **BLOCKS apply** until supersession lands; **blocks reversal** | `ReceiptService` freezes totals and thereafter returns the existing row without refreshing it |
+| Refunds | **Blocks reversal** (timestamp-compared) | Sized against a basis that would no longer exist |
+| `billing_charges` | Safe | Carries its own `amount`/`tax_amount`; nothing derives from `order_products.sub_total` |
+| `order_payment_refund_allocations` | Safe | Describes money actually moved; never touched |
+| `customer_credits` | Safe | Separate grant/redemption ledger, no dependency on order totals |
+| `SalesTaxReportEngine`, `PaymentAllocationService` | Safe — and required | Read live order totals, so reduced revenue and tax appear automatically |
+
+#### Rules
+
+1. **Explicit relationships are the evidence; timestamps are only supporting.** Invoice binding is checked three ways — `orders.invoice_id`, the bound `customer_accounts.invoice_id`, and `invoice_items.item_id` referencing an order product with `type = 'order'` — because `Invoice\StoreController` writes it in three places and stamps the order column only conditionally.
+2. **At reversal, presence alone is proof of lateness.** An order that already had one of these artifacts could never have received Goodwill, so an artifact present at reversal time necessarily arrived after the adjustment. This is stronger than a timestamp comparison, which can tie, skew, or be back-dated. Refunds are the exception — legitimately possible on an adjusted order — so there the timestamp comparison is retained and load-bearing.
+3. **Soft-deleted ledger entries do not block.** A deleted entry no longer participates in the running balance; refusing on it would block legitimate work.
+4. **The receipt block is explicitly temporary**, and exists only until receipt supersession lands. Shipping an apply path that knowingly leaves an existing receipt permanently current and stale is not acceptable.
+5. **Every guard runs under the order row lock, before any mutation**, so an invoice or ledger posting cannot be created between the check and the write.
+6. **Refusals write nothing.** Order, lines, frozen `product_data`, and real payments are all asserted byte-identical after a refused apply and a refused reversal.

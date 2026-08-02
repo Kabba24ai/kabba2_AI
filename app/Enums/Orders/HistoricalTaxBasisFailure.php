@@ -40,6 +40,14 @@ enum HistoricalTaxBasisFailure: string
     case FrozenDataUnavailable = 'frozen_data_unavailable';
 
     /** An existing pre-tax adjustment already changed the basis, making the denominator ambiguous. */
+    /**
+     * @deprecated No longer produced. The resolver briefly refused any order
+     * carrying an active Goodwill adjustment; because it serves refunds as
+     * well as Goodwill, that made every adjustment render its order
+     * permanently un-refundable. Preventing a second adjustment is
+     * GoodwillAdjustmentService::apply()'s job, under the row lock. Retained
+     * so historical log lines remain decodable.
+     */
     case AmbiguousExistingAdjustment = 'ambiguous_existing_adjustment';
 
     /** More than one candidate extension charge points at this child order — no single authoritative record. */

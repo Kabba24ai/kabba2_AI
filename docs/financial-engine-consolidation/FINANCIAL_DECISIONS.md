@@ -326,3 +326,21 @@ subtotal − goodwill_amount + sales_tax = total
 On an ordinary receipt `goodwill_amount` is `0.00`, reducing this to the existing `subtotal + sales_tax = total` — no existing row changes meaning.
 
 The `ReceiptAlreadyIssued` and `ReversalBlockedByReceipt` failure cases are removed. AR and invoice guards are unaffected: those artifacts are owned by workflows Goodwill does not control, and remain hard refusals.
+
+### Amendment 7 (2026-08-02) — An adjusted order stays refundable
+
+Found during the release-readiness lifecycle walk, not by any single-mechanism test.
+
+`HistoricalTaxBasisResolver::resolve()` refused any order carrying an active Goodwill adjustment, returning `AmbiguousExistingAdjustment`. The intent was to stop a second adjustment stacking on a basis the first had already reduced.
+
+**It was wrong in both placement and effect.**
+
+*Effect:* the resolver serves **refunds as well as Goodwill**. Refusing an adjusted order meant every Goodwill adjustment silently rendered its order **permanently un-refundable** — `PaymentAllocationService::proportionalTaxRefund()` throws on resolver failure by design, so the refund did not degrade, it failed outright. That is a far worse defect than the stacking it prevented, and it contradicted the design's own requirement that a refund after Goodwill allocate on the adjusted basis.
+
+*Placement:* "do not stack a second adjustment" is Goodwill's rule, and `GoodwillAdjustmentService::apply()` already enforces it under the order row lock via `ActiveAdjustmentExists` — the only place it can be enforced race-free. A read-only reconstruction cannot hold a lock, so it could never have been the real defence.
+
+**Decision:** the guard is removed from the resolver. Stacking prevention is unchanged and remains where it belongs.
+
+This is safe because an adjusted order is fully reconstructable: `apply()` rewrites the order columns and every line together, and asserts the reconciliation identity in integer cents before writing anything. The stored state afterwards is exactly as self-consistent as before — which is the only property the resolver depends on. `AmbiguousExistingAdjustment` is retained as deprecated so historical log lines stay decodable.
+
+**Lesson recorded:** every mechanism here had passing tests in isolation. Only walking a full lifecycle — adjust, then refund — exposed the interaction. Composition needs its own coverage; `GoodwillLifecycleTest` now provides it.

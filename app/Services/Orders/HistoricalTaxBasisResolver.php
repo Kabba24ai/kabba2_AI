@@ -9,7 +9,6 @@ use App\Http\DataObjects\HistoricalTaxBasis;
 use App\Models\Orders\Order;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Reconstructs the historical tax basis an order was ORIGINALLY taxed on.
@@ -63,15 +62,30 @@ class HistoricalTaxBasisResolver
      */
     private const PROTECTED_FEE_PRODUCT_TYPES = [];
 
-    /** Memoized per process — Schema::hasTable() is a metadata query and the answer cannot change mid-request. */
-    private static ?bool $goodwillTableExists = null;
-
+    /**
+     * Reconstruct the basis from the order's CURRENT stored state.
+     *
+     * There is deliberately NO "refuse if an adjustment exists" guard here.
+     * An earlier revision had one, and it was wrong in a way only a
+     * whole-lifecycle walk exposed: this resolver serves BOTH Goodwill and
+     * refunds, so refusing an adjusted order made every Goodwill adjustment
+     * silently render its order permanently un-refundable — a far worse
+     * defect than the stacking it was trying to prevent.
+     *
+     * The guard was also in the wrong place. "Do not stack a second
+     * adjustment" is Goodwill's rule, and {@see GoodwillAdjustmentService::
+     * apply()} already enforces it under the order row lock, which is the
+     * only place it can be enforced race-free. A read-only reconstruction
+     * cannot hold a lock and so could never have been the real defence.
+     *
+     * An adjusted order is fully reconstructable: apply() rewrites the order
+     * columns and every line together, and the reconciliation identity is
+     * asserted in integer cents before anything is written. The stored state
+     * afterwards is exactly as self-consistent as it was before — which is
+     * the property this resolver actually depends on.
+     */
     public static function resolve(Order $order): HistoricalTaxBasis
     {
-        if (self::hasActiveGoodwillAdjustment($order)) {
-            return HistoricalTaxBasis::failed(HistoricalTaxBasisFailure::AmbiguousExistingAdjustment);
-        }
-
         $lines = $order->products()->orderBy('id')->get();
 
         if ($lines->isEmpty()) {
@@ -489,22 +503,6 @@ class HistoricalTaxBasisResolver
         return is_array($decoded) ? $decoded : null;
     }
 
-    private static function hasActiveGoodwillAdjustment(Order $order): bool
-    {
-        if (self::$goodwillTableExists === null) {
-            self::$goodwillTableExists = Schema::hasTable('order_goodwill_adjustments');
-        }
-
-        if (self::$goodwillTableExists !== true) {
-            return false;
-        }
-
-        return DB::table('order_goodwill_adjustments')
-            ->where('order_id', $order->id)
-            ->whereNull('reversed_at')
-            ->exists();
-    }
-
     /**
      * decimal(10,2) storage → integer cents.
      *
@@ -518,9 +516,17 @@ class HistoricalTaxBasisResolver
         return (int) round(((float) $value) * 100);
     }
 
-    /** Test seam — resets the memoized schema probe between migrations. */
+    /**
+     * Test seam, retained deliberately.
+     *
+     * This class memoized a Schema::hasTable() probe while it carried an
+     * active-adjustment guard. That guard is gone (see resolve()), so there is
+     * nothing left to flush — but the seam is kept as a no-op so suites that
+     * migrate mid-run keep a single, obvious place to reset process state if a
+     * memo is ever reintroduced.
+     */
     public static function flushSchemaMemo(): void
     {
-        self::$goodwillTableExists = null;
+        // No memoized state today.
     }
 }

@@ -188,3 +188,54 @@ The selected source is logged on every resolution, `extension_order_level` at wa
 5. **Anonymous line-less orders remain unsupported.** An order with no lines that cannot prove the extension relationship is rejected. There is no general line-less path, and none may be added without superseding this amendment.
 
 **Why this is recorded as policy rather than left to implementation.** Reconstructing a historical rate from anything other than per-line data is a financial judgement, not a coding detail. Writing the permitted exceptions down — with the invariant each depends on — is what stops the next such exception being added silently because it looked reasonable at the time. That is the same failure mode FD-001 exists to prevent.
+
+### Amendment 3 (2026-08-01) — Reducible merchandise vs protected components
+
+Approved together with FD-002. Added after implementation revealed that treating "carries no sales tax" as "may not be reduced" made Goodwill impossible on a tax-exempt order — a case FD-002 always intended to support.
+
+**The distinction is merchandise vs charge, not taxed vs untaxed.**
+
+| Bucket | Reducible? | What it is |
+|---|---|---|
+| **Ordinary taxable merchandise** | Yes | Product lines that generated ordinary sales tax |
+| **Reducible untaxed merchandise** | **Yes** | Product lines that are part of the sale but generated no ordinary sales tax because the order, customer, or product is tax-exempt |
+| **Protected non-reducible components** | **No** | Flat added fees, charges unrelated to merchandise price, and anything FD-002 explicitly preserves |
+
+Ordinary taxable merchandise and reducible untaxed merchandise together form the **adjustable merchandise basis** — the only thing Goodwill may reduce.
+
+**Rules:**
+
+1. **Tax-exempt merchandise is reducible.** The absence of tax says nothing about whether a line is part of the sale.
+2. **A tax-free product is still reducible merchandise** unless its frozen data *proves* it represents a protected fee-type component. Merchandise is the default; only positive evidence moves a line into the protected bucket. (No such evidence can exist today — the frozen `product_type` is only `Rental` or `Retail`, both merchandise. The check exists so the rule is stated in advance rather than improvised later.)
+3. **`added_fees` remain unchanged** by any adjustment.
+4. **Ordinary tax remains zero when the original posture was exempt.** Reducing an exempt order never creates tax.
+5. **Special tax is recalculated only for the basis that was subject to it**, at its own rate, never blended with the ordinary rate.
+6. **Current product or store configuration must never be used to reinterpret a historical line.** Classification comes from the frozen line alone.
+
+**Reconciliation identity, superseding the form in Amendment 1:**
+
+```
+revised taxable merchandise
+  + revised untaxed merchandise
+  + revised ordinary tax
+  + revised special tax
+  + protected non-reducible components
+  − discount
+  = accepted final total
+```
+
+Asserted in integer cents. Failure writes nothing.
+
+**Worked example — fully tax-exempt order:**
+
+| | Amount |
+|---|---|
+| Original merchandise basis | $200.00 |
+| Accepted final total | $185.00 |
+| Ordinary sales tax | $0.00 |
+| Special tax | $0.00 |
+| **Goodwill adjustment** | **$15.00** |
+| Revised merchandise basis | $185.00 |
+| Revised grand total | $185.00 |
+
+**Allocation.** Goodwill is allocated proportionally across **all reducible merchandise lines**, taxable or untaxed, using the existing largest-remainder rule with ties broken by ascending line id. **No share is ever allocated to a protected component.** Tax is recomputed only on lines that actually carried ordinary tax; an untaxed line stays untaxed however much it is reduced.

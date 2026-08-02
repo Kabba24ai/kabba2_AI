@@ -1,16 +1,16 @@
 # Goodwill Adjustment — Implementation Design
 
 Document date: 2026-08-01
-Revision: **2 — post-audit.** Revision 1 was pre-audit and is superseded; §3, §4, §5, §10, §13 changed materially.
+Revision: **3.** Revision 2 was post-audit; Revision 3 adopts FD-002 Amendment 3 (reducible merchandise vs protected components) and rewrites §4, §5 and §11.9 accordingly.
 Branch: `feature/goodwill-adjustment` (cut from `raj_development`)
 Status: **DESIGN COMPLETE — NO APPLICATION CODE WRITTEN.**
-Governing policy: `FINANCIAL_DECISIONS.md` **FD-002 + Amendment 1**; `FINANCIAL_TRUTH_TABLE.md` **A-001 + Revision 1**.
+Governing policy: `FINANCIAL_DECISIONS.md` **FD-002 + Amendments 1-3**; `FINANCIAL_TRUTH_TABLE.md` **A-001 + Revisions 1-3**.
 
 ---
 
 ## 1. Scope
 
-**In scope:** a manager-authorized pre-tax reduction of an order's taxable basis, applied from Order Details → Pending Payment, so the revised grand total equals cumulative settled payments; its reversal, audit record, permission, receipt supersession, tests; **and** a narrowly-scoped correction of `PaymentAllocationService`'s tax-rate denominator via a shared resolver.
+**In scope:** a manager-authorized pre-tax reduction of an order's adjustable merchandise basis (taxable **and** reducible untaxed merchandise), applied from Order Details → Pending Payment, so the revised grand total equals cumulative settled payments; its reversal, audit record, permission, receipt supersession, tests; **and** a narrowly-scoped correction of `PaymentAllocationService`'s tax-rate denominator via a shared resolver.
 
 **Out of scope, by decision:** Store Credit behavior (unchanged; its post-tax treatment stays an open finding); `SalesTaxReportEngine` (frozen, and §9 proves no change needed); `TaxCalculationService` modernization (technical debt); any generic pre-tax-adjustment abstraction; any refund-allocation behavior beyond the denominator fix.
 
@@ -129,7 +129,7 @@ All integer cents. `A` = cumulative settled payments after this payment; `Bo` = 
 
 Rule — proportional by `sub_total` across eligible taxable lines, largest-remainder:
 
-1. Eligible = lines carrying ordinary sales tax. Tax-free lines untouched.
+1. Eligible = **all reducible merchandise lines**, taxable or untaxed (FD-002 Amendment 3). Only proven fee-type lines are excluded; no share is ever allocated to a protected component. Tax is recomputed solely on lines that carried ordinary tax — an untaxed line stays untaxed however much it is reduced.
 2. `rawShare = goodwill × lineSubTotal / Bo`, remainders retained.
 3. Leftover cents distributed one each by largest fractional remainder, ties by ascending `id`.
 4. **Assert:** shares sum exactly to `goodwill`.

@@ -214,7 +214,7 @@ class PaymentAllocationServiceTest extends TestCase
             ordinaryTaxCents:     (int) round($taxAmount * 100),
             specialBasisCents:    0,
             specialTaxCents:      0,
-            nonTaxableBasisCents: 0,
+            untaxedMerchandiseBasisCents: 0,
             addedFeesCents:       0,
             discountCents:        0,
             lines:                [],

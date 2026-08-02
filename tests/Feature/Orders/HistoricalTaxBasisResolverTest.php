@@ -88,7 +88,7 @@ class HistoricalTaxBasisResolverTest extends TestCase
         $this->assertTrue($basis->succeeded(), 'Expected a clean reconstruction.');
         $this->assertSame(20000, $basis->ordinaryBasisCents);
         $this->assertSame(1950, $basis->ordinaryTaxCents);
-        $this->assertSame(0, $basis->nonTaxableBasisCents);
+        $this->assertSame(0, $basis->untaxedMerchandiseBasisCents);
         $this->assertEqualsWithDelta(0.0975, $basis->ordinaryRate(), 0.0000001);
     }
 
@@ -105,7 +105,7 @@ class HistoricalTaxBasisResolverTest extends TestCase
 
         // The denominator must be the taxable basis only.
         $this->assertSame(10000, $basis->ordinaryBasisCents);
-        $this->assertSame(10000, $basis->nonTaxableBasisCents);
+        $this->assertSame(10000, $basis->untaxedMerchandiseBasisCents);
         $this->assertEqualsWithDelta(0.0975, $basis->ordinaryRate(), 0.0000001);
 
         // The defect being replaced: tax_amount / subtotal = 9.75/200 = 4.875%.
@@ -124,7 +124,7 @@ class HistoricalTaxBasisResolverTest extends TestCase
         $this->assertTrue($basis->succeeded());
         $this->assertSame(0, $basis->ordinaryTaxCents);
         $this->assertSame(0.0, $basis->ordinaryRate());
-        $this->assertSame(20000, $basis->nonTaxableBasisCents);
+        $this->assertSame(20000, $basis->untaxedMerchandiseBasisCents);
     }
 
     public function test_special_tax_and_added_fees_are_separated_and_never_blended(): void

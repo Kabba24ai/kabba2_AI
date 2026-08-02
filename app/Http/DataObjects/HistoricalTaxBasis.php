@@ -42,11 +42,30 @@ final class HistoricalTaxBasis
         /** Special tax actually recorded, in cents. */
         public readonly int $specialTaxCents,
 
-        /** Line subtotals that carried no ordinary sales tax, in cents. Never reduced by a pre-tax adjustment. */
-        public readonly int $nonTaxableBasisCents,
+        /**
+         * Merchandise that carried no ordinary sales tax, in cents.
+         *
+         * REDUCIBLE. A tax-exempt order, customer, or product still sold
+         * merchandise; it simply was not taxed. Goodwill may reduce this
+         * exactly as it reduces taxable merchandise — the absence of tax says
+         * nothing about whether the line is part of the sale.
+         */
+        public readonly int $untaxedMerchandiseBasisCents,
 
-        /** Flat added fees, in cents. Not basis-derived; preserved unchanged. */
+        /** Flat added fees, in cents. PROTECTED — not merchandise, never reduced. */
         public readonly int $addedFeesCents,
+
+        /**
+         * Line amounts proving, from frozen data, that they are a fee-type
+         * component rather than merchandise. PROTECTED.
+         *
+         * Currently always zero: `product_type` is only 'Rental' or 'Retail'
+         * in this schema, both merchandise, so no order line can prove
+         * fee-type. The bucket exists so the rule is already stated if a
+         * fee-type product is ever introduced, rather than being decided
+         * under pressure later.
+         */
+        public readonly int $protectedLineCents,
 
         /** Order-level discount, in cents. Applied post-tax by existing behavior. */
         public readonly int $discountCents,
@@ -69,23 +88,24 @@ final class HistoricalTaxBasis
         int $ordinaryTaxCents,
         int $specialBasisCents,
         int $specialTaxCents,
-        int $nonTaxableBasisCents,
+        int $untaxedMerchandiseBasisCents,
         int $addedFeesCents,
         int $discountCents,
         array $lines,
         HistoricalTaxBasisSource $source = HistoricalTaxBasisSource::OrderProductLines,
+        int $protectedLineCents = 0,
     ): self {
         return new self(
             $ordinaryBasisCents, $ordinaryTaxCents,
             $specialBasisCents, $specialTaxCents,
-            $nonTaxableBasisCents, $addedFeesCents, $discountCents,
+            $untaxedMerchandiseBasisCents, $addedFeesCents, $protectedLineCents, $discountCents,
             $lines, null, $source,
         );
     }
 
     public static function failed(HistoricalTaxBasisFailure $failure): self
     {
-        return new self(0, 0, 0, 0, 0, 0, 0, [], $failure, null);
+        return new self(0, 0, 0, 0, 0, 0, 0, 0, [], $failure, null);
     }
 
     public function succeeded(): bool
@@ -107,6 +127,21 @@ final class HistoricalTaxBasis
         return $this->ordinaryBasisCents > 0
             ? $this->ordinaryTaxCents / $this->ordinaryBasisCents
             : 0.0;
+    }
+
+    /**
+     * Taxable + untaxed merchandise: everything Goodwill is permitted to
+     * reduce. Protected components are deliberately excluded.
+     */
+    public function adjustableMerchandiseBasisCents(): int
+    {
+        return $this->ordinaryBasisCents + $this->untaxedMerchandiseBasisCents;
+    }
+
+    /** Everything Goodwill must NOT reduce: flat fees plus any proven fee-type line. */
+    public function protectedCents(): int
+    {
+        return $this->addedFeesCents + $this->protectedLineCents;
     }
 
     /** The special-tax rate. Same float caveat as {@see ordinaryRate()}. Never summed with it into a blended rate. */

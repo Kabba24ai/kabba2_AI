@@ -124,7 +124,7 @@ class ExtensionRefundBasisTest extends TestCase
         $this->assertSame(HistoricalTaxBasisSource::ExtensionBillingCharge, $basis->source);
         $this->assertSame(0, $basis->ordinaryBasisCents);
         $this->assertSame(0, $basis->ordinaryTaxCents);
-        $this->assertSame(10000, $basis->nonTaxableBasisCents);
+        $this->assertSame(10000, $basis->untaxedMerchandiseBasisCents);
         $this->assertSame(0.0, $basis->ordinaryRate());
     }
 

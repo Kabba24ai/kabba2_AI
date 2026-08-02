@@ -331,3 +331,13 @@ Adopted together with **FD-002 Amendment 2**. This revision adds no new transact
 Source 3's validity depends on the extension invariant — one tax posture, no hidden fee, special-tax, discount, or tax-free component — not on its arithmetic, which is identical to the formula this initiative removed. **Any future extension feature that breaks those invariants must update or disable it.** A contradictory linked charge is a hard failure that must never fall through to source 3, and anonymous line-less orders remain unsupported.
 
 **Effect on this document's rows:** none. Type 9's tax treatment, scope boundary, and "no `customer_accounts` effect" classification are unchanged. Its §7 status remains **Needs Technical Decision** — its self-contained tax formula still has not been compared against `TaxCalculationService`, and this revision does not do so.
+
+## A-001.9 Revision 3 (2026-08-01) — Goodwill's adjustable basis
+
+Adopted together with **FD-002 Amendment 3**. Corrects one clause of the §3a type-17 row; no other row and no tax treatment changes.
+
+**Corrected:** the row describes Goodwill as reducing "the taxable product basis". The reducible basis is broader — it is the **adjustable merchandise basis**: ordinary taxable merchandise **plus** reducible untaxed merchandise. Tax-exempt merchandise is still merchandise and is reducible; only flat added fees, charges unrelated to merchandise price, and components FD-002 explicitly preserves are protected.
+
+**Why the original clause was wrong.** It conflated "carries no sales tax" with "may not be reduced". Under that reading a fully tax-exempt order could never receive Goodwill, because every one of its lines resolved as non-reducible — a case FD-002 always intended to support. A $200.00 exempt order settled at $185.00 waives $15.00, with no tax anywhere.
+
+**Taxability remains unchanged** for type 17: Goodwill does not make an order tax-exempt, and it does not create tax on an order that was exempt. It lowers the merchandise basis; whatever tax posture that basis already had is preserved and recomputed at its own historical rate.

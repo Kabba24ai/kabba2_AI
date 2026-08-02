@@ -46,6 +46,14 @@ use Illuminate\Support\Facades\Schema;
  */
 class HistoricalTaxBasisResolver
 {
+    /**
+     * Frozen `product_type` values that represent a protected fee rather than
+     * merchandise. Empty today by design — see isProtectedFeeLine().
+     *
+     * @var list<string>
+     */
+    private const PROTECTED_FEE_PRODUCT_TYPES = [];
+
     /** Memoized per process — Schema::hasTable() is a metadata query and the answer cannot change mid-request. */
     private static ?bool $goodwillTableExists = null;
 
@@ -68,7 +76,8 @@ class HistoricalTaxBasisResolver
 
         $ordinaryBasisCents = 0;
         $ordinaryTaxCents   = 0;
-        $nonTaxableCents    = 0;
+        $untaxedMerchCents  = 0;
+        $protectedLineCents = 0;
         $specialBasisCents  = 0;
         $specialTaxCents    = 0;
         $addedFeesCents     = 0;
@@ -94,11 +103,19 @@ class HistoricalTaxBasisResolver
 
             $taxable = $taxCents > 0;
 
-            if ($taxable) {
+            // Merchandise vs protected fee. A line is merchandise unless its
+            // FROZEN data proves otherwise — carrying no tax does not make a
+            // line a fee, it only makes it untaxed merchandise, and untaxed
+            // merchandise is reducible (FD-002 Amendment 3).
+            $protectedLine = self::isProtectedFeeLine($frozen);
+
+            if ($protectedLine) {
+                $protectedLineCents += $basisCents;
+            } elseif ($taxable) {
                 $ordinaryBasisCents += $basisCents;
                 $ordinaryTaxCents   += $taxCents;
             } else {
-                $nonTaxableCents += $basisCents;
+                $untaxedMerchCents += $basisCents;
             }
 
             if ($lineSpecialTaxCents > 0) {
@@ -113,7 +130,10 @@ class HistoricalTaxBasisResolver
                 'id'          => (int) $line->id,
                 'basis_cents' => $basisCents,
                 'tax_cents'   => $taxCents,
-                'taxable'     => $taxable,
+                'taxable'     => $taxable && ! $protectedLine,
+                // Reducible merchandise — taxable or not. Goodwill allocates
+                // across these; protected lines never receive a share.
+                'reducible'   => ! $protectedLine,
             ];
         }
 
@@ -150,11 +170,12 @@ class HistoricalTaxBasisResolver
             ordinaryTaxCents:     $ordinaryTaxCents,
             specialBasisCents:    $specialBasisCents,
             specialTaxCents:      $specialTaxCents,
-            nonTaxableBasisCents: $nonTaxableCents,
+            untaxedMerchandiseBasisCents: $untaxedMerchCents,
             addedFeesCents:       $addedFeesCents,
             discountCents:        $storedDiscountCents,
             lines:                $resolvedLines,
             source:               HistoricalTaxBasisSource::OrderProductLines,
+            protectedLineCents:   $protectedLineCents,
         ));
     }
 
@@ -245,7 +266,7 @@ class HistoricalTaxBasisResolver
             ordinaryTaxCents:     $chargeTaxCents,
             specialBasisCents:    0,
             specialTaxCents:      0,
-            nonTaxableBasisCents: $taxable ? 0 : $chargeBasisCents,
+            untaxedMerchandiseBasisCents: $taxable ? 0 : $chargeBasisCents,
             addedFeesCents:       0,
             discountCents:        $storedDiscountCents,
             lines:                [],
@@ -311,7 +332,7 @@ class HistoricalTaxBasisResolver
             ordinaryTaxCents:     $taxCents,
             specialBasisCents:    0,
             specialTaxCents:      0,
-            nonTaxableBasisCents: $taxable ? 0 : $subtotalCents,
+            untaxedMerchandiseBasisCents: $taxable ? 0 : $subtotalCents,
             addedFeesCents:       0,
             discountCents:        0,
             lines:                [],
@@ -391,6 +412,30 @@ class HistoricalTaxBasisResolver
         }
 
         return true;
+    }
+
+    /**
+     * Does this line's FROZEN data prove it is a fee-type component rather
+     * than merchandise?
+     *
+     * Deliberately conservative: merchandise is the default, and only positive
+     * evidence in the frozen snapshot moves a line into the protected bucket.
+     * A tax-free product is NOT such evidence — it is untaxed merchandise, and
+     * reducible (FD-002 Amendment 3).
+     *
+     * Currently this can never be true: the frozen `product_type` is only
+     * 'Rental' or 'Retail' in this schema, both merchandise. The check exists
+     * so the rule is stated in advance rather than improvised if a fee-type
+     * product is ever introduced. Current product or store configuration is
+     * never consulted — only the frozen line.
+     *
+     * @param  array<string,mixed>  $frozen
+     */
+    private static function isProtectedFeeLine(array $frozen): bool
+    {
+        $type = strtolower(trim((string) ($frozen['product_type'] ?? '')));
+
+        return in_array($type, self::PROTECTED_FEE_PRODUCT_TYPES, true);
     }
 
     /**

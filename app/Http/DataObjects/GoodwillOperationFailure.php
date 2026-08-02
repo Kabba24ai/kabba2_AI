@@ -29,13 +29,15 @@ enum GoodwillOperationFailure: string
     // correct it — it makes the two disagree silently. Goodwill refuses; the
     // correction belongs in a credit-memo / account-adjustment workflow that
     // amends the artifact explicitly.
+    // Receipts are deliberately absent: they are SUPERSEDED rather than
+    // refused (Commit 4B). Apply and reverse each issue a replacement receipt
+    // inside their own transaction, so a stale document can no longer survive
+    // an adjustment and there is nothing left to block on.
     case AccountsReceivableAlreadyPosted = 'accounts_receivable_already_posted';
     case InvoiceAlreadyIssued            = 'invoice_already_issued';
-    case ReceiptAlreadyIssued            = 'receipt_already_issued';
 
     case ReversalBlockedByAccountsReceivable = 'reversal_blocked_by_accounts_receivable';
     case ReversalBlockedByInvoice            = 'reversal_blocked_by_invoice';
-    case ReversalBlockedByReceipt            = 'reversal_blocked_by_receipt';
 
     public function message(): string
     {
@@ -52,12 +54,8 @@ enum GoodwillOperationFailure: string
 
             self::AccountsReceivableAlreadyPosted => 'This order has already been posted to the customer\'s account. Reducing the order now would leave the receivable and the running balance stating a different amount than the order. Handle it through a credit memo or account adjustment, which amends the ledger explicitly, rather than by altering the order underneath it.',
             self::InvoiceAlreadyIssued => 'This order is on an issued invoice. Reducing the order now would leave the invoice, its open amount, and anything the customer is paying against it stating a different amount. Issue a credit memo against the invoice instead of altering the order underneath it.',
-            // TEMPORARY — removed in Commit 4B once supersession is atomic with the adjustment.
-            self::ReceiptAlreadyIssued => 'A receipt has already been created for this order, and receipt supersession is not available yet. Applying Goodwill now would leave that receipt permanently current and stale.',
-
             self::ReversalBlockedByAccountsReceivable => 'This adjustment cannot be reversed: the order was posted to the customer\'s account after the adjustment was applied, and restoring the original totals would contradict that receivable. Resolve the account entry first.',
             self::ReversalBlockedByInvoice => 'This adjustment cannot be reversed: an invoice was issued against this order after the adjustment was applied, and restoring the original totals would contradict it. Resolve the invoice first.',
-            self::ReversalBlockedByReceipt => 'This adjustment cannot be reversed: a receipt was created after the adjustment was applied and would state the adjusted totals. Resolve the receipt first.',
         };
     }
 }

@@ -17,6 +17,10 @@ class ReceiptService
     {
         try {
             // Try fetching latest receipt
+            // Latest by ID, not by created_at. The supersession chain is
+            // ordered by insertion, and a superseding receipt is frequently
+            // written in the same second as the one it replaces — `latest()`
+            // on a second-resolution timestamp could return either.
             $receipt = Receipt::with([
                 'invoice',
                 'items',
@@ -26,7 +30,7 @@ class ReceiptService
                 'customer.shippingAddress',
             ])
                 ->where('order_id', $order->id)
-                ->latest()
+                ->latest('id')
                 ->first();
 
             if ($receipt) {
@@ -47,6 +51,11 @@ class ReceiptService
                 'payment_status' => $paymentStatus,
                 'subtotal'       => $order->subtotal,
                 'sales_tax'      => $order->tax_amount,
+                // An original receipt states no concession. Written explicitly
+                // rather than left to the column default so the identity
+                // subtotal − goodwill + tax = total holds on the returned
+                // model, not merely in the database.
+                'goodwill_amount' => 0,
                 'total'          => $order->grand_total,
             ]);
 
@@ -84,6 +93,96 @@ class ReceiptService
 
             return null; // Return null if failed
         }
+    }
+
+    /**
+     * The current receipt for an order, or null. Never creates one.
+     *
+     * "Current" is the newest row by id. Superseded receipts are kept forever
+     * and never edited — they record what the customer was originally told —
+     * but only the newest is the live document.
+     */
+    public static function currentReceipt(Order $order): ?Receipt
+    {
+        return Receipt::where('order_id', $order->id)->latest('id')->first();
+    }
+
+    /**
+     * Issue a receipt that REPLACES the order's current one.
+     *
+     * Called from inside {@see \App\Services\Orders\GoodwillAdjustmentService}'s
+     * transaction, after the order totals have been rewritten and while the
+     * order row is still locked — so the new receipt cannot capture a
+     * half-applied state, and a rollback discards the receipt along with the
+     * adjustment.
+     *
+     * NOTHING IS OVERWRITTEN. The prior receipt and every one of its items are
+     * left exactly as they were; a new row is inserted that points back at it
+     * via `superseded_receipt_id`. Rewriting the old document would destroy
+     * the evidence of what the customer was originally handed.
+     *
+     * Returns null when the order has no receipt yet — there is nothing to
+     * supersede, and the eventual `getOrCreateReceipt()` will build a correct
+     * one from the already-adjusted order.
+     *
+     * @param  float  $goodwillAmount  The concession to state on the document.
+     * @param  float|null  $originalSubtotal  The pre-adjustment merchandise
+     *         figure. A receipt's `subtotal` describes the GOODS SUPPLIED,
+     *         which a concession does not change; the reduction belongs on its
+     *         own line, not folded silently into the merchandise total. Null
+     *         (a reversal) uses the order's own current subtotal.
+     */
+    public static function supersede(
+        Order $order,
+        ?int $goodwillAdjustmentId = null,
+        float $goodwillAmount = 0.0,
+        ?float $originalSubtotal = null,
+    ): ?Receipt {
+        $current = self::currentReceipt($order);
+
+        if (! $current) {
+            return null;
+        }
+
+        $receipt = Receipt::create([
+            'customer_id'            => $order->customer_id,
+            'order_id'               => $order->id,
+            'superseded_receipt_id'  => $current->id,
+            'goodwill_adjustment_id' => $goodwillAdjustmentId,
+            'invoice_id'             => $current->invoice_id,
+            'payment_method'         => self::mapPaymentMethod($order),
+            'receipt_date'           => now(),
+            'order_date'             => $order->order_date,
+            'payment_status'         => self::mapPaymentStatus($order),
+            'subtotal'               => $originalSubtotal ?? $order->subtotal,
+            'sales_tax'              => $order->tax_amount,
+            'goodwill_amount'        => $goodwillAmount,
+            'total'                  => $order->grand_total,
+        ]);
+
+        // Items are rebuilt from the order's CURRENT lines. `price` is
+        // untouched by an adjustment, so the itemized list still shows what
+        // was ordered at what unit price; only the tax and line totals move.
+        foreach ($order->products as $invItem) {
+            $receipt->items()->create([
+                'type'      => 'order',
+                'item_name' => $invItem->product_name,
+                'unit'      => $invItem->price,
+                'qty'       => $invItem->quantity,
+                'tax'       => $invItem->tax,
+                'total'     => $invItem->total,
+                'item_id'   => $invItem->unique_id,
+            ]);
+        }
+
+        Log::info('Receipt superseded', [
+            'order_id'       => $order->id,
+            'superseded_id'  => $current->id,
+            'new_receipt_id' => $receipt->id,
+            'goodwill'       => $goodwillAmount,
+        ]);
+
+        return $receipt;
     }
 
     /**

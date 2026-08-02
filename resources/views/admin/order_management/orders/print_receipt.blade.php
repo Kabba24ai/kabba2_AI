@@ -476,6 +476,26 @@
                 </td>
             </tr>
 
+            {{-- Commit 4B — the Goodwill concession, stated explicitly.
+
+                 A superseding receipt keeps `subtotal` at the ORIGINAL
+                 merchandise figure, because the goods supplied did not change;
+                 the reduction is shown here on its own line rather than folded
+                 silently into the merchandise total. The identity every
+                 receipt satisfies is subtotal − goodwill + tax = total, which
+                 on an ordinary receipt (goodwill 0) is the familiar
+                 subtotal + tax = total, so nothing changes for one. --}}
+            @if((float) ($receipt->goodwill_amount ?? 0) > 0)
+            <tr>
+                <td style="text-align:right; padding:4px 0;">
+                    Goodwill Adjustment :
+                </td>
+                <td style="text-align:right; padding:4px 0;">
+                    −{{ \App\Helpers\CustomHelper::formatCurrency($receipt->goodwill_amount) }}
+                </td>
+            </tr>
+            @endif
+
             <tr>
                 <td style="text-align:right; padding:4px 0;">
                     Tax ( {{ \App\Helpers\CustomHelper::displayPercentage($sales_tax) }} %) :

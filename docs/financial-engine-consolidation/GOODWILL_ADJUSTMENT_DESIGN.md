@@ -176,7 +176,9 @@ Reject on: missing permission (403); already fully paid; voided/ineligible order
 
 An order already reported to someone outside itself may not be altered underneath that report. **Apply** additionally refuses when the order has an Accounts Receivable posting (`customer_accounts`, any type, not soft-deleted), an issued invoice (checked via `orders.invoice_id`, the bound `customer_accounts.invoice_id`, **and** `invoice_items.item_id` referencing an order product — `Invoice\StoreController` writes the binding in three places and stamps the order column only conditionally), or an existing receipt (temporary, until §10 supersession lands).
 
-**Reversal** refuses on the presence of any of the same three. Because apply already refuses when they exist, presence at reversal time *is* proof the artifact arrived afterwards — a stronger test than comparing timestamps. Refunds remain timestamp-compared, since they are legitimately possible on an adjusted order.
+**Reversal** refuses on the presence of AR or an invoice. Because apply already refuses when they exist, presence at reversal time *is* proof the artifact arrived afterwards — a stronger test than comparing timestamps. Refunds remain timestamp-compared, since they are legitimately possible on an adjusted order.
+
+**Receipts are the exception, as of Commit 4B**: they are superseded rather than refused, on both paths (§10). The temporary apply-time receipt refusal and its reversal counterpart are gone, along with the `ReceiptAlreadyIssued` and `ReversalBlockedByReceipt` failure cases — a block is only correct while reversal cannot produce the superseding document, and now it can.
 
 Goodwill never edits a running account balance, an invoice total, or an invoice item. Corrections to those belong in a credit-memo / account-adjustment workflow. All guards run under the order row lock before any mutation; refusals leave order, lines, frozen `product_data`, and real payments byte-identical.
 
@@ -203,7 +205,23 @@ Goodwill appears in **no** payment-method, tender, cash-basis, collections, or S
 
 **Audit finding, correcting Revision 1:** `ReceiptService` persists a **snapshot** (`receipts.subtotal`/`sales_tax`/`total` + per-item rows) and sets `receipt_status = 'created'`. Receipts are historical records, not live views.
 
-Therefore Goodwill **marks any existing receipt superseded and issues a new one** with revised totals. The original row is never edited or deleted; `superseded_receipt_id` on the adjustment links them. A receipt issued before the adjustment remains a truthful record of what was presented at that moment.
+Therefore Goodwill **issues a new receipt and leaves the old one alone**. A receipt is a document that was handed to a customer; rewriting it destroys the evidence of what they were originally told. A receipt issued before the adjustment remains a truthful record of what was presented at that moment.
+
+**Implemented in Commit 4B.** New columns on `receipts`: `superseded_receipt_id` (self-referential — the new row points back at the one it replaces), `goodwill_adjustment_id`, and `goodwill_amount`. `order_goodwill_adjustments.superseded_receipt_id` records which receipt the adjustment displaced.
+
+**Current = newest by id.** `ReceiptService::getOrCreateReceipt()` was ordering by `latest()` on a second-resolution `created_at`; a superseding receipt is routinely written in the same second as the one it replaces, so it now orders by `latest('id')`. `ReceiptService::currentReceipt()` is the read-only accessor.
+
+**Lifecycle.** Original → (apply) adjusted, superseding the original → (reverse) restored, superseding the adjusted. Three documents, append-only, chain walkable in both directions via `supersededReceipt()` / `supersededBy()`. Nothing is ever updated or deleted.
+
+**Atomic with the adjustment.** `ReceiptService::supersede()` is called from inside the Goodwill transaction, after the totals are final and while the order row is still locked, so a rollback discards the replacement along with the adjustment and a duplicate (idempotent) apply issues only one. An order with no receipt gets none created — there is nothing to supersede, and the eventual `getOrCreateReceipt()` builds a correct one from the already-adjusted order.
+
+**The identity, on every receipt:**
+
+```
+subtotal − goodwill_amount + sales_tax = total
+```
+
+On an ordinary receipt `goodwill_amount` is `0.00` and this is the existing `subtotal + sales_tax = total`, so no existing row changes meaning. On a superseding receipt `subtotal` stays the **original** merchandise figure — the goods supplied did not change — and the concession is stated on its own line instead of being folded silently into the merchandise total.
 
 Presentation:
 

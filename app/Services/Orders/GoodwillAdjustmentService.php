@@ -10,6 +10,7 @@ use App\Http\DataObjects\HistoricalTaxBasis;
 use App\Models\Orders\Order;
 use App\Models\Orders\OrderGoodwillAdjustment;
 use App\Models\Iam\Personnel\User;
+use App\Services\ReceiptService;
 use App\Services\TaxCalculationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -522,6 +523,25 @@ class GoodwillAdjustmentService
             // canonical accessor now derives from the revised totals.
             $locked->refresh();
 
+            // Supersede the receipt, if one exists, INSIDE this transaction —
+            // the order is still locked, the totals are already final, and a
+            // rollback discards the new receipt along with the adjustment.
+            // The prior receipt is never edited; `subtotal` on the replacement
+            // states the ORIGINAL merchandise figure because the goods
+            // supplied did not change, and the concession is shown on its own
+            // line.
+            $superseding = ReceiptService::supersede(
+                $locked,
+                $adjustment->id,
+                $calc->goodwillCents / 100,
+                $calc->originalMerchandiseCents() / 100,
+            );
+
+            if ($superseding) {
+                $adjustment->superseded_receipt_id = $superseding->superseded_receipt_id;
+                $adjustment->save();
+            }
+
             return self::ok($calc, $adjustment->fresh(), replayed: false);
         });
     }
@@ -606,6 +626,13 @@ class GoodwillAdjustmentService
 
             $locked->refresh();
 
+            // A reversal is itself a change to what the customer owes, so it
+            // gets its own superseding document rather than quietly leaving
+            // the adjusted receipt current. goodwill_amount is 0 — the
+            // concession no longer applies — and the subtotal comes from the
+            // restored order.
+            ReceiptService::supersede($locked, $adjustment->id, 0.0);
+
             return self::ok(null, $adjustment->fresh(), replayed: false);
         });
     }
@@ -682,35 +709,6 @@ class GoodwillAdjustmentService
     }
 
     /**
-     * Has a receipt already been created for this order?
-     *
-     * `ReceiptService::getOrCreateReceipt()` freezes `subtotal`/`sales_tax`/
-     * `total` and per-item `tax`/`total`, and thereafter RETURNS THE EXISTING
-     * ROW without ever refreshing it. A receipt created before an adjustment
-     * would therefore stay current and stale forever.
-     *
-     * TEMPORARY — SCHEDULED FOR REMOVAL IN COMMIT 4B (receipt supersession
-     * and reissue). It exists only because shipping an apply path that
-     * knowingly leaves an existing receipt permanently current and stale is
-     * not acceptable. Once supersession is atomic with the adjustment, the
-     * correct behaviour becomes supersede-and-reissue and this refusal must be
-     * deleted from {@see self::applyBlocker()} — NOT from
-     * {@see self::reversalBlocker()}, where a receipt created after the
-     * adjustment remains a genuine blocker.
-     *
-     * Both the row and the order's own `receipt_status` flag are checked,
-     * since a legacy order could carry the flag without a surviving row.
-     */
-    private static function hasReceipt(Order $order): bool
-    {
-        if ((string) $order->receipt_status === 'created') {
-            return true;
-        }
-
-        return DB::table('receipts')->where('order_id', $order->id)->exists();
-    }
-
-    /**
      * What, if anything, forbids applying Goodwill to this order?
      *
      * Ordered most-consequential first so the operator is told about the
@@ -728,12 +726,9 @@ class GoodwillAdjustmentService
             return GoodwillOperationFailure::InvoiceAlreadyIssued;
         }
 
-        // TEMPORARY — remove in Commit 4B, once receipt supersession is atomic
-        // with the adjustment. See hasReceipt()'s docblock.
-        if (self::hasReceipt($order)) {
-            return GoodwillOperationFailure::ReceiptAlreadyIssued;
-        }
-
+        // An existing receipt no longer blocks: apply() supersedes it inside
+        // the same transaction (Commit 4B). The refusal that stood here was
+        // temporary and is gone.
         return null;
     }
 
@@ -761,9 +756,11 @@ class GoodwillAdjustmentService
             return GoodwillOperationFailure::ReversalBlockedByInvoice;
         }
 
-        if (self::hasReceipt($order)) {
-            return GoodwillOperationFailure::ReversalBlockedByReceipt;
-        }
+        // A receipt does NOT block reversal: reverse() issues a superseding
+        // receipt restoring the original figures, in the same transaction, so
+        // the receipt history stays consistent rather than being contradicted.
+        // The block would only be correct if reversal could not produce that
+        // document — see FD-002 Am.6.
 
         // A refund sized against a basis that would no longer exist.
         $laterRefund = $order->payments()

@@ -285,7 +285,7 @@ Approved after an audit classifying every durable snapshot created downstream of
 |---|---|---|
 | `customer_accounts` (any type) | **BLOCKS apply and reversal** | Type `order` rows snapshot `order_products.sub_total` and `.tax` — the exact columns Goodwill mutates — and feed a running `balance` every later row inherits |
 | `invoices` / `invoice_items` | **BLOCKS apply and reversal** | External document with an `open_amount` a customer may be paying against |
-| `receipts` / `receipt_items` | **BLOCKS apply** until supersession lands; **blocks reversal** | `ReceiptService` freezes totals and thereafter returns the existing row without refreshing it |
+| `receipts` / `receipt_items` | **SUPERSEDED**, not blocked — see Amendment 6 | `ReceiptService` freezes totals and thereafter returns the existing row without refreshing it |
 | Refunds | **Blocks reversal** (timestamp-compared) | Sized against a basis that would no longer exist |
 | `billing_charges` | Safe | Carries its own `amount`/`tax_amount`; nothing derives from `order_products.sub_total` |
 | `order_payment_refund_allocations` | Safe | Describes money actually moved; never touched |
@@ -297,6 +297,32 @@ Approved after an audit classifying every durable snapshot created downstream of
 1. **Explicit relationships are the evidence; timestamps are only supporting.** Invoice binding is checked three ways — `orders.invoice_id`, the bound `customer_accounts.invoice_id`, and `invoice_items.item_id` referencing an order product with `type = 'order'` — because `Invoice\StoreController` writes it in three places and stamps the order column only conditionally.
 2. **At reversal, presence alone is proof of lateness.** An order that already had one of these artifacts could never have received Goodwill, so an artifact present at reversal time necessarily arrived after the adjustment. This is stronger than a timestamp comparison, which can tie, skew, or be back-dated. Refunds are the exception — legitimately possible on an adjusted order — so there the timestamp comparison is retained and load-bearing.
 3. **Soft-deleted ledger entries do not block.** A deleted entry no longer participates in the running balance; refusing on it would block legitimate work.
-4. **The receipt block is explicitly temporary**, and exists only until receipt supersession lands. Shipping an apply path that knowingly leaves an existing receipt permanently current and stale is not acceptable.
+4. ~~**The receipt block is explicitly temporary**~~ — **SUPERSEDED by Amendment 6.** Receipts are now replaced rather than refused, on both the apply and reversal paths.
 5. **Every guard runs under the order row lock, before any mutation**, so an invoice or ledger posting cannot be created between the check and the write.
 6. **Refusals write nothing.** Order, lines, frozen `product_data`, and real payments are all asserted byte-identical after a refused apply and a refused reversal.
+
+### Amendment 6 (2026-08-02) — Receipts are superseded, never edited or refused
+
+Approved together with Amendment 5's temporary receipt block, which this replaces.
+
+**A receipt is a document that was handed to a customer.** Rewriting it destroys the evidence of what they were originally told, and refusing to adjust an order because a receipt exists just moves the problem to the operator. The third option is the correct one: **issue a new receipt and leave the old one alone.**
+
+**Rules:**
+
+1. **Nothing is ever updated or deleted.** A superseding receipt is a new row; the prior receipt and all of its items are asserted byte-identical afterwards.
+2. **The newest receipt by id is the current one.** `getOrCreateReceipt()` previously ordered by `latest()` on a second-resolution `created_at` — a superseding receipt is routinely written in the same second as the one it replaces, so the ordering could return either. It now orders by `latest('id')`.
+3. **The chain is explicit and walkable.** `receipts.superseded_receipt_id` points back at the replaced row; `order_goodwill_adjustments.superseded_receipt_id` records which receipt an adjustment displaced.
+4. **Supersession is atomic with the adjustment** — issued inside the same transaction, after the totals are final, while the order row is still locked. A rollback discards the replacement with the adjustment; an idempotent retry issues only one.
+5. **Reversal issues its own superseding receipt** restoring the original figures, with `goodwill_amount` back to `0.00`. This is why reversal no longer blocks on receipts: the block was only correct while reversal could not produce that document.
+6. **An order with no receipt gets none created.** There is nothing to supersede, and the eventual receipt is built from the already-adjusted order.
+7. **The concession is stated, not hidden.** `receipts.goodwill_amount` carries it and the printed receipt shows it on its own line. `subtotal` on a superseding receipt stays the **original** merchandise figure, because the goods supplied did not change.
+
+**The identity every receipt satisfies:**
+
+```
+subtotal − goodwill_amount + sales_tax = total
+```
+
+On an ordinary receipt `goodwill_amount` is `0.00`, reducing this to the existing `subtotal + sales_tax = total` — no existing row changes meaning.
+
+The `ReceiptAlreadyIssued` and `ReversalBlockedByReceipt` failure cases are removed. AR and invoice guards are unaffected: those artifacts are owned by workflows Goodwill does not control, and remain hard refusals.

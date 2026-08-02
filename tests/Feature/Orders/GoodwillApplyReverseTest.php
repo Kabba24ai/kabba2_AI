@@ -598,41 +598,16 @@ class GoodwillApplyReverseTest extends TestCase
         $this->assertSame(GoodwillOperationFailure::InvoiceAlreadyIssued, $result['failure']);
     }
 
-    /**
-     * TEMPORARY GUARD — this test must be REPLACED in Commit 4B, not deleted.
-     * Once receipt supersession is atomic with the adjustment, the correct
-     * assertion becomes "apply succeeds and supersedes the existing receipt".
-     * The reversal-side receipt block stays.
-     */
-    public function test_existing_receipt_blocks_apply_until_supersession_lands(): void
+    public function test_an_existing_receipt_no_longer_blocks_apply(): void
     {
-        // ReceiptService returns the existing row without ever refreshing it,
-        // so applying now would leave that receipt permanently current and
-        // stale.
+        // Commit 4B replaced the temporary refusal with supersession.
         $order = $this->makeOrder();
         $this->pay($order, 185.00);
         $this->createReceipt($order);
 
-        $before = $this->financialSnapshot($order);
-
         $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
 
-        $this->assertFalse($result['ok']);
-        $this->assertSame(GoodwillOperationFailure::ReceiptAlreadyIssued, $result['failure']);
-        $this->assertEquals($before, $this->financialSnapshot($order));
-    }
-
-    public function test_receipt_status_flag_alone_blocks_apply(): void
-    {
-        // A legacy order can carry the flag without a surviving receipt row.
-        $order = $this->makeOrder();
-        $this->pay($order, 185.00);
-        DB::table('orders')->where('id', $order->id)->update(['receipt_status' => 'created']);
-
-        $result = GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk);
-
-        $this->assertFalse($result['ok']);
-        $this->assertSame(GoodwillOperationFailure::ReceiptAlreadyIssued, $result['failure']);
+        $this->assertTrue($result['ok'], 'A receipt is superseded now, not refused.');
     }
 
     // ── Reverse ────────────────────────────────────────────────────────────
@@ -752,21 +727,21 @@ class GoodwillApplyReverseTest extends TestCase
         $this->assertFalse(OrderGoodwillAdjustment::firstOrFail()->isReversed());
     }
 
-    public function test_reversal_is_blocked_by_a_receipt_created_after_goodwill(): void
+    public function test_a_receipt_created_after_goodwill_does_not_block_reversal(): void
     {
+        // A receipt is not a reason to refuse: the reversal issues its own
+        // superseding document, so the history stays consistent instead of
+        // being contradicted.
         $order = $this->makeOrder();
         $this->pay($order, 185.00);
         $this->assertTrue(GoodwillAdjustmentService::apply($order->fresh(), 18500, GoodwillReasonCode::ManagerCourtesy, null, $this->manager, $this->clerk)['ok']);
 
         $this->createReceipt($order);
 
-        $result = GoodwillAdjustmentService::reverse($order->fresh(), $this->manager, 'Too late');
+        $result = GoodwillAdjustmentService::reverse($order->fresh(), $this->manager, 'Applied in error');
 
-        $this->assertFalse($result['ok']);
-        $this->assertSame(GoodwillOperationFailure::ReversalBlockedByReceipt, $result['failure']);
-
-        $order->refresh();
-        $this->assertSame('185.00', (string) $order->grand_total);
+        $this->assertTrue($result['ok']);
+        $this->assertSame('219.50', (string) $order->fresh()->grand_total);
     }
 
     public function test_a_blocked_reversal_leaves_the_payment_byte_identical(): void

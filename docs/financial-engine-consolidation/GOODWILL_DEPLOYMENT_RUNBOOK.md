@@ -57,7 +57,37 @@ git merge-base --is-ancestor origin/raj_development HEAD # → exit 0
 
 ## 2. Pre-deployment checks
 
-Run every command and record the output in the release-evidence file.
+### 2.0 Create the evidence directory FIRST
+
+Everything below writes into it. Create it **outside the application release directory**, for the same reason the backup lives outside: deployment cleanup must not be able to remove the record of the deployment.
+
+```bash
+STAMP=$(date +%Y%m%d-%H%M)
+EVIDENCE="/releases/goodwill-${STAMP}"     # ← substitute a real path outside the app tree
+mkdir -p "$EVIDENCE"
+echo "$EVIDENCE"
+```
+
+By the end of §6 it must contain all eleven items:
+
+```text
+$EVIDENCE/
+├── 01-pre-deploy-commit.txt      current production commit, before anything changes
+├── 02-rollback-tag.txt           tag name + the commit it points at + push confirmation
+├── 03-backup-verification.txt    path, size, gzip -t, completion marker, table count
+├── 04-backup-checksum.txt        sha256
+├── 05-backfill-audit.txt         PRE-migration audit (the gate decision)
+├── 06-migrate.txt                migration output
+├── 07-post-migration-queries.txt §5.1–5.7 results
+├── 08-permission-verification.txt §5.5 + the IAM grant that was made
+├── 09-smoke-test-ids.txt         every order / receipt / adjustment ID from §6
+├── 10-final-commit.txt           deployed commit after fast-forward
+└── 11-signoff.txt                completed §10 checklist
+```
+
+Also useful and cheap: `05b-backfill-audit-post.txt` (§5.3) and `env.txt` (the §2 environment capture).
+
+Run every command below and record the output.
 
 ```bash
 # Environment identity — confirm you are on the right host and app
@@ -79,16 +109,90 @@ git log -1 --format="%H %s"     # ← RECORD THIS: current production commit
 
 Local development ran PHP 8.5.9 and MySQL 9.7.1. **Confirm production is not older than the project's `composer.json` floor before proceeding**; do not assume parity with development.
 
-### Queue state
+### Maintenance mode — decided: NOT used
 
-Migration #3 rewrites `orders` and `order_products` rows. A worker mid-job against those tables during the ALTER is a needless risk.
+`php artisan down` is **not** part of the proven deployment process, so introducing it during a financial release would add an untested failure mode rather than remove one. The business is closed. The agreed controls instead are:
+
+1. Drain or pause queue workers (below).
+2. No active admin use during the migration window.
+3. Deploy directly.
+4. Keep **permission revocation** (§8.1) as the immediate feature kill switch.
+
+### Queue handling
+
+Migration #3 rewrites `orders` and `order_products`. A worker mid-job against those tables during the ALTER is a needless risk.
+
+**Discover the actual supervisor/service names first — do not guess them during the deployment.** Record what you find.
 
 ```bash
-php artisan queue:monitor default          # depth before starting
-ps aux | grep -c "[q]ueue:work"            # running workers
+# What is actually running, and under what supervisor?
+ps -eo pid,etime,cmd | grep "[q]ueue:work"
+sudo supervisorctl status 2>/dev/null || true       # if supervisor is used
+systemctl list-units --type=service | grep -i queue 2>/dev/null || true
+crontab -l | grep -i "queue\|schedule" || true
+
+# Backlog depth before starting — record it
+php artisan queue:monitor default
 ```
 
-Let the queue drain, or pause workers, before migrating. Record the depth either way.
+Concrete sequence:
+
+```bash
+# 1. Stop NEW work. Use the real service name discovered above.
+sudo supervisorctl stop <ACTUAL_WORKER_GROUP>     # e.g. kabba-worker:*
+#    …or, if not supervised, signal a graceful stop after the current job:
+php artisan queue:restart      # workers exit cleanly at the next job boundary
+
+# 2. Let current jobs FINISH. Do not kill mid-write.
+watch -n2 'ps -eo pid,etime,cmd | grep "[q]ueue:work" | wc -l'   # → 0
+
+# 3. Confirm nothing is still writing orders.
+mysql -h "$DB_HOST" -u "$DB_USER" -p -e "
+  SELECT id, user, db, command, time, state, LEFT(info,120) AS query
+  FROM information_schema.processlist
+  WHERE db='$DB_NAME' AND command <> 'Sleep';"
+#    Expect only your own session. Any UPDATE/INSERT against orders or
+#    order_products → WAIT. Do not migrate over an in-flight write.
+
+# 4. Workers are restarted AFTER migration and cache rebuild — see §4.6.
+```
+
+If a job cannot be allowed to finish, note it and stop; a killed job mid-write is exactly the "unexplained production data mutation" §7 rolls back for.
+
+### Size and duration estimate
+
+Migration #3 reads every order and line and writes back the reconstructable ones. Record before starting:
+
+```bash
+mysql -h "$DB_HOST" -u "$DB_USER" -p -e "
+  SELECT (SELECT COUNT(*) FROM orders)         AS orders,
+         (SELECT COUNT(*) FROM order_products) AS order_products,
+         (SELECT COUNT(*) FROM receipts)       AS receipts;"
+
+# Table + index size, and InnoDB free space
+mysql -h "$DB_HOST" -u "$DB_USER" -p -e "
+  SELECT table_name,
+         ROUND((data_length+index_length)/1024/1024,1) AS mb
+  FROM information_schema.tables
+  WHERE table_schema='$DB_NAME'
+    AND table_name IN ('orders','order_products','receipts');"
+```
+
+The backfill processes orders in chunks of 500 and writes in transactions of 200, so memory is bounded regardless of row count. Expect roughly **a few seconds per 10,000 orders**, plus the ALTER time for the four `orders` / `order_products` column additions, which MySQL 8+/9 performs INSTANT for nullable/defaulted additions in most cases. **A realistic estimate for a database of this size is under a minute; treat anything beyond five minutes as a signal to investigate, not to interrupt.**
+
+Do not `Ctrl-C` a running migration. If it must be stopped, let it finish and use §8.
+
+### Disk headroom
+
+Record **all three**:
+
+```bash
+df -h .                        # application/release volume
+df -h /backups                 # backup destination — see below
+df -h /var/lib/mysql           # database volume (ALTER temp space lives here)
+```
+
+The backup destination and the MySQL data volume must have room **simultaneously**: the dump is written while the database still holds its full working set, and the ALTERs may need temporary space on the data volume. If backup and data share a volume, confirm free space exceeds the compressed dump plus the largest table's size before starting.
 
 ### Rollback tag
 
@@ -106,9 +210,40 @@ Record the tag name. **Do not proceed without it.**
 
 ### Database backup
 
+**Location requirements — check these BEFORE dumping.** A backup inside the application release directory is not a backup: deployment cleanup, a release-pruning script, or an `rm -rf` of an old release can remove it exactly when it is needed.
+
+```bash
+# Choose a path OUTSIDE the application tree, on a volume with room.
+BACKUP_DIR=/backups                  # ← substitute the real path
+APP_DIR=$(pwd)
+
+# 1. Prove it is outside the release directory.
+case "$(readlink -f "$BACKUP_DIR")" in
+  "$(readlink -f "$APP_DIR")"*) echo "REFUSE: backup dir is inside the app tree";;
+  *) echo "OK: outside the app tree";;
+esac
+
+# 2. Prove it is writable and who can read it.
+ls -ld "$BACKUP_DIR"                 # record owner, group, mode
+touch "$BACKUP_DIR/.write-probe" && rm "$BACKUP_DIR/.write-probe" && echo "writable"
+```
+
+**Record in the evidence file:**
+
+| Item | Value |
+|---|---|
+| Absolute backup path | `____________________________` |
+| Database name | `____________________________` |
+| MySQL host | `____________________________` |
+| Backup directory owner / group / mode | `____________________________` |
+| Who can read it (users/roles) | `____________________________` |
+| Outside the application release directory? | **yes / no** — must be **yes** |
+
+If the answer to the last row is *no*, move the backup before continuing.
+
 ```bash
 STAMP=$(date +%Y%m%d-%H%M)
-BACKUP="/backups/kabba2-pre-goodwill-${STAMP}.sql.gz"
+BACKUP="${BACKUP_DIR}/kabba2-pre-goodwill-${STAMP}.sql.gz"
 
 mysqldump -h "$DB_HOST" -u "$DB_USER" -p \
   --single-transaction --quick --routines --triggers --events \
@@ -145,13 +280,40 @@ Record: filename · size · SHA-256 · table count · restore command.
 
 ## 3. Mandatory production audit
 
+### Timing — the deliberate intermediate state
+
+The diagnostic command **ships in this release**, so it does not exist on production until the code is fetched. But it must run **before** the migration. That requires an explicit intermediate state:
+
+1. Fetch the release code into the working tree.
+2. Run the diagnostic **against the unchanged production schema**.
+3. Review the result.
+4. Only then migrate.
+
+**This is safe, and it was proven rather than assumed.** The release was checked out against a database rolled back to the exact pre-migration schema, seeded with representative orders, and the command run:
+
+- It reads only `orders` (`id`, `subtotal`, `tax_amount`, `discount_amount`, `grand_total`) and `order_products` (`id`, `order_id`, `product_data`) — **every one of which exists today.**
+- It reads **none** of the four new columns; those are written by `apply()`, which the diagnostic never calls.
+- It correctly reconstructed a special-tax order and correctly **flagged** an order whose `product_data` was NULL with a nonzero residual, printing `DEPLOYMENT GATE FAILED` and refusing.
+
+Model classes listing not-yet-existing columns in `$fillable`/`$casts` are inert for reads, and the command touches no model that selects them.
+
+```bash
+# Fetch the code WITHOUT completing a deployment: no migrations, no cache
+# rebuild, no worker restart. Checking out the branch is sufficient for
+# `php artisan` to load the new command class from the autoloader.
+git fetch origin
+git checkout raj_development
+git merge --ff-only origin/feature/goodwill-adjustment
+composer dump-autoload --no-scripts     # register the new command class
+
+php artisan list 2>/dev/null | grep special-tax-backfill-audit   # confirm present
+```
+
+> If the diagnostic errors for ANY reason mentioning an unknown column, **stop immediately** — that would falsify the premise above and the audit cannot be trusted before migration.
+
 Run **before** any migration. Strictly read-only — every operation beneath it is a `SELECT`.
 
 ```bash
-STAMP=$(date +%Y%m%d-%H%M)
-EVIDENCE="/releases/goodwill-${STAMP}"
-mkdir -p "$EVIDENCE"
-
 php artisan diagnostics:special-tax-backfill-audit --show-ids \
   2>&1 | tee "$EVIDENCE/backfill-audit.txt"
 ```
@@ -222,9 +384,8 @@ php artisan route:clear  && php artisan route:cache
 php artisan view:clear   && php artisan view:cache
 php artisan event:clear  && php artisan event:cache
 
-# 4.5 — Permissions: new IAM module must be seeded, or the authorising-manager
-#       list is empty and nobody can be selected. Idempotent.
-php artisan db:seed --class="Database\\Seeders\\Iam\\ModuleSeeder" --force \
+# 4.5 — Permissions. Use the NARROW seeder. See the warning below.
+php artisan db:seed --class="Database\\Seeders\\Iam\\GoodwillPermissionSeeder" --force \
   2>&1 | tee "$EVIDENCE/seed.txt"
 
 # Spatie caches its permission map; it must be told the map changed.
@@ -240,7 +401,26 @@ ps aux | grep -c "[q]ueue:work"
 
 > **Do not use `migrate:rollback` as the primary recovery mechanism.** Migration #3's `down()` drops the special-tax/fee columns, which discards reconstructed data and makes any order adjusted in the meantime permanently unreconcilable. Migration #1's `down()` destroys the ability to reverse any applied adjustment. Recovery is §8: revert code, leave schema.
 
-After 4.5, grant `goodwill.apply` / `goodwill.reverse` to the intended manager role through the normal IAM screen. Until that is done the feature is inert — which is a safe default, not a bug.
+> ### ⚠ DO NOT RUN `ModuleSeeder` IN PRODUCTION
+>
+> An earlier draft of this runbook called `ModuleSeeder`. **That was wrong, and testing it caught the mistake before deployment.**
+>
+> `ModuleSeeder::run()` is a full **reconciliation** seeder, not an additive one. It ends with:
+>
+> ```php
+> Permission::where('module_id', $module->id)->whereNotIn('name', $keep)->delete();
+> Module::whereNotIn('title', $modulesKept)->delete();
+> ModuleCategory::whereNotIn('title', $categoriesKept)->delete();
+> Permission::whereNull('module_id')->delete();
+> ```
+>
+> Anything not present in its hardcoded `$moduleList` is **DELETED**. This was verified empirically, not inferred: three planted rows — an orphan permission, an unrelated module category, and an extra permission attached to an existing module — were **all removed by a single re-run**. Deleting a Spatie permission cascades through `role_has_permissions` and `model_has_permissions`, so access is revoked **silently**.
+>
+> It also **throws** when no `Master Admin` role exists, and is **not transactional**, so a failure part-way leaves modules and permissions half-created. It additionally grants every permission to `Master Admin`.
+>
+> Running it to obtain three new permissions would risk the entire access-control table. `GoodwillPermissionSeeder` does only the additive part: `firstOrCreate` for the category, module, and three permissions, inside one transaction, **with no deletes, no role changes, and no dependency on `Master Admin`**. Proven by `tests/Feature/Orders/GoodwillPermissionSeederTest.php`, whose load-bearing case plants exactly the three row shapes `ModuleSeeder` destroys and asserts they survive.
+
+After 4.5, grant `goodwill.apply` / `goodwill.reverse` to the intended manager role through the normal IAM screen. The seeder deliberately **grants nothing to anyone** — a seeder that handed out authority to reduce revenue would defeat the separation FD-002 §7.3 exists to enforce. Until the grant is made the feature is inert, which is a safe default, not a bug.
 
 ---
 
@@ -455,6 +635,17 @@ Any *additional* failure is a regression from this release, not a baseline.
 5. **Goodwill on an order with $0.00 collected is unsupported** — that is a write-off, undecided per Truth Table §5.9. Both the preview and apply paths refuse it.
 6. **`TaxCalculationService` has a float contract**, recorded as technical debt. Goodwill normalizes to integer cents at its own boundaries and adds no new floating-point logic.
 7. **AR-posted and invoiced orders cannot receive Goodwill at all** (FD-002 Am.5). The remedy is a credit-memo / account-adjustment workflow that does not exist yet.
+8. **`ModuleSeeder` must never be run in production** (see §4.5). It reconciles and deletes. `GoodwillPermissionSeeder` replaces it for this release. This limitation is pre-existing and applies to any future release that needs new permissions.
+9. **Maintenance mode is not used** (§2). The kill switch is permission revocation, not `php artisan down`.
+
+### Verified before deployment, not assumed
+
+Two preconditions were stated as approval conditions and were proven by experiment rather than reasoning:
+
+| Condition | How it was proven | Result |
+|---|---|---|
+| The diagnostic can run against the **old** schema | Test database rolled back to the exact pre-migration schema, seeded with a special-tax order and a NULL-`product_data` order, command executed | **PASS** — reconstructed the first, flagged the second, printed `DEPLOYMENT GATE FAILED` |
+| `ModuleSeeder` is production-safe | Planted an orphan permission, an unrelated module category, and an extra permission on an existing module; re-ran the seeder | **FAIL** — all three deleted. Replaced with `GoodwillPermissionSeeder`, covered by 6 tests |
 
 ---
 

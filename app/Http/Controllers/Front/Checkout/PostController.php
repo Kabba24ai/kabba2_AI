@@ -222,6 +222,13 @@ class PostController extends Controller
                 'company_website' => $customer->company_website,
                 'subtotal' => $cartSummary['sub_total'],
                 'tax_amount' => $cartSummary['tax_total'],
+                // grand_total has always included these two; until now they
+                // were recorded nowhere but the per-line frozen JSON, which is
+                // what makes OrderDiscountTarget unable to reduce special tax
+                // while preserving added fees. Aggregates of the line columns
+                // written below.
+                'special_tax_amount' => $cartSummary['special_tax_total'] ?? 0,
+                'added_fees_amount' => $cartSummary['added_fees_total'] ?? 0,
                 'coupon_code' => null,
                 'discount_amount' => $cartSummary['discount'],
                 'grand_total' => $cartSummary['grand_total'],
@@ -302,6 +309,11 @@ class PostController extends Controller
                         'allocated_hours' => $item['allocated_hours'] ?? 0.0,
                         'sub_total' => $item['sub_total'],
                         'tax' => $item['tax'],
+                        // Current, mutable components. `product_data` below
+                        // keeps the original of the same two values; these
+                        // columns are what a pre-tax adjustment may revise.
+                        'special_tax' => $item['special_tax'] ?? 0,
+                        'added_fees' => $item['added_fees'] ?? 0,
                         'total' => $item['total'],
                         'is_product_clean' => $item['is_product_clean'] ?? false,
                         'rental_prepaid_cleaning' => $item['rental_prepaid_cleaning'] ?? 0,

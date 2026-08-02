@@ -268,3 +268,39 @@ Two decisions follow, and neither is mine to make:
 
 1. Should the fix ship **ahead** of Goodwill as its own release?
 2. Do **already-affected orders** need identifying and remediating? A read-only query can quantify the exposure — orders with `pretax_discount_total > 0` whose `product_data` shows a non-zero `special_tax` — without changing anything.
+
+---
+
+## Part 6 — Technical debt: `product_data` is not universally immutable
+
+Recorded during Increment 1. **Does not block any increment**, but the codebase must stop describing `product_data` as an immutable snapshot, because that is not true.
+
+`app/Http/Controllers/Admin/Tests/IndexController.php` (~line 1009) runs a maintenance backfill that **rewrites the JSON document**:
+
+```php
+$productData['rental_prepaid_cleaning'] = $rentalPrepaidCleaning;
+$productData['is_product_clean'] = $isProductClean;
+
+$orderProduct->update([
+    'rental_prepaid_cleaning' => …,
+    'is_product_clean' => …,
+    'product_data' => $productData,     // ← the frozen snapshot is rewritten
+]);
+```
+
+### The accurate statement
+
+> `product_data` is the historical financial snapshot for **special tax and added fees**, but a legacy maintenance route mutates unrelated **cleaning** fields inside the same JSON document.
+
+### Why it is safe for this work, and where the risk actually sits
+
+The route adds only `rental_prepaid_cleaning` and `is_product_clean`. It never reads or writes `special_tax` or `added_fees`, so the values the backfill depends on are intact — verified, not assumed.
+
+The risk is not present damage but **precedent**: a document treated as writable by one route will eventually be written by another. The financial fields have no protection beyond convention.
+
+### Debt items
+
+1. **Narrow the route.** Write the two dedicated columns (`order_products.rental_prepaid_cleaning`, `is_product_clean`) and stop rewriting the JSON — both columns already exist, so the JSON write appears redundant.
+2. **Correct every docblock** claiming `product_data` is never modified.
+3. **Consider a guard** rejecting writes that would alter `special_tax` or `added_fees` once those are the historical record behind a financial correction.
+4. **If the route has already run**, confirm it preserved unrelated keys rather than replacing the document. It reads `$orderProduct->product_data ?? []` and adds keys, so it should — but "should" is not "was", and this is worth one read-only check against production before Increment 2's correction relies on the snapshot.

@@ -43,6 +43,8 @@ class Order extends Model
         'subtotal',
         'is_tax_exempt', // Yes, No*
         'tax_amount',
+        'special_tax_amount',
+        'added_fees_amount',
         'coupon_code',
         'discount_amount',
         'grand_total',

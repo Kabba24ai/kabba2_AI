@@ -48,6 +48,8 @@ class OrderProduct extends Model
         'hour_rate',
         'sub_total',
         'tax',
+        'special_tax',
+        'added_fees',
         'total',
         'product_data', // json
         'service_method', // 'In Store Pickup', 'Delivery'

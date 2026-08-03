@@ -37,9 +37,13 @@ use Tests\TestCase;
  *  - calculateAllocationSplits() for Standard and Sales Tax Only — neither
  *    branch touches the database (only Card Processing Fee Retained calls
  *    remainingCardFeeCapacity(), which queries a relation) — built with
- *    real, unsaved Order instances since proportionalTaxRefund() only
- *    reads plain attributes.
- *  - proportionalTaxRefund()'s pure formula.
+ *    real, unsaved Order instances. NOTE: proportionalTaxRefund() now
+ *    resolves its rate from the order's LINES, so an unsaved order yields
+ *    a zero tax portion. These cases therefore still prove the
+ *    remainder-to-last-row rounding and the per-row base+tax invariant,
+ *    but they no longer exercise a non-zero rate — that lives in
+ *    tests/Feature/Orders/RefundTaxBasisTest.php.
+ *  - proportionalTaxRefund()'s unresolvable-basis behaviour.
  *  - OrderPaymentRefundAllocationStatus::reservesBalance() and
  *    RefundOperationStatus::isRetryable().
  */
@@ -183,15 +187,26 @@ class PaymentAllocationServiceTest extends TestCase
         return $order;
     }
 
-    public function test_proportional_tax_refund_extracts_tax_at_the_original_rate(): void
+    public function test_proportional_tax_refund_reports_no_tax_when_the_basis_is_unresolvable(): void
     {
-        // $1000 subtotal + $97.50 tax => 9.75% rate. A $219.50 refund at
-        // that rate extracts $19.50 tax (matches the Phase 2/3A formula).
+        // THE FORMULA IS NO LONGER PURE, AND THAT IS THE FIX.
+        //
+        // The rate used to be tax_amount / subtotal — arithmetic on two
+        // attributes, testable without a database, and WRONG. `subtotal` is
+        // gross: it includes tax-free lines that never generated tax, and it
+        // does not move when a pre-tax adjustment reduces tax_amount. The rate
+        // now comes from TaxableBasisResolver, which reads the order's lines.
+        //
+        // An unsaved order has no lines and is not an extension child, so its
+        // basis is unresolvable. The documented behaviour is to report zero tax
+        // and log — NOT to fall back to the old denominator, which would
+        // reinstate the defect exactly where the record is least trustworthy.
+        //
+        // Rate coverage moved to tests/Feature/Orders/RefundTaxBasisTest.php,
+        // which needs real lines to mean anything.
         $order = $this->makeOrder(1000.0, 97.50);
 
-        $tax = PaymentAllocationService::proportionalTaxRefund($order, 219.50);
-
-        $this->assertEqualsWithDelta(19.50, $tax, 0.01);
+        $this->assertSame(0.0, PaymentAllocationService::proportionalTaxRefund($order, 219.50));
     }
 
     public function test_proportional_tax_refund_is_zero_when_no_tax_was_charged(): void

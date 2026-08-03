@@ -195,12 +195,36 @@ class OrderPayment extends Model
      */
     public function scopeSettled($query)
     {
-        $settledValues = collect(OrderPaymentStatus::cases())
-            ->filter(fn (OrderPaymentStatus $status) => $status->isSettled() || $status === OrderPaymentStatus::PartialPayment)
-            ->map(fn (OrderPaymentStatus $status) => $status->value)
-            ->all();
-
-        return $query->whereIn('status', $settledValues);
+        return $query->whereIn('status', self::settledStatusValues());
     }
 
+    /**
+     * The one definition of "settled", so a query and an in-memory filter can
+     * never disagree.
+     *
+     * Extracted when Goodwill began deriving its accepted-payment total from
+     * rows it had already locked, rather than from a second aggregate query.
+     * Re-stating the predicate there would have created two answers to the same
+     * question, on a figure a concession is sized against.
+     *
+     * @return list<string>
+     */
+    public static function settledStatusValues(): array
+    {
+        return collect(OrderPaymentStatus::cases())
+            ->filter(fn (OrderPaymentStatus $status) => $status->isSettled() || $status === OrderPaymentStatus::PartialPayment)
+            ->map(fn (OrderPaymentStatus $status) => $status->value)
+            ->values()
+            ->all();
+    }
+
+    /** Does THIS row represent settled money? The in-memory form of scopeSettled(). */
+    public function isSettledPayment(): bool
+    {
+        $value = $this->status instanceof OrderPaymentStatus
+            ? $this->status->value
+            : (string) $this->status;
+
+        return in_array($value, self::settledStatusValues(), true);
+    }
 }

@@ -112,6 +112,20 @@ Route::prefix('orders')
         Route::post('/{unique_id}/store-credit-discount', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\ApplyController::class)->name('store-credit-discount.apply')->middleware('permission:customer_credit.redeem');
         Route::delete('/{unique_id}/store-credit-discount/{discountId}', \App\Http\Controllers\Admin\OrderManagement\Orders\StoreCreditDiscount\RemoveController::class)->name('store-credit-discount.remove')->whereNumber('discountId')->middleware('permission:customer_credit.grant');
 
+        // Goodwill ADJUSTMENT (pre-tax concession, never a payment) — preview /
+        // apply / reverse on a partly-paid POD order.
+        //
+        // The `permission:` middleware below is DEFENCE IN DEPTH ONLY. It
+        // cannot refuse anyone today: Spatie's PermissionMiddleware calls
+        // canAny(), which routes through the Gate, and AppServiceProvider
+        // registers Gate::before(fn () => true). Real authority is enforced
+        // inside GoodwillAdjustmentService via hasPermissionTo(), which does
+        // not consult the Gate. These lines exist so the routes are already
+        // correct on the day the bypass is removed — nothing may depend on them.
+        Route::get('/{unique_id}/goodwill/preview', \App\Http\Controllers\Admin\OrderManagement\Orders\Goodwill\PreviewController::class)->name('goodwill.preview')->middleware('permission:goodwill.apply');
+        Route::post('/{unique_id}/goodwill', \App\Http\Controllers\Admin\OrderManagement\Orders\Goodwill\ApplyController::class)->name('goodwill.apply')->middleware('permission:goodwill.apply');
+        Route::delete('/{unique_id}/goodwill/{adjustmentId}', \App\Http\Controllers\Admin\OrderManagement\Orders\Goodwill\ReverseController::class)->name('goodwill.reverse')->whereNumber('adjustmentId')->middleware('permission:goodwill.reverse');
+
         // POD Payment Link — manual resend
         Route::post('/{unique_id}/resend-pod-payment-link', ResendPodPaymentLinkController::class)->name('resend-pod-payment-link');
 

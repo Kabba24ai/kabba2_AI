@@ -107,6 +107,29 @@ class ModuleSeeder extends Seeder
             ],
             // Customer Credit [End]
 
+            // Goodwill [Start] — Release 2, Goodwill Adjustment.
+            //
+            // Declared here ONLY so this seeder's reconciliation does not
+            // delete the module and its permissions if it is ever run. The
+            // permissions are created in production by the additive
+            // GoodwillPermissionSeeder, which deletes nothing. This seeder
+            // remains unsafe for production use — see its own header.
+            [
+                'module_category_name' => 'Goodwill',
+                'modules' => [
+                    [
+                        'module_name' => 'goodwill',
+                        'module_title' => 'Goodwill',
+                        'model_name' => 'OrderGoodwillAdjustment',
+                        'permission_names' => [
+                            'apply' => 'Apply Goodwill',
+                            'reverse' => 'Reverse Goodwill',
+                        ],
+                    ],
+                ],
+            ],
+            // Goodwill [End]
+
             // Resolution Center [Start] — Phase 3.3, Customer Resolution Center Foundation
             [
                 'module_category_name' => 'Resolution Center',

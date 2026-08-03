@@ -8,6 +8,7 @@ use App\Enums\Discounts\DiscountType;
 use App\Models\Customers\Customer;
 use App\Models\Discounts\ProductDiscount;
 use App\Services\Discounts\Contracts\DiscountTarget;
+use App\Services\Discounts\Contracts\PrivilegedDiscountAuthorization;
 use App\Services\CustomerCreditService;
 use Illuminate\Support\Facades\DB;
 
@@ -219,8 +220,85 @@ class DiscountApplicationService
         );
     }
 
+    // ── Goodwill: a dedicated, separately-authorized entry point ─────────────
+    //
+    // Goodwill deliberately remains refused by apply() below. A concession that
+    // reduces revenue must not be reachable from a generic discount call: it
+    // needs manager authority, a stated reason, a payment it is sized against
+    // and an audit record, none of which the generic path knows anything about.
+    //
+    // The authorization parameter is what makes that structural rather than
+    // conventional — see PrivilegedDiscountAuthorization. This method performs
+    // no permission check of its own; it requires proof that one was already
+    // made, by a domain that could make it properly.
+
     /**
-     * Apply a discount to a resolved target. The core entry point.
+     * Apply a Goodwill concession to a resolved target.
+     *
+     * The financial work is identical to any other pre-tax adjustment — the
+     * same calculator, the same target re-pricing, the same allocation ledger.
+     * Only the way in is different.
+     *
+     * @throws DiscountException on any server-authoritative rejection
+     */
+    public function applyGoodwill(
+        DiscountTarget $target,
+        float $amount,
+        string $idempotencyKey,
+        PrivilegedDiscountAuthorization $authorization,
+        ?int $expectedCustomerId = null,
+        ?string $reason = null,
+        ?string $sourceInterface = null,
+    ): ProductDiscount {
+        if ($authorization->discountType() !== DiscountType::Goodwill) {
+            throw new DiscountException('The supplied authorization does not cover Goodwill adjustments.');
+        }
+
+        return $this->performApply(
+            $target,
+            DiscountType::Goodwill,
+            DiscountCalculationType::FixedAmount,
+            $amount,
+            null,
+            $idempotencyKey,
+            $authorization->actingUserId(),
+            $expectedCustomerId,
+            $reason,
+            $sourceInterface,
+        );
+    }
+
+    /**
+     * Reverse a Goodwill concession. Only the named discount is reversed —
+     * every other adjustment on the same target survives untouched, because the
+     * allocation ledger reverses by discount id.
+     *
+     * @throws DiscountException when the discount is not a Goodwill row
+     */
+    public function reverseGoodwill(
+        ProductDiscount $discount,
+        PrivilegedDiscountAuthorization $authorization,
+        ?string $reason = null,
+    ): ProductDiscount {
+        if ($discount->discount_type !== DiscountType::Goodwill) {
+            throw new DiscountException('Discount #'.$discount->id.' is not a Goodwill adjustment.');
+        }
+
+        if ($authorization->discountType() !== DiscountType::Goodwill) {
+            throw new DiscountException('The supplied authorization does not cover Goodwill adjustments.');
+        }
+
+        $target = $this->resolver()->resolve($discount->target_type, $discount->target_id);
+
+        return $this->reverse($discount, $target, $authorization->actingUserId(), $reason);
+    }
+
+    /**
+     * Apply a discount to a resolved target. The generic public entry point.
+     *
+     * Refuses any type not operationally exposed — Goodwill included. Enabling
+     * a type here would enable it for every caller at once; a type needing its
+     * own authority and audit gets its own entry point instead.
      *
      * @throws DiscountException on any server-authoritative rejection.
      */
@@ -236,11 +314,33 @@ class DiscountApplicationService
         ?string $reason = null,
         ?string $sourceInterface = null,
     ): ProductDiscount {
-        // Phase-1 operational gate: only Store Credit may be applied today.
+        // Operational gate: only Store Credit may be applied through this path.
         if (! $type->isOperationalInPhase1()) {
             throw new DiscountException("Discount type '{$type->value}' is not operational in Phase 1.");
         }
 
+        return $this->performApply(
+            $target, $type, $calculationType, $sourceAmount, $percentage,
+            $idempotencyKey, $appliedBy, $expectedCustomerId, $reason, $sourceInterface,
+        );
+    }
+
+    /**
+     * The shared body of every application path. Deliberately private: reaching
+     * it requires passing one of the gated entry points above.
+     */
+    private function performApply(
+        DiscountTarget $target,
+        DiscountType $type,
+        DiscountCalculationType $calculationType,
+        ?float $sourceAmount,
+        ?float $percentage,
+        string $idempotencyKey,
+        ?int $appliedBy,
+        ?int $expectedCustomerId = null,
+        ?string $reason = null,
+        ?string $sourceInterface = null,
+    ): ProductDiscount {
         // Idempotency fast-path (pre-txn): same key → return the existing row.
         if ($existing = ProductDiscount::where('idempotency_key', $idempotencyKey)->first()) {
             return $existing;

@@ -307,3 +307,101 @@ An audit record that can be edited afterwards documents the last edit, not the
 decision. Enforced on the model, so no service or future caller can route around
 it. A concession that turns out to be wrong is **reversed and re-applied**,
 leaving both events in the history — never overwritten.
+
+## G-9 (approved) — A refund's tax rate comes from the taxable basis, never from gross subtotal
+
+`PaymentAllocationService::proportionalTaxRefund()` derived its effective rate as
+`tax_amount ÷ orders.subtotal`. **`subtotal` is not the taxable basis**, and the
+rate was understated in two independent ways:
+
+1. `subtotal` accumulates TAX-FREE lines, which never generated tax. On $100
+   taxable at 9.75% plus $100 tax-free it produced 4.875% — half the real rate,
+   and plausible enough to go unnoticed for a long time.
+2. A pre-tax adjustment reduces `tax_amount` while `subtotal` stays gross, so the
+   numerator shrank against a fixed denominator.
+
+The customer's TOTAL refund was never affected. Its base/tax split was, and that
+split is what tax remittance is reported from.
+
+**The rate is now `tax_amount ÷ taxable basis`**, resolved by
+`App\Services\Orders\TaxableBasisResolver`:
+
+```
+taxable_basis = taxable_gross × (subtotal − pretax_discount_total) ÷ subtotal
+```
+
+`taxable_gross` sums only the lines whose FROZEN `product_data` snapshot shows
+they were taxable at checkout — the live column is not used, because a
+concession can scale a small line's tax to zero and make a taxable line look
+exempt.
+
+This is a reconstruction, not an estimate. It is the exact inverse of how the
+engine computes the tax it stored, so it recovers the original rate to the cent
+under the proportional-reduction model both share. That shared assumption is
+stated in both classes: a line-targeted adjustment would invalidate both at
+once, and both would need per-line derivation at that point.
+
+**Line-less orders.** An extension child's `subtotal` IS its discounted taxable
+base, written that way at creation — explicit handling of a known construction.
+Every other line-less order is **unresolvable**: zero tax is reported and the
+order is logged. There is deliberately **no** generic `tax_amount ÷ subtotal`
+fallback; reinstating the known-wrong denominator for the least trustworthy
+records is precisely what this decision removes.
+
+**A refund is never blocked by an unresolvable basis.** An earlier resolver
+design refused orders it could not reconstruct and thereby made them
+permanently un-refundable (FD-002 Amendment 7). A read-only reconstruction must
+never make money unreturnable.
+
+**Effective for refunds processed after deployment only.** Refunds already
+issued keep the split they were processed with, permanently. They are part of
+the audit trail and are never recalculated. No migration, backfill, repair job
+or exposure report is provided for them, and none is to be built — see **G-10**,
+which makes this the standing policy for all financial corrections.
+
+## G-10 (approved) — Forward-only corrections. Historical financial records are never rewritten.
+
+**This governs every financial correction from here on, not only the refund
+taxable-basis fix.**
+
+When a calculation is found to be wrong, the corrected calculation applies to
+**transactions created after the fix ships**. Records already written stay
+exactly as they were originally processed.
+
+**Prohibited, without exception:**
+
+- migrations that alter historical financial values;
+- backfills, repair jobs or reconciliation processes that recalculate past
+  transactions;
+- automatic adjustment of previously issued refunds, payments, receipts or
+  allocations;
+- retroactive re-splitting of any amount already reported.
+
+**Why.** A historical record is not merely data — it is what was actually
+presented to a customer, settled against a bank deposit, and reported on a tax
+filing. Recalculating it makes the system disagree with every one of those
+external records simultaneously, and the disagreement is silent. A stored figure
+that is wrong by a known rule, on a known date range, is recoverable; a figure
+that has been quietly restated is not, because the evidence of what it used to
+say is gone.
+
+Correcting history also destroys the audit trail's central property: that a row
+says what was decided at the time it was decided.
+
+**This is the same rule the rest of the architecture already follows.**
+`product_discounts` reverses with a compensating row rather than mutating the
+original. `order_product_discount_allocations` stamps `reversed_at` rather than
+deleting. `order_goodwill_adjustments` refuses every edit to a decision field and
+cannot be reinstated once reversed. Legacy pre-tax concessions are disclosed via
+`legacy_unallocated_pretax_discount` rather than having per-line values invented
+for them. G-10 states as policy what those were each doing individually.
+
+**What remains permitted:** issuing a NEW transaction today that corrects a
+customer's position — a credit, a refund, an adjustment. That is a forward
+correction with its own record and its own date, which is the philosophy above,
+not an exception to it.
+
+**Applied to the refund taxable-basis fix (G-9):** the corrected rate is
+effective for refunds processed after deployment. Refunds issued before it keep
+the split they were processed with. No remediation script, backfill or exposure
+report is provided, and none should be built.

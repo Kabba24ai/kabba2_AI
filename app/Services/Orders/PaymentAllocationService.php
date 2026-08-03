@@ -12,6 +12,7 @@ use App\Models\Orders\OrderPayment;
 use App\Models\Orders\OrderPaymentRefundAllocation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Phase 3B — Refund Allocation Foundation. Extended in Phase 3C —
@@ -509,21 +510,60 @@ final class PaymentAllocationService
     }
 
     /**
-     * The pre-existing proportional tax-extraction formula (unchanged
-     * since Phase 2/3A) — moved here from RefundPaymentController so the
-     * one piece of tax-split math used by both Standard and Card
-     * Processing Fee Retained allocations lives in the allocation service,
-     * not duplicated in a controller.
+     * Split a tax-inclusive refund amount and return its tax portion.
+     *
+     * The one piece of tax-split math used by both Standard and Card
+     * Processing Fee Retained allocations.
+     *
+     * ── CORRECTED DENOMINATOR ─────────────────────────────────────────────
+     *
+     * This previously derived its rate as `tax_amount ÷ subtotal`. That was
+     * wrong, and understated the tax portion of every affected refund:
+     *
+     *   - `subtotal` includes TAX-FREE lines, which never generated tax. On
+     *     $100 taxable at 9.75% plus $100 tax-free it produced 4.875%;
+     *   - after a pre-tax adjustment, `tax_amount` is reduced while `subtotal`
+     *     stays gross, shrinking the numerator against a fixed denominator.
+     *
+     * The rate now comes from {@see TaxableBasisResolver}, which recovers the
+     * merchandise value that actually generated `tax_amount`. The customer's
+     * TOTAL refund was never affected by the defect and is not affected by the
+     * fix — only the base/tax split, which is what tax remittance is reported
+     * from.
+     *
+     * ── WHEN THE BASIS CANNOT BE DETERMINED ───────────────────────────────
+     *
+     * Zero tax is returned and the order is logged. Deliberately NOT a fallback
+     * to `tax_amount ÷ subtotal`: reinstating the known-wrong denominator for
+     * the hardest cases would quietly restore the defect exactly where the
+     * record is already least trustworthy.
+     *
+     * A refund is never blocked by this. An order that cannot be split is still
+     * fully refundable — an unresolvable basis must not make money
+     * unreturnable, which is the failure mode an earlier resolver design
+     * introduced and had to have removed.
      */
     public static function proportionalTaxRefund(Order $order, float $refundAmount): float
     {
-        $originalTaxRate = ((float) $order->subtotal > 0 && (float) $order->tax_amount > 0)
-            ? (float) $order->tax_amount / (float) $order->subtotal
-            : 0.0;
+        if ($refundAmount <= 0 || (float) $order->tax_amount <= 0) {
+            return 0.0;
+        }
 
-        return $originalTaxRate > 0
-            ? round($refundAmount - ($refundAmount / (1 + $originalTaxRate)), 2)
-            : 0.0;
+        $rate = TaxableBasisResolver::effectiveTaxRate($order);
+
+        if ($rate === null) {
+            Log::warning('Refund tax split: taxable basis unresolvable for order '.$order->id
+                .'. The refund proceeds; its tax portion is reported as 0.00 rather than derived '
+                .'from a denominator known to be wrong.');
+
+            return 0.0;
+        }
+
+        if ($rate <= 0) {
+            return 0.0;
+        }
+
+        return round($refundAmount - ($refundAmount / (1 + $rate)), 2);
     }
 
     /**

@@ -54,6 +54,26 @@ class RefundCalculationTypesTest extends TestCase
             'grand_total'   => 1097.50,
         ]);
 
+        // The merchandise line this order has always claimed to have. It was
+        // omitted while the refund tax rate came from `tax_amount / subtotal`,
+        // which needed no lines to compute — and was wrong, because `subtotal`
+        // includes tax-free merchandise that never generated tax. The rate is
+        // now resolved from the lines that actually were taxable
+        // (TaxableBasisResolver), so a POD order in a test must carry the same
+        // line a POD order carries in production. The figures are unchanged:
+        // one wholly taxable $1000 line at 9.75% is exactly what this fixture
+        // has always described.
+        $this->order->products()->create([
+            'unique_id'    => 'ORD-RCT-'.$this->order->id,
+            'product_name' => 'Refund Calculation Probe',
+            'price'        => 1000.0,
+            'quantity'     => 1,
+            'sub_total'    => 1000.0,
+            'tax'          => 97.50,
+            'total'        => 1097.50,
+            'product_data' => json_encode(['sub_total' => 1000.0, 'tax' => 97.50]),
+        ]);
+
         $this->actingAs($this->admin);
     }
 

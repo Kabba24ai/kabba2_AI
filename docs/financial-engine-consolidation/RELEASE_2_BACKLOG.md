@@ -2,9 +2,25 @@
 
 Everything deferred out of Release 1, recorded so none of it is mistaken for resolved.
 
+> ## ⚠ Standing policy: forward-only corrections
+>
+> **No item in this register may be addressed by rewriting historical financial
+> records.** No migration, backfill, repair job, reconciliation process or
+> automatic adjustment that changes past refunds, payments, receipts or
+> allocations. A corrected calculation applies to transactions created after it
+> ships; records already written stay exactly as they were processed.
+>
+> Issuing a **new** transaction today to correct a customer's position remains
+> available — that is a forward correction with its own date and its own record.
+>
+> Full statement: `FINANCIAL_DECISIONS.md` **G-10**. This closed item 5 and
+> bounds items 2, 4 and 6.
+
 Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 
-**Four of these are live defects or gaps, not enhancements.** They are marked ⚠.
+**Four of these are live defects or gaps, not enhancements** — items 7, 8, 9 and 11. They are marked ⚠.
+
+Items 1, 2, 3 and 5 were closed by the Goodwill release.
 
 ---
 
@@ -12,11 +28,11 @@ Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 
 | # | Item | Kind | Priority |
 |---|---|---|---|
-| 1 | Goodwill Adjustment | Feature | High — the original objective |
-| 2 | ⚠ Refund taxable-basis defect | **Live defect** | High |
-| 3 | `HistoricalTaxBasisResolver` | Prerequisite for #2 | High |
+| 1 | ~~Goodwill Adjustment~~ | ✅ **DELIVERED** — G1–G4 | Closed |
+| 2 | ~~Refund taxable-basis defect~~ | ✅ **FIXED** — Goodwill release | Closed |
+| 3 | ~~`HistoricalTaxBasisResolver`~~ | ✅ **DELIVERED** as `TaxableBasisResolver` | Closed |
 | 4 | SalesTrendReport gross-vs-net | Decision | Medium |
-| 5 | Legacy concession reconstruction | Policy + optional project | Medium |
+| 5 | ~~Legacy concession reconstruction~~ | ✅ **CLOSED** by G-10 — disclose, never backfill | Closed |
 | 6 | `product_data` snapshot integrity | Debt | Medium |
 | 7 | ⚠ `Gate::before` authorization bypass | **Security posture** | Business decision |
 | 8 | ⚠ `ReceiptService` swallows write failures | **Silent failure** | High |
@@ -40,17 +56,22 @@ Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 - AR-posted orders are already refused by the shared engine. **Invoiced orders are not** — that claim was wrong and is corrected as item 9. Goodwill enforces the invoice guard itself.
 - Authority must be enforced through Spatie directly — see item 7.
 
-**Status update (2026-08-02).** Re-audited against the deployed branch `afa84552`. `GOODWILL_ADJUSTMENT_DESIGN.md` now exists in this repository, written against the deployed shared engine; draft decisions G-1…G-6 are appended to `FINANCIAL_DECISIONS.md`. Awaiting approval before Increment G1.
+**Status: DELIVERED.** Built as increments G1–G4 against the deployed shared engine. Design in `GOODWILL_ADJUSTMENT_DESIGN.md`, decisions G-1…G-10 in `FINANCIAL_DECISIONS.md`, deployment in `GOODWILL_DEPLOYMENT_RUNBOOK.md`, summary in `GOODWILL_RELEASE_NOTES.md`. 129 tests, 636 assertions.
 
 **Prior work NOT reused:** the stale standalone calculation engine is discarded, not ported. `GOODWILL_PRODUCTION_REBASELINE_REPORT.md` records which assumptions survived.
 
 ---
 
-## 2. ⚠ Refund taxable-basis defect — LIVE
+## 2. ✅ Refund taxable-basis defect — FIXED (Goodwill release)
 
-**Status: OPEN in production. Not fixed by Release 1.**
+**Status: CLOSED.** Corrected by `TaxableBasisResolver` (item 3), shipped with
+Goodwill after being escalated from follow-up to a release blocker.
 
-`PaymentAllocationService::proportionalTaxRefund()` derives its rate as:
+**Forward-only. Nothing further is outstanding on this item.** The description
+below is kept as the historical record of what the defect was, not as work
+remaining.
+
+`PaymentAllocationService::proportionalTaxRefund()` derived its rate as:
 
 ```php
 $originalTaxRate = (float) $order->tax_amount / (float) $order->subtotal;
@@ -62,13 +83,33 @@ $originalTaxRate = (float) $order->tax_amount / (float) $order->subtotal;
 
 **Effect.** The tax portion of a refund is mis-split on any mixed-tax or discounted order. The customer's total refund is correct; its tax/base split is not, which matters for tax remittance.
 
-**Fix.** Depends on item 3.
+**The fix.** `PaymentAllocationService::proportionalTaxRefund()` now derives its
+rate from `TaxableBasisResolver::effectiveTaxRate()`:
+
+```
+taxable_basis = taxable_gross x (subtotal - pretax_discount_total) / subtotal
+rate          = tax_amount / taxable_basis
+```
+
+where `taxable_gross` sums only the lines whose FROZEN `product_data` snapshot
+shows they were taxable at checkout. Both error sources are removed at once: the
+tax-free lines leave the denominator, and the denominator now moves with the
+concession exactly as the numerator does.
+
+**Effective for refunds processed after deployment only.** Refunds already
+issued keep the split they were processed with, permanently. They match the
+receipts customers hold, the deposits they settled against and the filings they
+were reported on, and they are never recalculated.
+
+**No remediation script, backfill or exposure report is to be built for them.**
+Standing policy — see `FINANCIAL_DECISIONS.md` **G-10**.
 
 ---
 
-## 3. `HistoricalTaxBasisResolver`
+## 3. ✅ `HistoricalTaxBasisResolver` — DELIVERED as `TaxableBasisResolver`
 
-**Status: NOT PORTED.**
+**Status: CLOSED.** Re-derived rather than ported, and deliberately narrower
+than the original design.
 
 A read-only service that reconstructs an order's true taxable basis from its own lines, replacing the `tax_amount / subtotal` denominator in item 2. Written against the stale repository; **must be re-derived**, not copied, because the production reconciliation identity now includes `pretax_discount_total` and the Release 1 columns.
 
@@ -79,7 +120,17 @@ grand_total = subtotal − pretax_discount_total + tax_amount
             + special_tax_amount + added_fees_amount − discount_amount
 ```
 
-**Note.** Release 1 already stores much of what the original resolver had to reconstruct. It may reduce to a reconciliation *validator* rather than a full reconstruction service — worth re-scoping before building.
+**It did reduce in scope, as anticipated.** Release 1 already stores most of what
+the original design had to reconstruct, so `app/Services/Orders/TaxableBasisResolver.php`
+answers exactly one question — what merchandise value generated `tax_amount` —
+and nothing else. It validates no identity and refuses no operation.
+
+**Line-less orders.** An extension child's `subtotal` IS its discounted taxable
+base by construction, so that shape resolves explicitly. Any other line-less
+order returns `null`, and the caller reports zero tax and logs. There is
+deliberately **no** generic `tax_amount / subtotal` fallback: reinstating the
+known-wrong denominator for the least trustworthy records is what the fix
+exists to prevent.
 
 **Carried-forward lesson.** An earlier version refused any order carrying an active adjustment. Because that resolver also serves refunds, it made every adjusted order **permanently un-refundable**. Preventing a second adjustment belongs in the writer, under the row lock — not in a read-only reconstruction. Recorded as FD-002 Amendment 7.
 
@@ -102,9 +153,14 @@ Either way the missing refund awareness should be addressed. **Do not hold Relea
 
 ---
 
-## 5. Legacy concession reconstruction — policy
+## 5. Legacy concession reconstruction — RESOLVED BY POLICY
 
-**Status: policy required; project optional.**
+**Status: CLOSED by `FINANCIAL_DECISIONS.md` G-10 (forward-only corrections).**
+
+Options 2 and 3 below are **backfills of historical financial records** and are
+therefore no longer available. **Option 1 — accept permanently and disclose — is
+the outcome.** The options are kept for the record so it is clear the choice was
+made rather than overlooked.
 
 Orders discounted before Release 1 carry `legacy_unallocated_pretax_discount` with no per-line allocation. Consequently:
 
@@ -120,9 +176,17 @@ That is honest but leaves a permanent asterisk on historical product reporting, 
 2. **Reconstruct proportionally.** Distribute each historical concession across that order's lines by gross value — the same rule new allocations use. Defensible, but it manufactures per-line figures no record supports.
 3. **Reconstruct only where unambiguous.** Single-line orders can be attributed with certainty; leave the rest disclosed.
 
-**Recommendation: option 3**, with option 1 as the fallback. It attributes exactly what is knowable and invents nothing.
+**Outcome: option 1.** Options 2 and 3 would write per-line values onto orders
+that already closed, which G-10 prohibits. The gap stays disclosed rather than
+reconstructed: historical product revenue reads gross, the unattributed
+concession is reported separately, and no per-line figure is invented for an
+order that never recorded one.
 
-**Related, and quantified separately:** the historical special-tax over-collection measured by `diagnostics:store-credit-special-tax-exposure`. Whether to remediate affected customers is its own business decision, distinct from reporting attribution.
+**Related, and unaffected:** the historical special-tax over-collection measured
+by `diagnostics:store-credit-special-tax-exposure`. That diagnostic is read-only
+and stays. Deciding to make an affected customer whole is a **new transaction
+today** — a credit or refund with its own record and date — not a rewrite of the
+original order, so it remains available under G-10 and is a business decision.
 
 ---
 
@@ -191,9 +255,9 @@ Out of scope for the receipt patch, which was narrow by instruction. Logged so t
 
 | Order | Item | Rationale |
 |---|---|---|
-| 1 | #3 resolver (re-scoped) | Prerequisite for #2 |
-| 2 | #2 refund defect | Live defect; small once #3 exists |
-| 3 | #1 Goodwill | The objective, on a proven foundation |
+| ✅ | #3 resolver (re-scoped) | Delivered as `TaxableBasisResolver` |
+| ✅ | #2 refund defect | Fixed; shipped with Goodwill as a release blocker |
+| ✅ | #1 Goodwill | Delivered |
 | 4 | #8 receipt error handling | Silent financial write failures; small and self-contained |
 | 5 | #6 `product_data` | Low risk, reduces a real hazard |
 | 6 | #9 invoice guard | Small, but changes an existing feature's eligibility rules |

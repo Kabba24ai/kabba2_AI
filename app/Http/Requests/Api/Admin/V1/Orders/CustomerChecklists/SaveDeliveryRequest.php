@@ -19,6 +19,11 @@ class SaveDeliveryRequest extends ApiBaseFormRequest
                 $raw = $raw[0];
             }
 
+            // Case: [[{...}, {...}]] - checklist items wrapped in an extra array
+            if (is_array($raw) && count($raw) === 1 && is_array($raw[0]) && array_is_list($raw[0])) {
+                $raw = $raw[0];
+            }
+
             // Case: string JSON or weird iOS string
             if (is_string($raw)) {
                 // Try decode directly

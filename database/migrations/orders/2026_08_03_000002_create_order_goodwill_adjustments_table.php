@@ -39,8 +39,9 @@ use Illuminate\Support\Facades\Schema;
  *
  * `active_order_id` holds the order id while the adjustment is applied and NULL
  * once reversed. The UNIQUE index on it makes "at most one active Goodwill
- * adjustment per order" a database guarantee rather than a convention — MySQL
- * has no partial indexes, and NULLs do not collide in a unique index, so any
+ * adjustment per order" a database guarantee rather than a convention — neither
+ * MySQL nor MariaDB has partial indexes, and NULLs do not collide in a unique
+ * index on either, so any
  * number of reversed rows may coexist with at most one live one. An application
  * check under a row lock can be bypassed by a path that forgets to take the
  * lock; this cannot.
@@ -107,7 +108,9 @@ return new class extends Migration
             $table->foreignId('approved_by')
                 ->constrained('users')
                 ->restrictOnDelete();
-            $table->timestamp('approved_at');
+
+            // DATETIME, NOT TIMESTAMP — see the note above the timestamps below.
+            $table->dateTime('approved_at');
 
             $table->foreignId('applied_by')
                 ->nullable()
@@ -143,8 +146,40 @@ return new class extends Migration
 
             $table->string('idempotency_key')->unique();
 
-            $table->timestamp('applied_at');
-            $table->timestamp('reversed_at')->nullable();
+            // ── WHY DATETIME AND NOT TIMESTAMP ─────────────────────────────
+            //
+            // Production runs MariaDB 10.5, where
+            // `explicit_defaults_for_timestamp` defaults to OFF and the legacy
+            // TIMESTAMP rules therefore apply:
+            //
+            //   - the FIRST `TIMESTAMP NOT NULL` column declared without an
+            //     explicit default silently acquires
+            //     `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`;
+            //   - every later one acquires `DEFAULT '0000-00-00 00:00:00'`.
+            //
+            // On this table that would have made `approved_at` rewrite itself
+            // to NOW() on **every UPDATE of the row** — including the update
+            // that records a reversal. An audit record whose "when was this
+            // authorized" moves each time the row is touched is worse than
+            // useless: it looks authoritative and is not. The model's
+            // immutability guard could not prevent it, because the database
+            // would be doing it underneath the application.
+            //
+            // It could not be caught locally either: MySQL 8+ ships
+            // `explicit_defaults_for_timestamp = ON`, which disables the whole
+            // behaviour, so the schema was correct on the development engine
+            // and would have been wrong in production only.
+            //
+            // DATETIME has no auto-initialisation, no auto-update, no timezone
+            // conversion and no 2038 ceiling. For a value the application
+            // supplies and nothing may rewrite, it is the correct type on both
+            // engines.
+            //
+            // NO DEFAULT and NO useCurrent() anywhere: every one of these is
+            // written explicitly by the service, and a database-supplied value
+            // would mask a caller that forgot to set one.
+            $table->dateTime('applied_at');
+            $table->dateTime('reversed_at')->nullable();
             $table->foreignId('reversed_by')
                 ->nullable()
                 ->constrained('users')

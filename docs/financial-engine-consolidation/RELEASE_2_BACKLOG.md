@@ -4,7 +4,7 @@ Everything deferred out of Release 1, recorded so none of it is mistaken for res
 
 Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 
-**Two of these are live defects, not enhancements.** They are marked ⚠.
+**Four of these are live defects or gaps, not enhancements.** They are marked ⚠.
 
 ---
 
@@ -20,6 +20,8 @@ Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 | 6 | `product_data` snapshot integrity | Debt | Medium |
 | 7 | ⚠ `Gate::before` authorization bypass | **Security posture** | Business decision |
 | 8 | ⚠ `ReceiptService` swallows write failures | **Silent failure** | High |
+| 9 | ⚠ Invoiced orders are not refused by the discount engine | **Live gap** | Medium |
+| 10 | Receipt supersession (`issued_at`) — draft decision C | Deferred decision | Medium |
 
 ---
 
@@ -34,10 +36,12 @@ Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 **Constraints carried forward from Release 1 work:**
 
 - A pre-tax concession applies **only while a balance remains**. `OrderDiscountTarget` refuses an order with no remaining balance — a concession after full payment is an overpayment, i.e. a refund workflow, not a discount. Goodwill's design already assumes a remaining balance, so it fits, but any "waive after payment" scenario is out of scope by construction.
-- AR-posted and invoiced orders are already refused by the shared engine. Goodwill inherits that.
+- AR-posted orders are already refused by the shared engine. **Invoiced orders are not** — that claim was wrong and is corrected as item 9. Goodwill enforces the invoice guard itself.
 - Authority must be enforced through Spatie directly — see item 7.
 
-**Prior work worth reusing:** the design in `GOODWILL_ADJUSTMENT_DESIGN.md` and decisions FD-002 Am.1–7, **with the caveat** that FD-002 itself does not exist in this repository and must be ported and re-validated rather than assumed. `GOODWILL_PRODUCTION_REBASELINE_REPORT.md` records exactly which assumptions survived and which did not.
+**Status update (2026-08-02).** Re-audited against the deployed branch `afa84552`. `GOODWILL_ADJUSTMENT_DESIGN.md` now exists in this repository, written against the deployed shared engine; draft decisions G-1…G-6 are appended to `FINANCIAL_DECISIONS.md`. Awaiting approval before Increment G1.
+
+**Prior work NOT reused:** the stale standalone calculation engine is discarded, not ported. `GOODWILL_PRODUCTION_REBASELINE_REPORT.md` records which assumptions survived.
 
 ---
 
@@ -191,4 +195,54 @@ Out of scope for the receipt patch, which was narrow by instruction. Logged so t
 | 3 | #1 Goodwill | The objective, on a proven foundation |
 | 4 | #8 receipt error handling | Silent financial write failures; small and self-contained |
 | 5 | #6 `product_data` | Low risk, reduces a real hazard |
-| — | #4, #5, #7 | Business decisions — resolve in parallel, not blocking |
+| 6 | #9 invoice guard | Small, but changes an existing feature's eligibility rules |
+| — | #4, #5, #7, #10 | Business decisions — resolve in parallel, not blocking |
+
+---
+
+## 9. ⚠ Invoiced orders are not refused by the discount engine
+
+**Status: pre-existing, confirmed live, deliberately not fixed.**
+
+`OrderDiscountTarget::ineligibleReason()` checks two things: whether the order
+has posted to the Credit Account, and whether a balance remains. It does **not**
+check `orders.invoice_id`.
+
+An order that has been placed on an invoice (`Crm/Customers/Invoice/StoreController`
+sets `orders.invoice_id`) can therefore still receive a Store Credit pre-tax
+discount. The order's `grand_total` moves; the invoice's `total`, `open_amount`
+and its `invoice_items` do not. The two silently disagree from that point on.
+
+**Not fixed here** because the Goodwill work was scoped not to broaden into
+Store Credit's eligibility rules. Goodwill enforces the guard in its own policy
+layer, so the new feature is safe; the existing exposure remains.
+
+**The fix is small** — add the check to `ineligibleReason()` — but it changes
+behaviour for an existing operational feature and needs its own regression pass
+and a decision about already-affected orders.
+
+---
+
+## 10. Receipt supersession (`receipts.issued_at`) — draft decision C, deferred
+
+**Status: decided in draft, never implemented.**
+
+Draft decision C states that a receipt which has been **issued** is immutable,
+and that a later adjustment produces a **superseding** receipt linked to the
+prior one. `receipts.issued_at` was never added, and Release 1 shipped
+`ReceiptService`'s in-place refresh instead.
+
+Consequences accepted for now:
+
+- A receipt already printed or emailed restates itself on the next read. The
+  evidence of what the customer was originally shown is not retained.
+- `receipts.pretax_discount_total` carries no attribution, so an order with two
+  *different* adjustment types cannot name them on the document — it falls back
+  to the truthful generic `Pre-Tax Discounts`.
+
+**Work:** add `issued_at` (set on print/download/email, not just email — the
+existing `is_email_status` / `mail_send_at` cover email only), branch the
+refresh on it, add the supersession link, and add per-type snapshot columns or a
+receipt-adjustment child table to close the attribution gap.
+
+Recorded so decision C is not mistaken for delivered.

@@ -121,7 +121,7 @@ Whether product-targeted discounts can violate that proportionality is **unverif
 These FD-002 findings were re-verified against `d8591af5` and remain true:
 
 1. `PaymentAllocationService::proportionalTaxRefund()` still derives its rate from `tax_amount / subtotal` — the defect FD-002 Amendment 1 exists to correct. It is now compounded, since a discounted order has a reduced `tax_amount` over an undiscounted `subtotal`.
-2. Special tax and added fees still have **no columns** and survive only in `order_products.product_data`.
+2. ~~Special tax and added fees still have **no columns** and survive only in `order_products.product_data`.~~ **Superseded by Release 1 (2026-08-02).** `orders.special_tax_amount`, `orders.added_fees_amount`, `order_products.special_tax` and `order_products.added_fees` now exist and are maintained by the engine; `product_data` is the backfill source, no longer the only record.
 3. `Gate::before(fn ($user, string $ability) => true)` is still registered in `AppServiceProvider`. Direct Spatie enforcement remains necessary for any authority separation.
 4. `ModuleSeeder` is still a destructive reconciliation seeder and must not be run in production.
 5. Extension children still own no order lines and still carry an `extensionCharge()` relation.
@@ -181,3 +181,129 @@ Proven: $200 merchandise, $19.50 ordinary tax, $4.00 special tax, $50 discount �
 It cannot be fixed without the special-tax/added-fee columns, because the lumped residual cannot distinguish special tax from added fees. Those columns therefore become a **prerequisite for a production defect fix**, not merely a Goodwill enabler.
 
 **Guard:** the blended rate stays correct only while every adjustment reduces the whole merchandise population proportionally. Introducing per-line allocation makes line-scoped adjustment possible, so the rate must be replaced by per-line derivation from each line's own frozen tax posture at the same time.
+
+---
+
+# Goodwill decisions on the deployed engine (2026-08-02, approved 2026-08-03)
+
+Issued after the post-deployment re-audit of `afa84552` and approved with
+Increment G1. Full design: `GOODWILL_ADJUSTMENT_DESIGN.md`.
+
+**The governing statement: Goodwill is a workflow layered on `ProductDiscount`,
+not a financial engine.** It records who authorized a concession, why, and
+against which collected payment. Every amount — concession, ordinary tax,
+special tax, added fees, line allocations, net product revenue, receipt
+components — is owned by `app/Services/Discounts/` and reached through the
+linked `ProductDiscount`. The earlier standalone Goodwill calculation engine is
+discarded, not ported.
+
+## G-1 (approved) — Goodwill is a policy layer, never a calculation engine
+
+Goodwill owns authorization, reason, payment linkage, idempotency, guards,
+snapshots and audit history. It owns **no** financial arithmetic. Ordinary tax,
+special tax, added fees, line allocations, net product revenue and the receipt
+snapshot are computed exclusively by `app/Services/Discounts/`.
+
+`order_goodwill_adjustments` duplicates no figure held by `product_discounts`
+or `order_product_discount_allocations`. It records the **order-level**
+before/after position — special tax, fees, grand total, payment position — which
+no existing table holds.
+
+## G-2 (approved) — The concession is sized by asking the engine, not by formula
+
+The required concession is not `balance_due`: reducing the pre-tax basis also
+reduces both basis-derived taxes. Goodwill seeds an estimate, then evaluates
+candidates through `OrderDiscountTarget::previewTotals()` — the same function
+the writer uses — and selects the smallest concession whose revised grand total
+does not exceed cumulative settled payments.
+
+**Residual (approved).** Because the grand total steps by more than one cent at
+a tax-rounding boundary, an exact close is unreachable in roughly one case in
+eight. The remainder is computed by the shared engine, stored explicitly in
+`rounding_residual`, immutable once written, and visible in the audit history.
+It is **never** absorbed into the concession amount.
+
+`abs(rounding_residual) ≤ $0.02`. Anything larger **refuses the operation**: the
+grand total falls by at most three cents per cent of concession, so a larger gap
+means the concession was sized against different figures than the ones it is
+being written with. Enforced by the model with a readable message and again by a
+`CHECK` constraint a raw insert cannot bypass.
+
+## G-3 (approved) — Authority is enforced through Spatie directly
+
+`Gate::before(fn () => true)` makes `can()`, `@can` **and Spatie's own
+`permission:` route middleware** non-refusing — the vendor middleware calls
+`canAny()`, which routes through the Gate. Goodwill therefore calls
+`hasPermissionTo()`, which does not.
+
+The authorizing manager is recorded separately from the acting operator, and is
+validated to hold the permission. Authority to receive a payment does not imply
+authority to reduce revenue.
+
+Permissions are created by a dedicated **additive** seeder that deletes nothing
+and grants to Master Admin. `ModuleSeeder` is never run in production; its
+declarative list is nonetheless updated in the same commit, because it deletes
+permissions absent from that list **and** every permission with a null
+`module_id`.
+
+## G-4 (approved) — Decision C (receipt supersession) is deferred, not satisfied
+
+`receipts.issued_at` was never added, and Release 1 ships in-place refresh.
+Goodwill uses the deployed receipt model. Decision C is recorded as deferred so
+it is not mistaken for delivered: an already-printed receipt will restate
+itself, and a stacked order's receipt cannot attribute the concession per type.
+
+## G-5 (approved) — Invoiced orders are guarded by Goodwill only
+
+`OrderDiscountTarget::ineligibleReason()` checks A/R posting and remaining
+balance, **not `orders.invoice_id`**. A Store Credit discount can therefore be
+applied to an invoiced order today, desyncing the invoice. Pre-existing;
+Goodwill enforces the guard in its own policy layer and the Store Credit
+exposure is logged separately rather than fixed by widening this work.
+
+## G-6 (approved) — Orders with no lines are refused
+
+The allocator has no population to distribute across, `reconcile()` deliberately
+skips such orders, and line propagation is a no-op. Rather than write an
+unattributable concession, Goodwill refuses. Extension children are the known
+shape this excludes.
+
+## G-7 (approved) — Goodwill reasons carry a first-class reporting category
+
+A concession granted because Kabba got something wrong is a **cost of failure**.
+One granted to win or keep business is a **cost of sale**. They are identical in
+the accounts — the same dollars leave through the same mechanism — and they mean
+opposite things. Aggregated together they answer neither question.
+
+Every reason therefore belongs to exactly one category:
+
+| Category | Codes |
+|---|---|
+| **Service Recovery** | `SERVICE_FAILURE`, `EQUIPMENT_ISSUE`, `DAMAGED_PRODUCT`, `BILLING_ERROR`, `DELIVERY_PICKUP_ISSUE` |
+| **Business Courtesy** | `REPEAT_CUSTOMER`, `CUSTOMER_LOYALTY`, `CUSTOMER_RETENTION`, `MULTIPLE_ITEMS`, `LARGE_ORDER`, `PRICE_MATCH`, `PROMOTIONAL_COURTESY`, `MANAGER_COURTESY` |
+| **Other** | `OTHER` — mandatory written note |
+
+**Codes are stable; labels are not.** The persisted value is an uppercase code.
+`label()` is presentation and may be reworded freely. A report grouped on a
+display string silently re-groups the day the copy deck changes, splitting a
+historical series in two with nothing to indicate it happened.
+
+`GoodwillReason::category()` is the single authoritative mapping.
+`order_goodwill_adjustments.reason_category` is denormalised from it at write
+time — derived by the model, never supplied by a caller — so the dimension is a
+plain indexed `GROUP BY` and no consumer has to re-implement the mapping or
+parse a label. Future reports answer "Service Recovery Goodwill" and "Business
+Courtesy Goodwill" without hard-coded grouping.
+
+## G-8 (approved) — The Goodwill record is an audit record, not an editable row
+
+Once written, the decision is immutable: reason, note, approver, approval time,
+accepted payment total, rounding residual, both snapshots, the idempotency key,
+and the order and discount links can never be modified. Only the reversal fields
+remain writable, because they are the one part of the story still unwritten when
+the row is first persisted.
+
+An audit record that can be edited afterwards documents the last edit, not the
+decision. Enforced on the model, so no service or future caller can route around
+it. A concession that turns out to be wrong is **reversed and re-applied**,
+leaving both events in the history — never overwritten.

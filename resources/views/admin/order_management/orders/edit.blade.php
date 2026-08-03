@@ -193,6 +193,15 @@
                         @endif
                     @endif
 
+                    {{-- Goodwill — a manager-authorised PRE-TAX concession that
+                         closes the gap between the order total and what was
+                         actually collected. It sits here, beside the balance it
+                         settles, and only appears once a real payment exists and
+                         a balance remains. The partial decides that for itself
+                         by asking the service; nothing about eligibility or
+                         authority is judged in this file. --}}
+                    @include('admin.order_management.orders.partials._goodwill_adjustment_panel')
+
                     @if ($order->last_payment_status === OrderPaymentStatus::Pending->value && $order->last_payment_type !== 'Card')
                         <button id="addToAccountBtn" type="button"
                             class="px-4 py-1 text-xs font-semibold bg-green-600 text-white rounded-full hover:bg-green-700">

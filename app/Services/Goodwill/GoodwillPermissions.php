@@ -87,6 +87,35 @@ final class GoodwillPermissions
         return self::canApply($user);
     }
 
+    /**
+     * Everyone who may authorize a Goodwill adjustment, for an approver picker.
+     *
+     * Queried straight from the permission tables — the Gate bypass would make
+     * any ability-based filter return every user. Returns an EMPTY collection
+     * when the permission has never been registered, so an unseeded deployment
+     * renders a screen with no approvers rather than a 500. The fault is logged
+     * once by the same path every other check uses.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public static function approvers()
+    {
+        try {
+            return \App\Models\Iam\Personnel\User::permission(self::APPLY)
+                ->orderBy('first_name')
+                ->get();
+        } catch (PermissionDoesNotExist) {
+            Log::error("Goodwill permission '".self::APPLY."' is not registered. "
+                .'Run the Goodwill permission seeder. No approvers can be offered until it exists.');
+
+            return collect();
+        } catch (Throwable $e) {
+            Log::error('Goodwill approver lookup failed: '.$e->getMessage());
+
+            return collect();
+        }
+    }
+
     private static function holds(?Authenticatable $user, string $permission): bool
     {
         if ($user === null || ! method_exists($user, 'hasPermissionTo')) {

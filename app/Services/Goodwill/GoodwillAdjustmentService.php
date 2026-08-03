@@ -130,6 +130,36 @@ final class GoodwillAdjustmentService
         return GoodwillConcessionSolver::solve($target, $acceptedCents);
     }
 
+    /**
+     * Could a Goodwill adjustment be applied to this order right now?
+     *
+     * For DISPLAY ONLY — whether to offer the action, never whether to permit
+     * it. Read-only, unlocked, and advisory in exactly the way `preview()` is;
+     * `apply()` re-checks every one of these guards under the row lock and is
+     * the only authority.
+     *
+     * It exists so a template does not have to re-implement eligibility. A view
+     * that answered this question for itself would drift from the writer the
+     * first time a rule changed, and would offer operators actions the server
+     * then refused.
+     */
+    public function isAvailableFor(Order $order): bool
+    {
+        try {
+            $fresh = $order->fresh();
+
+            $this->assertEligible(
+                $fresh,
+                new OrderDiscountTarget((int) $fresh->id),
+                $this->settledCentsFrom($this->orderPayments((int) $fresh->id)),
+            );
+
+            return true;
+        } catch (GoodwillException) {
+            return false;
+        }
+    }
+
     // ── Apply ──────────────────────────────────────────────────────────────
 
     /**

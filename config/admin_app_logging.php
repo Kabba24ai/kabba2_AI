@@ -23,4 +23,8 @@ return [
         'api/admin/v1/orders/schedules/update-delivery-pickup-inputs' => 'Update Delivery & Pickup Input Fields',
     ],
 
+    // Comma-separated developer emails notified whenever one of the endpoints
+    // above is logged with status 'failed'. Leave empty to disable emailing.
+    'failure_notification_emails' => env('ADMIN_APP_API_FAILURE_EMAILS', ''),
+
 ];

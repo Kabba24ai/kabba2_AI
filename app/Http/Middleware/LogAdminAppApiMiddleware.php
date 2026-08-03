@@ -8,6 +8,7 @@ use App\Models\Orders\OrderProduct;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -124,6 +125,45 @@ class LogAdminAppApiMiddleware
             ]);
         } catch (Throwable $e) {
             // Best-effort: the DB row above is the source of truth.
+        }
+
+        if ($outcome['status'] === 'failed') {
+            $this->notifyDevelopers($request, $name, $outcome, $errorMessage);
+        }
+    }
+
+    /**
+     * Best-effort email to the developer addresses configured in
+     * admin_app_logging.failure_notification_emails whenever a logged
+     * endpoint fails. Never allowed to affect the request/response.
+     */
+    private function notifyDevelopers(Request $request, string $name, array $outcome, ?string $errorMessage): void
+    {
+        $recipients = array_filter(array_map(
+            'trim',
+            explode(',', (string) config('admin_app_logging.failure_notification_emails', ''))
+        ));
+
+        if (empty($recipients)) {
+            return;
+        }
+
+        try {
+            Mail::raw(
+                "Admin App API endpoint failed: {$name}\r\n\r\n"
+                ."Method: {$request->method()}\r\n"
+                ."Endpoint: {$request->path()}\r\n"
+                ."Response code: {$outcome['response_code']}\r\n"
+                ."Error: {$errorMessage}",
+                function ($message) use ($recipients, $name) {
+                    $message->to($recipients)->subject("Admin App API Failure: {$name}");
+                }
+            );
+        } catch (Throwable $e) {
+            Log::error('LogAdminAppApiMiddleware failed to send failure notification email', [
+                'endpoint' => $request->path(),
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

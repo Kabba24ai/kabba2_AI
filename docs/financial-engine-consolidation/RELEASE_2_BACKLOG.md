@@ -19,6 +19,7 @@ Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 | 5 | Legacy concession reconstruction | Policy + optional project | Medium |
 | 6 | `product_data` snapshot integrity | Debt | Medium |
 | 7 | ⚠ `Gate::before` authorization bypass | **Security posture** | Business decision |
+| 8 | ⚠ `ReceiptService` swallows write failures | **Silent failure** | High |
 
 ---
 
@@ -159,6 +160,28 @@ Gate::before(fn ($user, string $ability) => true);
 
 ---
 
+## 8. ⚠ `ReceiptService::getOrCreateReceipt()` swallows exceptions
+
+**Status: pre-existing, confirmed live, deliberately not fixed in the receipt patch.**
+
+The whole method body is wrapped in `try/catch (Throwable)` that logs and returns `null`. A caller receives no receipt and no indication anything failed.
+
+**This is not theoretical.** While adding the charge-component columns, an in-memory `Order` model reported `null` for the new fields and the insert violated a `NOT NULL` constraint. Receipt creation failed **completely silently** — the only evidence was one line in `laravel.log`. It surfaced through an unrelated pre-existing test, not through anything in the calling path.
+
+In production the same shape means: a customer's receipt is never created, nothing surfaces to the operator, and it is discovered when someone asks for a document that does not exist.
+
+**Requirements for the fix:**
+
+1. **Distinguish expected from unexpected.** A genuinely absent order is not the same as a failed write. Returning `null` for the first is reasonable; for the second it hides a defect.
+2. **Alert on write failure**, not merely log. A `Log::error` in a file nobody watches is not a signal.
+3. **Surface it to the caller.** Every call site assumes success — `$receipt->subtotal` on a null return is fatal one line later, which is exactly how the test failed.
+4. **Consider letting write failures propagate** so an enclosing transaction rolls back rather than continuing with half-built state.
+5. **Audit other swallow-and-return-null handlers** in financial services for the same pattern.
+
+Out of scope for the receipt patch, which was narrow by instruction. Logged so this is a known risk rather than an assumed safety net.
+
+---
+
 ## Suggested sequencing for Release 2
 
 | Order | Item | Rationale |
@@ -166,5 +189,6 @@ Gate::before(fn ($user, string $ability) => true);
 | 1 | #3 resolver (re-scoped) | Prerequisite for #2 |
 | 2 | #2 refund defect | Live defect; small once #3 exists |
 | 3 | #1 Goodwill | The objective, on a proven foundation |
-| 4 | #6 `product_data` | Low risk, reduces a real hazard |
+| 4 | #8 receipt error handling | Silent financial write failures; small and self-contained |
+| 5 | #6 `product_data` | Low risk, reduces a real hazard |
 | — | #4, #5, #7 | Business decisions — resolve in parallel, not blocking |

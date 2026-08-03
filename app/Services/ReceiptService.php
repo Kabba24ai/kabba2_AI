@@ -40,12 +40,30 @@ class ReceiptService
                 // used throughout this service; the totals must not be the one
                 // thing that silently drifts. Values are consumed straight from
                 // the order columns the engine maintains — no arithmetic here.
-                if (round((float) $receipt->subtotal, 2) !== round((float) $order->subtotal, 2)
-                    || round((float) $receipt->sales_tax, 2) !== round((float) $order->tax_amount, 2)
-                    || round((float) $receipt->total, 2) !== round((float) $order->grand_total, 2)) {
-                    $receipt->subtotal  = $order->subtotal;
-                    $receipt->sales_tax = $order->tax_amount;
-                    $receipt->total     = $order->grand_total;
+                //
+                // EVERY component is compared and refreshed together. A
+                // receipt that resynced its total but not its special tax or
+                // added fees would print a breakdown that no longer sums to
+                // its own total — worse than one that never refreshed at all.
+                // Coalesced: getOrCreateReceipt() accepts ANY Order instance,
+                // and a model built in memory without these keys reports null
+                // for them until it is refreshed from the database. The columns
+                // are NOT NULL DEFAULT 0, so null must read as 0.00 rather than
+                // propagate into a write.
+                $drifted = static fn ($a, $b): bool => round((float) ($a ?? 0), 2) !== round((float) ($b ?? 0), 2);
+
+                if ($drifted($receipt->subtotal, $order->subtotal)
+                    || $drifted($receipt->sales_tax, $order->tax_amount)
+                    || $drifted($receipt->special_tax, $order->special_tax_amount)
+                    || $drifted($receipt->added_fees, $order->added_fees_amount)
+                    || $drifted($receipt->pretax_discount_total, $order->pretax_discount_total)
+                    || $drifted($receipt->total, $order->grand_total)) {
+                    $receipt->subtotal              = $order->subtotal;
+                    $receipt->sales_tax             = $order->tax_amount;
+                    $receipt->special_tax           = $order->special_tax_amount ?? 0;
+                    $receipt->added_fees            = $order->added_fees_amount ?? 0;
+                    $receipt->pretax_discount_total = $order->pretax_discount_total ?? 0;
+                    $receipt->total                 = $order->grand_total;
                     $receipt->saveQuietly();
                 }
 
@@ -66,6 +84,12 @@ class ReceiptService
                 'payment_status' => $paymentStatus,
                 'subtotal'       => $order->subtotal,
                 'sales_tax'      => $order->tax_amount,
+                // Charge components that grand_total already contains. Stored
+                // explicitly so the printed receipt can state each one and
+                // still sum to its own total.
+                'special_tax'           => $order->special_tax_amount ?? 0,
+                'added_fees'            => $order->added_fees_amount ?? 0,
+                'pretax_discount_total' => $order->pretax_discount_total ?? 0,
                 'total'          => $order->grand_total,
             ]);
 

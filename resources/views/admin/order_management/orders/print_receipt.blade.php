@@ -476,25 +476,25 @@
                 </td>
             </tr>
 
-            {{-- Store Credit as a PRE-TAX discount — shown inline so the receipt
-                 reconciles (Subtotal − Store Credit = Discounted, +Tax = Total),
-                 mirroring the Order Details summary. Values come straight from
-                 the engine's ProductDiscount snapshot; no arithmetic here. The
-                 receipt's Tax/Total were already synced to the recalculated
-                 order columns in ReceiptService::getOrCreateReceipt(). --}}
-            @php
-                $receiptScDiscount = \App\Models\Discounts\ProductDiscount::query()
-                    ->where('target_type', 'order')->where('target_id', $order->id)
-                    ->where('discount_type', 'store_credit')->where('status', 'applied')
-                    ->latest('id')->first();
-            @endphp
-            @if ($receiptScDiscount)
+            {{-- Pre-tax discount, special tax and added fees are read from
+                 the RECEIPT's own snapshot columns, not from the live order
+                 and not from a single ProductDiscount row.
+
+                 A receipt is a historical record of what was presented. Live
+                 order reads would make every past receipt silently restate
+                 itself whenever the order changed, and one discount row shows
+                 only the most recent adjustment once stacking is possible.
+
+                 The rows below reconcile exactly to the receipt's own total:
+                   subtotal - pretax discount + sales tax + special tax
+                            + added fees = total --}}
+            @if ((float) ($receipt->pretax_discount_total ?? 0) > 0)
                 <tr>
                     <td style="text-align:right; padding:4px 0; color:#008080;">
-                        Store Credit Discount :
+                        Pre-Tax Discounts :
                     </td>
                     <td style="text-align:right; padding:4px 0; color:#008080;">
-                        &minus; {{ \App\Helpers\CustomHelper::formatCurrency($receiptScDiscount->calculated_discount_amount) }}
+                        &minus; {{ \App\Helpers\CustomHelper::formatCurrency($receipt->pretax_discount_total) }}
                     </td>
                 </tr>
                 <tr>
@@ -502,7 +502,7 @@
                         Discounted Product Value :
                     </td>
                     <td style="text-align:right; padding:4px 0;">
-                        {{ \App\Helpers\CustomHelper::formatCurrency($receiptScDiscount->discounted_product_value) }}
+                        {{ \App\Helpers\CustomHelper::formatCurrency((float) $receipt->subtotal - (float) $receipt->pretax_discount_total) }}
                     </td>
                 </tr>
             @endif
@@ -515,6 +515,28 @@
                     {{ \App\Helpers\CustomHelper::formatCurrency($receipt->sales_tax) }}
                 </td>
             </tr>
+
+            @if ((float) ($receipt->special_tax ?? 0) > 0)
+                <tr>
+                    <td style="text-align:right; padding:4px 0;">
+                        Special Tax :
+                    </td>
+                    <td style="text-align:right; padding:4px 0;">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($receipt->special_tax) }}
+                    </td>
+                </tr>
+            @endif
+
+            @if ((float) ($receipt->added_fees ?? 0) > 0)
+                <tr>
+                    <td style="text-align:right; padding:4px 0;">
+                        Added Fees :
+                    </td>
+                    <td style="text-align:right; padding:4px 0;">
+                        {{ \App\Helpers\CustomHelper::formatCurrency($receipt->added_fees) }}
+                    </td>
+                </tr>
+            @endif
 
 
 

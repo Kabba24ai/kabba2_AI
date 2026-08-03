@@ -22,6 +22,7 @@ Baseline for all estimates: `d8591af5` + Release 1 (`0a7dcaad`).
 | 8 | ⚠ `ReceiptService` swallows write failures | **Silent failure** | High |
 | 9 | ⚠ Invoiced orders are not refused by the discount engine | **Live gap** | Medium |
 | 10 | Receipt supersession (`issued_at`) — draft decision C | Deferred decision | Medium |
+| 11 | ⚠ Gateway call inside an open database transaction | **Live risk** | High |
 
 ---
 
@@ -246,3 +247,52 @@ refresh on it, add the supersession link, and add per-type snapshot columns or a
 receipt-adjustment child table to close the attribution gap.
 
 Recorded so decision C is not mistaken for delivered.
+
+---
+
+## 11. ⚠ Authorize.Net is called inside an open database transaction — LIVE
+
+**Status: pre-existing, confirmed live, deliberately NOT changed in G2.**
+
+`ReceivePaymentController` opens a transaction (`DB::beginTransaction()`, ~L56),
+calls `AuthorizeNetService` (~L117 for a saved profile, ~L157 for a new card),
+creates the payment row, and commits at ~L270. The gateway call therefore sits
+inside the transaction, and the transaction stays open for the entire round trip
+to an external network service.
+
+**Why it has not bitten yet.** Every statement before the gateway call is a
+plain `SELECT`, and plain selects take no row locks. The controller holds an
+open read view but no locks during the call, so nothing else blocks on it today.
+
+**Why it matters more now.** Goodwill's apply is the first path that takes locks
+on `orders` and `order_payments` for a specific order. The two are compatible as
+they stand — verified by the G2 concurrency tests — but the pattern is one
+refactor away from being dangerous: the moment anything in that controller
+acquires a row lock *before* the gateway call, that lock is held for the full
+network round trip, and every other writer for that order queues behind an
+external service's latency. A gateway timeout would then hold it for the timeout
+duration.
+
+**Secondary effects that exist today:**
+
+- an open transaction spanning a network call holds its read view, so InnoDB
+  cannot purge undo records behind it for the duration;
+- a gateway call that hangs consumes a connection *and* a transaction slot;
+- a rollback after a **successful** gateway authorization leaves money captured
+  with no payment row — the failure mode this ordering makes possible.
+
+**Requirements for the fix:**
+
+1. Move the gateway call **outside** the transaction. Authorize, then open a
+   short transaction to persist the result.
+2. Reconcile the window that creates: an authorization succeeding while the
+   subsequent write fails must be detectable and recoverable, not silent. The
+   existing `idempotency_token` column and cache lock are the foundation.
+3. Keep the transaction to local statements only, so its duration is bounded by
+   the database rather than by a third party.
+4. Audit the other payment surfaces — `Front\Checkout\OrderPaymentController`,
+   `PaymentShortLinkController`, `RefundPaymentController` — for the same shape.
+
+**Out of scope for G2 by instruction.** Goodwill does not modify the payment
+flow, and its own transaction contains no gateway call, HTTP request or queue
+dispatch — asserted by a test using a strict mock that throws on any call.

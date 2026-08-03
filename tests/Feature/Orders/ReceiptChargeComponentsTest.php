@@ -164,7 +164,11 @@ class ReceiptChargeComponentsTest extends TestCase
 
         $this->assertStringContainsString('Special Tax', $html);
         $this->assertStringContainsString('Added Fees', $html);
-        $this->assertStringContainsString('Pre-Tax Discounts', $html);
+        // The adjustment line is now NAMED from its type. This fixture has a
+        // discount total but no ProductDiscount row, so the type genuinely
+        // cannot be identified and the singular generic is correct — see
+        // ReceiptAdjustmentLabelTest for the identified cases.
+        $this->assertStringContainsString('Pre-Tax Discount', $html);
         $this->assertStringContainsString('Discounted Product Value', $html);
     }
 

@@ -23,6 +23,42 @@ enum DiscountType: string
         };
     }
 
+    /**
+     * How this adjustment is named on a CUSTOMER-FACING document.
+     *
+     * Deliberately more explicit than {@see self::label()}: a receipt has to
+     * tell the customer both WHAT was applied and THAT it reduced the taxable
+     * merchandise basis rather than being a payment. "Store Credit" alone
+     * leaves a reader unable to tell a pre-tax concession from tender.
+     *
+     * Gift Card is intentionally absent from this enum. It is PURCHASED VALUE
+     * — a form of tender — not a pre-tax adjustment: it does not reduce the
+     * taxable merchandise basis and must never be grouped with the types
+     * below. Adding it here would misclassify it, which is why the suffix is
+     * attached per-case rather than appended to every label.
+     */
+    public function receiptLabel(): string
+    {
+        return match ($this) {
+            self::StoreCredit => 'Store Credit - Pre-Tax',
+            self::Goodwill    => 'Goodwill - Pre-Tax',
+            self::General     => 'General Discount - Pre-Tax',
+        };
+    }
+
+    /**
+     * Does this type reduce the taxable merchandise basis?
+     *
+     * True for every case here by construction — the enum models pre-tax
+     * product discounts. The method exists so a future tender type (Gift Card)
+     * cannot be added to this enum without the question being asked
+     * explicitly.
+     */
+    public function reducesTaxableBasis(): bool
+    {
+        return true;
+    }
+
     /** Whether this type may be applied through Phase 1 operational endpoints. */
     public function isOperationalInPhase1(): bool
     {

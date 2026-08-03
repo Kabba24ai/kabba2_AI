@@ -491,10 +491,20 @@
             @if ((float) ($receipt->pretax_discount_total ?? 0) > 0)
                 <tr>
                     <td style="text-align:right; padding:4px 0; color:#008080;">
-                        Pre-Tax Discounts :
+                        {{-- Named from the adjustment's own type via
+                             DiscountType::receiptLabel(), so a new type displays
+                             correctly without another conditional here. Falls
+                             back to a truthful generic only when the type
+                             cannot be identified, or when several different
+                             types are stacked and the cumulative snapshot
+                             cannot honestly be attributed to one of them. --}}
+                        {{ \App\Services\Discounts\PretaxAdjustmentPresenter::label($order) }} :
                     </td>
                     <td style="text-align:right; padding:4px 0; color:#008080;">
-                        &minus; {{ \App\Helpers\CustomHelper::formatCurrency($receipt->pretax_discount_total) }}
+                        {{-- PLAIN ASCII HYPHEN-MINUS. The HTML entity &minus;
+                             (U+2212) is absent from dompdf's default font and
+                             rendered as "?" on every discounted receipt. --}}
+                        -{{ \App\Helpers\CustomHelper::formatCurrency($receipt->pretax_discount_total) }}
                     </td>
                 </tr>
                 <tr>

@@ -99,17 +99,28 @@ class OrderSummaryComponentDisplayTest extends TestCase
         $order = $this->order(specialTax: 4.00, addedFees: 6.00, pretaxDiscount: 50.00);
 
         $response = $this->renderOrder($order);
-        $response->assertSee('Pre-Tax Discounts:', false);
+
+        // Named by TYPE, not by the old cumulative "Pre-Tax Discounts" label.
+        $response->assertSee('Store Credit - Pre-Tax:', false);
+        $response->assertDontSee('Pre-Tax Discounts:', false);
         $response->assertSee('$50.00', false);
         $response->assertSee('Special Tax:', false);
         $response->assertSee('Added Fees:', false);
     }
 
-    public function test_the_pretax_discount_row_shows_the_cumulative_total_not_one_adjustment(): void
+    public function test_the_adjustment_rows_account_for_the_whole_cumulative_total(): void
     {
-        // The canonical column carries every stacked adjustment. Reading a
-        // single ProductDiscount row would show only the most recent one.
+        // The displayed lines must sum to orders.pretax_discount_total. Reading
+        // a single ProductDiscount row would show only the most recent one; the
+        // per-type lines together still account for all of it.
         $order = $this->order(pretaxDiscount: 50.00);
+
+        $lines = \App\Services\Orders\OrderFinancialHistory::for($order)->activeAdjustmentLines();
+
+        $this->assertSame(
+            5000,
+            array_sum(array_map(fn ($l) => (int) round($l['amount'] * 100), $lines))
+        );
 
         $this->renderOrder($order)->assertSee('$50.00', false);
     }
@@ -194,7 +205,7 @@ class OrderSummaryComponentDisplayTest extends TestCase
         float $addedFees = 0.0,
         float $pretaxDiscount = 0.0,
     ): Order {
-        return Order::create([
+        $order = Order::create([
             'order_date' => now()->format('Y-m-d'),
             'customer_id' => $this->customer->id,
             'customer_name' => 'Summary Probe',
@@ -206,5 +217,35 @@ class OrderSummaryComponentDisplayTest extends TestCase
             'discount_amount' => 0,
             'grand_total' => $subtotal - $pretaxDiscount + $tax + $specialTax + $addedFees,
         ]);
+
+        // The discount ROW behind the order's cumulative total. It was omitted
+        // while the summary rendered one generic "Pre-Tax Discounts" line,
+        // which needed nothing but the column. The summary now names each
+        // adjustment by TYPE, and the type exists only on this row — so an
+        // order in a test must carry the same record an order carries in
+        // production. Without it the view would correctly fall back to
+        // "Other Pre-Tax Adjustment", which is the unattributed safety net,
+        // not the behaviour these tests are about.
+        if ($pretaxDiscount > 0) {
+            \App\Models\Discounts\ProductDiscount::create([
+                'discount_type' => \App\Enums\Discounts\DiscountType::StoreCredit->value,
+                'calculation_type' => \App\Enums\Discounts\DiscountCalculationType::FixedAmount->value,
+                'source_amount' => $pretaxDiscount,
+                'calculated_discount_amount' => $pretaxDiscount,
+                'target_type' => 'order',
+                'target_id' => $order->id,
+                'customer_id' => $this->customer->id,
+                'original_product_value' => $subtotal,
+                'discounted_product_value' => $subtotal - $pretaxDiscount,
+                'taxable_value_before' => $subtotal,
+                'taxable_value_after' => $subtotal - $pretaxDiscount,
+                'tax_before' => 0, 'tax_after' => 0,
+                'idempotency_key' => 'summary-probe-'.$order->id,
+                'applied_at' => now(),
+                'status' => \App\Models\Discounts\ProductDiscount::STATUS_APPLIED,
+            ]);
+        }
+
+        return $order->fresh();
     }
 }

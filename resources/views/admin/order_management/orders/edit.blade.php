@@ -304,7 +304,7 @@
                         <button id="paymentDetailsBtn" type="button"
                             class="flex items-center px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition rounded-lg">
                             <x-heroicon-o-information-circle class="w-4 h-4 mr-1 text-gray-600" />
-                            Payment Details
+                            Payment &amp; Adjustment Details
                         </button>
                     @endif
 
@@ -1821,11 +1821,23 @@
                      Special tax and added fees were previously charged and
                      folded into grand_total but never displayed, so the
                      visible arithmetic did not add up. --}}
-                @if ((float) $order->pretax_discount_total > 0)
-                    <div class="flex justify-between text-brand-700 font-medium">
-                        <span>Pre-Tax Discounts:</span>
-                        <span>&minus; {{ \App\Helpers\CustomHelper::formatCurrency($order->pretax_discount_total) }}</span>
-                    </div>
+                {{-- One line per active adjustment TYPE, not one cumulative
+                     line. "Pre-Tax Discounts −$66.97" was accurate and
+                     explained nothing: it could not say whether the concession
+                     was Store Credit, Goodwill or both. That attribution is not
+                     derivable from pretax_discount_total — it lives only on the
+                     product_discounts rows, which is what OrderFinancialHistory
+                     reads. Labels come from DiscountType::receiptLabel(); none
+                     is written here. The lines always sum to
+                     pretax_discount_total. --}}
+                @php $orderAdjustmentLines = \App\Services\Orders\OrderFinancialHistory::for($order)->activeAdjustmentLines(); @endphp
+                @if (! empty($orderAdjustmentLines))
+                    @foreach ($orderAdjustmentLines as $adjustmentLine)
+                        <div class="flex justify-between text-brand-700 font-medium">
+                            <span>{{ $adjustmentLine['label'] }}:</span>
+                            <span>&minus; {{ \App\Helpers\CustomHelper::formatCurrency($adjustmentLine['amount']) }}</span>
+                        </div>
+                    @endforeach
                     <div class="flex justify-between">
                         <span>Discounted Product Value:</span>
                         <span>{{ \App\Helpers\CustomHelper::formatCurrency((float) $order->subtotal - (float) $order->pretax_discount_total) }}</span>
@@ -3363,7 +3375,7 @@
         <div class="bg-white rounded-lg w-full max-w-lg shadow-lg flex flex-col">
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b">
-                <h2 class="text-lg font-semibold">Payment Details</h2>
+                <h2 class="text-lg font-semibold">Payment &amp; Adjustment Details</h2>
                 <button type="button"
                     class="close-payment-details-modal-btn text-2xl text-gray-400 hover:text-gray-700 leading-none focus:outline-none">&times;</button>
             </div>
@@ -3391,14 +3403,12 @@
                                  instead of "Unknown". --}}
                             <span class="font-medium text-gray-900">{{ \App\Services\PaymentDescriptionPresenter::methodsUsedLabel($pdSummary->methodsUsedForDisplay()) }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Date:</span>
-                            <span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatDateTime($pdPayment->payment_datetime) }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Employee:</span>
-                            <span class="font-medium text-gray-900">{{ $pdPayment->createdBy?->full_name ?? 'Unknown' }}</span>
-                        </div>
+                        {{-- Date and employee were here, describing only the
+                             LAST payment row. They now appear against each
+                             payment in the Payments Received list below, where
+                             a split-payment order shows them per payment
+                             instead of once for whichever row happened to be
+                             entered last. --}}
                         <div class="flex justify-between">
                             <span>Amount Paid:</span>
                             <span class="font-medium text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($order->total_paid) }}</span>
@@ -3432,12 +3442,8 @@
                         </div>
                     @endif
 
-                    @if ($pdPayment->payment_note)
-                        <div class="bg-white border border-gray-200 rounded-lg p-3 text-sm">
-                            <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Note</div>
-                            <div class="text-gray-800">{{ $pdPayment->payment_note }}</div>
-                        </div>
-                    @endif
+                    {{-- The standalone Note block was here. Notes now appear
+                         against the payment they belong to, in the list below. --}}
 
                     @if ($pdStoreCreditEntry)
                         @php
@@ -3452,9 +3458,13 @@
                             <div class="flex justify-between border-t border-blue-200 pt-1"><span>Remaining Credit:</span><span class="font-bold text-gray-900">{{ \App\Helpers\CustomHelper::formatCurrency($pdRemainingCredit) }}</span></div>
                         </div>
                     @endif
-                @else
-                    <p class="text-sm text-gray-500">No payment recorded for this order yet.</p>
                 @endif
+
+                {{-- Always rendered, including when no payment exists: an order
+                     can carry a Store Credit adjustment with nothing collected
+                     yet, and the adjustment still has to be visible. The
+                     partial handles the empty-payments case itself. --}}
+                @include('admin.order_management.orders.partials._payment_and_adjustment_details')
             </div>
 
             <!-- Footer -->

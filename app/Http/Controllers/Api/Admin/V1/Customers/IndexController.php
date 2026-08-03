@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Admin\V1\Customers;
 
 use App\Helpers\CustomHelper;
 use App\Http\Controllers\Api\BaseController;
-use Illuminate\Http\JsonResponse;
 
 // Requests
 use App\Http\Requests\Api\Admin\V1\Customers\IndexRequest;
@@ -68,16 +67,13 @@ class IndexController extends BaseController
 
         $customers = $customersQuery->latest('id')->paginate($perPage);
 
-        if ($customers->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => trans('messages.api.admin.v1.customers.no_customers_found'),
-            ], JsonResponse::HTTP_NOT_FOUND);
-        }
+        $message = $customers->isEmpty()
+            ? trans('messages.api.admin.v1.customers.no_customers_found')
+            : trans('messages.api.admin.v1.customers.customers_found');
 
         return response()->json([
             'success' => true,
-            'message' => trans('messages.api.admin.v1.customers.customers_found'),
+            'message' => $message,
             'customers' => ListResource::collection($customers),
             'pagination' => [
                 'current_page' => $customers->currentPage(),

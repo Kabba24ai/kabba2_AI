@@ -217,7 +217,16 @@ class CartHelper
 
         $itemSubTotal = $price * $quantity + $optionsTotal + $serviceOptionPrice + $rentalItemsTotal;
         $itemTax = ($taxExempt || $product->is_tax_free_item) ? 0 : $itemSubTotal * $taxRate;
-        $itemSpecialTax = $product->apply_special_tax ? $itemSubTotal * (floatval($productSettings['special_taxes'] ?? 0) / 100) : 0;
+        // `special_taxes` is stored as a DECIMAL RATE (0.02 = 2%), not as a
+        // percentage — ProductSettings\SaveController divides the operator's
+        // "2.00" by 100 on save, exactly as it does for `sales_tax`, and the
+        // settings form renders it back through displayPercentage().
+        //
+        // Dividing again here was a 100x under-charge: a 2% special tax on a
+        // $200 line produced $0.04 instead of $4.00. Note `$taxRate` above
+        // reads `sales_tax` with no division — that is the correct pattern and
+        // is why ordinary tax was never affected.
+        $itemSpecialTax = $product->apply_special_tax ? $itemSubTotal * floatval($productSettings['special_taxes'] ?? 0) : 0;
         $itemAddedFees = $product->apply_added_fees ? floatval($productSettings['added_fees'] ?? 0) * $quantity : 0;
         $itemTotal = $itemSubTotal + $itemTax + $itemSpecialTax + $itemAddedFees;
 

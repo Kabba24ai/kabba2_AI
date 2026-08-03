@@ -38,8 +38,18 @@ class CheckoutSpecialTaxColumnsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const TAX_RATE     = 0.0975; // stored as a decimal rate
-    private const SPECIAL_PCT  = 2.0;    // stored as a percentage, divided by 100 at use
+    // Both taxes are stored as DECIMAL RATES, not percentages.
+    // ProductSettings\SaveController divides an operator's "9.75" / "2.00" by
+    // 100 on save, and the settings form renders them back through
+    // displayPercentage(). Writing a raw percentage here would bypass that
+    // conversion and test a contract the application does not use.
+    //
+    // An earlier version of this file did exactly that — it stored 2.0 and
+    // still expected $4.00, which only worked because CartHelper divided by
+    // 100 a second time. Two errors cancelled, and the test passed while
+    // production under-charged special tax by 100x.
+    private const TAX_RATE     = 0.0975; // 9.75%
+    private const SPECIAL_RATE = 0.02;   // 2%
     private const FEE_PER_UNIT = 5.0;    // flat dollars per unit
 
     private State $state;
@@ -50,7 +60,7 @@ class CheckoutSpecialTaxColumnsTest extends TestCase
         $this->seed(\Database\Seeders\Configurations\SettingSeeder::class);
 
         $this->setSetting('sales_tax', self::TAX_RATE);
-        $this->setSetting('special_taxes', self::SPECIAL_PCT);
+        $this->setSetting('special_taxes', self::SPECIAL_RATE);
         $this->setSetting('added_fees', self::FEE_PER_UNIT);
 
         $this->state = State::create(['name' => 'Tennessee', 'slug' => 'tennessee', 'abbreviation' => 'TN']);

@@ -1798,20 +1798,52 @@
                     <span>Subtotal:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->subtotal) }}</span>
                 </div>
-                @if ($scApplied)
+                {{-- Every figure below is read from the order's own canonical
+                     columns. product_data is never reparsed here, and the
+                     cumulative pretax_discount_total is used rather than any
+                     single discount row, so a STACKED pair of Store Credits
+                     shows its true combined total instead of only the latest.
+
+                     The visible rows reconcile exactly to grand_total:
+
+                       subtotal - pretax_discount + sales tax + special tax
+                                + added fees - discount = grand_total
+
+                     Special tax and added fees were previously charged and
+                     folded into grand_total but never displayed, so the
+                     visible arithmetic did not add up. --}}
+                @if ((float) $order->pretax_discount_total > 0)
                     <div class="flex justify-between text-brand-700 font-medium">
-                        <span>Store Credit Discount</span>
-                        <span>&minus; {{ \App\Helpers\CustomHelper::formatCurrency($scApplied->calculated_discount_amount) }}</span>
+                        <span>Pre-Tax Discounts:</span>
+                        <span>&minus; {{ \App\Helpers\CustomHelper::formatCurrency($order->pretax_discount_total) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Discounted Product Value</span>
-                        <span>{{ \App\Helpers\CustomHelper::formatCurrency($scApplied->discounted_product_value) }}</span>
+                        <span>Discounted Product Value:</span>
+                        <span>{{ \App\Helpers\CustomHelper::formatCurrency((float) $order->subtotal - (float) $order->pretax_discount_total) }}</span>
                     </div>
                 @endif
                 <div class="flex justify-between">
-                    <span>Taxes:</span>
+                    <span>Sales Tax:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->tax_amount) }}</span>
                 </div>
+                @if ((float) ($order->special_tax_amount ?? 0) > 0)
+                    <div class="flex justify-between">
+                        <span>Special Tax:</span>
+                        <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->special_tax_amount) }}</span>
+                    </div>
+                @endif
+                @if ((float) ($order->added_fees_amount ?? 0) > 0)
+                    <div class="flex justify-between">
+                        <span>Added Fees:</span>
+                        <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->added_fees_amount) }}</span>
+                    </div>
+                @endif
+                @if ((float) $order->discount_amount > 0)
+                    <div class="flex justify-between text-brand-700 font-medium">
+                        <span>Discount:</span>
+                        <span>&minus; {{ \App\Helpers\CustomHelper::formatCurrency($order->discount_amount) }}</span>
+                    </div>
+                @endif
                 <div class="flex justify-between font-bold text-gray-900 border-t pt-2">
                     <span>Grand Total:</span>
                     <span>{{ \App\Helpers\CustomHelper::formatCurrency($order->grand_total) }}</span>

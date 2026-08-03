@@ -22,6 +22,28 @@ use InvalidArgumentException;
  * primitive orders/fuel/damage/extensions already use) — never re-derived here.
  * The discount can never push the product value below $0.00, and can never
  * discount tax.
+ *
+ * ══ WHO OWNS THE PERSISTED TAX ══
+ *
+ * This class SIZES a concession and PREVIEWS its effect. Whether its tax
+ * figures are authoritative depends on the target:
+ *
+ *   - CREATION-TIME targets (Extension) persist this result directly. The
+ *     obligation does not exist yet, so `discountedProductValue` and
+ *     `taxAfter` ARE the amounts written — see Extension\StoreController.
+ *
+ *   - RE-PRICING targets (Order) do NOT. An existing order already carries
+ *     ordinary tax, special tax, added fees and other components that this
+ *     class knows nothing about, so `OrderDiscountTarget` owns every
+ *     persisted total and recomputes them from the order's own
+ *     `*_before_discount` snapshot. This result's `taxAfter`,
+ *     `finalAmountDue` and `totalBefore` are ADVISORY there.
+ *
+ * The two are not left to drift: `OrderDiscountTarget::applyDiscount()`
+ * asserts that `discountedProductValue` matches the merchandise basis the
+ * writer computes, and refuses the write if it does not. That is the single
+ * figure both must agree on, and it is what prevents a preview from showing
+ * an operator something the writer would contradict.
  */
 class DiscountCalculator
 {

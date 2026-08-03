@@ -110,6 +110,24 @@ class OrderDiscountTarget implements DiscountTarget
     {
         $this->captureOriginalSnapshotOnce();
         $newPretax = round((float) $this->order->pretax_discount_total + $result->discountAmount, 2);
+
+        // CONTRACT between the two calculators. DiscountCalculator sizes the
+        // concession and previews it; THIS class owns every persisted total.
+        // The one figure both must agree on is the merchandise basis that
+        // survives — if they disagree, the operator was shown a number the
+        // writer is about to contradict, and that must stop the write rather
+        // than be silently reconciled.
+        $expectedRemainingC = (int) round(((float) $result->discountedProductValue) * 100);
+        $actualRemainingC = $this->computeTotals($newPretax)['remaining'];
+
+        if ($expectedRemainingC !== $actualRemainingC) {
+            throw new DiscountException(
+                "Order {$this->order->id}: DiscountCalculator computed a discounted product value of "
+                ."{$expectedRemainingC}c but the order writer computes {$actualRemainingC}c. "
+                .'Preview and persisted totals must agree. Nothing was written.'
+            );
+        }
+
         $this->recompute($newPretax);
 
         // Record WHICH lines bore THIS adjustment. Order-level totals cannot
@@ -197,6 +215,29 @@ class OrderDiscountTarget implements DiscountTarget
      */
     private function recompute(float $newPretaxDiscountTotal): void
     {
+        $t = $this->computeTotals($newPretaxDiscountTotal);
+
+        $this->order->pretax_discount_total = $t['discount'] / 100;
+        $this->order->tax_amount            = $t['tax'] / 100;
+        $this->order->special_tax_amount    = $t['special_tax'] / 100;
+        $this->order->grand_total           = max(0, $t['grand_total']) / 100;
+        $this->order->save();
+
+        $this->propagateToLines($t['remaining'], $t['subtotal'], $t['tax'], $t['special_tax']);
+    }
+
+    /**
+     * What the order's totals WOULD be at a given cumulative discount.
+     *
+     * Pure — reads the order, writes nothing. {@see self::recompute()} persists
+     * exactly this, and {@see self::previewTotals()} displays exactly this, so
+     * a preview can never show a figure the writer then recomputes
+     * differently. One formula, two callers.
+     *
+     * @return array<string,int> all values in integer cents
+     */
+    private function computeTotals(float $newPretaxDiscountTotal): array
+    {
         $c = static fn ($v): int => (int) round(((float) $v) * 100);
 
         $subtotalC   = $c($this->order->subtotal);
@@ -258,13 +299,31 @@ class OrderDiscountTarget implements DiscountTarget
             );
         }
 
-        $this->order->pretax_discount_total = $discountC / 100;
-        $this->order->tax_amount            = $newTaxC / 100;
-        $this->order->special_tax_amount    = $newSpecialC / 100;
-        $this->order->grand_total           = max(0, $newGrandC) / 100;
-        $this->order->save();
+        return [
+            'subtotal'    => $subtotalC,
+            'discount'    => $discountC,
+            'remaining'   => $remainingC,
+            'tax'         => $newTaxC,
+            'special_tax' => $newSpecialC,
+            'added_fees'  => $feesC,
+            'other'       => $otherC,
+            'grand_total' => $newGrandC,
+        ];
+    }
 
-        $this->propagateToLines($remainingC, $subtotalC, $newTaxC, $newSpecialC);
+    /**
+     * Preview the totals an ADDITIONAL discount would produce.
+     *
+     * Shares `computeTotals()` with the writer, so what an operator approves
+     * is arithmetically identical to what gets persisted.
+     *
+     * @return array<string,int> integer cents
+     */
+    public function previewTotals(float $additionalDiscount): array
+    {
+        return $this->computeTotals(
+            round((float) $this->order->pretax_discount_total + $additionalDiscount, 2)
+        );
     }
 
     /**

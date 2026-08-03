@@ -3,48 +3,56 @@
 **Target:** `RajChotaliya/Kaaba2`, branch `raj_development` — the true production
 repository.
 
-**Written against production head `a5b81f18`** (`- migration update`, 2026-08-03).
-Re-verify that head before running anything: production moved once during this
-work, and the procedure below assumes it has not moved again.
+**Rebased onto production head `37df459c`** (`fix: unwrap double-nested checklist
+arrays…`, 2026-08-03).
+
+Re-verify that head before running anything. Production moved **twice** during
+this work — `afa84552` → `a5b81f18` → `37df459c` — so treat a stale head as the
+expected case, not the exception, and re-check rather than assume.
 
 Nothing in this document has been executed. There is **no production server
 access** from the development environment: every step is run by the operator.
 
 ---
 
-## 0. PREREQUISITE — the branch has diverged and must be rebased
+## 0. Rebase — COMPLETE
 
-This is a hard gate. **Do not attempt to push before resolving it.**
+The branch was rebased onto the current production head. Recorded here because
+the commit hashes changed, and because production moved twice while this work
+was in progress.
 
 ```
-merge base            afa84552   (previous production head)
-production head       a5b81f18   1 commit ahead of the merge base
-feature branch        2f81877e   3 commits ahead of the merge base
+previous merge base   afa84552
+production now        37df459c   (a5b81f18 + 3 further commits)
+release branch        0457ad09   4 commits, replayed onto 37df459c
 ```
 
-The branches have diverged, so a push would be rejected as a non-fast-forward.
+**The rebase produced no conflicts.** The three commits added after `a5b81f18`
+touch `Api/Admin/V1/Customers/IndexController`, two CustomerChecklists request
+classes, one migration and some audit documents — no file this release changes.
+
+Verified after rebasing:
 
 ```bash
-git fetch production
-git rebase production/raj_development           # replays 3 commits onto a5b81f18
-git log --oneline production/raj_development..HEAD   # expect exactly the chain in §1
+git merge-base --is-ancestor production/raj_development HEAD   # exit 0
+git rev-list --left-right --count production/raj_development...HEAD   # 0  4
+git status --short                                             # empty
 ```
 
-**Do not force-push.** If the rebase produces conflicts, stop and report them —
-there should be none, since `a5b81f18` touches only a migration file this work
-does not modify.
+Zero commits unique to production, so the push is a clean fast-forward.
+**Do not force-push.**
 
-### The migration filename collision, already resolved here
+### The migration filename collision, resolved
 
 `a5b81f18` added `2026_08_03_000001_make_total_clean_charge_nullable_on_order_products_table.php`
-to `database/migrations/orders/` — **the same `2026_08_03_000001` prefix** this
-work originally used for the Goodwill table, in the same directory.
+to `database/migrations/orders/` — the same `2026_08_03_000001` prefix this work
+originally used, in the same directory.
 
 Laravel sorts by full filename, so both would have run and neither would have
-errored, but two migrations sharing a timestamp is ambiguous and would have
-confused any later `migrate:rollback --step` reasoning. The Goodwill migration
-has therefore been renumbered to `2026_08_03_000002`. It has never run in
-production, so the rename costs nothing.
+errored, but two migrations sharing a timestamp is ambiguous and would confuse
+any later `migrate:rollback --step` reasoning. The Goodwill migration was
+renumbered to `2026_08_03_000002`. It has never run in production, so the rename
+cost nothing.
 
 Nothing about the Goodwill table depends on ordering — it references only
 long-existing tables (`orders`, `product_discounts`, `users`, `order_payments`).
@@ -57,13 +65,16 @@ Four commits, in order:
 
 | Hash | Subject |
 |---|---|
-| `e8b4e7c7` | `financial: add goodwill audit domain` |
-| `e5de9805` | `financial: add goodwill apply and reversal service` |
-| `2f81877e` | `financial: add goodwill pending-payment workflow` |
-| *(pending)* | `financial: verify goodwill lifecycle and ship` |
+| `9b08bb42` | `financial: add goodwill audit domain` |
+| `62de7779` | `financial: add goodwill apply and reversal service` |
+| `a54e5388` | `financial: add goodwill pending-payment workflow` |
+| `0457ad09` | `financial: correct refund tax basis and verify goodwill lifecycle` |
 
-**Hashes change when the branch is rebased.** Re-read them after §0 and record
-the rebased values in the deployment log.
+Plus the documentation commit that records these hashes, which sits on top.
+
+**These are post-rebase hashes, valid against production head `37df459c`.** If
+production moves again the branch must be rebased again and they will change —
+re-read them before deploying and record the values actually deployed.
 
 ---
 
@@ -106,7 +117,7 @@ Expected order after the rebase:
 
 | # | Migration | Origin |
 |---|---|---|
-| 1 | `2026_08_03_000001_make_total_clean_charge_nullable_on_order_products_table` | `a5b81f18`, production |
+| 1 | `2026_08_03_000001_make_total_clean_charge_nullable_on_order_products_table` | `a5b81f18`, production — already deployed |
 | 2 | `2026_08_03_000002_create_order_goodwill_adjustments_table` | **this release** |
 
 If step 1 shows as already run, that is expected — it belongs to production, not
@@ -298,8 +309,8 @@ destroys nothing.
 ### 9b. Code revert, **retaining schema and audit history**
 
 ```bash
-git revert --no-commit 2f81877e e5de9805 e8b4e7c7
-git commit -m "revert: goodwill pending-payment workflow"
+git revert --no-commit 0457ad09 a54e5388 62de7779 9b08bb42
+git commit -m "revert: goodwill adjustment release"
 # deploy, then:
 php artisan route:cache && php artisan view:cache && php artisan queue:restart
 ```
@@ -375,10 +386,29 @@ taxable_basis = taxable_gross × (subtotal − pretax_discount_total) ÷ subtota
 rate          = tax_amount ÷ taxable_basis
 ```
 
-**Behaviour change to expect after deployment.** On a mixed-tax or discounted
-order, a refund's `tax_refunded` will be **larger** than the same refund would
-have produced yesterday. The customer-facing **total is unchanged** — only the
-base/tax split moves, and it moves toward correct.
+### ⚠ Operator briefing — brief this BEFORE deployment
+
+> **The customer's refund amount does not change. Nothing about this makes
+> refunds bigger.**
+>
+> A refund total has always been made of two parts: the merchandise being
+> returned, and the sales tax that was charged on it. That **total is unchanged**
+> and always was correct.
+>
+> What changes is how the total is **divided between those two parts** in our
+> records. We were recording too little of it as sales tax, so on a mixed-tax or
+> discounted order the `tax_refunded` figure will now be **larger than it would
+> have been yesterday for the same refund** — and the merchandise portion
+> correspondingly smaller. The two still add up to exactly the same amount the
+> customer receives.
+>
+> This matters for what we remit to the tax authority, not for what anyone is
+> paid. If a report shows refunded tax rising after this deployment with no
+> change in refund volume, **that is the fix working**, not an error to
+> investigate.
+
+Say this in those terms. "Refunds will show more tax" invites exactly the wrong
+conclusion if the first sentence is left out.
 
 **No schema change, no migration, no backfill.** Read-only resolution at refund
 time.

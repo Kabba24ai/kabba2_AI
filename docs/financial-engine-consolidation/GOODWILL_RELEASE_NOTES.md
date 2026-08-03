@@ -87,9 +87,17 @@ It was escalated from follow-up to a **release blocker**: shipping Goodwill
 without it would have made the defect reachable on more orders.
 
 The rate now comes from `TaxableBasisResolver`, which recovers the merchandise
-value that actually generated the tax. **Customer-facing totals are unchanged** —
-only the base/tax split moves, and it moves toward correct, which is what tax
-remittance is reported from.
+value that actually generated the tax.
+
+> **This does not increase anyone's refund.** A refund total is made of
+> merchandise plus the tax charged on it. The **total is unchanged** and always
+> was correct — what changes is how it is divided between those two parts in our
+> records. We were recording too little of it as sales tax. The customer
+> receives exactly what they would have received before.
+
+The consequence is for tax remittance, not for what anyone is paid. Expect
+`tax_refunded` on mixed-tax and discounted orders to read higher after
+deployment, with the merchandise portion correspondingly lower.
 
 **Forward-only.** The corrected calculation applies to refunds processed **after
 deployment**. Refunds already issued keep the split they were processed with —

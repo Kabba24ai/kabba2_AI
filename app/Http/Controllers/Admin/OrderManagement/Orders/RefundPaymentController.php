@@ -23,6 +23,8 @@ use App\Models\Orders\Order;
 use App\Models\Orders\OrderPayment;
 use App\Services\AuthorizeNetService;
 use App\Services\CustomerCreditService;
+use App\Services\GiftCards\GiftCardPermissions;
+use App\Services\GiftCards\GiftCardService;
 use App\Services\Orders\PaymentAllocationService;
 
 /**
@@ -343,6 +345,48 @@ class RefundPaymentController extends Controller
             $anet = $isCardDestination ? app(AuthorizeNetService::class) : null;
             $results = [];
 
+            /*
+             * ── GIFT CARD VALUE MUST NOT BECOME CASH ──────────────────────
+             *
+             * A customer buys a $500 gift card, spends it, then cancels.
+             * Refund $500 in cash and they now hold $500 of MONEY for $500
+             * of stored value — the business has converted a liability into
+             * cash it never took for that transaction. Done repeatedly, it
+             * is a way to launder stored value into the till. A granted card
+             * is worse still: it turns promotional value the customer never
+             * paid for into money.
+             *
+             * So the safe default is enforced HERE, before any allocation is
+             * written: value that came off a gift card goes back onto that
+             * gift card. Sending it anywhere else is possible but is a
+             * separate, privileged decision — it requires ADJUST (the
+             * permission to create and destroy value), not REDEEM (the
+             * permission to spend it).
+             *
+             * Deliberately narrow: this adds a guard and a destination. It
+             * does not restructure the refund workflow.
+             */
+            $giftCardFundedSources = [];
+            foreach ($splits['rows'] as $split) {
+                $original = $originalsById->get($split['original_order_payment_id']);
+                if ($original && GiftCardService::requiresRefundToCard($original)) {
+                    $giftCardFundedSources[$original->id] = true;
+                }
+            }
+
+            if ($giftCardFundedSources !== []
+                && $refundPaymentType !== PaymentMethod::GiftCard->value
+                && ! GiftCardPermissions::canRefundOffCard($user)) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Part of this order was paid with a gift card. That value must be refunded back to '
+                        .'the same gift card. Sending it to cash or a credit card converts stored value into money '
+                        .'and needs the Manual Balance Adjustment permission.',
+                ], 422);
+            }
+
             foreach ($splits['rows'] as $split) {
                 $original = $originalsById->get($split['original_order_payment_id']);
 
@@ -411,11 +455,30 @@ class RefundPaymentController extends Controller
                             }
                         }
                     }
+                    // Value that came off a gift card goes back onto that
+                    // gift card. The service credits the SAME card the
+                    // redemption drew from — the destination is derived from
+                    // the payment's ledger link, never chosen by the operator
+                    // — and is bounded by what this order actually took from
+                    // it, cumulatively across partial refunds.
+                    if (isset($giftCardFundedSources[$original->id])
+                        && $refundPaymentType === PaymentMethod::GiftCard->value) {
+                        GiftCardService::refundToCard(
+                            giftCardPayment: $original,
+                            amount: $split['amount'],
+                            reason: $reasonText ?: 'Order refund',
+                            // One key per refund event per source, so a
+                            // retried refund credits the card once.
+                            idempotencyKey: 'gc-refund-'.$refund->id.'-'.$original->id,
+                            actor: $user,
+                        );
+                    }
+
                     // Every other combination — a manual destination (Cash,
-                    // Cheque, Store Credit, Tap to Pay, Gift Card, Zelle/Venmo,
-                    // Other), or a card destination drawing from a non-card
-                    // original (no gateway relationship exists to route to) —
-                    // is a local allocation: no gateway call, always succeeds.
+                    // Cheque, Store Credit, Tap to Pay, Zelle/Venmo, Other),
+                    // or a card destination drawing from a non-card original
+                    // (no gateway relationship exists to route to) — is a
+                    // local allocation: no gateway call, always succeeds.
 
                     // The persist — see the sequence note above: this is the
                     // very next statement after the gateway call resolves,

@@ -88,13 +88,74 @@ class PaymentVocabularyStandardizationTest extends TestCase
     {
         // Exactly the eight approved methods (Bank Transfer is deliberately
         // absent — see test_bank_transfer_is_rejected_everywhere below).
+        //
+        // Gift Card is NOT in this list, and its absence is the point. Every
+        // other method here is a label attached to money that arrived by some
+        // outside route, so recording it needs nothing but the label. A gift
+        // card is stored value with its own ledger: paying with one is a
+        // redemption against a specific card, so it cannot be exercised by
+        // naming the method alone. It has its own case below.
         return [
             'Cash means cash' => [PaymentMethod::Cash->value, OrderPaymentMethod::Cash],
             'Check'            => [PaymentMethod::Cheque->value, OrderPaymentMethod::Cheque, ['cheque_number' => 'CHQ-1']],
             'Tap to Pay'       => [PaymentMethod::TapToPay->value, OrderPaymentMethod::TapToPay],
-            'Gift Card'        => [PaymentMethod::GiftCard->value, OrderPaymentMethod::GiftCard],
             'Zelle / Venmo'    => [PaymentMethod::ZelleVenmo->value, OrderPaymentMethod::ZelleVenmo],
         ];
+    }
+
+    /**
+     * Gift Card records as itself too — but only against a real card.
+     *
+     * This previously passed with no card number at all, writing a payment
+     * row that looked like cash to every downstream report while drawing
+     * down nothing. That behaviour was replaced deliberately: selecting Gift
+     * Card now redeems a specific card through the gift card ledger.
+     */
+    public function test_gift_card_records_as_itself_and_debits_the_card(): void
+    {
+        $this->seedGiftCardPermissions();
+
+        $card = \App\Services\GiftCards\GiftCardService::purchase(
+            amount: 200,
+            fundingMethod: OrderPaymentMethod::Cash,
+            actor: $this->admin,
+        );
+
+        $this->receivePayment([
+            'payment_type' => PaymentMethod::GiftCard->value,
+            'gift_card_number' => $card->card_number,
+        ])->assertOk();
+
+        $payment = OrderPayment::where('order_id', $this->order->id)->latest('id')->firstOrFail();
+        $this->assertSame(OrderPaymentMethod::GiftCard, $payment->payment_method);
+
+        // The label is not the point — the money moving is.
+        $this->assertSame(0.0, $card->fresh()->availableBalance());
+    }
+
+    /**
+     * A Gift Card payment with no card is refused outright. There is no such
+     * thing as a gift card payment that does not come off a gift card.
+     */
+    public function test_gift_card_without_a_card_number_is_rejected(): void
+    {
+        $this->receivePayment(['payment_type' => PaymentMethod::GiftCard->value])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['gift_card_number']);
+
+        $this->assertSame(0, OrderPayment::where('order_id', $this->order->id)->count());
+    }
+
+    private function seedGiftCardPermissions(): void
+    {
+        (new \Database\Seeders\Iam\GiftCardPermissionSeeder())->run();
+
+        foreach (array_keys(\App\Services\GiftCards\GiftCardPermissions::all()) as $permission) {
+            $this->admin->givePermissionTo($permission);
+        }
+
+        $this->admin = $this->admin->fresh();
+        $this->actingAs($this->admin);
     }
 
     // ── Bank Transfer is fully removed ──────────────────────────────────

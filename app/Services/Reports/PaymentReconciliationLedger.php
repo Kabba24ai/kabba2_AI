@@ -22,6 +22,18 @@ use Illuminate\Support\Facades\DB;
  *   Stream B (refunds)          → COALESCE(refunded_at, payment_datetime, created_at)
  *   Stream C (account payments) → customer_accounts.date
  *   Stream D (billing charges)  → billing_charges.paid_at
+ *   Stream E (gift-card funding)→ gift_card_transactions.created_at
+ *
+ * GIFT CARDS SPAN TWO STREAMS, ON PURPOSE. A card's cash and its revenue are
+ * different events in different periods, so they are reported where each
+ * actually belongs:
+ *
+ *   funding   → Stream E: cash, zero revenue, zero tax, settles to the processor
+ *   redemption→ Stream A: revenue and tax, `grand_total` ZERO (nothing settles)
+ *
+ * Each dollar is therefore counted exactly once across the card's life. The
+ * redemption row is deliberately retained rather than dropped: an operator
+ * reconciling the order must still see how it was paid.
  *
  * Stream A reads {@see CollectedRevenueQuery} — the same allocation output the
  * KPI engine's collected side reads — so the reconciliation to total_collected
@@ -57,6 +69,15 @@ class PaymentReconciliationLedger
             ->concat(
                 !in_array($paymentStatus, ['pod', 'account'])
                     ? $this->streamD($filters, $startDate, $endDate)
+                    : collect()
+            )
+            // Stream E — cash from gift-card sales. Scoped out of the same two
+            // views as Stream D: POD is an uncollected projection (no money has
+            // moved), and the account view is order-payment scoped, while a
+            // card sale belongs to no order at all.
+            ->concat(
+                !in_array($paymentStatus, ['pod', 'account'])
+                    ? $this->streamE($filters, $startDate, $endDate)
                     : collect()
             );
 
@@ -135,6 +156,30 @@ class PaymentReconciliationLedger
             $lineTax  = CollectedRevenueQuery::matchedLineSum($row, 'tax');
             $base     = round($lineBase - $lineDisc, 2);
 
+            // ── Gift-card redemption: visible, but nothing to settle ──────
+            //
+            // The row is KEPT. An operator reconciling an order must be able
+            // to see that a gift card paid part of it; dropping the row would
+            // make the order look underpaid and send someone hunting for a
+            // payment that is right there.
+            //
+            // But `grand_total` is the SETTLEMENT EXPECTATION — the figure
+            // this ledger reconciles against a processor deposit. No processor
+            // will ever settle a gift-card redemption: the money was settled
+            // when the card was funded, and that cash appears in Stream E.
+            // Leaving a non-zero total here would leave the ledger permanently
+            // short against the bank by exactly the amount redeemed.
+            //
+            // Revenue and tax stay on their own columns, so the row remains a
+            // truthful record of what was earned — only the cash claim is zero.
+            $isGiftCard   = !($row->is_cash_tender ?? true);
+            $settlement   = $isGiftCard ? 0.0 : round($base + $lineTax, 2);
+            $giftCardNote = $isGiftCard
+                ? 'Gift card redemption of $' . number_format($row->applied, 2)
+                    . ' — revenue recognised; cash was collected when the card was funded, '
+                    . 'so there is no external settlement to reconcile.'
+                : null;
+
             return (object) [
                 'stream'             => 'order',
                 'payment_date'       => $row->payment_datetime,
@@ -149,13 +194,98 @@ class PaymentReconciliationLedger
                 'payment_status'     => $row->payment_status ?? 'Paid',
                 'base_amount'        => $base,
                 'tax_amount'         => $lineTax,
-                'grand_total'        => round($base + $lineTax, 2),
+                'grand_total'        => $settlement,
                 'included_because'   => $source['label'] . ' – Paid This Period',
-                'notes'              => $row->overpayment > 0
+                'notes'              => $giftCardNote ?? ($row->overpayment > 0
                     ? 'Overpayment of $' . number_format($row->overpayment, 2) . ' received beyond the order total — excluded from collected revenue.'
-                    : null,
+                    : null),
             ];
         })->values();
+    }
+
+    // ─── Stream E: Gift-card funding ──────────────────────────────────────────
+
+    /**
+     * Cash received for gift cards sold — real money, for which nothing was
+     * sold yet.
+     *
+     * A gift-card sale is standalone by design: no order, no `order_product`,
+     * no catalogue item. That is what keeps it out of Streams A–D and out of
+     * taxable sales entirely. It still produces a genuine tender — often an
+     * Authorize.Net charge — which must reconcile against a settlement, so it
+     * needs a stream of its own.
+     *
+     * `base_amount` and `tax_amount` are ZERO, and that is the point: this is
+     * cash without revenue. The matching revenue is recognised later, in Stream
+     * A, when the card is redeemed — where it appears as revenue without cash.
+     * Together the two streams count each dollar exactly once.
+     *
+     * EXCLUDES voided funding. A charge that was reversed is not money the
+     * business kept, and claiming it would leave the ledger expecting a deposit
+     * that never arrives.
+     *
+     * EXCLUDES granted cards entirely — they have no funding row, because no
+     * money ever existed. They are reported through the promotional-value KPIs,
+     * never here.
+     */
+    private function streamE(array $filters, string $startDate, string $endDate): Collection
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('gift_card_transactions')) {
+            return collect();
+        }
+
+        // Line-level filters (store / category / product / item type) describe
+        // PRODUCT LINES. A gift-card sale has none, so any active line filter
+        // scopes this stream out rather than matching it arbitrarily.
+        if ($this->collected->hasLineFilters($filters)) {
+            return collect();
+        }
+
+        return DB::table('gift_card_transactions as gct')
+            ->join('gift_cards as gc', 'gc.id', '=', 'gct.gift_card_id')
+            ->leftJoin('customers as c', 'c.id', '=', 'gc.purchaser_customer_id')
+            ->where('gct.type', 'issuance_purchased')
+            ->whereNull('gct.funding_voided_at')
+            ->whereNotNull('gct.funding_cash_amount')
+            ->whereBetween(DB::raw('DATE(gct.created_at)'), [$startDate, $endDate])
+            ->select([
+                'gct.created_at',
+                'gct.funding_cash_amount',
+                'gct.funding_payment_method',
+                'gct.funding_transaction_id',
+                'gc.card_number',
+                'gc.unique_id as card_unique_id',
+                DB::raw("TRIM(CONCAT(COALESCE(c.first_name,''),' ',COALESCE(c.last_name,''))) as purchaser_name"),
+            ])
+            ->orderBy('gct.created_at')
+            ->get()
+            ->map(fn ($row) => (object) [
+                'stream'             => 'gift_card',
+                'payment_date'       => $row->created_at,
+                'order_number'       => $row->card_number,
+                'order_unique_id'    => $row->card_unique_id,
+                'order_date'         => date('Y-m-d', strtotime($row->created_at)),
+                'customer_name'      => trim((string) $row->purchaser_name) ?: '—',
+                'revenue_source'     => 'Gift Card Funding',
+                'revenue_source_key' => 'gift_card_funding',
+
+                // The REAL tender the customer used. Never `GiftCard` — that
+                // method means redemption, and a card cannot fund itself.
+                'payment_method'     => $this->mapOrderPaymentMethod($row->funding_payment_method),
+                'payment_method_key' => $row->funding_payment_method ?? 'Other',
+                'payment_status'     => 'Paid',
+
+                // Cash without revenue. See the header.
+                'base_amount'        => 0.0,
+                'tax_amount'         => 0.0,
+                'grand_total'        => round((float) $row->funding_cash_amount, 2),
+
+                'included_because'   => 'Gift Card Funding – Cash Received This Period',
+                'notes'              => 'Stored value issued — not a sale. No revenue and no sales tax at '
+                    . 'issuance; the revenue is recognised when the card is redeemed.'
+                    . ($row->funding_transaction_id ? ' Transaction ' . $row->funding_transaction_id . '.' : ''),
+            ])
+            ->values();
     }
 
     // ─── Stream B: Refunds ────────────────────────────────────────────────────

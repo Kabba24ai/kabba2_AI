@@ -30,6 +30,11 @@ use Illuminate\Support\Facades\DB;
  *     cumulative allocations are capped at the order's stored figures.
  *   - Overpayment (amount beyond the order's grand_total) is surfaced on the
  *     row separately and never creates revenue or tax.
+ *   - Gift-card redemption is the mirror image of overpayment: it creates
+ *     REVENUE AND TAX but no cash, because the money arrived earlier, when the
+ *     card was funded. Marked per row via `is_cash_tender` /
+ *     `non_cash_tender_class`; the payment stays in the allocation so the
+ *     revenue is recognised in full. See docs/gift-cards/REPORTING_TREATMENT.md.
  *
  * LINE ATTRIBUTION (canonical decomposition — filtered views build on this):
  *   Each row carries a `lines` array partitioning that payment's canonical
@@ -111,6 +116,10 @@ class CollectedRevenueQuery
         $linesByOrder = $this->orderLines($orderIds);
         $scByOrder    = $this->storeCreditDiscounts($orderIds);
         $lineFilters  = $this->hasLineFilters($filters);
+
+        // Which payment rows are gift-card redemptions, and what kind of value
+        // funded them. Loaded once for the whole set — see giftCardRedemptions().
+        $giftCardByPayment = $this->giftCardRedemptions($payments->pluck('payment_id'));
 
         $out = collect();
 
@@ -212,6 +221,24 @@ class CollectedRevenueQuery
                     'payment_method'    => $row->payment_method,
                     'payment_status'    => $row->payment_status,
                     'amount'            => (float) $row->amount,
+
+                    // ── Cash vs revenue, separated ────────────────────────
+                    //
+                    // Every other tender in this system moves money at the
+                    // moment it is applied, so revenue and cash are the same
+                    // figure. A gift card moved its money EARLIER — when the
+                    // card was funded — so the revenue below is real and the
+                    // cash is not.
+                    //
+                    // These two fields are the ONLY way that distinction is
+                    // expressed. The payment deliberately remains in the
+                    // qualifying set: removing it would delete the revenue and
+                    // the sales tax along with the cash (a $550 order paid by
+                    // card would allocate as a $0 order). Consumers that care
+                    // about CASH filter on `is_cash_tender`; consumers that
+                    // care about REVENUE ignore it and are correct by default.
+                    'is_cash_tender'        => !isset($giftCardByPayment[$row->payment_id]),
+                    'non_cash_tender_class' => $giftCardByPayment[$row->payment_id] ?? null,
                     'applied'           => $applied[$i]['applied'],
                     'overpayment'       => $applied[$i]['overpayment'],
                     'tax'               => $taxAlloc[$i],
@@ -261,9 +288,57 @@ class CollectedRevenueQuery
     // ─── Private ──────────────────────────────────────────────────────────────
 
     /**
+     * Payment id => the class of gift-card value that funded it.
+     *
+     * `gift_card_purchased` — a customer prepaid; redeeming draws down a
+     *                         LIABILITY the business owes.
+     * `gift_card_granted`   — the business gave the value away; redeeming
+     *                         consumes MERCHANT-FUNDED PROMOTIONAL VALUE.
+     *
+     * Both are non-cash at redemption, and both must be told apart: summing
+     * them would report money owed and money given away as one obligation.
+     *
+     * Read from the LEDGER rather than from `order_payments.payment_method`.
+     * The method says "GiftCard" but cannot say which kind of card, and a row
+     * hand-entered before this feature existed carries no card at all — such a
+     * row has no ledger link, so it is correctly treated as cash and legacy
+     * reporting is left exactly as it was.
+     *
+     * Absent gracefully: if the gift-card tables have not been migrated yet
+     * (a report run mid-deploy), every payment is cash and this reduces to
+     * today's behaviour rather than failing the report.
+     *
+     * @return array<int,string>
+     */
+    private function giftCardRedemptions(Collection $paymentIds): array
+    {
+        if ($paymentIds->isEmpty() || !\Illuminate\Support\Facades\Schema::hasTable('gift_card_transactions')) {
+            return [];
+        }
+
+        return DB::table('gift_card_transactions as gct')
+            ->join('gift_cards as gc', 'gc.id', '=', 'gct.gift_card_id')
+            ->whereIn('gct.order_payment_id', $paymentIds)
+            ->where('gct.type', 'redemption')
+            ->pluck('gc.issuance_class', 'gct.order_payment_id')
+            ->map(fn ($class) => 'gift_card_'.$class)
+            ->all();
+    }
+
+    /**
      * The qualifying-payments universe (no date predicate — callers window it).
      * Both passes (window scoping and full-set fetch) share this so they see an
      * identical payment universe.
+     *
+     * NOTE ON GIFT CARDS. `GiftCard` is deliberately NOT excluded here, and
+     * must not be added to the `!=` list below. Store Credit is excluded
+     * because it is a pre-tax DISCOUNT — the order's subtotal, tax and grand
+     * total are already lower, so its payment row duplicates a reduction
+     * already recorded. A gift card reduces nothing: the order is fully priced
+     * and fully taxed, and the revenue is real. Excluding it would make
+     * allocation see a $0 order and delete both the revenue and the sales tax
+     * owed on it. The cash/revenue split is expressed on the emitted row
+     * instead — see `is_cash_tender` above.
      */
     private function qualifyingPayments(array $settledStatuses, array $filters): \Illuminate\Database\Query\Builder
     {

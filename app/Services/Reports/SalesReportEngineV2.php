@@ -208,6 +208,12 @@ class SalesReportEngineV2
         $paymentStatus = $filters['payment_status'] ?? 'paid';
         $overpayments  = 0.0;
 
+        // The POD branch below is an order-date UNCOLLECTED projection — no
+        // money has moved, so no gift card can have been redeemed in it.
+        $giftCardRedeemed          = 0.0;
+        $giftCardPurchasedRedeemed = 0.0;
+        $giftCardGrantedRedeemed   = 0.0;
+
         if ($paymentStatus === 'pod') {
             // 1-3b (POD legacy). The POD view is an operational "COD expected
             // but not yet collected" report — the cash-basis value of
@@ -264,6 +270,43 @@ class SalesReportEngineV2
             // separately, never revenue and never taxable. (Payment-level by
             // nature — an overpayment belongs to no product line.)
             $overpayments = round($rows->sum('overpayment'), 2);
+
+            // ── Non-cash tender ───────────────────────────────────────────
+            //
+            // Gift-card redemption is the mirror image of an overpayment: an
+            // overpayment is CASH THAT IS NOT REVENUE, this is REVENUE THAT IS
+            // NOT CASH. The money arrived when the card was funded, so counting
+            // it again here would report the same dollars twice.
+            //
+            // Composed exactly as gross_collections is (base + tax − discounts)
+            // and through the same scoped/unscoped accessor, so a filtered view
+            // subtracts precisely the portion of the redemption its filters
+            // admitted — never the whole payment against a partial gross.
+            $sumIf = fn (string $field, callable $keep) => round(
+                $rows->filter($keep)->sum(
+                    fn ($r) => $useScoped ? CollectedRevenueQuery::matchedLineSum($r, $field) : $r->{$field}
+                ),
+                2
+            );
+
+            $collectionsShare = fn (callable $keep) => round(
+                $sumIf('base', $keep) + $sumIf('tax', $keep)
+                    - $sumIf('discount', $keep) - $sumIf('sc_discount', $keep),
+                2
+            );
+
+            // Defaults to cash when the flag is absent, so a row produced by an
+            // older cached shape is treated exactly as it is today.
+            $isGiftCard = fn ($r, ?string $class = null) => !($r->is_cash_tender ?? true)
+                && ($class === null || ($r->non_cash_tender_class ?? null) === $class);
+
+            $giftCardRedeemed = $collectionsShare(fn ($r) => $isGiftCard($r));
+
+            // Kept apart at every level: prepaid value the business OWES is not
+            // promotional value it CHOSE TO GIVE AWAY, and one figure covering
+            // both would misstate the obligation.
+            $giftCardPurchasedRedeemed = $collectionsShare(fn ($r) => $isGiftCard($r, 'gift_card_purchased'));
+            $giftCardGrantedRedeemed   = $collectionsShare(fn ($r) => $isGiftCard($r, 'gift_card_granted'));
         }
 
         // 4. Refunds — anchored on COALESCE(refunded_at, payment_datetime, created_at) (REFUND TRANSACTION DATE)
@@ -346,7 +389,30 @@ class SalesReportEngineV2
         //    identity is Σ ledger grand_total == net_collections.
         $netSales             = $grossSales - $discounts - $refunds;
         $averageTicket        = $transactionCount > 0 ? $netSales / $transactionCount : 0;
-        $grossCollections     = $grossSales + $taxCollected - $discounts;
+
+        // Gift-card funding cash: real money, received when the card was sold,
+        // for which nothing was sold. It belongs in collections and must never
+        // reach gross_sales or tax_collected. Its own stream, so the ledger
+        // identity below still holds. See docs/gift-cards/REPORTING_TREATMENT.md.
+        $giftCard = $this->giftCardFigures($startDate, $endDate, $paymentStatus);
+
+        // ── The collections identity ──────────────────────────────────────
+        //
+        //   gross_collections = gross_sales + tax_collected − discounts
+        //                       − gift_card_redeemed          (revenue, not cash)
+        //                       + gift_card_funding           (cash, not revenue)
+        //
+        // The two gift-card terms are the whole fix, and they pull in opposite
+        // directions on purpose. Redemption is revenue whose cash arrived
+        // earlier; funding is cash for which no revenue exists yet. Each dollar
+        // is therefore counted exactly once across the card's life: as cash at
+        // funding, as revenue at redemption.
+        //
+        // Note what is NOT done here: gift-card payments are not filtered out
+        // of the allocation upstream. Doing that would delete the revenue and
+        // the sales tax with the cash.
+        $grossCollections     = $grossSales + $taxCollected - $discounts
+                                - $giftCardRedeemed + $giftCard['funding_cash'];
         $netCollections       = $grossCollections - $refunds;
         $totalCollected       = $netCollections;
         $totalAccountPayments = $accountPaymentsReceived + $accountPaymentsTax;
@@ -373,6 +439,31 @@ class SalesReportEngineV2
             // Cash collected beyond orders' canonical totals — surfaced
             // separately; deliberately NOT part of gross/net/tax/total_collected.
             'overpayments'              => $overpayments,
+
+            // ── Gift cards ────────────────────────────────────────────────
+            //
+            // Revenue that was NOT cash this period (the cash came at funding).
+            // Already removed from collections above; surfaced so the two can
+            // be reconciled rather than merely trusted.
+            'gift_card_redeemed'           => round($giftCardRedeemed, 2),
+
+            // Purchased — a liability the business OWES. Issued/redeemed are
+            // period figures; outstanding is a point-in-time balance as at the
+            // end of the window, which is what a liability actually is.
+            'gift_card_liability_issued'      => $giftCard['liability_issued'],
+            'gift_card_liability_redeemed'    => round($giftCardPurchasedRedeemed, 2),
+            'gift_card_liability_outstanding' => $giftCard['liability_outstanding'],
+
+            // Granted — merchant-funded promotion the business GAVE AWAY.
+            // Never added into the liability figures above: money owed and
+            // money given away are different obligations.
+            'promotional_value_issued'     => $giftCard['promotional_issued'],
+            'promotional_value_redeemed'   => round($giftCardGrantedRedeemed, 2),
+
+            // Real cash from card sales, already inside gross/net collections.
+            // Exposed so it can be reconciled against Stream E of the payment
+            // reconciliation ledger.
+            'gift_card_funding_cash'       => $giftCard['funding_cash'],
             'payment_status'            => $paymentStatus,
             // Accounting basis of THIS snapshot — POD is the one order-date
             // uncollected projection; everything else is payment-date cash.
@@ -583,6 +674,75 @@ class SalesReportEngineV2
      *
      * @return array{0: float, 1: float}
      */
+    /**
+     * Gift-card figures that come from the CARD LEDGER rather than from orders.
+     *
+     * Funding cash and liability movement have no order behind them — a card
+     * sale is standalone by design, precisely so it can never be mistaken for
+     * a taxable product sale. They are therefore read here, from
+     * `gift_card_transactions`, and not through CollectedRevenueQuery.
+     *
+     * `*_issued` and `funding_cash` are PERIOD figures (what happened in the
+     * window). `liability_outstanding` is a POINT-IN-TIME balance as at the end
+     * of the window — a liability is a position, not a flow, and reporting it
+     * as a period sum would make it meaningless the moment a window excludes
+     * the issuance that opened it.
+     *
+     * Voided funding is excluded throughout: a charge that was reversed is not
+     * money the business kept, and claiming it would leave Stream E expecting
+     * a settlement that will never arrive.
+     *
+     * Returns zeros when the tables do not exist, so a report run mid-deploy
+     * degrades to exactly today's behaviour instead of failing.
+     *
+     * @return array{funding_cash: float, liability_issued: float, liability_outstanding: float, promotional_issued: float}
+     */
+    private function giftCardFigures(string $startDate, string $endDate, string $paymentStatus): array
+    {
+        $zero = [
+            'funding_cash' => 0.0,
+            'liability_issued' => 0.0,
+            'liability_outstanding' => 0.0,
+            'promotional_issued' => 0.0,
+        ];
+
+        // POD is an order-date uncollected projection: no cash has moved, so no
+        // card was funded or redeemed in it.
+        if ($paymentStatus === 'pod' || !\Illuminate\Support\Facades\Schema::hasTable('gift_card_transactions')) {
+            return $zero;
+        }
+
+        $inWindow = fn ($q) => $q->whereBetween(DB::raw('DATE(gct.created_at)'), [$startDate, $endDate]);
+
+        $fundingCash = (float) $inWindow(
+            DB::table('gift_card_transactions as gct')
+                ->where('gct.type', 'issuance_purchased')
+                ->whereNull('gct.funding_voided_at')
+        )->sum('gct.funding_cash_amount');
+
+        $promotionalIssued = (float) $inWindow(
+            DB::table('gift_card_transactions as gct')->where('gct.type', 'issuance_granted')
+        )->sum('gct.amount');
+
+        // Outstanding: everything ever issued on PURCHASED cards, less
+        // everything ever taken off them, as at the end of the window. Summing
+        // signed amounts gives both in one pass — issuance is positive,
+        // redemption negative — which is also why a new transaction type can
+        // never be added on the wrong side of this figure.
+        $outstanding = (float) DB::table('gift_card_transactions as gct')
+            ->join('gift_cards as gc', 'gc.id', '=', 'gct.gift_card_id')
+            ->where('gc.issuance_class', 'purchased')
+            ->whereDate('gct.created_at', '<=', $endDate)
+            ->sum('gct.amount');
+
+        return [
+            'funding_cash' => round($fundingCash, 2),
+            'liability_issued' => round($fundingCash, 2),
+            'liability_outstanding' => round($outstanding, 2),
+            'promotional_issued' => round($promotionalIssued, 2),
+        ];
+    }
+
     private function queryStoreCreditOrderDiscounts(array $filters): array
     {
         $orderIds = $this->reporting->baseQuery($filters)
@@ -1204,6 +1364,16 @@ class SalesReportEngineV2
             'average_ticket'            => 0.0,
             'account_payments_received' => 0.0,
             'overpayments'              => 0.0,
+
+            // Present and zero, never absent — a consumer reading these keys
+            // must not have to distinguish "no gift cards" from "no data".
+            'gift_card_redeemed'              => 0.0,
+            'gift_card_liability_issued'      => 0.0,
+            'gift_card_liability_redeemed'    => 0.0,
+            'gift_card_liability_outstanding' => 0.0,
+            'promotional_value_issued'        => 0.0,
+            'promotional_value_redeemed'      => 0.0,
+            'gift_card_funding_cash'          => 0.0,
             'payment_status'            => $paymentStatus,
             'basis'                     => $paymentStatus === 'pod' ? 'order_date_expected' : 'payment_date_cash',
             'basis_label'               => self::basisLabel($paymentStatus),

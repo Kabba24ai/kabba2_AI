@@ -57,4 +57,30 @@ enum GiftCardFailure: string
     {
         return $this === self::Contended;
     }
+
+    /**
+     * The HTTP status this refusal deserves, decided HERE rather than at each
+     * endpoint.
+     *
+     * A controller judging for itself that "insufficient balance" is a 422 but
+     * "contended" is a 409 would be restating policy the domain already owns,
+     * and two endpoints would eventually disagree. Same arrangement as
+     * {@see \App\Services\Goodwill\GoodwillFailure::httpStatus()}.
+     */
+    public function httpStatus(): int
+    {
+        return match ($this) {
+            // Not the operator's to fix by editing the form.
+            self::NotAuthorized => 403,
+            self::CardNotFound => 404,
+
+            // Someone else holds the card. The same request may well succeed
+            // in a moment, so it is a conflict, not a bad request.
+            self::Contended => 409,
+            self::AlreadyInThatState => 409,
+
+            // Everything else is something about this submission.
+            default => 422,
+        };
+    }
 }

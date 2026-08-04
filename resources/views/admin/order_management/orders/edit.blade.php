@@ -2613,6 +2613,44 @@
                             placeholder="Enter Check number" />
                     </div>
 
+                    {{--
+                        Gift Card redemption (hidden by default).
+
+                        Replaces the old behaviour of typing a card number
+                        into the notes field, which recorded a payment that
+                        looked like cash to reporting and drew down no card.
+                        The number is validated against the live ledger before
+                        the operator commits to an amount.
+                    --}}
+                    <div id="giftCardField" class="mb-4 hidden">
+                        <label for="gift_card_number" class="block text-sm font-medium text-gray-700 mb-1 required">
+                            Gift Card Number
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="gift_card_number" name="gift_card_number" autocomplete="off"
+                                class="flex-1 border border-gray-300 rounded-md px-3 py-3 text-sm text-gray-700 font-mono"
+                                placeholder="GC-0000-0000" />
+                            <button type="button" id="giftCardCheckBtn"
+                                class="px-4 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap">
+                                Check Balance
+                            </button>
+                        </div>
+
+                        <div id="giftCardPinWrap" class="mt-2 hidden">
+                            <label for="gift_card_pin" class="block text-sm font-medium text-gray-700 mb-1">PIN</label>
+                            <input type="text" id="gift_card_pin" name="gift_card_pin" inputmode="numeric"
+                                maxlength="6" autocomplete="off"
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
+                                placeholder="Enter the card PIN" />
+                        </div>
+
+                        {{-- Filled from the lookup response. Read-only status,
+                             never an input the operator can talk themselves
+                             past — the authoritative check runs again under a
+                             row lock at redemption. --}}
+                        <div id="giftCardResult" class="mt-3 hidden rounded-md border px-3 py-2.5 text-sm"></div>
+                    </div>
+
                     <!-- Credit card dropdown (hidden by default) -->
                     <div id="creditCardOptions" class="hidden mt-3 ">
                         <div class="mb-4">
@@ -2842,8 +2880,21 @@
         // identical figures from scratch on submit.
         $rfSources = $rfEligiblePayments->map(function ($payment) use ($rfCcFeePercentage) {
             $isCard = $payment->payment_method === \App\Enums\Orders\OrderPaymentMethod::Card;
+
+            // Which gift card, if any, this payment drew from. Resolved from
+            // the payment's ledger link rather than its method label — the
+            // destination of a gift card refund is a fact about where the
+            // value CAME FROM, never something the operator chooses.
+            $giftCardRedemption = \App\Models\GiftCards\GiftCardTransaction::query()
+                ->where('order_payment_id', $payment->id)
+                ->where('type', \App\Enums\GiftCards\GiftCardTransactionType::Redemption->value)
+                ->with('giftCard')
+                ->first();
+
             return [
                 'id' => $payment->id,
+                'is_gift_card' => (bool) $giftCardRedemption,
+                'gift_card_number' => $giftCardRedemption?->giftCard?->card_number,
                 'method' => \App\Services\PaymentDescriptionPresenter::methodLabel($payment->payment_method),
                 'masked' => $isCard && $payment->card_number ? ('•••• ' . $payment->card_number) : null,
                 'is_card' => $isCard,
@@ -3189,6 +3240,29 @@
                             {!! html()->select('payment_type', $refundOptions)->id('refund_payment_type')->class('w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700')->required() !!}
                             <small class="text-gray-500 mt-1 block">Note: Credit/Debit Card option is only available if the
                                 initial payment was made by Credit/Debit Card.</small>
+
+                            @php
+                                // Gift-card-funded sources on this order. Value
+                                // that came off a gift card goes back onto that
+                                // gift card — anything else converts stored
+                                // value into money.
+                                $rfGiftCardSources = $rfSources->filter(fn ($s) => $s['is_gift_card']);
+                            @endphp
+                            @if ($rfGiftCardSources->isNotEmpty())
+                                <div class="mt-2 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-xs text-indigo-900">
+                                    <div class="font-semibold">This order was partly paid with a gift card.</div>
+                                    <p class="mt-1">
+                                        That value refunds back to
+                                        {{ $rfGiftCardSources->count() === 1 ? 'gift card' : 'gift cards' }}
+                                        <span class="font-mono font-semibold">{{ $rfGiftCardSources->pluck('gift_card_number')->filter()->implode(', ') }}</span>.
+                                        Choose <strong>Gift Card</strong> as the payment type.
+                                    </p>
+                                    <p class="mt-1 text-indigo-800">
+                                        Sending it to cash or a credit card would turn stored value into money, and needs
+                                        the Manual Balance Adjustment permission.
+                                    </p>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Cheque Number (hidden by default) -->
@@ -5751,19 +5825,149 @@
                 document.getElementById('opaqueDataDescriptor').value = '';
             }
 
+            // ===== Gift Card redemption =====
+            //
+            // This panel only VALIDATES. It reads the card's live balance so
+            // the cashier is not asked to guess, and it never reserves or
+            // moves value — the authoritative balance check happens again
+            // inside GiftCardService::redeem(), under a row lock, because the
+            // card may be spent at another register in between.
+            const giftCardField = document.getElementById('giftCardField');
+            const giftCardNumber = document.getElementById('gift_card_number');
+            const giftCardPinWrap = document.getElementById('giftCardPinWrap');
+            const giftCardPin = document.getElementById('gift_card_pin');
+            const giftCardResult = document.getElementById('giftCardResult');
+            const giftCardCheckBtn = document.getElementById('giftCardCheckBtn');
+
+            function resetGiftCardFields() {
+                giftCardNumber.value = '';
+                giftCardPin.value = '';
+                giftCardPinWrap.classList.add('hidden');
+                giftCardResult.classList.add('hidden');
+                giftCardResult.textContent = '';
+            }
+
+            function showGiftCardResult(tone, html) {
+                const tones = {
+                    ok: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+                    warn: 'border-amber-200 bg-amber-50 text-amber-900',
+                    bad: 'border-red-200 bg-red-50 text-red-900',
+                };
+                giftCardResult.className =
+                    'mt-3 rounded-md border px-3 py-2.5 text-sm ' + (tones[tone] || tones.warn);
+                giftCardResult.innerHTML = html;
+            }
+
+            async function checkGiftCard() {
+                const number = giftCardNumber.value.trim();
+                if (!number) {
+                    showGiftCardResult('bad', 'Enter a gift card number first.');
+                    return;
+                }
+
+                giftCardCheckBtn.disabled = true;
+                giftCardCheckBtn.textContent = 'Checking…';
+
+                try {
+                    const response = await fetch('{{ route('admin.gift-cards.lookup') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            card_number: number,
+                            pin: giftCardPin.value.trim() || null,
+                            order_unique_id: '{{ $order->unique_id }}',
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.requires_pin) {
+                        giftCardPinWrap.classList.remove('hidden');
+                        giftCardPin.focus();
+                        showGiftCardResult('warn', data.message);
+                        return;
+                    }
+
+                    if (!data.success) {
+                        showGiftCardResult('bad', data.message || 'That gift card could not be validated.');
+                        return;
+                    }
+
+                    if (!data.redeemable) {
+                        showGiftCardResult('bad',
+                            `<strong>${data.masked_number}</strong> — ${data.blocked_reason}`);
+                        return;
+                    }
+
+                    // Both bounds shown, because the cashier needs to know
+                    // which one is doing the limiting.
+                    showGiftCardResult('ok',
+                        `<div class="font-semibold">${data.masked_number} · ${data.status_label}</div>` +
+                        `<div class="mt-1">Card balance <strong>$${data.balance_formatted}</strong>` +
+                        (data.order_balance !== null ?
+                            ` · Order owes <strong>$${data.order_balance.toFixed(2)}</strong>` : '') +
+                        `</div>` +
+                        `<div class="mt-1">Most that can be applied: <strong>$${data.max_applicable.toFixed(2)}</strong></div>`
+                    );
+
+                    // A card that cannot cover the order is the ordinary
+                    // case, not an error — it just means a second tender
+                    // follows. Switch to partial and offer the applicable
+                    // maximum rather than making the cashier work it out.
+                    if (data.order_balance !== null && data.max_applicable < data.order_balance - 0.005) {
+                        paymentModePartial.checked = true;
+                        updatePaymentModeUI();
+                        if (!partialPaymentAmountInput.value) {
+                            partialPaymentAmountInput.value = data.max_applicable.toFixed(2);
+                            partialPaymentAmountInput.dispatchEvent(new Event('input'));
+                        }
+                    }
+                } catch (e) {
+                    showGiftCardResult('bad', 'Could not reach the gift card service. Try again.');
+                } finally {
+                    giftCardCheckBtn.disabled = false;
+                    giftCardCheckBtn.textContent = 'Check Balance';
+                }
+            }
+
+            giftCardCheckBtn?.addEventListener('click', checkGiftCard);
+            giftCardNumber?.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    checkGiftCard();
+                }
+            });
+
             paymentType.addEventListener('change', function() {
                 if (this.value === 'CreditCard') {
                     resetCreditCardFields();
+                    resetGiftCardFields();
                     creditCardOptions.classList.remove('hidden');
                     chequeNumberField.classList.add('hidden');
+                    giftCardField.classList.add('hidden');
                 } else if (this.value === 'Cheque') {
                     resetCreditCardFields();
+                    resetGiftCardFields();
                     creditCardOptions.classList.add('hidden');
                     chequeNumberField.classList.remove('hidden');
-                } else {
+                    giftCardField.classList.add('hidden');
+                } else if (this.value === 'GiftCard') {
                     resetCreditCardFields();
+                    resetGiftCardFields();
                     creditCardOptions.classList.add('hidden');
                     chequeNumberField.classList.add('hidden');
+                    giftCardField.classList.remove('hidden');
+                    giftCardNumber.focus();
+                } else {
+                    resetCreditCardFields();
+                    resetGiftCardFields();
+                    creditCardOptions.classList.add('hidden');
+                    chequeNumberField.classList.add('hidden');
+                    giftCardField.classList.add('hidden');
                 }
                 syncPaymentNoteRequirement();
             });
@@ -6186,6 +6390,14 @@
                         ? '<span class="inline-block mt-0.5 text-[11px] font-medium text-green-700">&#10003; Completed — locked</span>'
                         : (recoveryMode ? '<span class="inline-block mt-0.5 text-[11px] font-medium text-amber-700">Needs a source</span>' : '');
 
+                    // Name the destination card explicitly. Where gift card
+                    // value goes back to is not a choice — it is the card it
+                    // came off — so the operator should see it rather than
+                    // pick it.
+                    const giftCardNote = s.is_gift_card
+                        ? `<span class="inline-block mt-0.5 text-[11px] font-medium text-indigo-700">Refunds to gift card ${s.gift_card_number}</span>`
+                        : '';
+
                     row.innerHTML = `
                         <div class="flex-1 min-w-0">
                             <div class="font-medium text-gray-900 truncate">${label}</div>
@@ -6193,6 +6405,7 @@
                                 Paid: ${fmt(s.amount)} &middot; Already Refunded: ${fmt(s.already_refunded)} &middot; Remaining: ${fmt(s.remaining)}
                             </div>
                             ${badge}
+                            ${giftCardNote}
                         </div>
                         <div class="w-28">
                             <input type="text" inputmode="decimal"

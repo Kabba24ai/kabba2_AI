@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Cache;
 
 // Services
 use App\Services\AuthorizeNetService;
+use App\Services\GiftCards\GiftCardException;
+use App\Services\GiftCards\GiftCardService;
 
 // Requests
 use App\Http\Requests\Admin\OrderManagement\Orders\ReceivePaymentRequest;
@@ -215,7 +217,78 @@ class ReceivePaymentController extends Controller
                         );
                     }
                 }
-            }else{
+            } elseif ($paymentMethod === 'GiftCard') {
+                // ── Gift Card redemption ──────────────────────────────────
+                //
+                // A gift card is stored value with its own ledger, so it
+                // cannot be settled by writing a payment row here the way
+                // cash can. GiftCardService::redeem() is the only thing
+                // permitted to move that value: it locks the card, re-reads
+                // the balance from the LEDGER under that lock, bounds the
+                // amount by both the card and the order, writes the ordinary
+                // OrderPayment, and appends the linked ledger entry — all in
+                // one transaction.
+                //
+                // That link is what lets reporting classify this payment as
+                // non-cash later. Recording a bare GiftCard payment row here
+                // (as this branch used to, with the number typed into
+                // payment_note) would produce a payment that looks like cash
+                // to every downstream report and draws down no card at all.
+                //
+                // The service runs its own transaction. This controller's
+                // surrounding one is still open, which is safe — nested
+                // transactions become savepoints — but the service is the
+                // authority on the ordering and the locks.
+                try {
+                    $giftCardTxn = GiftCardService::redeem(
+                        card: trim($validated['gift_card_number']),
+                        order: $order,
+                        amount: $amount,
+                        idempotencyKey: $idempotencyToken ? 'gc-redeem-'.$idempotencyToken : null,
+
+                        // ATTRIBUTION vs AUTHORITY — two different people.
+                        //
+                        // $user here is the "responsible person" chosen in the
+                        // dropdown: an attribution field on the payment record,
+                        // saying whose sale this was. The person actually
+                        // performing the redemption is whoever is signed in.
+                        //
+                        // Authorization must therefore be checked against the
+                        // authenticated user. Checking the named employee
+                        // instead would fail both ways: a clerk could escalate
+                        // by naming a manager as responsible, and a legitimate
+                        // redemption would be refused whenever the named
+                        // employee happened not to hold a permission they never
+                        // needed.
+                        createdById: $user->id,
+                        note: $paymentNote,
+                        actor: auth()->user(),
+                    );
+                } catch (GiftCardException $e) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'success' => false,
+                        'code' => $e->failure?->value,
+                        'message' => $e->getMessage(),
+                    ], $e->failure?->httpStatus() ?? 422);
+                }
+
+                // redeem() created it; this controller does not create a
+                // second one.
+                $payment = $giftCardTxn->orderPayment;
+
+                // The service does not know about responsible_person or the
+                // client idempotency token — those belong to this screen, not
+                // to the gift card domain. Attached after the fact so the
+                // payment row is indistinguishable from any other tender in
+                // payment history.
+                $payment?->forceFill([
+                    'idempotency_token' => $idempotencyToken,
+                    'created_by_id' => $user->id,
+                    'created_by_type' => User::class,
+                ])->saveQuietly();
+            } else {
                 // Store Credit is NO LONGER a tender (it is a pre-tax discount
                 // via the discount engine). It is excluded from PaymentMethod
                 // options() so it can never reach this controller; its former
@@ -224,7 +297,10 @@ class ReceivePaymentController extends Controller
                     'Cash' => OrderPaymentMethod::Cash->value,
                     'Cheque' => OrderPaymentMethod::Cheque->value,
                     'TapToPay' => OrderPaymentMethod::TapToPay->value,
-                    'GiftCard' => OrderPaymentMethod::GiftCard->value,
+                    // GiftCard is absent by design — it is intercepted above
+                    // and settled through the gift card ledger. A bare
+                    // payment row here would look like cash to reporting and
+                    // would draw down no card.
                     'ZelleVenmo' => OrderPaymentMethod::ZelleVenmo->value,
                     'Other' => OrderPaymentMethod::Other->value,
                     default => null,

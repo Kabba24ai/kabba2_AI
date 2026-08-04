@@ -67,6 +67,8 @@
 
                     $tasksActive = Route::is(['admin.tasks.*']);
 
+                    $giftCardsActive = Route::is(['admin.gift-cards.*']);
+
                 @endphp
 
                 <ul class="mb-6 flex flex-col gap-4">
@@ -345,6 +347,83 @@
                                         <x-heroicon-o-wrench-screwdriver class="h-5 w-5" /> Equipment Assignments
                                     </a>
                                 </li> --}}
+                            </ul>
+                        </div>
+                    </li>
+
+                    {{--
+                        Gift Cards — administrative workspace over the
+                        stored-value engine.
+
+                        Its own top-level entry rather than a child of Orders:
+                        a gift card is a financial instrument with its own
+                        ledger, liability and lifecycle, and it exists
+                        independently of any order. It only meets an order at
+                        the moment it is redeemed.
+                    --}}
+                    <li x-data="{ open: {{ $giftCardsActive ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                            class="menu-item group flex items-center gap-3 {{ $giftCardsActive ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <x-heroicon-o-gift class="w-6 h-6" />
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Gift Cards</span>
+                            <span class="menu-item-arrow"
+                                :class="[open ? 'menu-item-arrow-inactive' : 'menu-item-arrow-active', sidebarToggle ?
+                                    'lg:hidden' : ''
+                                ]">
+                                <template x-if="!open">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
+                                </template>
+                                <template x-if="open">
+                                    <x-heroicon-o-chevron-down class="w-5 h-5" />
+                                </template>
+                            </span>
+                        </a>
+
+                        <div x-show="open" x-transition>
+                            <ul class="menu-dropdown mt-2 flex flex-col gap-1 pl-9"
+                                :class="sidebarToggle ? 'lg:hidden' : ''">
+                                <li>
+                                    <a href="{{ route('admin.gift-cards.overview') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.gift-cards.overview') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-squares-2x2 class="h-5 w-5" /> Overview
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.gift-cards.index') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.gift-cards.index') || Route::is('admin.gift-cards.show') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-rectangle-stack class="h-5 w-5" /> All Gift Cards
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.gift-cards.purchased.create') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.gift-cards.purchased.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-banknotes class="h-5 w-5" /> Sell a Gift Card
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.gift-cards.granted.create') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.gift-cards.granted.*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-sparkles class="h-5 w-5" /> Grant a Gift Card
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.gift-cards.transactions') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.gift-cards.transactions') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-queue-list class="h-5 w-5" /> Transactions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.gift-cards.reporting') }}"
+                                        class="menu-dropdown-item group
+                                        {{ Route::is('admin.gift-cards.reporting') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                        <x-heroicon-o-chart-bar class="h-5 w-5" /> Reporting
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

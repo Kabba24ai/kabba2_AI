@@ -42,6 +42,9 @@ Route::name('admin.')->group(function ($router) {
         // Order Management
         require base_path('routes/admin/order_management/routes.php');
 
+        // Gift Cards — stored-value workspace over the gift card engine
+        require base_path('routes/admin/gift_cards/routes.php');
+
         // Configurations
         require base_path('routes/admin/configurations/routes.php');
 
